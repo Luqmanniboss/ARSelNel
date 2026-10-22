@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html class="light" lang="ms">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Daftar Akaun Pelajar | ARSelNel Sains Interaktif</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind Theme Config -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#006565",
+            'primary-dark': "#004d4d",
+            'primary-light': "#76d6d5",
+            'primary-container': "#008080",
+            mint: "#91f8b8",
+            secondary: "#1960a3",
+            'secondary-light': "#7db6ff",
+            accent: "#f59e0b",
+            navy: "#0f172a",
+            background: "#f6f9fc"
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            headline: ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f6f9fc;
+    }
+    .font-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    @keyframes float-slow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+    .animate-float-slow {
+      animation: float-slow 5s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 antialiased relative">
+
+  <!-- Ambient glow orbs -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-teal-400/20 blur-3xl"></div>
+    <div class="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-blue-400/20 blur-3xl"></div>
+  </div>
+
+  <main class="min-h-screen grid lg:grid-cols-12">
+
+    <!-- Left Hero Column -->
+    <section class="relative hidden lg:flex lg:col-span-5 flex-col justify-between overflow-hidden bg-gradient-to-br from-[#004d4d] via-[#006565] to-[#0a7e80] p-12 text-white shadow-2xl">
+      <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full border-[32px] border-white/5 pointer-events-none"></div>
+
+      <!-- Brand -->
+      <a href="../halaman_utama/code.html" class="inline-flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center p-2 shadow-inner">
+          <img src="../assets/home/logo.svg" class="w-full h-full object-contain" alt="Logo"/>
+        </div>
+        <div>
+          <span class="font-headline text-2xl font-extrabold tracking-tight block leading-none">ARSelNel</span>
+          <span class="text-[11px] font-semibold text-teal-200 tracking-wider uppercase">Pendaftaran Pelajar Percuma</span>
+        </div>
+      </a>
+
+      <!-- Mascot & Message -->
+      <div class="my-auto py-8">
+        <div class="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur border border-white/20 p-4 shadow-xl flex items-center justify-center mb-6 animate-float-slow">
+          <img src="../assets/home/robot_mascot.svg" alt="Mascot" class="w-full h-full object-contain" />
+        </div>
+
+        <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-teal-100 backdrop-blur mb-4 border border-white/10">
+          <span class="w-2 h-2 rounded-full bg-mint animate-pulse"></span>
+          Akses Lengkap KSSM
+        </span>
+
+        <h1 class="font-headline text-4xl xl:text-5xl font-extrabold leading-tight text-white">
+          Sertai Ribuan Saintis Muda Hari Ini.
+        </h1>
+
+        <p class="mt-4 text-base leading-relaxed text-teal-50 opacity-90 max-w-md">
+          Daftar akaun percuma untuk membuka semua topik nota biologi, menjawab kuiz penuh, menyimpan kedudukan skor, dan meneroka mikroskop AR.
+        </p>
+
+        <div class="mt-8 p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur text-xs text-teal-50 space-y-2">
+          <p class="font-bold text-mint text-sm">Kenapa Mendaftar?</p>
+          <p>✓ Tiada sekatan soalan kuiz (Mod Tetamu hanya 3 soalan).</p>
+          <p>✓ Akses 6 topik nota sains KSSM lengkap berserta infografik.</p>
+          <p>✓ Sembang sains bersama SelBot AI tanpa had pertanyaan.</p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-teal-200">
+        <span>© 2026 ARSelNel Sains Interaktif</span>
+        <a href="login.html" class="hover:text-white underline">Log Masuk &rarr;</a>
+      </div>
+    </section>
+
+    <!-- Right Register Form Column -->
+    <section class="lg:col-span-7 flex flex-col justify-center items-center px-4 py-8 sm:px-8 md:px-14 lg:px-16 overflow-y-auto">
+      <div class="w-full max-w-lg mx-auto py-6">
+
+        <!-- Mobile header -->
+        <div class="flex items-center justify-between mb-8 lg:hidden">
+          <a href="../halaman_utama/code.html" class="flex items-center gap-2.5">
+            <img src="../assets/home/logo.svg" class="w-9 h-9" alt="ARSelNel"/>
+            <span class="font-headline text-xl font-extrabold text-primary">ARSelNel</span>
+          </a>
+          <a href="login.html" class="text-xs font-bold text-slate-600 hover:text-primary">
+            Log Masuk &rarr;
+          </a>
+        </div>
+
+        <div class="mb-6">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-800 text-xs font-bold mb-2.5">
+            <span class="material-symbols-outlined text-base">person_add</span>
+            Daftar Akaun Baru
+          </span>
+          <h2 class="font-headline text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Cipta Profil Saintis Anda
+          </h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Lengkapkan maklumat ringkas di bawah untuk memulakan sesi pembelajaran.
+          </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-xl shadow-teal-950/5">
+          <form id="register-form" class="space-y-4" onsubmit="handleRegister(event)">
+            
+            <!-- Full Name -->
+            <div>
+              <label for="reg-name" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                Nama Penuh Pelajar <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">badge</span>
+                <input 
+                  type="text" 
+                  id="reg-name" 
+                  required 
+                  placeholder="Contoh: Muhammad Harith bin Zulkifli"
+                  class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
+                />
+              </div>
+            </div>
+
+            <!-- Email & Username -->
+            <div class="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label for="reg-email" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  E-mel Pelajar <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">mail</span>
+                  <input 
+                    type="email" 
+                    id="reg-email" 
+                    required 
+                    placeholder="harith@email.com"
+                    class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="reg-username" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Nama Pengguna (Username)
+                </label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">alternate_email</span>
+                  <input 
+                    type="text" 
+                    id="reg-username" 
+                    placeholder="harithz"
+                    class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Form / Grade Dropdown (Form 1 - Form 5) -->
+            <div>
+              <label for="reg-grade" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                Tingkatan (KSSM) <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">school</span>
+                <select id="reg-grade" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition">
+                  <option value="Tingkatan 1 Al-Farabi">Tingkatan 1 (Bab 2: Sel Sebagai Unit Asas)</option>
+                  <option value="Tingkatan 2">Tingkatan 2</option>
+                  <option value="Tingkatan 3">Tingkatan 3</option>
+                  <option value="Tingkatan 4 Biologi">Tingkatan 4 (Biologi SPM)</option>
+                  <option value="Tingkatan 5 Biologi">Tingkatan 5 (Biologi SPM)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Password & Confirm Password -->
+            <div class="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label for="reg-pass" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Kata Laluan <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">lock</span>
+                  <input 
+                    type="password" 
+                    id="reg-pass" 
+                    required 
+                    minlength="6"
+                    placeholder="Min. 6 aksara"
+                    class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="reg-pass-confirm" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Sahkan Kata Laluan <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">lock_reset</span>
+                  <input 
+                    type="password" 
+                    id="reg-pass-confirm" 
+                    required 
+                    minlength="6"
+                    placeholder="Ulang kata laluan"
+                    class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Error message -->
+            <div id="error-alert" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
+              <span class="material-symbols-outlined text-lg shrink-0">error</span>
+              <span id="error-text">Sila lengkapkan maklumat.</span>
+            </div>
+
+            <!-- Submit button -->
+            <button 
+              type="submit" 
+              class="w-full py-3.5 px-6 rounded-2xl bg-[#006565] hover:bg-teal-800 text-white font-headline font-bold text-sm shadow-lg shadow-teal-950/15 transition-all flex items-center justify-center gap-2 active:scale-98"
+            >
+              <span>Daftar Akaun & Teruskan</span>
+              <span class="material-symbols-outlined text-lg">check_circle</span>
+            </button>
+          </form>
+
+          <!-- Back to login link -->
+          <div class="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
+            <span>Sudah mempunyai akaun pelajar atau guru?</span>
+            <a href="login.html" class="font-bold text-primary hover:text-teal-800 ml-1 underline underline-offset-2">
+              Log Masuk di Sini &rarr;
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Load Auth Logic -->
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+
+  <script>
+    function hideError() {
+      document.getElementById('error-alert').classList.add('hidden');
+    }
+
+    function showError(msg) {
+      document.getElementById('error-text').textContent = msg;
+      document.getElementById('error-alert').classList.remove('hidden');
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      hideError();
+
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim().toLowerCase();
+      const username = document.getElementById('reg-username').value.trim().toLowerCase() || email.split('@')[0];
+      const grade = document.getElementById('reg-grade').value;
+      const pass = document.getElementById('reg-pass').value;
+      const passConfirm = document.getElementById('reg-pass-confirm').value;
+      let sourceUser = AuthGuard.getUser();
+      if (!sourceUser) {
+        try { sourceUser = JSON.parse(sessionStorage.getItem('arselnel_local_migration_source') || 'null'); } catch (_) {}
+      }
+
+      if (pass !== passConfirm) {
+        showError('Kata laluan dan sahkan kata laluan tidak sepadan.');
+        return;
+      }
+
+      if (pass.length < 6) {
+        showError('Kata laluan mestilah sekurang-kurangnya 6 aksara.');
+        return;
+      }
+
+      const submit = document.querySelector('#register-form button[type="submit"]');
+      if (submit) submit.disabled = true;
+      try {
+        const result = await ARSupabase.signUp({ email, password: pass, fullName: name, username, className: grade });
+        if (result.session && result.user) {
+          const newUser = {
+            id: result.user.id, name, nickname: username, email, username,
+            grade, role: 'student', isGuest: false,
+            avatar: '../assets/home/avatar.svg', authProvider: 'supabase'
+          };
+          AuthGuard.saveUser(newUser, false);
+          if (sourceUser && sourceUser.role === 'student' && !sourceUser.isGuest && sourceUser.id !== result.user.id) {
+            let hasLocalLearning = false;
+            try {
+              const record = JSON.parse(localStorage.getItem(`arselnel_learning_progress_${sourceUser.id}`) || '{}');
+              const cell = JSON.parse(localStorage.getItem(`arselnel_cellquest_progress_${sourceUser.id}`) || '{}');
+              hasLocalLearning = !!((record.quizzes && record.quizzes.length) || (record.completedLessons && record.completedLessons.length) || cell.xp);
+            } catch (_) {}
+            if (hasLocalLearning && window.confirm(`Import kemajuan daripada profil setempat “${sourceUser.nickname || sourceUser.name || 'Pelajar'}” ke akaun ${email}? Rekod asal kekal pada peranti ini.`)) {
+              try { await ARSupabase.importLocalLearning(sourceUser.id); }
+              catch (error) { window.alert('Akaun berjaya dibuat, tetapi rekod setempat belum disegerakkan. Salinan asal kekal selamat pada peranti ini.'); }
+            }
+          }
+          sessionStorage.removeItem('arselnel_local_migration_source');
+          location.assign('../halaman_utama/code.html');
+          return;
+        }
+        showError('Akaun hampir siap. Buka pautan pengesahan yang dihantar ke e-mel anda, kemudian log masuk. Kata laluan tidak disimpan pada peranti ini.');
+        if (submit) submit.disabled = false;
+      } catch (error) {
+        showError(ARSupabase.friendlyError(error));
+        if (submit) submit.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

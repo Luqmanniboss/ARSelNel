@@ -1,0 +1,277 @@
+/**
+ * ARSelNel - Maze Chase 2D: Misi Sel Haiwan & Tumbuhan
+ * Dedicated Responsive Stylesheet (maze.css)
+ * Optimized for Desktop, Laptops (1366x768, 1440x900, 1920x1080), Tablets, and Mobile
+ */
+
+/* Kontena Viewport Maze Utama */
+.maze-viewport-container {
+  position: relative;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background-color: #0b1120;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.25), 0 0 20px 2px rgba(56, 189, 248, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Panel Soalan Selalu Kelihatan (Always-Visible Compact Question Panel - Task 2) */
+.maze-question-panel {
+  padding: 0.55rem 0.85rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 50%, #f0f9ff 100%);
+  border-bottom: 2px solid #cbd5e1;
+  position: relative;
+  z-index: 15;
+}
+
+.maze-question-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.maze-question-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* 4 Pilihan Jawapan Padat & Jelas */
+.maze-options-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.maze-option-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.65rem;
+  border-width: 1.5px;
+  border-style: solid;
+  font-size: 0.76rem;
+  line-height: 1.2;
+  font-weight: 600;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: transform 0.1s ease;
+  user-select: none;
+}
+
+.maze-option-badge {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 0.4rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* Floating HUD Atas Kanvas */
+.maze-hud-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.75rem;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  z-index: 10;
+}
+
+.maze-hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.6rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  line-height: 1;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.maze-hud-btn {
+  width: 1.95rem;
+  height: 1.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.55rem;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.maze-hud-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.maze-hud-btn:active {
+  transform: scale(0.95);
+}
+
+/* Kanvas Permainan Responsif (Task 3) */
+.maze-canvas-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 23 / 17;
+  max-height: calc(100vh - 210px);
+  min-height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #090d16;
+  touch-action: none;
+  user-select: none;
+}
+
+#maze-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Kawalan Skrin Sentuh (D-Pad Maya Telefon) */
+.maze-mobile-dpad {
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.6rem;
+  width: 115px;
+  height: 115px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 3px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  padding: 5px;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  z-index: 25;
+  user-select: none;
+  touch-action: none;
+}
+
+.maze-dpad-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.5rem;
+  color: #38bdf8;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  transition: background-color 0.1s ease;
+}
+
+.maze-dpad-key:active {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+/* Modals & Dialog Backdrop */
+.maze-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.maze-modal-card {
+  background: #ffffff !important;
+  opacity: 1 !important;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  border: 1px solid #cbd5e1;
+  max-width: 520px;
+  width: 100%;
+  animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#maze-preview-modal .maze-modal-card {
+  max-width: 540px;
+}
+
+@keyframes scaleUp {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Penyesuaian Responsif Telefon & Skrin Kecil */
+@media (max-width: 768px) {
+  .maze-options-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .maze-question-text {
+    font-size: 0.88rem;
+  }
+  .maze-canvas-container {
+    max-height: calc(100vh - 250px);
+  }
+}
+
+@media (max-height: 720px) {
+  .maze-question-panel {
+    padding: 0.4rem 0.65rem;
+  }
+  .maze-question-text {
+    font-size: 0.85rem;
+  }
+  .maze-options-grid {
+    margin-top: 0.25rem;
+    gap: 0.3rem;
+  }
+  .maze-option-pill {
+    padding: 0.18rem 0.35rem;
+    font-size: 0.72rem;
+  }
+  .maze-hud-bar {
+    padding: 0.25rem 0.5rem;
+  }
+  .maze-canvas-container {
+    max-height: calc(100vh - 200px);
+  }
+}

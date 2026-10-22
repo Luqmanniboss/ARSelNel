@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ms" data-page-theme="cellquest">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CellQuest AR — Realiti Terimbuh & Model Sel 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/student-shell.css"><link rel="stylesheet" href="../assets/css/cellquest.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/supabase-client.js"></script><script src="../assets/js/cms-content-adapter.js"></script><script src="../assets/js/auth-guard.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script defer src="../assets/js/student-shell.js"></script><script defer src="../assets/js/cellquest3d.js"></script><script defer src="../assets/js/cellquest-ar.js"></script>
+</head>
+<body data-page-theme="cellquest">
+<main class="cq-main">
+  <section class="cq-hero">
+    <div>
+      <span class="cq-kicker">SAINS TINGKATAN 1 • BAB 2: SEL SEBAGAI UNIT ASAS HIDUPAN</span>
+      <h1>CellQuest <span>AR</span></h1>
+      <p>Terokai struktur sel haiwan dan sel tumbuhan melalui Realiti Terimbuh (AR) kamera dan model 3D interaktif.</p>
+    </div>
+    <div class="cq-hero-orb" aria-hidden="true">🔬</div>
+  </section>
+
+  <section class="cq-action-row">
+    <button type="button" class="cq-ar-entry" id="ar-entry">
+      <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px">view_in_ar</span>
+      Mulakan Pengembaraan AR
+    </button>
+    <span class="cq-ar-status is-checking" id="ar-status" role="status" aria-live="polite">
+      <i></i>
+      <b id="ar-status-text">Sedang Memeriksa</b>
+      <span id="ar-availability">Memeriksa kesediaan kamera dan AR pada peranti ini…</span>
+    </span>
+  </section>
+
+  <div class="cq-model-tabs" role="tablist" aria-label="Pilih jenis sel">
+    <button class="cq-tab active" id="animal-tab" role="tab" aria-selected="true" data-cell="animal">🐾 Sel Haiwan</button>
+    <button class="cq-tab" id="plant-tab" role="tab" aria-selected="false" data-cell="plant">🌿 Sel Tumbuhan</button>
+  </div>
+
+  <section class="cq-layout">
+    <div class="cq-view-card">
+      <div class="cq-view-head">
+        <div>
+          <span class="cq-mini-label">MODEL 3D INTERAKTIF</span>
+          <h2 id="cell-title">Sel Haiwan</h2>
+        </div>
+        <span class="cq-drag-hint">Seret: pusing • Roda/cubit: zum • Seret kanan/dua jari: anjak</span>
+      </div>
+      <div class="cq-stage" id="cell-stage" aria-label="Model 3D sel. Seret untuk memusing dan anjak; gunakan roda atau cubit untuk zum">
+        <div class="cq-loading" id="cq-loading">Menyediakan model 3D…</div>
+        <div class="cq-label-layer" id="cq-label-layer" aria-label="Label model"></div>
+        <div class="cq-stage-caption" id="stage-caption">Keratan penerokaan sel haiwan</div>
+      </div>
+      <div class="cq-controls">
+        <button type="button" id="reset-view">⟳ Tetapkan semula</button>
+        <button type="button" id="toggle-labels" aria-pressed="true">🏷️ Sembunyikan label</button>
+        <button type="button" id="toggle-cutaway" aria-pressed="true">◐ Keratan: aktif</button>
+        <button type="button" id="toggle-pan" aria-pressed="true">✥ Anjak: aktif</button>
+      </div>
+      <p class="cq-gesture-note">Pusing 360° dengan seretan tetikus atau satu jari. Zum dengan roda tetikus atau cubit. Anjak dengan seretan kanan atau dua jari.</p>
+    </div>
+
+    <aside class="cq-info-card">
+      <div class="cq-info-top">
+        <span class="cq-organelle-icon" id="organelle-icon">🧬</span>
+        <div>
+          <span class="cq-mini-label">KENALI STRUKTUR SEL</span>
+          <h2 id="organelle-name">Pilih satu struktur</h2>
+        </div>
+      </div>
+      <p id="organelle-description" aria-live="polite">Pilih label pada model atau nama struktur dalam senarai.</p>
+      <div class="cq-fact" id="organelle-fact">💡 Model ini menunjukkan struktur secara ringkas supaya mudah diterokai.</div>
+      <div class="cq-list-heading">Struktur utama KSSM <span id="core-count"></span></div>
+      <div class="cq-organelle-list" id="core-list"></div>
+      <button class="cq-advanced-toggle" id="advanced-toggle" type="button" aria-expanded="false">＋ Struktur tambahan untuk penerokaan</button>
+      <div class="cq-advanced-note" id="advanced-note" hidden>Struktur ini menambah konteks biologi; fokus utama di sini ialah struktur sel dalam Bab 2 Tingkatan 1.</div>
+      <div class="cq-organelle-list cq-advanced-list" id="advanced-list" hidden></div>
+    </aside>
+  </section>
+
+  <footer class="cq-footer">
+    <strong>Model pendidikan yang dipermudah, bukan mengikut skala sebenar.</strong> Model menunjukkan struktur yang tidak semuanya dapat dilihat menggunakan mikroskop cahaya sekolah biasa. Saiz dan kedudukan organel dalam model bukan perbandingan skala yang tepat.
+  </footer>
+</main>
+
+<!-- Dialog Modal AR untuk Kebenaran Kamera, Ralat & Panduan -->
+<div class="cq-dialog-backdrop" id="ar-dialog" hidden>
+  <section class="cq-dialog" role="dialog" aria-modal="true" aria-labelledby="ar-dialog-title">
+    <div class="cq-dialog-icon" id="ar-dialog-icon">📷</div>
+    <h2 id="ar-dialog-title">Pengembaraan CellQuest AR</h2>
+    <p id="ar-dialog-message"></p>
+    <div class="ar-guide-note" id="ar-guide-note" hidden></div>
+    <div class="cq-dialog-actions" id="ar-dialog-actions">
+      <button type="button" id="ar-explore-3d">Terokai Sel dalam 3D</button>
+      <button type="button" id="ar-guide">Cara Menggunakan AR</button>
+      <button type="button" class="cq-ar-entry" id="ar-confirm" hidden>Mulakan AR</button>
+      <button type="button" class="cq-ar-entry" id="ar-retry" hidden>Cuba Semula</button>
+    </div>
+  </section>
+</div>
+
+<!-- Kamera AR Viewport Container (Aktif semasa mod AR Kamera / WebXR) -->
+<div id="cq-ar-container" class="cq-ar-container" hidden aria-hidden="true">
+  <video id="cq-ar-video" class="cq-ar-video" playsinline autoplay muted></video>
+  <div id="cq-ar-canvas-host" class="cq-ar-canvas-host"></div>
+  <section id="ar-overlay" class="ar-overlay" aria-label="Kawalan CellQuest AR">
+    <header class="ar-overlay-top">
+      <div class="ar-top-badge">
+        <span class="ar-mode-badge" id="ar-mode-badge">📷 Pratonton Kamera AR • Langsung</span>
+        <strong id="ar-instruction">Seret untuk pusingkan sel 3D • Cubit untuk zum • Ketik organel untuk belajar</strong>
+      </div>
+      <div class="ar-top-actions">
+        <button type="button" id="ar-flip-cam" class="ar-icon-btn" title="Tukar Kamera" hidden>
+          <span class="material-symbols-outlined">flip_camera_android</span>
+        </button>
+        <button type="button" id="ar-exit" class="ar-exit-btn" aria-label="Keluar daripada AR">
+          <span class="material-symbols-outlined" style="font-size:18px">close</span> Keluar AR
+        </button>
+      </div>
+    </header>
+    <section class="ar-overlay-bottom">
+      <div class="ar-cell-switch">
+        <button type="button" data-ar-cell="animal" class="active">🐾 Sel haiwan</button>
+        <button type="button" data-ar-cell="plant">🌿 Sel tumbuhan</button>
+      </div>
+      <div class="ar-label-list" id="ar-label-list" aria-label="Label struktur sel"></div>
+      <div class="ar-selected-info">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="ar-selected-icon">🧬</span>
+          <b id="ar-selected-name">Pilih label untuk kenali struktur</b>
+        </div>
+        <span id="ar-selected-description">Pilih mana-mana organel di atas atau klik model 3D untuk melihat fungsi dan penerangannya.</span>
+      </div>
+      <div class="ar-tools">
+        <button type="button" id="ar-place" hidden>📍 Letak sel di sini</button>
+        <button type="button" id="ar-reposition" hidden>⟲ Letak semula</button>
+        <button type="button" id="ar-smaller">− Kecil</button>
+        <button type="button" id="ar-larger">＋ Besar</button>
+        <button type="button" id="ar-rotate">⟳ Pusing</button>
+        <button type="button" id="ar-reset">⟲ Asal</button>
+      </div>
+    </section>
+  </section>
+</div>
+
+</body>
+</html>
+
+

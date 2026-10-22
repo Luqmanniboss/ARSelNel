@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html class="light" lang="ms" data-page-theme="ar">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>ARSelNel - Pengimbas AR Interaktif</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <!-- jsQR for real-time QR / Pattern Scanning -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <!-- QRCode.js for generating printable markers -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <!-- Auth Guard & Guest Restrictions -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/supabase-client.js"></script><script src="../assets/js/auth-guard.js"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#006565",
+            "primary-container": "#008080",
+            "primary-fixed": "#93f2f2",
+            "primary-fixed-dim": "#76d6d5",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#e3fffe",
+            "secondary": "#1960a3",
+            "secondary-container": "#7db6ff",
+            "on-secondary-container": "#00477f",
+            "tertiary": "#00683d",
+            "tertiary-container": "#0a844f",
+            "surface": "#f7fafc",
+            "on-surface": "#181c1e",
+            "surface-container-high": "#e5e9eb",
+            "surface-container-highest": "#e0e3e5",
+            "error": "#ba1a1a"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "3xl": "1.5rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans", "sans-serif"],
+            "body": ["Inter", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+    }
+
+    @keyframes scanbeam {
+      0% { top: 4%; opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { top: 96%; opacity: 0.2; }
+    }
+    .animate-scan {
+      animation: scanbeam 2.4s ease-in-out infinite;
+    }
+
+    @keyframes radarPulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
+    .animate-radar {
+      animation: radarPulse 2s ease-in-out infinite;
+    }
+
+    /* Sci-fi corner brackets */
+    .corner-bracket {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-color: #76d6d5;
+      transition: all 0.3s ease;
+    }
+    .corner-tl { top: -2px; left: -2px; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 12px; }
+    .corner-tr { top: -2px; right: -2px; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 12px; }
+    .corner-bl { bottom: -2px; left: -2px; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 12px; }
+    .corner-br { bottom: -2px; right: -2px; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 12px; }
+
+    /* Detected state styling */
+    .detected-mode .corner-bracket {
+      border-color: #10b981 !important;
+      filter: drop-shadow(0 0 8px #10b981);
+    }
+    .detected-mode .scanline {
+      background-color: #10b981 !important;
+      box-shadow: 0 0 16px #10b981, 0 0 32px #059669 !important;
+    }
+
+    /* Print styles for AR Marker sheet */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        color: black !important;
+        padding: 20px;
+        display: block !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+</head>
+<body class="bg-black text-white font-body min-h-screen relative overflow-x-hidden selection:bg-teal-500 selection:text-white">
+
+  <!-- REAL CAMERA FEED (FULLSCREEN BACKGROUND) -->
+  <div class="fixed inset-0 z-0 overflow-hidden bg-slate-950">
+    <!-- Camera Video Element -->
+    <video id="ar-video" autoplay playsinline muted class="w-full h-full object-cover relative z-0"></video>
+    
+    <!-- Fallback Simulated Lab Background (shown when camera is not ready or blocked) -->
+    <div id="camera-fallback-bg" class="absolute inset-0 bg-cover bg-center transition-opacity duration-700 pointer-events-none"
+         style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCAjGvvLrpm_hLVPqdUBd_Ei7V7kudAt3bXhZfhWA2g3iu7C02NuysukArmRN74D6myb9_X5rTdfbQnmsCeFnRmhypOjrSQRgg1lqYH2QUhRsl7g0leW-S6pJ3GcnVrfdfeHNpU1dRByouoERIeASXOHSNyb2RYAqtd11RQuCzwi5mqITrCUleG9dc6FdWaH_1Fggz7EwrdBXVpifvM45R616l3Imu-M078sJ8xxyGWwA7peWPf33-QiP0GNwiTfdGJZbj6GWuYTj4'); opacity: 0.4;">
+    </div>
+    
+    <!-- Sci-fi Depth Grid Overlay -->
+    <div class="absolute inset-0 bg-radial-vignette bg-black/40 pointer-events-none"></div>
+  </div>
+
+  <!-- Hidden Canvas for Video Frame Processing -->
+  <canvas id="scanner-canvas" class="hidden"></canvas>
+
+  <!-- Sticky Desktop/Mobile Navigation Header -->
+  <header class="site-header fixed top-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all duration-300 text-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <!-- Logo and Name -->
+      <a href="../halaman_utama/code.html" class="flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-teal-600 rounded-lg p-1" aria-label="ARSelNel Utama">
+        <img src="../assets/home/logo.svg" class="w-10 h-10 text-primary" alt="ARSelNel Logo" />
+        <span class="font-headline text-2xl font-extrabold text-teal-800 tracking-tight">ARSelNel</span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden lg:flex items-center gap-6 xl:gap-8">
+        <a href="../halaman_utama/code.html" class="font-headline text-base font-semibold text-slate-500 hover:text-teal-700 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Utama</a>
+        <a href="../modul_pembelajaran/code.html" class="font-headline text-base font-semibold text-slate-500 hover:text-teal-700 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Modul Pembelajaran</a>
+        <a href="../pengimbas_ar/code.html" class="font-headline text-base font-bold text-teal-700 transition-colors py-2 border-b-2 border-teal-700">Terokai AR</a>
+        <a href="../paparan_model_ar/code.html" class="font-headline text-base font-semibold text-slate-500 hover:text-teal-700 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Model 3D</a>
+        <a href="../selbot_ai/code.html" class="font-headline text-base font-semibold text-slate-500 hover:text-teal-700 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Tanya AI</a>
+        <a href="../nota_pembelajaran/code.html" class="font-headline text-base font-semibold text-slate-500 hover:text-teal-700 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Nota</a>
+        <a href="../perpustakaan_video/code.html" class="font-headline text-base font-semibold text-slate-500 hover:text-teal-700 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Video</a>
+        <a href="../hab_permainan/code.html" class="font-headline text-base font-semibold text-slate-500 hover:text-teal-700 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Permainan</a>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="flex items-center gap-3">
+        <!-- Marker Download Modal Trigger -->
+        <button id="btn-open-markers-header" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 text-xs font-bold hover:bg-teal-100 transition shadow-sm">
+          <span class="material-symbols-outlined text-base">qr_code</span>
+          <span>Penanda AR</span>
+        </button>
+
+        <!-- Student Profile -->
+        <a href="../bantuan_maklumat/code.html" class="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-50 transition-colors group" aria-label="Profil Pelajar">
+          <div class="relative w-10 h-10 rounded-full overflow-hidden border border-teal-100">
+            <img class="w-full h-full object-cover" src="../assets/home/avatar.svg" alt="Avatar Pelajar" />
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+          </div>
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-teal-700 text-lg">keyboard_arrow_down</span>
+        </a>
+
+        <!-- Mobile Menu Button -->
+        <button id="hamburger-btn" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 transition" aria-label="Menu Utama">
+          <span class="material-symbols-outlined text-2xl" id="hamburger-icon">menu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Dropdown -->
+    <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-100 bg-white/95 backdrop-blur-md px-4 py-3 shadow-xl">
+      <nav class="flex flex-col gap-2">
+        <a href="../halaman_utama/code.html" class="px-3 py-2 rounded-xl text-slate-700 font-semibold flex items-center gap-3 hover:bg-slate-50">
+          <span class="material-symbols-outlined text-xl">home</span> Utama
+        </a>
+        <a href="../modul_pembelajaran/code.html" class="px-3 py-2 rounded-xl text-slate-700 font-semibold flex items-center gap-3 hover:bg-slate-50">
+          <span class="material-symbols-outlined text-xl">science</span> Modul Pembelajaran
+        </a>
+        <a href="../pengimbas_ar/code.html" class="px-3 py-2 rounded-xl bg-teal-50 text-teal-800 font-bold flex items-center gap-3">
+          <span class="material-symbols-outlined text-xl">view_in_ar</span> Terokai AR
+        </a>
+        <a href="../paparan_model_ar/code.html" class="px-3 py-2 rounded-xl text-slate-700 font-semibold flex items-center gap-3 hover:bg-slate-50">
+          <span class="material-symbols-outlined text-xl">deployed_code</span> Model 3D Sel
+        </a>
+        <a href="../selbot_ai/code.html" class="px-3 py-2 rounded-xl text-slate-700 font-semibold flex items-center gap-3 hover:bg-slate-50">
+          <span class="material-symbols-outlined text-xl">smart_toy</span> Tanya AI
+        </a>
+        <a href="../nota_pembelajaran/code.html" class="px-3 py-2 rounded-xl text-slate-700 font-semibold flex items-center gap-3 hover:bg-slate-50">
+          <span class="material-symbols-outlined text-xl">menu_book</span> Nota
+        </a>
+        <a href="../perpustakaan_video/code.html" class="px-3 py-2 rounded-xl text-slate-700 font-semibold flex items-center gap-3 hover:bg-slate-50">
+          <span class="material-symbols-outlined text-xl">play_circle</span> Video
+        </a>
+        <a href="../hab_permainan/code.html" class="px-3 py-2 rounded-xl text-slate-700 font-semibold flex items-center gap-3 hover:bg-slate-50">
+          <span class="material-symbols-outlined text-xl">sports_esports</span> Permainan Sains
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CAMERA PERMISSION / ERROR NOTICE TOAST -->
+  <div id="camera-notice" class="fixed top-24 left-1/2 -translate-x-1/2 z-40 max-w-lg w-[92%] bg-slate-900/90 border border-teal-500/30 text-slate-100 p-3.5 rounded-2xl backdrop-blur-md shadow-2xl flex items-center justify-between gap-3 text-xs hidden">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <span class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-lg" id="camera-notice-icon">videocam_off</span>
+      </span>
+      <div class="min-w-0">
+        <strong class="font-bold block text-white" id="camera-notice-title">Kamera Sedang Dimulakan...</strong>
+        <span class="text-[11px] text-slate-300 block truncate" id="camera-notice-msg">Memeriksa kebenaran kamera pelayar</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button id="btn-request-cam" class="px-2.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold transition">
+        Kebenaran
+      </button>
+      <button onclick="document.getElementById('camera-notice').classList.add('hidden')" class="text-slate-400 hover:text-white p-1 text-base leading-none">
+        ×
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN SCANNER VIEWPORT -->
+  <main class="relative z-10 flex flex-col items-center justify-between min-h-screen pt-24 pb-10 px-4">
+    
+    <!-- Top Toolbar Controls -->
+    <div class="w-full max-w-md flex items-center justify-between mt-2 z-20">
+      <!-- Camera Status Badge -->
+      <div id="camera-status-pill" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-xs">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="font-medium text-slate-200" id="camera-status-text">Mengimbas Penanda...</span>
+      </div>
+
+      <!-- Quick Action Controls (Switch Camera, Flashlight, Marker Sheet) -->
+      <div class="flex items-center gap-2">
+        <!-- Torch Toggle Button -->
+        <button id="btn-toggle-torch" title="Lampu Suluh" class="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-slate-200 hover:text-amber-300 flex items-center justify-center transition active:scale-90">
+          <span class="material-symbols-outlined text-lg" id="torch-icon">flash_on</span>
+        </button>
+
+        <!-- Camera Facing Switch Button -->
+        <button id="btn-switch-camera" title="Tukar Kamera Hadapan / Belakang" class="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-slate-200 hover:text-teal-300 flex items-center justify-center transition active:scale-90">
+          <span class="material-symbols-outlined text-lg">flip_camera_ios</span>
+        </button>
+
+        <!-- Open Markers Sheet Modal -->
+        <button id="btn-open-markers-fab" title="Muat Turun Penanda AR" class="px-3 h-10 rounded-full bg-teal-600/80 hover:bg-teal-600 backdrop-blur-md border border-teal-400/40 text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-lg">
+          <span class="material-symbols-outlined text-base">qr_code_2</span>
+          <span class="hidden sm:inline">Penanda AR</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CENTRAL AR VIEWFINDER FRAME -->
+    <div class="flex flex-col items-center justify-center my-auto py-4 w-full">
+      
+      <!-- Instructional Floating Badge -->
+      <div class="mb-4 text-center">
+        <div class="bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-full inline-flex items-center gap-2 border border-white/15 text-xs text-slate-200 shadow-lg">
+          <span class="material-symbols-outlined text-teal-400 text-sm">filter_center_focus</span>
+          <span>Arahkan kamera ke penanda AR (QR Kod) Sel Haiwan atau Sel Tumbuhan</span>
+        </div>
+      </div>
+
+      <!-- Interactive Viewfinder Frame Box -->
+      <div id="scan-frame-box" class="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-2xl cursor-pointer group transition-all duration-300">
+        <!-- Sci-Fi Corner Brackets -->
+        <div class="corner-bracket corner-tl"></div>
+        <div class="corner-bracket corner-tr"></div>
+        <div class="corner-bracket corner-bl"></div>
+        <div class="corner-bracket corner-br"></div>
+
+        <!-- Laser Scanning Line -->
+        <div id="scanline" class="scanline absolute left-2 right-2 h-[3px] bg-teal-400 shadow-[0_0_12px_#2dd4bf,0_0_24px_#0d9488] animate-scan z-20 rounded-full"></div>
+
+        <!-- Center Aim Crosshair -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 group-hover:opacity-60 transition">
+          <div class="w-16 h-16 rounded-full border border-dashed border-teal-300 flex items-center justify-center animate-spin" style="animation-duration: 20s;">
+            <span class="material-symbols-outlined text-3xl text-teal-300">view_in_ar</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Success Feedback Overlay on Detection -->
+        <div id="scan-feedback-badge" class="hidden absolute inset-0 bg-emerald-950/85 backdrop-blur-md border-2 border-emerald-400 rounded-2xl flex flex-col items-center justify-center p-4 text-center z-30 transition-all">
+          <div class="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3 animate-bounce">
+            <span class="material-symbols-outlined text-3xl">check_circle</span>
+          </div>
+          <h3 class="font-headline font-extrabold text-lg text-white tracking-tight" id="detected-model-title">Penanda Dikesan!</h3>
+          <p class="text-xs text-emerald-200 mt-1" id="detected-model-subtitle">Membuka paparan 3D interaktif...</p>
+          <div class="w-24 h-1 bg-emerald-500/30 rounded-full mt-3 overflow-hidden">
+            <div class="w-full h-full bg-emerald-400 animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Marker Simulation Chips (Ensure testing NEVER gets stuck) -->
+      <div class="mt-6 flex flex-col items-center gap-2">
+        <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Simulasi Imbasan Tanpa Penanda Fizikal:</span>
+        <div class="flex items-center gap-2.5">
+          <button id="btn-sim-animal" class="px-4 py-2 rounded-xl bg-teal-900/70 hover:bg-teal-800 border border-teal-500/40 text-teal-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 backdrop-blur-md shadow-md">
+            <span class="material-symbols-outlined text-sm text-teal-300">pets</span>
+            <span>Imbas Sel Haiwan</span>
+          </button>
+          <button id="btn-sim-plant" class="px-4 py-2 rounded-xl bg-emerald-900/70 hover:bg-emerald-800 border border-emerald-500/40 text-emerald-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 backdrop-blur-md shadow-md">
+            <span class="material-symbols-outlined text-sm text-emerald-300">eco</span>
+            <span>Imbas Sel Tumbuhan</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM HELPER & ACTIONS -->
+    <div class="w-full max-w-md flex flex-col items-center gap-3 z-20">
+      <!-- Lighting Tip Card -->
+      <div class="flex items-center gap-3 bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl w-full border border-white/10 text-xs shadow-xl">
+        <span class="material-symbols-outlined text-amber-400 text-xl">lightbulb</span>
+        <p class="text-slate-300 text-left leading-relaxed">
+          Petua: Pastikan kamera stabil dan penanda AR berada dalam pencahayaan yang terang.
+        </p>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="grid grid-cols-2 gap-3 w-full">
+        <!-- View Marker Sheet Button -->
+        <button id="btn-open-markers-bottom" class="h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold rounded-2xl flex items-center justify-center gap-2 border border-white/20 transition active:scale-95 text-xs sm:text-sm">
+          <span class="material-symbols-outlined text-teal-400 text-lg">download</span>
+          <span>Muat Turun Penanda</span>
+        </button>
+
+        <!-- Video Guide Tutorial Button -->
+        <a href="../perpustakaan_video/code.html" class="h-12 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg transition active:scale-95 text-xs sm:text-sm">
+          <span class="material-symbols-outlined text-lg">play_circle</span>
+          <span>Cara Mengimbas</span>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- PRINTABLE / DOWNLOADABLE AR MARKERS MODAL -->
+  <div id="marker-download-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white text-slate-900 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 flex flex-col gap-6">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div>
+          <span class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 text-[11px] font-extrabold uppercase tracking-wider">Bahan Pembelajaran AR</span>
+          <h2 class="font-headline font-extrabold text-2xl text-slate-900 mt-1">Penanda AR Sains Tingkatan 1</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Imbas terus dari skrin ini atau cetak di atas kertas untuk aktiviti pembelajaran sains.</p>
+        </div>
+        <button id="btn-close-modal" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Printable Area Containing the 2 QR Markers -->
+      <div id="print-area" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        
+        <!-- MARKER 1: SEL HAIWAN -->
+        <div class="border-2 border-dashed border-teal-500/60 rounded-2xl p-5 bg-teal-50/40 flex flex-col items-center text-center">
+          <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-600 text-white text-xs font-bold mb-3">
+            <span class="material-symbols-outlined text-sm">pets</span>
+            <span>PENANDA: SEL HAIWAN</span>
+          </div>
+
+          <!-- Canvas for Sel Haiwan QR Code -->
+          <div class="p-3 bg-white rounded-xl shadow-md border border-slate-200 my-2">
+            <canvas id="qr-animal" width="180" height="180" class="w-40 h-40"></canvas>
+          </div>
+
+          <p class="font-mono text-[11px] font-bold text-teal-900 mt-2 bg-teal-100/80 px-2.5 py-1 rounded-lg">
+            MARKER_ANIMAL_CELL
+          </p>
+          <span class="text-[11px] text-slate-500 mt-1">Akses: Percuma (Semua Pengguna)</span>
+
+          <button onclick="simulateScanMarker('MARKER_ANIMAL_CELL')" class="mt-3 w-full py-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5 no-print">
+            <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
+            <span>Uji Imbasan Ini</span>
+          </button>
+        </div>
+
+        <!-- MARKER 2: SEL TUMBUHAN -->
+        <div class="border-2 border-dashed border-emerald-500/60 rounded-2xl p-5 bg-emerald-50/40 flex flex-col items-center text-center">
+          <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-700 text-white text-xs font-bold mb-3">
+            <span class="material-symbols-outlined text-sm">eco</span>
+            <span>PENANDA: SEL TUMBUHAN</span>
+          </div>
+
+          <!-- Canvas for Sel Tumbuhan QR Code -->
+          <div class="p-3 bg-white rounded-xl shadow-md border border-slate-200 my-2">
+            <canvas id="qr-plant" width="180" height="180" class="w-40 h-40"></canvas>
+          </div>
+
+          <p class="font-mono text-[11px] font-bold text-emerald-900 mt-2 bg-emerald-100/80 px-2.5 py-1 rounded-lg">
+            MARKER_PLANT_CELL
+          </p>
+          <span class="text-[11px] text-slate-500 mt-1">Akses: Pelajar Berdaftar & Guru</span>
+
+          <button onclick="simulateScanMarker('MARKER_PLANT_CELL')" class="mt-3 w-full py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5 no-print">
+            <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
+            <span>Uji Imbasan Ini</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 no-print">
+        <span class="text-xs text-slate-500 text-center sm:text-left">
+          Petua: Anda boleh membuka lembaran ini di telefon kedua atau mencetak di kertas A4.
+        </span>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button onclick="window.print()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+            <span class="material-symbols-outlined text-base">print</span>
+            <span>Cetak Penanda (A4)</span>
+          </button>
+          <button id="btn-close-modal-footer" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+            Tutup
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- Application State ---
+    let videoStream = null;
+    let currentFacingMode = 'environment';
+    let isTorchOn = false;
+    let isScanningActive = true;
+    let scanThrottleTimer = null;
+
+    const videoEl = document.getElementById('ar-video');
+    const canvasEl = document.getElementById('scanner-canvas');
+    const canvasCtx = canvasEl.getContext('2d', { willReadFrequently: true });
+    const scanFrameBox = document.getElementById('scan-frame-box');
+    const scanline = document.getElementById('scanline');
+    const cameraNotice = document.getElementById('camera-notice');
+    const cameraNoticeTitle = document.getElementById('camera-notice-title');
+    const cameraNoticeMsg = document.getElementById('camera-notice-msg');
+    const cameraNoticeIcon = document.getElementById('camera-notice-icon');
+    const btnRequestCam = document.getElementById('btn-request-cam');
+    const feedbackBadge = document.getElementById('scan-feedback-badge');
+    const detectedModelTitle = document.getElementById('detected-model-title');
+    const detectedModelSubtitle = document.getElementById('detected-model-subtitle');
+    const cameraStatusText = document.getElementById('camera-status-text');
+
+    // --- Futuristic Audio Feedback (Web Audio API) ---
+    function playSciFiAudio(isSuccess = true) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (isSuccess) {
+          // Double futuristic high-frequency chime
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.08); // A5
+          osc.frequency.exponentialRampToValueAtTime(1174.66, now + 0.22); // D6
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        } else {
+          // Warning low frequency tone
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(329.63, now);
+          osc.frequency.linearRampToValueAtTime(220, now + 0.25);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      } catch (e) {
+        console.warn('Audio playback not supported or user interaction pending', e);
+      }
+    }
+
+    // --- Camera Initialization & Management ---
+    async function startCamera() {
+      // Stop any existing tracks
+      stopCameraTracks();
+
+      try {
+        cameraNotice.classList.add('hidden');
+        cameraStatusText.textContent = 'Menghubungkan Kamera...';
+
+        const constraints = {
+          audio: false,
+          video: {
+            facingMode: { ideal: currentFacingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Pelayar ini tidak menyokong navigator.mediaDevices.getUserMedia.');
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoStream = stream;
+        videoEl.srcObject = stream;
+        await videoEl.play();
+
+        cameraStatusText.textContent = 'Kamera Aktif • Mengimbas...';
+        document.getElementById('camera-fallback-bg').style.opacity = '0';
+
+        // Check torch capability
+        checkTorchCapability();
+
+        // Start Scanner processing loop
+        isScanningActive = true;
+        startScannerLoop();
+
+      } catch (err) {
+        console.warn('Camera access unavailable or denied:', err);
+        cameraStatusText.textContent = 'Mod Simulasi (Kamera Tiada)';
+        showCameraNotice(
+          'Akses Kamera Dihadkan',
+          'Pelayar memerlukan HTTPS / kebenaran kamera. Anda masih boleh menggunakan butang Simulasi Imbasan.',
+          'videocam_off'
+        );
+        // Fade in fallback backdrop
+        document.getElementById('camera-fallback-bg').style.opacity = '0.5';
+      }
+    }
+
+    function stopCameraTracks() {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+      }
+    }
+
+    function showCameraNotice(title, msg, icon) {
+      cameraNoticeTitle.textContent = title;
+      cameraNoticeMsg.textContent = msg;
+      cameraNoticeIcon.textContent = icon || 'info';
+      cameraNotice.classList.remove('hidden');
+    }
+
+    // Camera Switch Front/Back
+    document.getElementById('btn-switch-camera').addEventListener('click', async () => {
+      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+      await startCamera();
+    });
+
+    // Flashlight / Torch Toggle
+    async function checkTorchCapability() {
+      const btnTorch = document.getElementById('btn-toggle-torch');
+      if (!videoStream) return;
+      const track = videoStream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+      if (capabilities.torch) {
+        btnTorch.classList.remove('opacity-40');
+      } else {
+        btnTorch.classList.add('opacity-40');
+      }
+    }
+
+    document.getElementById('btn-toggle-torch').addEventListener('click', async () => {
+      if (!videoStream) return;
+      const track = videoStream.getVideoTracks()[0];
+      try {
+        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+        if (!capabilities.torch) {
+          alert('Lampu suluh tidak disokong pada kamera atau peranti ini.');
+          return;
+        }
+        isTorchOn = !isTorchOn;
+        await track.applyConstraints({
+          advanced: [{ torch: isTorchOn }]
+        });
+        document.getElementById('torch-icon').textContent = isTorchOn ? 'flash_off' : 'flash_on';
+      } catch (e) {
+        console.warn('Torch control failed:', e);
+      }
+    });
+
+    btnRequestCam.addEventListener('click', () => {
+      startCamera();
+    });
+
+    // --- jsQR Scanner Processing Loop ---
+    function startScannerLoop() {
+      if (!isScanningActive) return;
+
+      if (videoEl.readyState === videoEl.HAVE_ENOUGH_DATA) {
+        canvasEl.width = videoEl.videoWidth || 640;
+        canvasEl.height = videoEl.videoHeight || 480;
+        canvasCtx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+
+        // Crop center area corresponding to viewfinder for faster performance
+        const cropSize = Math.min(canvasEl.width, canvasEl.height) * 0.75;
+        const cropX = (canvasEl.width - cropSize) / 2;
+        const cropY = (canvasEl.height - cropSize) / 2;
+
+        const imageData = canvasCtx.getImageData(cropX, cropY, cropSize, cropSize);
+
+        if (window.jsQR) {
+          const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert"
+          });
+
+          if (code && code.data) {
+            handleMarkerDetected(code.data);
+            return; // Pause scanning on match
+          }
+        }
+      }
+
+      requestAnimationFrame(startScannerLoop);
+    }
+
+    // --- Marker Detection & Redirection Routing ---
+    function handleMarkerDetected(rawValue) {
+      if (!isScanningActive) return;
+      isScanningActive = false;
+
+      const markerStr = String(rawValue).toUpperCase();
+      console.log('AR Marker Matched:', markerStr);
+
+      if (markerStr.includes('PLANT') || markerStr.includes('TUMBUHAN')) {
+        // SEL TUMBUHAN DETECTED
+        // Check Guest Mode Guard
+        if (window.AuthGuard && window.AuthGuard.isGuest()) {
+          playSciFiAudio(false);
+          scanFrameBox.classList.add('detected-mode');
+          showDetectionBadge('Sel Tumbuhan Dikesan', 'Akses terhad untuk Mod Tetamu...');
+
+          setTimeout(() => {
+            feedbackBadge.classList.add('hidden');
+            scanFrameBox.classList.remove('detected-mode');
+            window.AuthGuard.showGuestLimitModal(
+              'Model AR Sel Tumbuhan',
+              'Sebagai pengguna <strong>Mod Tetamu</strong>, anda hanya dibenarkan mengimbas 1 model AR (Sel Haiwan). Sila daftar akaun percuma untuk membuka semua penanda dan paparan 3D interaktif!'
+            );
+            // Allow re-scanning after modal closed
+            isScanningActive = true;
+            startScannerLoop();
+          }, 900);
+          return;
+        }
+
+        // Student/Admin Access Granted
+        playSciFiAudio(true);
+        triggerSuccessFeedback('Sel Tumbuhan', '../paparan_model_ar/code.html?model=plant');
+
+      } else {
+        // SEL HAIWAN DETECTED (or default marker)
+        playSciFiAudio(true);
+        triggerSuccessFeedback('Sel Haiwan', '../paparan_model_ar/code.html?model=animal');
+      }
+    }
+
+    function showDetectionBadge(title, subtitle) {
+      detectedModelTitle.textContent = title;
+      detectedModelSubtitle.textContent = subtitle;
+      feedbackBadge.classList.remove('hidden');
+    }
+
+    function triggerSuccessFeedback(cellName, targetUrl) {
+      scanFrameBox.classList.add('detected-mode');
+      showDetectionBadge(`✓ Penanda: ${cellName}`, 'Memuatkan Model 3D Interaktif...');
+      
+      // Short delay for visual delight before navigation
+      setTimeout(() => {
+        window.location.href = targetUrl;
+      }, 950);
+    }
+
+    // --- Simulation & Click Triggers ---
+    window.simulateScanMarker = function(markerCode) {
+      document.getElementById('marker-download-modal').classList.add('hidden');
+      handleMarkerDetected(markerCode);
+    };
+
+    document.getElementById('btn-sim-animal').addEventListener('click', () => {
+      handleMarkerDetected('MARKER_ANIMAL_CELL');
+    });
+
+    document.getElementById('btn-sim-plant').addEventListener('click', () => {
+      handleMarkerDetected('MARKER_PLANT_CELL');
+    });
+
+    scanFrameBox.addEventListener('click', () => {
+      // Clicking viewfinder triggers animal cell simulation by default
+      handleMarkerDetected('MARKER_ANIMAL_CELL');
+    });
+
+    // --- QR Code Generation in Printable Modal ---
+    function renderModalQRCodes() {
+      if (window.QRCode) {
+        // Animal Cell QR
+        QRCode.toCanvas(document.getElementById('qr-animal'), 'MARKER_ANIMAL_CELL', {
+          width: 170,
+          margin: 1,
+          color: { dark: '#004f4f', light: '#ffffff' }
+        }, (err) => { if (err) console.error(err); });
+
+        // Plant Cell QR
+        QRCode.toCanvas(document.getElementById('qr-plant'), 'MARKER_PLANT_CELL', {
+          width: 170,
+          margin: 1,
+          color: { dark: '#00522f', light: '#ffffff' }
+        }, (err) => { if (err) console.error(err); });
+      }
+    }
+
+    // Modal Opening & Closing
+    const markerModal = document.getElementById('marker-download-modal');
+    function openMarkerModal() {
+      renderModalQRCodes();
+      markerModal.classList.remove('hidden');
+    }
+    function closeMarkerModal() {
+      markerModal.classList.add('hidden');
+    }
+
+    document.getElementById('btn-open-markers-header')?.addEventListener('click', openMarkerModal);
+    document.getElementById('btn-open-markers-fab')?.addEventListener('click', openMarkerModal);
+    document.getElementById('btn-open-markers-bottom')?.addEventListener('click', openMarkerModal);
+    document.getElementById('btn-close-modal')?.addEventListener('click', closeMarkerModal);
+    document.getElementById('btn-close-modal-footer')?.addEventListener('click', closeMarkerModal);
+
+    // Close on clicking backdrop
+    markerModal.addEventListener('click', (e) => {
+      if (e.target === markerModal) closeMarkerModal();
+    });
+
+    // --- Navigation & UI Handlers ---
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+
+    hamburgerBtn.addEventListener('click', () => {
+      const isExpanded = mobileMenu.classList.contains('hidden');
+      if (isExpanded) {
+        mobileMenu.classList.remove('hidden');
+        hamburgerIcon.textContent = 'close';
+      } else {
+        mobileMenu.classList.add('hidden');
+        hamburgerIcon.textContent = 'menu';
+      }
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!hamburgerBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+        mobileMenu.classList.add('hidden');
+        hamburgerIcon.textContent = 'menu';
+      }
+    });
+
+    // Initialize Camera on Page Load
+    window.addEventListener('DOMContentLoaded', () => {
+      startCamera();
+      renderModalQRCodes();
+    });
+
+    // Clean up tracks when navigating away
+    window.addEventListener('beforeunload', () => {
+      stopCameraTracks();
+    });
+  </script>
+  <script src="../assets/js/student-shell.js"></script>
+</body>
+</html>

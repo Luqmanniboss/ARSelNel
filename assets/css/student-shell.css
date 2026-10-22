@@ -1,0 +1,1307 @@
+/* ==========================================================================
+   ARSelNel Centralized Theme & Page-Based Color Identity System
+   student-shell.css
+   ========================================================================== */
+
+:root {
+  /* Brand foundation tokens */
+  --brand-primary: #2563eb;
+  --brand-secondary: #14b8a6;
+  --ars-blue: #2563eb;
+  --ars-teal: #14b8a6;
+  --ars-yellow: #facc15;
+  --ars-orange: #f97316;
+  --ars-purple: #8b5cf6;
+  --ars-cyan: #06b6d4;
+  --ars-green: #10b981;
+  --ars-pink: #ec4899;
+  --ars-indigo: #6366f1;
+  --ars-canvas: #f0f7ff;
+  --ars-ink: #1e293b;
+  --ars-sidebar-width: 264px;
+  --ars-sidebar-bg: #ffffff;
+  --ars-sidebar-border: #e2eaf4;
+
+  /* Default Theme Tokens (Fallback to Dashboard Brand Blue) */
+  --page-primary: #2563eb;
+  --page-primary-hover: #1d4ed8;
+  --page-primary-contrast: #ffffff;
+  --page-soft: #eff6ff;
+  --page-soft-alt: #dbeafe;
+  --page-soft-nav: #eff6ff;
+  --page-surface: #ffffff;
+  --page-border: #dbeafe;
+  --page-border-subtle: #e2eaf4;
+  --page-border-strong: #93c5fd;
+  --page-text-accent: #1d4ed8;
+  --page-gradient: linear-gradient(120deg, #2563eb 0%, #168da7 58%, #14b8a6 100%);
+  --page-glow: rgba(37, 99, 235, 0.16);
+  --page-button-bg: linear-gradient(110deg, #2563eb, #14b8a6);
+}
+
+/* --------------------------------------------------------------------------
+   MODULE 1 — Dashboard: Existing Brand Blue
+   -------------------------------------------------------------------------- */
+[data-page-theme="dashboard"],
+[data-page-theme="home"] {
+  --page-primary: #2563eb;
+  --page-primary-hover: #1d4ed8;
+  --page-primary-contrast: #ffffff;
+  --page-soft: #eff6ff;
+  --page-soft-alt: #dbeafe;
+  --page-soft-nav: #eff6ff;
+  --page-surface: #ffffff;
+  --page-border: #dbeafe;
+  --page-border-subtle: #e2eaf4;
+  --page-border-strong: #93c5fd;
+  --page-text-accent: #1d4ed8;
+  --page-gradient: linear-gradient(120deg, #2563eb 0%, #168da7 58%, #14b8a6 100%);
+  --page-glow: rgba(37, 99, 235, 0.16);
+  --page-button-bg: linear-gradient(110deg, #2563eb, #14b8a6);
+}
+
+/* --------------------------------------------------------------------------
+   MODULE 2 — Nota / Smart Notes: Distinct Yellow Educational Theme (#FACC15)
+   -------------------------------------------------------------------------- */
+[data-page-theme="notes"],
+[data-page-theme="nota"] {
+  --page-primary: #facc15;
+  --page-primary-hover: #eab308;
+  --page-primary-contrast: #78350f; /* Dark brown text for high contrast */
+  --page-soft: #fffbeb;             /* Soft cream Layer 1 */
+  --page-soft-alt: #fef08a;
+  --page-soft-nav: #fef9c3;
+  --page-surface: #ffffff;
+  --page-border: #fde68a;
+  --page-border-subtle: #fef08a;
+  --page-border-strong: #f59e0b;
+  --page-text-accent: #78350f;       /* Dark brown text for high readability */
+  --page-gradient: linear-gradient(115deg, #fff3b0 0%, #fde68a 55%, #facc15 100%);
+  --page-glow: rgba(250, 204, 21, 0.25);
+  --page-button-bg: linear-gradient(110deg, #facc15, #f59e0b);
+}
+
+/* --------------------------------------------------------------------------
+   MODULE 3 — Video: Distinct Orange Multimedia Theme (#F97316)
+   -------------------------------------------------------------------------- */
+[data-page-theme="video"],
+[data-page-theme="videos"] {
+  --page-primary: #f97316;
+  --page-primary-hover: #ea580c;
+  --page-primary-contrast: #ffffff;
+  --page-soft: #fff7ed;             /* Soft peach Layer 1 */
+  --page-soft-alt: #ffedd5;
+  --page-soft-nav: #ffedd5;
+  --page-surface: #ffffff;
+  --page-border: #fed7aa;
+  --page-border-subtle: #ffedd5;
+  --page-border-strong: #fb923c;
+  --page-text-accent: #c2410c;
+  --page-gradient: linear-gradient(115deg, #c2410c 0%, #ea580c 48%, #fb923c 100%);
+  --page-glow: rgba(249, 115, 22, 0.25);
+  --page-button-bg: linear-gradient(110deg, #f97316, #ea580c);
+}
+
+/* --------------------------------------------------------------------------
+   MODULE 4 — CellQuest / 3D Exploration: Purple (#8B5CF6)
+   -------------------------------------------------------------------------- */
+[data-page-theme="cellquest"] {
+  --page-primary: #8b5cf6;
+  --page-primary-hover: #7c3aed;
+  --page-primary-contrast: #ffffff;
+  --page-soft: #f5f3ff;             /* Pale lavender Layer 1 */
+  --page-soft-alt: #ede9fe;
+  --page-soft-nav: #f3e8ff;
+  --page-surface: #ffffff;
+  --page-border: #ddd6fe;
+  --page-border-subtle: #ede9fe;
+  --page-border-strong: #a78bfa;
+  --page-text-accent: #6d28d9;
+  --page-gradient: linear-gradient(115deg, #4c1d95 0%, #6d28d9 45%, #8b5cf6 80%, #06b6d4 100%);
+  --page-glow: rgba(139, 92, 246, 0.22);
+  --page-button-bg: linear-gradient(110deg, #8b5cf6, #7c3aed);
+}
+
+/* --------------------------------------------------------------------------
+   MODULE 5 — AR Scanner / AR Viewer: Cyan (#06B6D4)
+   -------------------------------------------------------------------------- */
+[data-page-theme="ar"] {
+  --page-primary: #06b6d4;
+  --page-primary-hover: #0891b2;
+  --page-primary-contrast: #ffffff;
+  --page-soft: #ecfeff;             /* Pale cyan Layer 1 */
+  --page-soft-alt: #cffafe;
+  --page-soft-nav: #cffafe;
+  --page-surface: #ffffff;
+  --page-border: #a5f3fc;
+  --page-border-subtle: #cffafe;
+  --page-border-strong: #22d3ee;
+  --page-text-accent: #0e7490;
+  --page-gradient: linear-gradient(120deg, #0e7490 0%, #0891b2 50%, #06b6d4 100%);
+  --page-glow: rgba(6, 182, 212, 0.22);
+  --page-button-bg: linear-gradient(110deg, #06b6d4, #0891b2);
+}
+
+/* --------------------------------------------------------------------------
+   MODULE 6 — Quiz / Games: Green (#10B981)
+   -------------------------------------------------------------------------- */
+[data-page-theme="games"],
+[data-page-theme="quiz"],
+[data-page-theme="kuiz"] {
+  --page-primary: #10b981;
+  --page-primary-hover: #059669;
+  --page-primary-contrast: #ffffff;
+  --page-soft: #ecfdf5;             /* Pale mint Layer 1 */
+  --page-soft-alt: #d1fae5;
+  --page-soft-nav: #d1fae5;
+  --page-surface: #ffffff;
+  --page-border: #a7f3d0;
+  --page-border-subtle: #d1fae5;
+  --page-border-strong: #34d399;
+  --page-text-accent: #047857;
+  --page-gradient: linear-gradient(120deg, #064e3b 0%, #047857 50%, #10b981 100%);
+  --page-glow: rgba(16, 185, 129, 0.22);
+  --page-button-bg: linear-gradient(110deg, #10b981, #059669);
+}
+
+/* --------------------------------------------------------------------------
+   MODULE 7 — SelBot AI: Pink (#EC4899)
+   -------------------------------------------------------------------------- */
+[data-page-theme="ai"],
+[data-page-theme="selbot"] {
+  --page-primary: #ec4899;
+  --page-primary-hover: #db2777;
+  --page-primary-contrast: #ffffff;
+  --page-soft: #fdf2f8;             /* Pale pink Layer 1 */
+  --page-soft-alt: #fce7f3;
+  --page-soft-nav: #fce7f3;
+  --page-surface: #ffffff;
+  --page-border: #fbcfe8;
+  --page-border-subtle: #fce7f3;
+  --page-border-strong: #f472b6;
+  --page-text-accent: #9d174d;       /* Dark pink text for high readability */
+  --page-gradient: linear-gradient(120deg, #831843 0%, #be185d 50%, #ec4899 100%);
+  --page-glow: rgba(236, 72, 153, 0.22);
+  --page-button-bg: linear-gradient(110deg, #ec4899, #db2777);
+}
+
+/* --------------------------------------------------------------------------
+   MODULE 8 — Profile / Settings / Help: Indigo (#6366F1)
+   -------------------------------------------------------------------------- */
+[data-page-theme="profile"],
+[data-page-theme="settings"],
+[data-page-theme="help"] {
+  --page-primary: #6366f1;
+  --page-primary-hover: #4f46e5;
+  --page-primary-contrast: #ffffff;
+  --page-soft: #eef2ff;             /* Pale indigo Layer 1 */
+  --page-soft-alt: #e0e7ff;
+  --page-soft-nav: #e0e7ff;
+  --page-surface: #ffffff;
+  --page-border: #c7d2fe;
+  --page-border-subtle: #e0e7ff;
+  --page-border-strong: #818cf8;
+  --page-text-accent: #4338ca;
+  --page-gradient: linear-gradient(120deg, #3730a3 0%, #4338ca 50%, #6366f1 100%);
+  --page-glow: rgba(99, 102, 241, 0.22);
+  --page-button-bg: linear-gradient(110deg, #6366f1, #4f46e5);
+}
+
+/* --------------------------------------------------------------------------
+   Dark Mode Adaptive Tokens
+   -------------------------------------------------------------------------- */
+body.ars-dark[data-page-theme],
+.ars-dark [data-page-theme] {
+  --page-surface: #172438;
+  --page-border: #2b3d54;
+  --page-border-subtle: #1e2e42;
+  --page-border-strong: #3b5270;
+}
+body.ars-dark[data-page-theme="dashboard"],
+.ars-dark [data-page-theme="dashboard"] {
+  --page-soft: #0e192c;
+  --page-soft-nav: #16243b;
+  --page-text-accent: #93c5fd;
+}
+body.ars-dark[data-page-theme="notes"],
+.ars-dark [data-page-theme="notes"] {
+  --page-soft: #1d1808;
+  --page-soft-nav: #2d240d;
+  --page-text-accent: #fde047;
+  --page-primary-contrast: #1e293b;
+}
+body.ars-dark[data-page-theme="video"],
+.ars-dark [data-page-theme="video"] {
+  --page-soft: #1c1209;
+  --page-soft-nav: #2c1a0e;
+  --page-text-accent: #fdba74;
+}
+body.ars-dark[data-page-theme="cellquest"],
+.ars-dark [data-page-theme="cellquest"] {
+  --page-soft: #16112a;
+  --page-soft-nav: #231b40;
+  --page-text-accent: #c4b5fd;
+}
+body.ars-dark[data-page-theme="ar"],
+.ars-dark [data-page-theme="ar"] {
+  --page-soft: #0b1a20;
+  --page-soft-nav: #122832;
+  --page-text-accent: #67e8f9;
+}
+body.ars-dark[data-page-theme="games"],
+.ars-dark [data-page-theme="games"] {
+  --page-soft: #0a1c14;
+  --page-soft-nav: #112c20;
+  --page-text-accent: #6ee7b7;
+}
+body.ars-dark[data-page-theme="ai"],
+.ars-dark [data-page-theme="ai"] {
+  --page-soft: #200d18;
+  --page-soft-nav: #301424;
+  --page-text-accent: #f9a8d4;
+}
+body.ars-dark[data-page-theme="profile"],
+body.ars-dark[data-page-theme="settings"],
+body.ars-dark[data-page-theme="help"],
+.ars-dark [data-page-theme="profile"],
+.ars-dark [data-page-theme="settings"],
+.ars-dark [data-page-theme="help"] {
+  --page-soft: #11142a;
+  --page-soft-nav: #1c2042;
+  --page-text-accent: #a5b4fc;
+}
+
+/* --------------------------------------------------------------------------
+   Core Shell Layout & Backgrounds
+   -------------------------------------------------------------------------- */
+html { scroll-padding-top: 90px; }
+body.ars-student-shell {
+  --tw-bg-opacity: 1;
+  background: var(--page-soft, var(--ars-canvas)) !important;
+  color: var(--ars-ink);
+  min-height: 100vh;
+  transition: background-color .25s ease;
+}
+.ars-student-shell *, .ars-student-shell *::before, .ars-student-shell *::after { box-sizing: border-box; }
+.ars-student-shell .site-header { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   Smart Active Sidebar Navigation
+   -------------------------------------------------------------------------- */
+.ars-sidebar {
+  position: fixed; z-index: 80; inset: 0 auto 0 0; width: var(--ars-sidebar-width);
+  min-height: 100vh;
+  display: flex; flex-direction: column; padding: 22px 16px 16px;
+  background-color: var(--ars-sidebar-bg, #ffffff);
+  background-image: url("../../background/sidebarbg.png?v=2");
+  background-size: cover;
+  background-position: left top;
+  background-repeat: no-repeat;
+  border-right: 1px solid var(--ars-sidebar-border, #e2eaf4);
+  box-shadow: 8px 0 30px rgba(30, 64, 110, .04);
+  transition: width .25s ease, transform .25s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.ars-sidebar::-webkit-scrollbar { width: 5px; }
+.ars-sidebar::-webkit-scrollbar-track { background: transparent; }
+.ars-sidebar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 999px; }
+
+.ars-brand { display: flex; align-items: center; gap: 11px; min-height: 50px; padding: 0 9px 20px; color: var(--ars-ink); text-decoration: none; }
+.ars-brand img { width: 40px; height: 40px; object-fit: contain; }
+.ars-brand strong { font: 800 21px/1.1 'Plus Jakarta Sans', sans-serif; letter-spacing: -.04em; color: #2563eb; }
+.ars-brand small { display: block; margin-top: 4px; font: 600 10px/1 'Inter', sans-serif; color: #64748b; letter-spacing: .08em; text-transform: uppercase; }
+.ars-nav-label { padding: 15px 11px 8px; color: #64748b; font: 700 10px/1 'Inter', sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.ars-nav { display: grid; gap: 5px; }
+
+/* Sidebar Individual Navigation Link Colors & Hovers */
+.ars-nav a[data-nav-id="home"] { --item-color: #2563eb; --item-soft: #eff6ff; --item-text: #1d4ed8; }
+.ars-nav a[data-nav-id="notes"] { --item-color: #facc15; --item-soft: #fef9c3; --item-text: #854d0e; }
+.ars-nav a[data-nav-id="videos"],
+.ars-nav a[data-nav-id="video"] { --item-color: #f97316; --item-soft: #ffedd5; --item-text: #c2410c; }
+.ars-nav a[data-nav-id="cellquest"] { --item-color: #8b5cf6; --item-soft: #f5f3ff; --item-text: #6d28d9; }
+.ars-nav a[data-nav-id="ar"] { --item-color: #06b6d4; --item-soft: #ecfeff; --item-text: #0e7490; }
+.ars-nav a[data-nav-id="games"] { --item-color: #10b981; --item-soft: #ecfdf5; --item-text: #047857; }
+.ars-nav a[data-nav-id="ai"] { --item-color: #ec4899; --item-soft: #fdf2f8; --item-text: #9d174d; }
+.ars-side-profile, .ars-side-settings { --item-color: #6366f1; --item-soft: #eef2ff; --item-text: #4338ca; }
+
+.ars-nav a, .ars-side-profile, .ars-side-logout {
+  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 12px; border-radius: 13px;
+  color: #334155; font: 650 13px/1.2 'Inter', sans-serif; text-decoration: none;
+  position: relative;
+  transition: background .18s, color .18s, transform .18s, box-shadow .18s, border-color .18s;
+}
+
+/* Subtle translucent surface for inactive items over the background graphic */
+.ars-nav a:not([aria-current="page"]) {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(226, 234, 244, 0.55);
+}
+
+/* Hover state on non-active items reflects each destination's personality */
+.ars-nav a:not([aria-current="page"]):hover {
+  background: var(--item-soft, #eff6ff) !important;
+  color: var(--item-text, #2563eb) !important;
+  border-color: var(--item-color, #2563eb) !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+  transform: translateX(3px);
+}
+.ars-nav a:not([aria-current="page"]):hover .material-symbols-outlined {
+  color: var(--item-text, #2563eb);
+}
+.ars-side-profile:not([aria-current="page"]):hover,
+.ars-side-settings:not([aria-current="page"]):hover {
+  background: #eef2ff !important;
+  color: #4338ca !important;
+  border-color: #c7d2fe !important;
+  transform: translateX(3px);
+}
+.ars-side-profile:not([aria-current="page"]):hover .material-symbols-outlined,
+.ars-side-settings:not([aria-current="page"]):hover .material-symbols-outlined {
+  color: #4338ca;
+}
+
+/* Active navigation item styling: adaptive to the current page theme */
+.ars-nav a[aria-current="page"],
+.ars-side-profile[aria-current="page"],
+.ars-side-settings[aria-current="page"] {
+  color: var(--page-text-accent) !important;
+  background: var(--page-soft-nav) !important;
+  border: 1px solid var(--page-border, #dbeafe) !important;
+  box-shadow: inset 4px 0 0 var(--page-primary), 0 4px 14px var(--page-glow) !important;
+  font-weight: 750;
+  position: relative;
+}
+.ars-nav a[aria-current="page"] .material-symbols-outlined,
+.ars-side-settings[aria-current="page"] .material-symbols-outlined {
+  color: var(--page-text-accent) !important;
+}
+
+/* Small active indicator dot on the right edge */
+.ars-nav a[aria-current="page"]::after,
+.ars-side-settings[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--page-primary);
+  box-shadow: 0 0 8px var(--page-glow);
+}
+.ars-collapsed .ars-nav a[aria-current="page"]::after,
+.ars-collapsed .ars-side-settings[aria-current="page"]::after {
+  display: none;
+}
+
+.ars-nav .material-symbols-outlined { font-size: 21px; color: #6b8db8; transition: color .18s; }
+.ars-side-bottom { margin-top: auto; border-top: 1px solid var(--ars-sidebar-border, #edf1f6); padding-top: 12px; }
+.ars-side-profile {
+  min-height: 54px; color: #334155;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(226, 234, 244, 0.7);
+  box-shadow: 0 2px 8px rgba(30, 64, 110, 0.03);
+}
+.ars-side-profile img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #eaf2ff; }
+.ars-side-profile span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ars-side-profile small { display: block; margin-top: 3px; color: #64748b; font-size: 10px; }
+.ars-side-settings {
+  display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 13px;
+  color: #334155; font: 650 13px/1.2 'Inter', sans-serif; text-decoration: none; position: relative;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(226, 234, 244, 0.55);
+  margin-top: 5px;
+  transition: background .18s, color .18s, transform .18s, border-color .18s;
+}
+.ars-side-settings .material-symbols-outlined { font-size: 21px; color: #6b8db8; }
+.ars-side-logout {
+  width: 100%; border: 1px solid transparent; background: rgba(255, 255, 255, 0.5); cursor: pointer; color: #ef4444; margin-top: 5px;
+}
+.ars-side-logout:hover { background: #fef2f2; border-color: #fee2e2; color: #dc2626; transform: translateX(3px); }
+.ars-side-logout .material-symbols-outlined { font-size: 20px; }
+
+/* --------------------------------------------------------------------------
+   Page Header & Topbar
+   -------------------------------------------------------------------------- */
+.ars-topbar {
+  position: fixed; z-index: 60; top: 0; left: var(--ars-sidebar-width); right: 0; height: 74px;
+  display: flex; align-items: center; gap: 14px; padding: 0 clamp(20px, 3vw, 42px);
+  background: color-mix(in srgb, var(--page-soft) 88%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--page-border-subtle, #e2eaf4);
+  transition: left .25s ease, background-color .25s ease;
+}
+.ars-page-title {
+  margin-right: auto;
+  color: var(--page-text-accent);
+  font: 700 13px/1.2 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ars-page-title::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--page-primary);
+  box-shadow: 0 0 8px var(--page-glow);
+}
+.ars-topbar-greeting { display: block; margin-right: 4px; color: #64748b; font: 650 13px/1.2 'Inter', sans-serif; }
+.ars-topbar .ars-user-name { font: 700 12px/1.2 'Inter', sans-serif; color: #334155; }
+.ars-icon-button {
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border: 1px solid var(--page-border-subtle, #e2eaf4); border-radius: 14px;
+  background: white; color: #52657d; cursor: pointer; transition: color .15s, border-color .15s;
+}
+.ars-icon-button:hover { color: var(--page-text-accent); border-color: var(--page-border-strong); }
+.ars-mobile-menu { display: none; }
+
+/* --------------------------------------------------------------------------
+   Main Content Layout & Natural Scroll Boundary
+   -------------------------------------------------------------------------- */
+.ars-main {
+  margin-left: var(--ars-sidebar-width) !important;
+  width: auto !important;
+  max-width: none !important;
+  padding-top: 92px !important;
+  padding-bottom: 36px !important;
+  box-sizing: border-box;
+  transition: margin-left .25s ease;
+}
+
+.ars-student-shell main:not(.cq-main) {
+  margin-left: var(--ars-sidebar-width) !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  padding-top: 92px !important;
+  padding-bottom: 36px !important;
+  box-sizing: border-box;
+  transition: margin-left .25s ease;
+}
+
+.ars-student-shell main.main-container {
+  width: calc(100% - var(--ars-sidebar-width) - 64px) !important;
+  margin-left: calc(var(--ars-sidebar-width) + 32px) !important;
+  margin-right: 32px !important;
+  margin-bottom: 0 !important;
+}
+
+.ars-student-shell main.ars-page-wrap {
+  width: min(calc(100% - var(--ars-sidebar-width) - 64px), 1120px) !important;
+  margin-left: calc(var(--ars-sidebar-width) + 32px) !important;
+  margin-right: 32px !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 36px !important;
+}
+
+/* Hide legacy multi-page site header and footer in student shell while keeping CellQuest inline disclaimer */
+.ars-student-shell .site-header,
+.ars-student-shell footer:not(.cq-footer) {
+  display: none !important;
+}
+
+.ars-student-shell .main-container,
+.ars-student-shell .section-container {
+  width: calc(100% - 64px) !important;
+  max-width: 1480px !important;
+}
+
+.ars-student-shell :focus-visible { outline: 3px solid var(--page-primary) !important; outline-offset: 3px; }
+
+/* Tanya AI / SelBot Chat Workspace - fit neatly within viewport and prevent outer scrolling */
+[data-page-theme="ai"] .main-container,
+[data-page-theme="selbot"] .main-container {
+  padding-bottom: 24px !important;
+}
+@media (min-width: 1025px) and (max-height: 850px) {
+  [data-page-theme="ai"] .module-hero,
+  [data-page-theme="selbot"] .module-hero {
+    padding: 14px 20px !important;
+  }
+  [data-page-theme="ai"] .module-hero h2,
+  [data-page-theme="selbot"] .module-hero h2 {
+    font-size: 1.5rem !important;
+  }
+  [data-page-theme="ai"] .lg\:col-span-8,
+  [data-page-theme="selbot"] .lg\:col-span-8 {
+    height: clamp(380px, calc(100vh - 280px), 560px) !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Hero, Highlights & Content Cards (Layers 2 & 3)
+   -------------------------------------------------------------------------- */
+.ars-student-shell .hero { border-radius: 28px; box-shadow: 0 18px 45px var(--page-glow); }
+.ars-student-shell .hero:first-child,
+.ars-student-shell .module-hero {
+  background: var(--page-gradient) !important;
+  border-color: rgba(255, 255, 255, .2) !important;
+  box-shadow: 0 18px 45px var(--page-glow) !important;
+}
+[data-page-theme="notes"] .module-hero {
+  border-color: #fde68a !important;
+  color: #78350f !important;
+}
+[data-page-theme="notes"] .module-hero h1,
+[data-page-theme="notes"] .module-hero h2,
+[data-page-theme="notes"] .module-hero h3 {
+  color: #78350f !important;
+}
+[data-page-theme="video"] .module-hero {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+[data-page-theme="video"] .module-hero h1,
+[data-page-theme="video"] .module-hero h2,
+[data-page-theme="video"] .module-hero h3 {
+  color: #ffffff !important;
+}
+.ars-student-shell .hero:first-child > div:first-child { opacity: .23; }
+.ars-student-shell .module-card { border-radius: 24px; transition: transform .2s ease, box-shadow .2s ease; border-color: var(--page-border-subtle); }
+.ars-student-shell .module-card:hover { transform: translateY(-4px); box-shadow: 0 18px 32px var(--page-glow); }
+.ars-student-shell .module-grid { gap: 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)) !important; }
+.ars-student-shell h1, .ars-student-shell h2, .ars-student-shell h3 { letter-spacing: -.025em; }
+.ars-student-shell .ars-top-profile { text-decoration: none; }
+
+/* Subtle float animation for hero illustration */
+@keyframes float-cell {
+  0%, 100% { transform: translateY(-50%) rotate(0deg); }
+  50% { transform: translateY(-53%) rotate(2deg); }
+}
+.animate-float-cell {
+  animation: float-cell 6s ease-in-out infinite;
+}
+@media (max-width: 768px) {
+  @keyframes float-cell-mobile {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-4px) rotate(1.5deg); }
+  }
+  .module-hero .animate-float-cell {
+    animation: float-cell-mobile 6s ease-in-out infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-cell {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Tailwind Palette Overrides for Adaptive Theming
+   -------------------------------------------------------------------------- */
+.ars-student-shell .text-primary { color: var(--page-text-accent, var(--page-primary)) !important; }
+.ars-student-shell .bg-primary {
+  background-color: var(--page-primary) !important;
+  color: var(--page-primary-contrast, #ffffff) !important;
+}
+.ars-student-shell .bg-primary-container {
+  background-color: var(--page-soft-alt) !important;
+  color: var(--page-text-accent) !important;
+}
+.ars-student-shell .border-primary { border-color: var(--page-primary) !important; }
+
+/* Active Filters & Selected Tabs */
+.active-filter,
+[data-active-filter="true"] {
+  background-color: var(--page-primary) !important;
+  color: var(--page-primary-contrast, #ffffff) !important;
+  border-color: var(--page-primary) !important;
+  box-shadow: 0 4px 12px var(--page-glow) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Yellow Theme Text Contrast Guarantee (WCAG AAA)
+   -------------------------------------------------------------------------- */
+[data-page-theme="notes"] .bg-primary,
+[data-page-theme="notes"] .ars-button-primary,
+[data-page-theme="notes"] .active-filter,
+[data-page-theme="nota"] .bg-primary,
+[data-page-theme="nota"] .ars-button-primary,
+[data-page-theme="nota"] .active-filter {
+  color: #1e293b !important;
+  font-weight: 750 !important;
+}
+[data-page-theme="notes"] .bg-primary *,
+[data-page-theme="notes"] .ars-button-primary *,
+[data-page-theme="nota"] .bg-primary *,
+[data-page-theme="nota"] .ars-button-primary * {
+  color: #1e293b !important;
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar Collapsed & Drawer states
+   -------------------------------------------------------------------------- */
+.ars-collapsed { --ars-sidebar-width: 84px; }
+.ars-collapsed .ars-sidebar { padding-inline: 12px; }
+.ars-collapsed .ars-brand { justify-content: center; padding-inline: 0; }
+.ars-collapsed .ars-brand-copy, .ars-collapsed .ars-nav-label, .ars-collapsed .ars-nav a span:not(.material-symbols-outlined), .ars-collapsed .ars-side-profile span, .ars-collapsed .ars-side-logout span:not(.material-symbols-outlined) { display: none; }
+.ars-collapsed .ars-nav a, .ars-collapsed .ars-side-profile, .ars-collapsed .ars-side-logout { justify-content: center; padding: 0; }
+.ars-collapsed .ars-side-profile img { width: 38px; height: 38px; }
+.ars-collapsed .ars-brand img { width: 42px; height: 42px; }
+.ars-collapsed .ars-side-settings { justify-content: center; padding: 0; }
+.ars-collapsed .ars-side-settings span:not(.material-symbols-outlined) { display: none; }
+.ars-collapsed .ars-topbar, .ars-collapsed .ars-student-shell footer { left: var(--ars-sidebar-width); }
+.ars-collapsed main { margin-left: var(--ars-sidebar-width) !important; }
+.ars-drawer-backdrop { display: none; }
+
+@media (max-width: 760px) {
+  .ars-sidebar { width: min(300px, 86vw); transform: translateX(-105%); }
+  .ars-mobile-open .ars-sidebar { transform: translateX(0); }
+  .ars-drawer-backdrop { display: block; position: fixed; z-index: 70; inset: 0; background: rgba(15, 23, 42, .38); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .ars-mobile-open .ars-drawer-backdrop { opacity: 1; pointer-events: auto; }
+  .ars-topbar, .ars-collapsed .ars-topbar { left: 0; height: 64px; padding: 0 16px; }
+  .ars-main, .ars-student-shell main, .ars-collapsed main { margin-left: 0 !important; margin-top: 0 !important; padding-top: 82px !important; }
+  .ars-student-shell main.main-container { width: calc(100% - 32px) !important; margin-left: 16px !important; margin-right: 16px !important; }
+  .ars-student-shell main.ars-page-wrap { width: calc(100% - 32px) !important; margin-left: 16px !important; margin-right: 16px !important; }
+  .ars-student-shell footer, .ars-collapsed .ars-student-shell footer { margin-left: 0; }
+  .ars-mobile-menu { display: grid; }
+  .ars-desktop-collapse { display: none; }
+  .ars-page-title { display: none; }
+  .ars-topbar-greeting { display: block; margin-right: auto; font: 750 16px/1.2 'Plus Jakarta Sans', sans-serif; color: #1e293b; }
+  .ars-topbar .ars-user-name { display: none; }
+  .ars-student-shell .main-container, .ars-student-shell .section-container { width: calc(100% - 32px) !important; }
+  .ars-student-shell .module-grid { grid-template-columns: 1fr !important; }
+  .ars-student-shell footer { padding-left: 0; }
+}
+@media (min-width: 761px) and (max-width: 1024px) {
+  .ars-student-shell { --ars-sidebar-width: 84px; }
+  .ars-sidebar { width: 84px; padding-inline: 12px; }
+  .ars-brand { justify-content: center; padding-inline: 0; }
+  .ars-brand-copy, .ars-nav-label, .ars-nav a span:not(.material-symbols-outlined), .ars-side-profile span, .ars-side-logout span:not(.material-symbols-outlined) { display: none; }
+  .ars-nav a, .ars-side-profile, .ars-side-logout { justify-content: center; padding: 0; }
+  .ars-side-settings { justify-content: center; padding: 0; }
+  .ars-side-settings span:not(.material-symbols-outlined) { display: none; }
+  .ars-topbar { left: 84px; }
+  .ars-student-shell main, .ars-student-shell footer { margin-left: 84px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ars-student-shell *, .ars-student-shell *::before, .ars-student-shell *::after {
+    scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Profile & Settings Pages Components
+   -------------------------------------------------------------------------- */
+.ars-page-wrap { width: min(100% - 32px, 1120px); margin: 0 auto 48px; }
+.ars-page-heading { display: flex; align-items: center; gap: 14px; margin: 0 0 24px; }
+.ars-page-heading .ars-heading-icon {
+  width: 54px; height: 54px; display: grid; place-items: center; border-radius: 18px;
+  background: var(--page-soft-alt); color: var(--page-text-accent); font-size: 26px;
+  border: 1px solid var(--page-border);
+}
+.ars-page-heading h1 { margin: 0; color: #1e293b; font: 800 clamp(25px, 3vw, 34px)/1.15 'Plus Jakarta Sans', sans-serif; }
+.ars-page-heading p { margin: 6px 0 0; color: #64748b; font: 500 14px/1.5 'Inter', sans-serif; }
+.ars-card {
+  padding: clamp(18px, 3vw, 28px); border: 1px solid var(--page-border-subtle, #e3edf8);
+  border-radius: 24px; background: var(--page-surface, #fff); box-shadow: 0 10px 28px rgba(30, 64, 110, .05);
+}
+.ars-card h2 { margin: 0; color: #1e293b; font: 750 19px/1.3 'Plus Jakarta Sans', sans-serif; }
+.ars-card-intro { margin: 5px 0 20px; color: #718096; font: 500 13px/1.5 'Inter', sans-serif; }
+.ars-profile-grid { display: grid; grid-template-columns: minmax(230px, .72fr) minmax(0, 1.5fr); gap: 20px; align-items: start; }
+.ars-profile-preview { display: flex; flex-direction: column; align-items: center; text-align: center; background: linear-gradient(145deg, var(--page-soft), #ffffff); }
+.ars-big-avatar { width: 122px; height: 122px; object-fit: cover; border: 5px solid white; border-radius: 38px; background: var(--page-soft-alt); box-shadow: 0 8px 24px var(--page-glow); }
+.ars-form-label { display: block; margin: 0 0 7px; color: #475569; font: 700 12px/1.3 'Inter', sans-serif; }
+.ars-field { width: 100%; min-height: 46px; padding: 11px 13px; border: 1px solid #dbe5f1; border-radius: 13px; background: #f8fbff; color: #1e293b; font: 500 14px/1.3 'Inter', sans-serif; }
+.ars-field:focus { outline: 3px solid var(--page-border-strong); outline-offset: 1px; border-color: var(--page-primary); }
+.ars-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.ars-avatar-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ars-avatar-choice { display: flex; align-items: center; justify-content: center; min-height: 74px; border: 2px solid #e2e8f0; border-radius: 16px; background: #f8fafc; cursor: pointer; }
+.ars-avatar-choice:has(input:checked) { border-color: var(--page-primary); background: var(--page-soft); box-shadow: 0 0 0 3px var(--page-soft-alt); }
+.ars-avatar-choice:has(input:focus-visible) { outline: 3px solid var(--page-primary); outline-offset: 3px; }
+.ars-avatar-choice input { position: absolute; opacity: 0; }
+.ars-avatar-choice img { width: 48px; height: 48px; object-fit: cover; border-radius: 50%; }
+
+/* Buttons */
+.ars-button-primary, .ars-button-secondary, .ars-button-danger {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 17px;
+  border: 0; border-radius: 14px; font: 750 13px 'Inter', sans-serif; cursor: pointer; transition: transform .15s, filter .15s;
+}
+.ars-button-primary {
+  color: var(--page-primary-contrast, #fff) !important;
+  background: var(--page-button-bg) !important;
+  box-shadow: 0 6px 15px var(--page-glow);
+}
+.ars-button-secondary {
+  color: var(--page-text-accent) !important;
+  background: var(--page-soft-alt) !important;
+  border: 1px solid var(--page-border) !important;
+}
+.ars-button-danger { color: #b91c1c; background: #fff1f2; border: 1px solid #ffe4e6; }
+.ars-button-primary:hover, .ars-button-secondary:hover, .ars-button-danger:hover { filter: brightness(.97); transform: translateY(-1px); }
+
+.ars-status { min-height: 22px; margin: 8px 0 0; color: #047857; font: 650 12px/1.5 'Inter', sans-serif; }
+.ars-stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ars-stat { padding: 17px; border: 1px solid var(--page-border-subtle, #e4edf8); border-radius: 18px; background: #f8fbff; }
+.ars-stat strong { display: block; color: #1e293b; font: 800 24px/1.2 'Plus Jakarta Sans', sans-serif; }
+.ars-stat span { display: block; margin-top: 5px; color: #64748b; font: 600 11px/1.35 'Inter', sans-serif; }
+
+.ars-settings-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ars-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid #edf2f7; }
+.ars-setting-row:last-child { border-bottom: 0; }
+.ars-setting-row strong { display: block; color: #334155; font: 700 13px/1.4 'Inter', sans-serif; }
+.ars-setting-row small { display: block; margin-top: 3px; color: #718096; font: 500 11px/1.45 'Inter', sans-serif; }
+.ars-switch { width: 46px; height: 26px; flex: none; accent-color: var(--page-primary); cursor: pointer; }
+.ars-range { width: min(220px, 45%); accent-color: var(--page-primary); }
+.ars-notice { padding: 14px 16px; border: 1px solid var(--page-border); border-radius: 16px; background: var(--page-soft); color: var(--page-text-accent); font: 550 12px/1.55 'Inter', sans-serif; }
+.ars-badge-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.ars-badge { padding: 9px 13px; border-radius: 999px; background: #fef3c7; color: #854d0e; font: 750 12px 'Inter', sans-serif; }
+
+/* --------------------------------------------------------------------------
+   Dark Mode Overrides
+   -------------------------------------------------------------------------- */
+body.ars-dark.ars-student-shell { background: #101a2b !important; color: #e2e8f0; }
+.ars-dark .ars-card, .ars-dark .ars-topbar { background: #172438 !important; border-color: #2a3b53 !important; }
+.ars-dark .ars-sidebar {
+  background-color: #172438 !important;
+  background-image: linear-gradient(rgba(23, 36, 56, 0.88), rgba(23, 36, 56, 0.88)), url("../../background/sidebarbg.png?v=2") !important;
+  background-size: cover !important;
+  background-position: left top !important;
+  background-repeat: no-repeat !important;
+  border-color: #2a3b53 !important;
+}
+.ars-dark .ars-nav a:not([aria-current="page"]),
+.ars-dark .ars-side-settings:not([aria-current="page"]) {
+  background: rgba(27, 42, 64, 0.72) !important;
+  border-color: rgba(51, 70, 95, 0.6) !important;
+  color: #cbd5e1 !important;
+}
+.ars-dark .ars-side-profile:not([aria-current="page"]) {
+  background: rgba(27, 42, 64, 0.82) !important;
+  border-color: rgba(51, 70, 95, 0.7) !important;
+  color: #e2e8f0 !important;
+}
+.ars-dark .ars-side-logout {
+  background: rgba(27, 42, 64, 0.5) !important;
+  border-color: transparent !important;
+}
+.ars-dark .ars-brand strong, .ars-dark .ars-page-heading h1, .ars-dark .ars-card h2, .ars-dark .ars-stat strong { color: #e2e8f0; }
+.ars-dark .ars-nav a, .ars-dark .ars-side-settings, .ars-dark .ars-side-profile, .ars-dark .ars-setting-row strong { color: #cbd5e1; }
+.ars-dark .ars-nav a:not([aria-current="page"]):hover, .ars-dark .ars-side-settings:not([aria-current="page"]):hover { background: #243750; color: #bfdbfe; }
+.ars-dark main .bg-white, .ars-dark main [class*="bg-surface-container"] { background-color: #1b2a40 !important; color: #e2e8f0 !important; }
+.ars-dark main [class*="text-slate-800"], .ars-dark main [class*="text-slate-900"], .ars-dark main [class*="text-on-surface"] { color: #e2e8f0 !important; }
+.ars-dark .ars-field, .ars-dark .ars-stat, .ars-dark .ars-profile-preview { background: #1b2a40; color: #e2e8f0; border-color: #33465f; }
+.ars-high-contrast .ars-card, .ars-high-contrast .ars-field, .ars-high-contrast .ars-setting-row { border-color: #475569; }
+.ars-no-motion *, .ars-no-motion *::before, .ars-no-motion *::after, .ars-no-quiz-motion #quiz-options *, .ars-no-quiz-motion #quiz-progress-fill { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+
+@media (max-width: 760px) {
+  .ars-profile-grid, .ars-settings-layout { grid-template-columns: 1fr; }
+  .ars-form-grid { grid-template-columns: 1fr; }
+  .ars-stat-grid { grid-template-columns: 1fr; }
+}
+
+.ars-data-status { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   Three-Level Card Hierarchy System (Main, Highlight/Info, Primary Action)
+   -------------------------------------------------------------------------- */
+.ars-student-shell .theme-card-main {
+  background-color: var(--page-surface, #ffffff);
+  border: 1px solid var(--page-border-subtle, #e2e8f0);
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.ars-student-shell .theme-card-info,
+.ars-student-shell .theme-card-highlight {
+  background-color: var(--page-soft, #f8fafc) !important;
+  border: 1px solid var(--page-border, #e2e8f0) !important;
+  border-radius: 1rem;
+  color: var(--page-text-accent, #1e293b);
+}
+.ars-student-shell .theme-card-info h4,
+.ars-student-shell .theme-card-highlight h4 {
+  color: var(--page-text-accent, #1e293b);
+}
+
+.ars-student-shell .theme-btn-primary,
+.ars-student-shell .btn-theme-primary {
+  background: var(--page-primary) !important;
+  color: var(--page-primary-contrast, #ffffff) !important;
+  border-color: var(--page-primary) !important;
+  transition: all 0.2s ease;
+}
+.ars-student-shell .theme-btn-primary:hover,
+.ars-student-shell .btn-theme-primary:hover {
+  background: var(--page-primary-hover, var(--page-primary)) !important;
+  box-shadow: 0 4px 14px var(--page-glow) !important;
+}
+
+.ars-student-shell .theme-progress {
+  background-color: var(--page-primary) !important;
+}
+.ars-student-shell .theme-progress-bg {
+  background-color: var(--page-soft-alt) !important;
+}
+
+/* ==========================================================================
+   Page-Specific Custom Background Integration (ARSelNel Tasks 1 — 5)
+   Exclusively applied to Dashboard (Blue) & Tanya AI / SelBot (Pink)
+   Sidebar, topbar, and all other learning modules remain fully isolated.
+   ========================================================================== */
+
+/* Elevate main content above background canvas */
+.ars-student-shell main,
+.cq-main {
+  position: relative;
+  z-index: 1;
+}
+
+/* Base custom background container rules for all 6 learning pages */
+html[data-page-theme="dashboard"] body::before,
+html[data-page-theme="home"] body::before,
+body.ars-student-shell[data-page-theme="dashboard"]::before,
+body.ars-student-shell[data-page-theme="home"]::before,
+html[data-page-theme="ai"] body::before,
+html[data-page-theme="selbot"] body::before,
+body.ars-student-shell[data-page-theme="ai"]::before,
+body.ars-student-shell[data-page-theme="selbot"]::before,
+html[data-page-theme="cellquest"] body::before,
+body.ars-student-shell[data-page-theme="cellquest"]::before,
+html[data-page-theme="video"] body::before,
+html[data-page-theme="videos"] body::before,
+body.ars-student-shell[data-page-theme="video"]::before,
+body.ars-student-shell[data-page-theme="videos"]::before,
+html[data-page-theme="notes"] body::before,
+html[data-page-theme="nota"] body::before,
+body.ars-student-shell[data-page-theme="notes"]::before,
+body.ars-student-shell[data-page-theme="nota"]::before,
+html[data-page-theme="games"] body::before,
+html[data-page-theme="quiz"] body::before,
+html[data-page-theme="kuiz"] body::before,
+body.ars-student-shell[data-page-theme="games"]::before,
+body.ars-student-shell[data-page-theme="quiz"]::before,
+body.ars-student-shell[data-page-theme="kuiz"]::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: var(--ars-sidebar-width, 264px);
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: left bottom;
+  pointer-events: none;
+  transition: left 0.25s ease, opacity 0.25s ease;
+}
+
+/* 1. Dashboard Custom Background (Blue Science Theme) */
+html[data-page-theme="dashboard"] body::before,
+html[data-page-theme="home"] body::before,
+body.ars-student-shell[data-page-theme="dashboard"]::before,
+body.ars-student-shell[data-page-theme="home"]::before {
+  background-image: url('../images/dashboardbg.png');
+}
+
+/* 2. Tanya AI / SelBot Custom Background (Pink Theme) */
+html[data-page-theme="ai"] body::before,
+html[data-page-theme="selbot"] body::before,
+body.ars-student-shell[data-page-theme="ai"]::before,
+body.ars-student-shell[data-page-theme="selbot"]::before {
+  background-image: url('../images/tanyaaibg.png');
+}
+
+/* 3. CellQuest AR Custom Background (Purple 3D Discovery Theme) */
+html[data-page-theme="cellquest"] body::before,
+body.ars-student-shell[data-page-theme="cellquest"]::before {
+  background-image: url('../images/cellquestbg.png');
+}
+
+/* 4. Video Pembelajaran Custom Background (Orange Multimedia Theme) */
+html[data-page-theme="video"] body::before,
+html[data-page-theme="videos"] body::before,
+body.ars-student-shell[data-page-theme="video"]::before,
+body.ars-student-shell[data-page-theme="videos"]::before {
+  background-image: url('../images/videobg.png');
+}
+
+/* 5. Nota Interaktif Custom Background (Yellow Educational Theme) */
+html[data-page-theme="notes"] body::before,
+html[data-page-theme="nota"] body::before,
+body.ars-student-shell[data-page-theme="notes"]::before,
+body.ars-student-shell[data-page-theme="nota"]::before {
+  background-image: url('../images/notabg.png');
+}
+
+/* 6. Kuiz & Permainan Custom Background (Green Gamification Theme) */
+html[data-page-theme="games"] body::before,
+html[data-page-theme="quiz"] body::before,
+html[data-page-theme="kuiz"] body::before,
+body.ars-student-shell[data-page-theme="games"]::before,
+body.ars-student-shell[data-page-theme="quiz"]::before,
+body.ars-student-shell[data-page-theme="kuiz"]::before {
+  background-image: url('../images/kuizbg.png');
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Layout Offsets (Desktop 1920x1080 / 1366x768, Tablet, Mobile)
+   -------------------------------------------------------------------------- */
+
+/* Tablet (768x1024 / 761px - 1024px) */
+@media (min-width: 761px) and (max-width: 1024px) {
+  html[data-page-theme="dashboard"] body::before,
+  html[data-page-theme="home"] body::before,
+  body.ars-student-shell[data-page-theme="dashboard"]::before,
+  body.ars-student-shell[data-page-theme="home"]::before,
+  html[data-page-theme="ai"] body::before,
+  html[data-page-theme="selbot"] body::before,
+  body.ars-student-shell[data-page-theme="ai"]::before,
+  body.ars-student-shell[data-page-theme="selbot"]::before,
+  html[data-page-theme="cellquest"] body::before,
+  body.ars-student-shell[data-page-theme="cellquest"]::before,
+  html[data-page-theme="video"] body::before,
+  html[data-page-theme="videos"] body::before,
+  body.ars-student-shell[data-page-theme="video"]::before,
+  body.ars-student-shell[data-page-theme="videos"]::before,
+  html[data-page-theme="notes"] body::before,
+  html[data-page-theme="nota"] body::before,
+  body.ars-student-shell[data-page-theme="notes"]::before,
+  body.ars-student-shell[data-page-theme="nota"]::before,
+  html[data-page-theme="games"] body::before,
+  html[data-page-theme="quiz"] body::before,
+  html[data-page-theme="kuiz"] body::before,
+  body.ars-student-shell[data-page-theme="games"]::before,
+  body.ars-student-shell[data-page-theme="quiz"]::before,
+  body.ars-student-shell[data-page-theme="kuiz"]::before {
+    left: 84px;
+    background-position: left bottom;
+    background-size: cover;
+  }
+}
+
+/* Collapsed sidebar state (Desktop) */
+.ars-collapsed html[data-page-theme="dashboard"] body::before,
+.ars-collapsed html[data-page-theme="home"] body::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="dashboard"]::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="home"]::before,
+.ars-collapsed html[data-page-theme="ai"] body::before,
+.ars-collapsed html[data-page-theme="selbot"] body::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="ai"]::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="selbot"]::before,
+.ars-collapsed html[data-page-theme="cellquest"] body::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="cellquest"]::before,
+.ars-collapsed html[data-page-theme="video"] body::before,
+.ars-collapsed html[data-page-theme="videos"] body::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="video"]::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="videos"]::before,
+.ars-collapsed html[data-page-theme="notes"] body::before,
+.ars-collapsed html[data-page-theme="nota"] body::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="notes"]::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="nota"]::before,
+.ars-collapsed html[data-page-theme="games"] body::before,
+.ars-collapsed html[data-page-theme="quiz"] body::before,
+.ars-collapsed html[data-page-theme="kuiz"] body::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="games"]::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="quiz"]::before,
+.ars-collapsed body.ars-student-shell[data-page-theme="kuiz"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="dashboard"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="home"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="ai"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="selbot"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="cellquest"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="video"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="videos"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="notes"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="nota"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="games"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="quiz"]::before,
+body.ars-student-shell.ars-collapsed[data-page-theme="kuiz"]::before {
+  left: 84px;
+}
+
+/* Mobile Screens (390x844 / <= 760px) */
+@media (max-width: 760px) {
+  html[data-page-theme="dashboard"] body::before,
+  html[data-page-theme="home"] body::before,
+  body.ars-student-shell[data-page-theme="dashboard"]::before,
+  body.ars-student-shell[data-page-theme="home"]::before,
+  html[data-page-theme="ai"] body::before,
+  html[data-page-theme="selbot"] body::before,
+  body.ars-student-shell[data-page-theme="ai"]::before,
+  body.ars-student-shell[data-page-theme="selbot"]::before,
+  html[data-page-theme="cellquest"] body::before,
+  body.ars-student-shell[data-page-theme="cellquest"]::before,
+  html[data-page-theme="video"] body::before,
+  html[data-page-theme="videos"] body::before,
+  body.ars-student-shell[data-page-theme="video"]::before,
+  body.ars-student-shell[data-page-theme="videos"]::before,
+  html[data-page-theme="notes"] body::before,
+  html[data-page-theme="nota"] body::before,
+  body.ars-student-shell[data-page-theme="notes"]::before,
+  body.ars-student-shell[data-page-theme="nota"]::before,
+  html[data-page-theme="games"] body::before,
+  html[data-page-theme="quiz"] body::before,
+  html[data-page-theme="kuiz"] body::before,
+  body.ars-student-shell[data-page-theme="games"]::before,
+  body.ars-student-shell[data-page-theme="quiz"]::before,
+  body.ars-student-shell[data-page-theme="kuiz"]::before {
+    left: 0;
+    background-position: 70% bottom;
+    background-size: cover;
+  }
+}
+
+/* Dark mode subtle overlay across all custom themes */
+body.ars-dark[data-page-theme="dashboard"]::before,
+body.ars-dark[data-page-theme="home"]::before,
+body.ars-dark[data-page-theme="ai"]::before,
+body.ars-dark[data-page-theme="selbot"]::before,
+body.ars-dark[data-page-theme="cellquest"]::before,
+body.ars-dark[data-page-theme="video"]::before,
+body.ars-dark[data-page-theme="videos"]::before,
+body.ars-dark[data-page-theme="notes"]::before,
+body.ars-dark[data-page-theme="nota"]::before,
+body.ars-dark[data-page-theme="games"]::before,
+body.ars-dark[data-page-theme="quiz"]::before,
+body.ars-dark[data-page-theme="kuiz"]::before,
+.ars-dark [data-page-theme="dashboard"] body::before,
+.ars-dark [data-page-theme="home"] body::before,
+.ars-dark [data-page-theme="ai"] body::before,
+.ars-dark [data-page-theme="selbot"] body::before,
+.ars-dark [data-page-theme="cellquest"] body::before,
+.ars-dark [data-page-theme="video"] body::before,
+.ars-dark [data-page-theme="videos"] body::before,
+.ars-dark [data-page-theme="notes"] body::before,
+.ars-dark [data-page-theme="nota"] body::before,
+.ars-dark [data-page-theme="games"] body::before,
+.ars-dark [data-page-theme="quiz"] body::before,
+.ars-dark [data-page-theme="kuiz"] body::before {
+  opacity: 0.18;
+  filter: brightness(0.65) contrast(1.15);
+}
+
+/* --------------------------------------------------------------------------
+   Translucent Surfaces & Readability Optimizations for Dashboard
+   Preserves Blue Identity while showcasing illustration backdrop.
+   -------------------------------------------------------------------------- */
+[data-page-theme="dashboard"] .module-card:not(.manual-dashboard-card),
+[data-page-theme="home"] .module-card:not(.manual-dashboard-card) {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(219, 234, 254, 0.85) !important;
+  box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.06), 0 2px 8px -1px rgba(37, 99, 235, 0.04) !important;
+}
+
+[data-page-theme="dashboard"] .module-card:not(.manual-dashboard-card):hover,
+[data-page-theme="home"] .module-card:not(.manual-dashboard-card):hover {
+  background: rgba(255, 255, 255, 0.97) !important;
+  border-color: rgba(147, 197, 253, 0.95) !important;
+  box-shadow: 0 18px 28px -4px rgba(37, 99, 235, 0.12), 0 8px 12px -3px rgba(37, 99, 235, 0.06) !important;
+}
+
+[data-page-theme="dashboard"] .recommendation-card,
+[data-page-theme="home"] .recommendation-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(219, 234, 254, 0.85) !important;
+  box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.06) !important;
+}
+
+[data-page-theme="dashboard"] .recommendation-card:hover,
+[data-page-theme="home"] .recommendation-card:hover {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(147, 197, 253, 0.95) !important;
+}
+
+/* Explicit Gradient Surface & High Contrast for Manual Penggunaan Dashboard Card */
+.manual-dashboard-card {
+  grid-column: 1 / -1 !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #0d9488 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(199, 210, 254, 0.45) !important;
+  box-shadow: 0 10px 25px -3px rgba(79, 70, 229, 0.25), 0 4px 10px -2px rgba(37, 99, 235, 0.15) !important;
+}
+
+.manual-dashboard-card:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #1d4ed8 50%, #0f766e 100%) !important;
+  border-color: rgba(224, 231, 255, 0.75) !important;
+  box-shadow: 0 20px 35px -4px rgba(79, 70, 229, 0.35), 0 10px 15px -3px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Translucent Surfaces & Readability Optimizations for Tanya AI / SelBot
+   Preserves Pink Identity while showcasing illustration backdrop.
+   -------------------------------------------------------------------------- */
+[data-page-theme="ai"] .lg\:col-span-8,
+[data-page-theme="selbot"] .lg\:col-span-8 {
+  background: rgba(255, 255, 255, 0.93) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(251, 207, 232, 0.85) !important;
+  box-shadow: 0 10px 25px -4px rgba(236, 72, 153, 0.07), 0 4px 10px -2px rgba(236, 72, 153, 0.03) !important;
+}
+
+[data-page-theme="ai"] .lg\:col-span-4 > div:first-child,
+[data-page-theme="selbot"] .lg\:col-span-4 > div:first-child {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(251, 207, 232, 0.85) !important;
+  box-shadow: 0 4px 16px -2px rgba(236, 72, 153, 0.06) !important;
+}
+
+[data-page-theme="ai"] .lg\:col-span-4 > div:last-child,
+[data-page-theme="selbot"] .lg\:col-span-4 > div:last-child {
+  background: rgba(253, 242, 248, 0.90) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(251, 207, 232, 0.95) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Translucent Surfaces & Readability Optimizations for CellQuest AR
+   Preserves Purple Identity, Three.js 3D Viewport & AR Controls.
+   -------------------------------------------------------------------------- */
+[data-page-theme="cellquest"] .cq-view-card,
+[data-page-theme="cellquest"] .cq-info-card {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(221, 214, 254, 0.85) !important;
+  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.08) !important;
+}
+
+[data-page-theme="cellquest"] .cq-quest {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(221, 214, 254, 0.85) !important;
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.08) !important;
+}
+
+[data-page-theme="cellquest"] .cq-mission-card,
+[data-page-theme="cellquest"] .cq-mission-player {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(221, 214, 254, 0.85) !important;
+}
+
+[data-page-theme="cellquest"] .cq-tab:not(.active) {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(221, 214, 254, 0.85) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Translucent Surfaces & Readability Optimizations for Video Pembelajaran
+   Preserves Orange Identity, Video Card Distinction & Filter Controls.
+   -------------------------------------------------------------------------- */
+[data-page-theme="video"] .custom-scrollbar button:not(.active-filter),
+[data-page-theme="videos"] .custom-scrollbar button:not(.active-filter) {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(10px);
+  border-color: rgba(254, 215, 170, 0.9) !important;
+}
+
+[data-page-theme="video"] .grid > .bg-white,
+[data-page-theme="videos"] .grid > .bg-white {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(254, 215, 170, 0.85) !important;
+  box-shadow: 0 4px 20px -2px rgba(249, 115, 22, 0.08), 0 2px 8px -1px rgba(249, 115, 22, 0.04) !important;
+}
+
+[data-page-theme="video"] .grid > .bg-white:hover,
+[data-page-theme="videos"] .grid > .bg-white:hover {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(251, 146, 60, 0.95) !important;
+  box-shadow: 0 16px 28px -4px rgba(249, 115, 22, 0.14), 0 8px 12px -3px rgba(249, 115, 22, 0.06) !important;
+}
+
+[data-page-theme="video"] .relative.w-full.shadow-sm,
+[data-page-theme="videos"] .relative.w-full.shadow-sm {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(254, 215, 170, 0.8) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Translucent Surfaces & Readability Optimizations for Nota Interaktif
+   Preserves Yellow Identity, Note Cards & Clean Spacing.
+   -------------------------------------------------------------------------- */
+[data-page-theme="notes"] .slide-filter-pill:not(.active),
+[data-page-theme="nota"] .slide-filter-pill:not(.active) {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(10px);
+  border-color: rgba(253, 230, 138, 0.9) !important;
+}
+
+[data-page-theme="notes"] #interactive-slides-grid > div,
+[data-page-theme="nota"] #interactive-slides-grid > div,
+[data-page-theme="notes"] .note-card,
+[data-page-theme="nota"] .note-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(253, 230, 138, 0.9) !important;
+  box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.08), 0 2px 8px -1px rgba(245, 158, 11, 0.04) !important;
+}
+
+[data-page-theme="notes"] #interactive-slides-grid > div:hover,
+[data-page-theme="nota"] #interactive-slides-grid > div:hover,
+[data-page-theme="notes"] .note-card:hover,
+[data-page-theme="nota"] .note-card:hover {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(245, 158, 11, 0.95) !important;
+  box-shadow: 0 16px 28px -4px rgba(245, 158, 11, 0.14), 0 8px 12px -3px rgba(245, 158, 11, 0.06) !important;
+}
+
+[data-page-theme="notes"] .relative.w-full.shadow-sm,
+[data-page-theme="nota"] .relative.w-full.shadow-sm {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(253, 230, 138, 0.85) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Translucent Surfaces & Readability Optimizations for Kuiz & Permainan
+   Preserves Green Identity, Gamification Cards, Points, & Timers.
+   -------------------------------------------------------------------------- */
+[data-page-theme="games"] .grid.grid-cols-2 > div,
+[data-page-theme="quiz"] .grid.grid-cols-2 > div,
+[data-page-theme="kuiz"] .grid.grid-cols-2 > div {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(167, 243, 208, 0.85) !important;
+  box-shadow: 0 4px 16px -2px rgba(16, 185, 129, 0.06) !important;
+}
+
+[data-page-theme="games"] .grid.lg\:grid-cols-2 > div,
+[data-page-theme="quiz"] .grid.lg\:grid-cols-2 > div,
+[data-page-theme="kuiz"] .grid.lg\:grid-cols-2 > div {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 2px solid rgba(52, 211, 153, 0.85) !important;
+  box-shadow: 0 8px 24px -3px rgba(16, 185, 129, 0.08) !important;
+}
+
+[data-page-theme="games"] .grid.lg\:grid-cols-2 > div:hover,
+[data-page-theme="quiz"] .grid.lg\:grid-cols-2 > div:hover,
+[data-page-theme="kuiz"] .grid.lg\:grid-cols-2 > div:hover {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: #059669 !important;
+  box-shadow: 0 16px 30px -4px rgba(16, 185, 129, 0.16) !important;
+}
+
+
+

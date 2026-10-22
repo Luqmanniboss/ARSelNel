@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html class="light" lang="ms">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Log Masuk | ARSelNel Sains Interaktif</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind Theme Config -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#006565",
+            'primary-dark': "#004d4d",
+            'primary-light': "#76d6d5",
+            'primary-container': "#008080",
+            mint: "#91f8b8",
+            secondary: "#1960a3",
+            'secondary-light': "#7db6ff",
+            accent: "#f59e0b",
+            navy: "#0f172a",
+            background: "#f6f9fc"
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            headline: ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f6f9fc;
+    }
+    .font-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* Ambient float animations */
+    @keyframes float-slow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+    .animate-float-slow {
+      animation: float-slow 5s ease-in-out infinite;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: #006565;
+      box-shadow: 0 4px 14px rgba(0, 101, 101, 0.12);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 antialiased relative">
+
+  <!-- Ambient background glow orbs -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-teal-400/20 blur-3xl"></div>
+    <div class="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-blue-400/20 blur-3xl"></div>
+  </div>
+
+  <main class="min-h-screen grid lg:grid-cols-12">
+
+    <!-- Left Hero Panel (Desktop) -->
+    <section class="relative hidden lg:flex lg:col-span-5 flex-col justify-between overflow-hidden bg-gradient-to-br from-[#004d4d] via-[#006565] to-[#0a7e80] p-12 text-white shadow-2xl">
+      <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full border-[32px] border-white/5 pointer-events-none"></div>
+      <div class="absolute -bottom-32 -left-20 w-96 h-96 rounded-full bg-teal-300/15 blur-3xl pointer-events-none"></div>
+
+      <!-- Brand Logo -->
+      <div class="relative z-10 flex items-center justify-between">
+        <a href="../halaman_utama/code.html" class="inline-flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center p-2 shadow-inner">
+            <img src="../assets/home/logo.svg" class="w-full h-full object-contain" alt="Logo"/>
+          </div>
+          <div>
+            <span class="font-headline text-2xl font-extrabold tracking-tight block leading-none">ARSelNel</span>
+            <span class="text-[11px] font-semibold text-teal-200 tracking-wider uppercase">Sains Tingkatan 1 KSSM</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Mascot & Headline -->
+      <div class="relative z-10 my-auto py-8">
+        <div class="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur border border-white/20 p-4 shadow-xl flex items-center justify-center mb-6 animate-float-slow">
+          <img src="../assets/home/robot_mascot.svg" alt="Mascot" class="w-full h-full object-contain" />
+        </div>
+
+        <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-teal-100 backdrop-blur mb-4 border border-white/10">
+          <span class="w-2 h-2 rounded-full bg-mint animate-pulse"></span>
+          Gateway Pembelajaran Pintar
+        </span>
+
+        <h1 class="font-headline text-4xl xl:text-5xl font-extrabold leading-tight text-white">
+          Terokai Sains Sel Secara 3D & Realiti Terimbuh.
+        </h1>
+
+        <p class="mt-4 text-base leading-relaxed text-teal-50 opacity-90 max-w-md">
+          Log masuk untuk menyimpan kemajuan kuiz, mengakses semua topik nota KSSM, dan berinteraksi bersama SelBot AI tanpa had.
+        </p>
+
+        <!-- Quick points -->
+        <div class="mt-8 space-y-2.5 max-w-sm text-xs text-teal-100">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-mint text-base">check_circle</span>
+            <span>Simulasi Sel Haiwan & Sel Tumbuhan Interaktif</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-mint text-base">check_circle</span>
+            <span>Kuiz Gamifikasi dengan Rekod Markah Pelajar</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-mint text-base">check_circle</span>
+            <span>Mod Tetamu tersedia untuk pengenalan modul</span>
+          </div>
+        </div>
+
+        <div class="mt-7 grid grid-cols-3 gap-2.5 max-w-lg">
+          <div class="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur"><span class="material-symbols-outlined text-2xl text-cyan-200">view_in_ar</span><p class="mt-1 text-[11px] font-bold">Eksplorasi AR & 3D</p></div>
+          <div class="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur"><span class="material-symbols-outlined text-2xl text-yellow-200">sports_esports</span><p class="mt-1 text-[11px] font-bold">Kuiz gamifikasi</p></div>
+          <div class="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur"><span class="material-symbols-outlined text-2xl text-purple-200">smart_toy</span><p class="mt-1 text-[11px] font-bold">Pembantu SelBot</p></div>
+        </div>
+      </div>
+
+      <div class="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-teal-200">
+        <span>© 2026 ARSelNel Science</span>
+        <span>Kementerian Pendidikan Malaysia</span>
+      </div>
+    </section>
+
+    <!-- Right Login Form Column -->
+    <section class="lg:col-span-7 flex flex-col justify-center items-center px-4 py-8 sm:px-8 md:px-14 lg:px-16 overflow-y-auto">
+      <div class="w-full max-w-lg mx-auto py-6">
+
+        <!-- Mobile header -->
+        <div class="flex items-center justify-between mb-8 lg:hidden">
+          <a href="../halaman_utama/code.html" class="flex items-center gap-2.5">
+            <img src="../assets/home/logo.svg" class="w-9 h-9" alt="ARSelNel"/>
+            <span class="font-headline text-xl font-extrabold text-primary">ARSelNel</span>
+          </a>
+          <button onclick="loginAsGuest()" class="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+            Mod Tetamu &rarr;
+          </button>
+        </div>
+
+        <div class="mb-6">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-800 text-xs font-bold mb-2.5">
+            <span class="material-symbols-outlined text-base">lock_open</span>
+            Akses Akaun ARSelNel
+          </span>
+          <h2 id="login-title" class="font-headline text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Log Masuk ke Akaun Anda
+          </h2>
+          <p id="login-sub" class="mt-1 text-sm text-slate-500">
+            Log masuk pelajar dan pendaftaran menggunakan Supabase Auth. Sesi akaun kekal dalam tab ini sahaja; mod demo guru kekal setempat.
+          </p>
+        </div>
+
+        <!-- Role Tabs -->
+        <div class="bg-slate-200/70 p-1.5 rounded-2xl flex gap-1 mb-6 border border-slate-200">
+          <button type="button" id="tab-student" class="tab-btn active flex-1 py-3 px-4 rounded-xl font-headline font-bold text-sm transition-all flex items-center justify-center gap-2 text-primary" onclick="setRole('student')">
+            <span class="material-symbols-outlined text-lg">school</span>
+            Pelajar
+          </button>
+          <button type="button" id="tab-admin" class="tab-btn flex-1 py-3 px-4 rounded-xl font-headline font-semibold text-sm transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900" onclick="setRole('admin')">
+            <span class="material-symbols-outlined text-lg">admin_panel_settings</span>
+            Pentadbir / Guru
+          </button>
+        </div>
+
+        <!-- Login Form Card -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-xl shadow-teal-950/5">
+          <form id="auth-login-form" class="space-y-4" onsubmit="handleLogin(event)">
+            
+            <div id="admin-badge" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-amber-700 text-lg shrink-0">verified_user</span>
+              <span>Ruang demo guru: urus kandungan dan lihat rekod contoh yang disimpan pada pelayar ini.</span>
+            </div>
+
+            <!-- Identifier Field -->
+            <div>
+              <label id="lbl-id" for="login-id" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                E-mel Akaun Pelajar
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">person</span>
+                <input 
+                  type="text" 
+                  id="login-id" 
+                  required 
+                  placeholder="pelajar@email.com"
+                  class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
+                />
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="login-pass" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                  Kata Laluan
+                </label>
+              </div>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">lock</span>
+                <input 
+                  type="password" 
+                  id="login-pass" 
+                  required 
+                  placeholder="Masukkan kata laluan"
+                  class="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
+                />
+                <button 
+                  type="button" 
+                  onclick="togglePassword()"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <span id="pass-eye-icon" class="material-symbols-outlined text-xl">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <p class="pt-1 text-xs font-semibold text-slate-600">🔒 Sesi akaun hanya disimpan dalam tab ini dan tamat apabila tab ditutup.</p>
+
+            <!-- Error message -->
+            <div id="error-alert" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
+              <span class="material-symbols-outlined text-lg shrink-0">error</span>
+              <span id="error-text">Maklumat log masuk tidak tepat.</span>
+            </div>
+
+            <!-- Submit button -->
+            <button 
+              type="submit" 
+              class="w-full py-3.5 px-6 rounded-2xl bg-[#006565] hover:bg-teal-800 text-white font-headline font-bold text-sm shadow-lg shadow-teal-950/15 transition-all flex items-center justify-center gap-2 active:scale-98"
+            >
+              <span>Log Masuk Sekarang</span>
+              <span class="material-symbols-outlined text-lg">arrow_forward</span>
+            </button>
+          </form>
+
+          <!-- Guest Mode & Registration divider -->
+          <div class="mt-6 pt-5 border-t border-slate-100 space-y-3">
+            
+            <!-- Guest Mode Entrance Button -->
+            <button 
+              type="button" 
+              onclick="loginAsGuest()" 
+              class="w-full py-3 px-4 rounded-2xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-amber-900 font-headline font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
+            >
+              <span class="material-symbols-outlined text-lg text-amber-600">person_pin</span>
+              <span>Masuk Sebagai Tetamu (Guest Mode • Akses Terhad)</span>
+            </button>
+
+            <!-- Register Link -->
+            <div class="text-center text-xs text-slate-500 pt-2">
+              <span>Belum mempunyai akaun pelajar?</span>
+              <a href="register.html" class="font-bold text-primary hover:text-teal-800 ml-1 underline underline-offset-2">
+                Daftar Akaun Baru Percuma &rarr;
+              </a>
+            </div>
+
+          </div>
+
+          <!-- Quick Prototype Demos -->
+          <div class="mt-6 pt-4 border-t border-slate-100">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block text-center mb-1">Mod demo setempat</span>
+            <p class="mb-3 text-center text-[11px] text-slate-500">Ruang latihan berasingan pada pelayar ini. Bukan log masuk produksi atau pangkalan data bersama.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <button onclick="fillDemo('student')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-700">
+                Demo Pelajar (Aina)
+              </button>
+              <button onclick="fillDemo('admin')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-700">
+                Demo Guru (Admin)
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Load Auth Logic -->
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+
+  <script>
+    let currentRole = 'student';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('role') === 'admin') {
+        setRole('admin');
+      }
+    });
+
+    function setRole(role) {
+      currentRole = role;
+      const tabStudent = document.getElementById('tab-student');
+      const tabAdmin = document.getElementById('tab-admin');
+      const lblId = document.getElementById('lbl-id');
+      const inputId = document.getElementById('login-id');
+      const adminBadge = document.getElementById('admin-badge');
+      const title = document.getElementById('login-title');
+      const sub = document.getElementById('login-sub');
+
+      hideError();
+
+      if (role === 'admin') {
+        tabAdmin.classList.add('active', 'text-primary');
+        tabAdmin.classList.remove('text-slate-600');
+        tabStudent.classList.remove('active', 'text-primary');
+        tabStudent.classList.add('text-slate-600');
+
+        lblId.textContent = 'E-mel Rasmi Pentadbir / ID Guru';
+        inputId.placeholder = 'admin@arselnel.my';
+        adminBadge.classList.remove('hidden');
+        title.textContent = 'Portal Pentadbir & Guru 🧪';
+        sub.textContent = 'Akaun guru belum disambungkan. Gunakan Demo Guru (Admin) untuk CMS setempat.';
+      } else {
+        tabStudent.classList.add('active', 'text-primary');
+        tabStudent.classList.remove('text-slate-600');
+        tabAdmin.classList.remove('active', 'text-primary');
+        tabAdmin.classList.add('text-slate-600');
+
+        lblId.textContent = 'E-mel Akaun Pelajar';
+        inputId.placeholder = 'pelajar@email.com';
+        adminBadge.classList.add('hidden');
+        title.textContent = 'Log Masuk Pelajar 🔬';
+        sub.textContent = 'Log masuk pelajar menggunakan akaun Supabase. Akaun demo setempat juga boleh digunakan.';
+      }
+    }
+
+    function togglePassword() {
+      const pass = document.getElementById('login-pass');
+      const icon = document.getElementById('pass-eye-icon');
+      if (pass.type === 'password') {
+        pass.type = 'text';
+        icon.textContent = 'visibility_off';
+      } else {
+        pass.type = 'password';
+        icon.textContent = 'visibility';
+      }
+    }
+
+    function hideError() {
+      document.getElementById('error-alert').classList.add('hidden');
+    }
+
+    function showError(msg) {
+      document.getElementById('error-text').textContent = msg;
+      document.getElementById('error-alert').classList.remove('hidden');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      hideError();
+
+      const identifier = document.getElementById('login-id').value.trim();
+      const password = document.getElementById('login-pass').value;
+      const remember = false; // The Auth SDK uses tab-scoped sessionStorage only.
+      let sourceUser = AuthGuard.getUser();
+      if (!sourceUser) {
+        try { sourceUser = JSON.parse(sessionStorage.getItem('arselnel_local_migration_source') || 'null'); } catch (_) {}
+      }
+
+      if (currentRole === 'admin') {
+        const submit = document.querySelector('#auth-login-form button[type="submit"]');
+        if (submit) submit.disabled = true;
+        try {
+          const { user: authUser } = await ARSupabase.signIn(identifier.toLowerCase(), password);
+          // Verify Admin privilege against Supabase
+          const client = await ARSupabase.getClient();
+          let isAdmin = false;
+          if (client) {
+            try {
+              const { data: adminRow } = await client
+                .from('admin_users')
+                .select('role')
+                .eq('user_id', authUser.id)
+                .maybeSingle();
+              if (adminRow && (adminRow.role === 'admin' || adminRow.role === 'superadmin' || adminRow.role === 'teacher')) {
+                isAdmin = true;
+              }
+            } catch (_) {}
+          }
+          const meta = authUser.user_metadata || {};
+          if (meta.role === 'admin' || meta.role === 'guru' || meta.role === 'teacher') {
+            isAdmin = true;
+          }
+
+          if (!isAdmin) {
+            showError('Akaun Supabase ini tidak mempunyai akses Guru/Pentadbir. Hanya akaun yang didaftarkan dalam senarai pentadbir dibenarkan.');
+            if (submit) submit.disabled = false;
+            return;
+          }
+
+          const profile = {
+            id: authUser.id,
+            name: meta.full_name || authUser.email.split('@')[0],
+            nickname: meta.username || 'Pentadbir',
+            email: authUser.email,
+            role: 'admin',
+            avatar: '../assets/home/avatar.svg',
+            isDemo: false,
+            authProvider: 'supabase'
+          };
+          AuthGuard.saveUser(profile, false);
+          if (window.Auth && typeof window.Auth.saveCurrentUser === 'function') {
+            window.Auth.saveCurrentUser(profile, false);
+          }
+          localStorage.setItem('arselnelAdmin', 'true');
+          location.assign('../admin_dashboard/code.html');
+          return;
+        } catch (adminErr) {
+          showError(`Log masuk pentadbir tidak berjaya: ${ARSupabase.friendlyError(adminErr)}`);
+          if (submit) submit.disabled = false;
+          return;
+        }
+      }
+      const submit = document.querySelector('#auth-login-form button[type="submit"]');
+      if (submit) submit.disabled = true;
+      try {
+        const { user: authUser } = await ARSupabase.signIn(identifier.toLowerCase(), password);
+        const metadata = authUser.user_metadata || {};
+        const profile = {
+          id: authUser.id,
+          name: metadata.full_name || authUser.email.split('@')[0],
+          nickname: metadata.username || '',
+          email: authUser.email,
+          username: metadata.username || authUser.email.split('@')[0],
+          role: 'student',
+          grade: metadata.class_name || '',
+          avatar: '../assets/home/avatar.svg',
+          isDemo: false,
+          authProvider: 'supabase'
+        };
+        AuthGuard.saveUser(profile, remember);
+        try {
+          const savedProfile = await ARSupabase.getProfile();
+          profile.name = savedProfile.full_name || profile.name;
+          profile.nickname = savedProfile.nickname || profile.nickname;
+          profile.grade = savedProfile.class_name || profile.grade;
+          profile.avatar = savedProfile.avatar || profile.avatar;
+          AuthGuard.saveUser(profile, remember);
+        } catch (profileError) {
+          console.warn('Profile belum dapat dimuat; metadata akaun digunakan.', profileError);
+        }
+        try { await ARSupabase.hydrateStudentData(); }
+        catch (syncError) { console.warn('Rekod pembelajaran awan belum dapat dimuatkan.', syncError); }
+        if (sourceUser && sourceUser.id && sourceUser.id !== profile.id && sourceUser.role === 'student' && !sourceUser.isGuest) {
+          const sourceName = sourceUser.nickname || sourceUser.name || 'profil setempat';
+          const sourceKey = `arselnel_learning_progress_${sourceUser.id}`;
+          let localCount = 0;
+          try {
+            const record = JSON.parse(localStorage.getItem(sourceKey) || '{}');
+            localCount += Array.isArray(record.quizzes) ? record.quizzes.length : 0;
+            localCount += Array.isArray(record.completedLessons) ? record.completedLessons.length : 0;
+            const cell = JSON.parse(localStorage.getItem(`arselnel_cellquest_progress_${sourceUser.id}`) || '{}');
+            if ((cell.completed && Object.values(cell.completed).some(Boolean)) || cell.xp) localCount++;
+          } catch (_) {}
+          if (localCount && window.confirm(`Import ${localCount} rekod pembelajaran daripada profil setempat “${sourceName}” ke akaun ${profile.email}? Rekod asal akan kekal pada peranti ini.`)) {
+            try { await ARSupabase.importLocalLearning(sourceUser.id); }
+            catch (importError) { window.alert(`Log masuk berjaya, tetapi sebahagian rekod belum disegerakkan. Salinan asal masih selamat pada peranti ini. Sebab: ${ARSupabase.friendlyError(importError)}`); }
+          }
+        }
+        sessionStorage.removeItem('arselnel_local_migration_source');
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        if (redirect) {
+          let target;
+          try { target = new URL(redirect, location.href); } catch (_) {}
+          if (target && target.origin === location.origin) location.assign(target.href);
+          else location.assign('../halaman_utama/code.html');
+        } else {
+          location.assign('../halaman_utama/code.html');
+        }
+      } catch (error) {
+        showError(ARSupabase.friendlyError(error));
+        if (submit) submit.disabled = false;
+      }
+    }
+
+    function loginAsGuest() {
+      AuthGuard.setGuestSession();
+      window.location.href = '../halaman_utama/code.html';
+    }
+
+    function fillDemo(role) {
+      hideError();
+      const buttons = document.querySelectorAll('[onclick^="fillDemo("]');
+      buttons.forEach(button => { button.disabled = true; button.classList.add('opacity-60'); });
+      const result = Auth.demoLogin(role);
+      if (!result.success) {
+        buttons.forEach(button => { button.disabled = false; button.classList.remove('opacity-60'); });
+        showError(result.message || 'Mod demo tidak dapat dimulakan.');
+        return;
+      }
+      AuthGuard.saveUser(result.user, true);
+      window.location.assign(result.redirectUrl);
+    }
+  </script>
+</body>
+</html>

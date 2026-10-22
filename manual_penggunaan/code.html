@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ms" data-page-theme="help">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f46e5">
+  <title>Panduan Penggunaan Kit ARSelNel | ARSelNel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/student-shell.css">
+  <link rel="stylesheet" href="../assets/css/manual.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/cms-content-adapter.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script defer src="../assets/js/student-shell.js"></script>
+  <script defer src="../assets/js/manual.js"></script>
+</head>
+<body>
+  <main class="ars-page-wrap manual-page" id="manual-main">
+    <a class="manual-back" href="../halaman_utama/code.html"><span aria-hidden="true">←</span> Kembali ke Dashboard</a>
+    <header class="manual-hero">
+      <div class="manual-hero-copy"><span class="manual-kicker">PANDUAN SAINTIS MUDA • 7 BAHAGIAN</span><h1>Panduan Penggunaan Kit ARSelNel</h1><p>Jom terokai setiap modul pembelajaran sains interaktif, model 3D, AR, nota, video, AI dan permainan!</p><span class="manual-hero-tag">✨ Ikut langkah satu demi satu atau pilih modul yang ingin anda pelajari.</span></div>
+      <div class="manual-hero-art" aria-hidden="true"><img src="../assets/home/cell_model.svg" alt=""><span>🔬</span></div>
+    </header>
+
+    <section class="manual-progress-card" aria-label="Kemajuan panduan">
+      <div class="manual-progress-top"><div><span class="manual-eyebrow">KEMAJUAN PENEROKAAN</span><strong id="manual-step-label" aria-live="polite">Langkah 1 daripada 7</strong></div><button type="button" class="manual-restart" id="manual-restart">↺ Mula semula</button></div>
+      <div class="manual-progress-track" role="progressbar" id="manual-progress" aria-label="Kemajuan panduan" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1"><span id="manual-progress-bar"></span></div>
+      <nav class="manual-step-nav" id="manual-step-nav" aria-label="Pilih langkah panduan"></nav>
+    </section>
+
+    <section class="manual-panel" aria-live="polite" aria-atomic="true">
+      <div id="manual-step-content"></div>
+      <div class="manual-actions"><button type="button" class="manual-button manual-button-quiet" id="manual-prev">← Langkah Sebelum</button><span class="manual-tip">💡 Teruskan ikut rentak anda sendiri</span><button type="button" class="manual-button manual-button-primary" id="manual-next">Langkah Seterusnya →</button><a class="manual-button manual-button-finish" id="manual-finish" href="../cellquest/code.html">🔬 Mula Teroka ARSelNel</a></div>
+    </section>
+    <p class="manual-footnote">Panduan ini menerangkan fungsi yang tersedia dalam ARSelNel. Sokongan AR bergantung pada pelayar dan peranti anda.</p>
+  </main>
+</body>
+</html>

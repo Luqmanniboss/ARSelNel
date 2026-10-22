@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ms" data-page-theme="video"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Video Pembelajaran - ARSelNel</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Auth Guard & Guest Restrictions -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/supabase-client.js"></script><script src="../assets/js/auth-guard.js"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#d3e4ff",
+                    "tertiary-container": "#0a844f",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#006565",
+                    "on-primary-container": "#e3fffe",
+                    "inverse-primary": "#76d6d5",
+                    "on-tertiary-fixed-variant": "#00522f",
+                    "secondary-fixed-dim": "#a2c9ff",
+                    "surface-bright": "#f7fafc",
+                    "error": "#ba1a1a",
+                    "surface-container-high": "#e5e9eb",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-surface-variant": "#3e4949",
+                    "on-primary": "#ffffff",
+                    "background": "#f7fafc",
+                    "outline": "#6e7979",
+                    "primary-container": "#008080",
+                    "tertiary-fixed": "#91f8b8",
+                    "secondary-container": "#7db6ff",
+                    "on-secondary-fixed-variant": "#004881",
+                    "secondary": "#1960a3",
+                    "surface": "#f7fafc",
+                    "on-primary-fixed-variant": "#004f4f",
+                    "surface-container-low": "#f1f4f6",
+                    "on-surface": "#181c1e",
+                    "inverse-on-surface": "#eef1f3",
+                    "on-secondary-fixed": "#001c38",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#93f2f2",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#d7dadc",
+                    "surface-variant": "#e0e3e5",
+                    "outline-variant": "#bdc9c8",
+                    "on-tertiary-fixed": "#002110",
+                    "surface-tint": "#006a6a",
+                    "inverse-surface": "#2d3133",
+                    "on-tertiary-container": "#ecffee",
+                    "on-secondary-container": "#00477f",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#002020",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#74db9d",
+                    "on-background": "#181c1e",
+                    "surface-container": "#ebeef0",
+                    "tertiary": "#00683d",
+                    "primary-fixed-dim": "#76d6d5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "touch-target-min": "48px",
+                    "margin-mobile": "20px",
+                    "stack-sm": "8px",
+                    "gutter-mobile": "16px",
+                    "stack-md": "16px",
+                    "stack-lg": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "label-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Inter"],
+                    "label-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-size: 16px;
+            -webkit-tap-highlight-color: transparent;
+            scroll-behavior: smooth;
+        }
+        body {
+            background-color: #f7fafc;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #bdc9c8;
+            border-radius: 10px;
+        }
+        .site-header {
+            width: 100%;
+        }
+        .nav-container,
+        .main-container,
+        .section-container {
+            width: calc(100% - 96px);
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        main {
+            width: 100%;
+        }
+        footer {
+            width: 100%;
+        }
+        @media (min-width: 1700px) {
+            .nav-container,
+            .main-container,
+            .section-container {
+                width: calc(100% - 140px);
+                max-width: 1700px;
+            }
+        }
+        @media (max-width: 800px) {
+            .nav-container,
+            .main-container,
+            .section-container {
+                width: calc(100% - 32px);
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+</head>
+<body class="bg-background text-navy antialiased pb-0">
+
+  <!-- Top Application Bar / Sticky Desktop Header -->
+  <header class="site-header fixed top-0 left-0 right-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
+    <div class="nav-container h-20 flex items-center justify-between">
+      <!-- Logo and Name -->
+      <a href="../halaman_utama/code.html" class="flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 rounded-lg p-1 transition-all" aria-label="ARSelNel Utama">
+        <img src="../assets/home/logo.svg" class="w-10 h-10 text-primary" alt="ARSelNel Logo" />
+        <span class="font-headline text-2xl font-extrabold text-primary tracking-tight">ARSelNel</span>
+      </a>
+
+      <!-- Main Navigation (Desktop & Tablet horizontal view) -->
+      <nav class="hidden lg:flex items-center gap-6 xl:gap-8">
+        <a href="../halaman_utama/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Utama">Utama</a>
+        <a href="../modul_pembelajaran/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Modul Pembelajaran">Modul Pembelajaran</a>
+        <a href="../pengimbas_ar/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Terokai AR">Terokai AR</a>
+        <a href="../selbot_ai/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Tanya AI">Tanya AI</a>
+        <a href="../nota_pembelajaran/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Nota">Nota</a>
+        <a href="../perpustakaan_video/code.html" class="font-headline text-base xl:text-lg font-bold text-primary hover:text-primary-dark transition-colors px-1 py-2 border-b-2 border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Video">Video</a>
+        <a href="../hab_permainan/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Permainan Sains">Permainan Sains</a>
+      </nav>
+      
+      <!-- Right Actions (Notifications, Avatar, Hamburger Toggle) -->
+      <div class="flex items-center gap-3">
+        <!-- Notification Button -->
+        <button class="relative w-12 h-12 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Notifikasi">
+          <span class="material-symbols-outlined text-3xl">notifications</span>
+          <span class="absolute top-3.5 right-3.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+        </button>
+        
+        <!-- Divider (Desktop) -->
+        <span class="hidden sm:inline-block w-[1px] h-8 bg-slate-200"></span>
+        
+        <!-- Student Profile -->
+        <a href="../bantuan_maklumat/code.html" class="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 group" aria-label="Profil Pelajar">
+          <div class="relative w-11 h-11 rounded-full overflow-hidden border border-teal-100">
+            <img class="w-full h-full object-cover" src="../assets/home/avatar.svg" alt="Avatar Pelajar" />
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+          </div>
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-xl">keyboard_arrow_down</span>
+        </a>
+
+        <!-- Hamburger Button (Mobile & Tablet) -->
+        <button id="hamburger-btn" class="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Menu Utama">
+          <span class="material-symbols-outlined text-2xl" id="hamburger-icon">menu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Dropdown Menu -->
+    <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-100 bg-white/95 backdrop-blur-md absolute top-20 left-0 right-0 w-full shadow-lg transition-all duration-300">
+      <nav class="flex flex-col p-4 gap-2">
+        <a href="../halaman_utama/code.html" class="font-headline text-base font-bold text-primary bg-teal-50/50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Utama">
+          <span class="material-symbols-outlined text-xl">home</span>
+          Utama
+        </a>
+        <a href="../modul_pembelajaran/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Modul Pembelajaran">
+          <span class="material-symbols-outlined text-xl">science</span>
+          Modul Pembelajaran
+        </a>
+        <a href="../pengimbas_ar/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Terokai AR">
+          <span class="material-symbols-outlined text-xl">view_in_ar</span>
+          Terokai AR
+        </a>
+        <a href="../selbot_ai/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Tanya AI">
+          <span class="material-symbols-outlined text-xl">smart_toy</span>
+          Tanya AI
+        </a>
+        <a href="../nota_pembelajaran/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Nota">
+          <span class="material-symbols-outlined text-xl">menu_book</span>
+          Nota
+        </a>
+        <a href="../perpustakaan_video/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Video">
+          <span class="material-symbols-outlined text-xl">play_circle</span>
+          Video
+        </a>
+        <a href="../hab_permainan/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Permainan Sains">
+          <span class="material-symbols-outlined text-xl">sports_esports</span>
+          Permainan Sains
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-container mt-28 space-y-6">
+<!-- Video Player Section -->
+<section class="relative aspect-video w-full bg-black group overflow-hidden shadow-lg lg:rounded-b-3xl">
+<!-- Video Placeholder -->
+<div class="absolute inset-0 w-full h-full bg-center bg-cover" data-alt="A cinematic 3D medical animation shot showing a detailed cross-section of a glowing animal cell. The nucleus is illuminated with a soft blue light, while mitochondria and ribosomes float in a vibrant, semi-transparent cytoplasm. The background is a dark, clean scientific space with subtle data overlays. Soft depth-of-field effects highlight the cellular complexity in a premium educational style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAqCZg9VZPhC5T5PbuP7IQGfOf9Pw_X5Xb149nv1a1NEpeFQOR9yV6y31Xx6gg_hoahtzUnTzrzpxfGpJxkqKenzzRVTP_gLpyihikDpUJc46Sqf-Yt6EgGzyB16KZSPtHcN8CLoqccBjmZIuIT7naJUTr1UjBJJW1fuhY4Kwt8P2QROgTEU2eTmSB0WNl5fNS0C7Dpx9scQ-7RX6RHKRYGEuZvozsXkKIhd7UV64bb1Fd0SnrjDe11E1Mvw7F6NYs9_QifR__3mq4')"></div>
+<!-- Play Overlay -->
+<div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-all cursor-pointer" id="playOverlay">
+<div class="w-16 h-16 md:w-20 md:h-20 bg-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-transform">
+<span class="material-symbols-outlined !text-4xl md:!text-5xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<!-- Video Controls -->
+<div class="video-controls absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 transition-opacity duration-300">
+<!-- Seek Bar -->
+<div class="w-full h-1 bg-white/30 rounded-full mb-4 cursor-pointer group/seek">
+<div class="h-full w-1/3 bg-primary relative rounded-full">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full scale-0 group-hover/seek:scale-100 transition-transform"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-white">
+<div class="flex items-center gap-4">
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">play_arrow</span></button>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">volume_up</span></button>
+<span class="font-label-md text-label-md">04:22 / 12:45</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">settings</span></button>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">fullscreen</span></button>
+</div>
+</div>
+</div>
+</section>
+<!-- Content Area -->
+<div class="px-margin-mobile mt-stack-lg animate-fade-in">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md text-label-md">Biologi</span>
+<span class="text-on-surface-variant font-label-md text-label-md">Bab 2: Sel Sebagai Unit Asas Hidupan</span>
+</div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Struktur Sel Haiwan</h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                    Penerangan ringkas tentang organel utama dalam sel haiwan dan fungsinya dalam mengekalkan kehidupan organisma.
+                </p>
+</div>
+<!-- Key Learning Points (Bento-ish Grid) -->
+<div class="mt-stack-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3 transition-all hover:shadow-md hover:bg-surface-container">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lens</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface">Nukleus</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">Pusat kawalan yang mengandungi maklumat genetik (DNA).</p>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3 transition-all hover:shadow-md hover:bg-surface-container">
+<div class="p-2 bg-secondary/10 rounded-lg text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface">Mitokondria</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">Tapak penjanaan tenaga melalui proses respirasi sel.</p>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3 transition-all hover:shadow-md hover:bg-surface-container">
+<div class="p-2 bg-tertiary/10 rounded-lg text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">layers</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface">Sitoplasma</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">Medium jeli di mana tindak balas kimia berlaku.</p>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3 transition-all hover:shadow-md hover:bg-surface-container">
+<div class="p-2 bg-error/10 rounded-lg text-error">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface">Membran Sel</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">Mengawal pergerakan bahan keluar dan masuk sel.</p>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="mt-10 flex flex-col sm:flex-row gap-4">
+<button onclick="window.location.href='../nota_pembelajaran/code.html'" class="flex-1 h-touch-target-min bg-primary text-on-primary font-label-lg text-label-lg rounded-full flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">menu_book</span>
+                    Baca Nota Berkaitan
+                </button>
+<button onclick="window.location.href='../kuiz_interaktif/code.html'" class="flex-1 h-touch-target-min border-2 border-primary text-primary font-label-lg text-label-lg rounded-full flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">quiz</span>
+                    Uji Kefahaman
+                </button>
+</div>
+</div>
+<!-- Related Videos/Up Next Section -->
+<section class="mt-12 px-margin-mobile">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4">Lagi Untuk Anda</h3>
+<div class="flex flex-col gap-4">
+<div onclick="window.location.href='../pemain_video/code.html'" class="flex gap-4 group cursor-pointer">
+<div class="relative w-32 md:w-48 aspect-video flex-shrink-0 rounded-xl overflow-hidden shadow-sm">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A scientific visualization of plant cells showing the green cell wall and chloroplasts under a microscope view. Soft, bright lighting and organic textures. Modern educational aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBd3PHsqIWjUlw6S3A7toVJF1k7wV3P9dppTiPDPwbNdww5uVTTofnPiURLhbDBGoLPKFKIMFm7Fyd4gzGCN-oncxBlsHm6J16anJGh_zLqIGqCRCSVBA4FFfkXy_PPmr_a1lczzD__iEqh-cICMjh16YEHLEvurcImAdsiZq-RuQNLQmtTgU-8hUh8nmgH-tB-zRrve85Z0SAEwPng5aR88AboYYoMiVVB87aGZMZ811QZTzqYr3jldyjptf2dKitr91s7Z3ZkJGk')"></div>
+<div class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 rounded">08:15</div>
+</div>
+<div class="flex flex-col justify-center gap-1">
+<h4 class="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors line-clamp-1">Perbezaan Sel Haiwan &amp; Sel Tumbuhan</h4>
+<p class="text-on-surface-variant text-label-md font-label-md">5.2k tontonan • 2 hari lepas</p>
+</div>
+</div>
+<div onclick="window.location.href='../pemain_video/code.html'" class="flex gap-4 group cursor-pointer">
+<div class="relative w-32 md:w-48 aspect-video flex-shrink-0 rounded-xl overflow-hidden shadow-sm">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="An augmented reality interface overlaying a human body diagram showing microscopic cell types like blood cells and nerve cells floating in mid-air. High-tech, futuristic educational UI." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAOyK29BmLYNoo-bNk_JiIZx8EAp73wUW_xsBri8Puci8S-7Ex37vJW1X-a7NHHZucD699yLDHOWjjBtsldNrvT_-cGk40S8iRigNXoL51tNlaYWwZyB6-TawhOH5siQziPqi1uxxLFnALMEzZaT1pffUs4DROug3sZSmTqfWxmlpUcIlhZwMubJ4EZMRv3na4AuL-Rt0hvZa3OEhIeu5hEgrsNiRr7gfva71fm_rYOLcVpC6euUfFz62mZI_Y6MmEyuF4_XPL7ncE')"></div>
+<div class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 rounded">10:30</div>
+</div>
+<div class="flex flex-col justify-center gap-1">
+<h4 class="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors line-clamp-1">Organisasi Sel dalam Manusia</h4>
+<p class="text-on-surface-variant text-label-md font-label-md">3.8k tontonan • 1 minggu lepas</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<script>
+        // Simple Interaction Logic
+        const playOverlay = document.getElementById('playOverlay');
+        const videoSection = playOverlay.parentElement;
+
+        playOverlay.addEventListener('click', () => {
+            playOverlay.style.opacity = '0';
+            setTimeout(() => {
+                playOverlay.style.display = 'none';
+            }, 300);
+            // Logic for triggering real video player would go here
+        });
+
+        // Add visual feedback for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.classList.add('scale-95');
+            });
+            btn.addEventListener('touchend', function() {
+                this.classList.remove('scale-95');
+            });
+        });
+    </script>
+
+  <!-- Desktop Footer -->
+  <footer class="bg-slate-900 text-slate-400 mt-20 border-t border-slate-800">
+    <div class="section-container py-16">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10">
+        <!-- Logo and Branding info -->
+        <div class="md:col-span-5 flex flex-col gap-4">
+          <a href="../halaman_utama/code.html" class="flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 rounded-lg p-1 transition-all w-fit">
+            <img src="../assets/home/logo.svg" class="w-10 h-10 text-primary-light" alt="ARSelNel Logo" />
+            <span class="font-headline text-2xl font-extrabold text-white tracking-tight">ARSelNel</span>
+          </a>
+          <p class="font-body text-sm text-slate-400 leading-relaxed max-w-sm">
+            Platform pembelajaran sains interaktif yang memfokuskan kepada topik Biologi untuk pelajar Tingkatan 1. Meneroka rahsia dunia sel melalui visualisasi 3D dan AR yang menarik.
+          </p>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="md:col-span-4 flex flex-col gap-4">
+          <h4 class="font-headline text-base font-bold text-white uppercase tracking-wider">Navigasi Utama</h4>
+          <ul class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm font-semibold">
+            <li><a href="../halaman_utama/code.html" class="hover:text-primary-light transition-colors">Utama</a></li>
+            <li><a href="../modul_pembelajaran/code.html" class="hover:text-primary-light transition-colors">Modul Pembelajaran</a></li>
+            <li><a href="../pengimbas_ar/code.html" class="hover:text-primary-light transition-colors">Terokai AR</a></li>
+            <li><a href="../selbot_ai/code.html" class="hover:text-primary-light transition-colors">Tanya AI</a></li>
+            <li><a href="../nota_pembelajaran/code.html" class="hover:text-primary-light transition-colors">Nota</a></li>
+            <li><a href="../perpustakaan_video/code.html" class="hover:text-primary-light transition-colors">Video</a></li>
+            <li><a href="../hab_permainan/code.html" class="hover:text-primary-light transition-colors">Permainan Sains</a></li>
+          </ul>
+        </div>
+
+        <!-- Call to action/Support info -->
+        <div class="md:col-span-3 flex flex-col gap-4">
+          <h4 class="font-headline text-base font-bold text-white uppercase tracking-wider">Perlukan Bantuan?</h4>
+          <p class="font-body text-sm text-slate-400">Hubungi pembantu pintar kami atau layari maklumat bantuan.</p>
+          <a href="../bantuan_maklumat/code.html" class="w-fit inline-flex items-center gap-2 bg-teal-600 text-white hover:bg-teal-500 font-headline text-xs font-bold px-4 py-2.5 rounded-xl shadow transition-colors">
+            <span>Bantuan & Maklumat</span>
+            <span class="material-symbols-outlined text-sm">info</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Bottom border and copyrights -->
+      <div class="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+        <p>© 2026 ARSelNel. Hak Cipta Terpelihara. Direka untuk pelajar Sains Tingkatan 1.</p>
+        <div class="flex gap-4">
+          <a href="#" class="hover:underline">Polisi Privasi</a>
+          <a href="#" class="hover:underline">Terma Penggunaan</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Script -->
+  <script>
+    // Toggle Hamburger Menu for Mobile/Tablet
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+
+    hamburgerBtn.addEventListener('click', () => {
+      const isExpanded = mobileMenu.classList.contains('hidden');
+      if (isExpanded) {
+        mobileMenu.classList.remove('hidden');
+        hamburgerIcon.textContent = 'close';
+      } else {
+        mobileMenu.classList.add('hidden');
+        hamburgerIcon.textContent = 'menu';
+      }
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!hamburgerBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+        mobileMenu.classList.add('hidden');
+        hamburgerIcon.textContent = 'menu';
+      }
+    });
+
+    // Touch micro-interactions feedback
+    document.querySelectorAll('a, button, [onclick]').forEach(el => {
+      el.addEventListener('mousedown', () => {
+        el.classList.add('scale-98');
+      });
+      el.addEventListener('mouseup', () => {
+        el.classList.remove('scale-98');
+      });
+      el.addEventListener('mouseleave', () => {
+        el.classList.remove('scale-98');
+      });
+    });
+
+    // Scroll effect for header shadow
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('header');
+      if (window.scrollY > 15) {
+        header.classList.add('shadow-md', 'border-slate-200');
+        header.classList.remove('border-slate-100');
+      } else {
+        header.classList.remove('shadow-md', 'border-slate-200');
+        header.classList.add('border-slate-100');
+      }
+    });
+
+    // Guest Mode restriction handler
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.AuthGuard && window.AuthGuard.isGuest()) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = parseInt(urlParams.get('video') || '1', 10);
+        
+        if (videoId > 1) {
+          window.AuthGuard.showGuestLimitModal(
+            'Video Pembelajaran Lanjutan',
+            'Sebagai pengguna <strong>Mod Tetamu</strong>, anda hanya dibenarkan menonton 1 video pengenalan. Sila log masuk atau daftar akaun percuma untuk menonton semua siri video biologi sains!'
+          );
+          setTimeout(() => {
+            window.location.href = '../perpustakaan_video/code.html';
+          }, 3500);
+        }
+
+        // Intercept related / up-next videos
+        const relatedVideos = document.querySelectorAll('section.mt-12 [onclick]');
+        relatedVideos.forEach(el => {
+          el.removeAttribute('onclick');
+          el.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.AuthGuard.showGuestLimitModal(
+              'Siri Video Lanjutan',
+              'Sila daftar akaun percuma untuk membuka semua video lanjutan dan penerangan mendalam dalam modul ini!'
+            );
+          });
+        });
+      }
+    });
+  </script>
+  <script src="../assets/js/student-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
+  <!-- Top Arrow (Left to Right) -->
+  <path d="M 10,15 H 30" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 26,11 L 30,15 L 26,19" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" fill="none"/>
+  
+  <!-- Bottom Arrow (Right to Left) -->
+  <path d="M 30,25 H 10" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 14,21 L 10,25 L 14,29" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" fill="none"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <defs>
+    <linearGradient id="badge1Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="36" fill="#e0f7fa" stroke="#00acc1" stroke-width="1.5"/>
+  <circle cx="40" cy="40" r="31" fill="url(#badge1Grad)" filter="drop-shadow(0 4px 6px rgba(6,182,212,0.25))"/>
+  <circle cx="40" cy="40" r="27" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="3 2" opacity="0.6"/>
+  <circle cx="40" cy="40" r="14" fill="#ffffff" stroke="#0891b2" stroke-width="1.5"/>
+  <circle cx="36" cy="36" r="4" fill="#ec4899"/>
+  <rect x="42" y="42" width="6" height="3" rx="1.5" fill="#f59e0b" transform="rotate(30, 42, 42)"/>
+</svg>

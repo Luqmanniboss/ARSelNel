@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" fill="none">
+  <defs>
+    <linearGradient id="trophyGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Floating stars -->
+  <g fill="#f59e0b" opacity="0.8">
+    <path d="M 30,20 L 32,24 L 36,24 L 33,27 L 34,31 L 30,29 L 26,31 L 27,27 L 24,24 L 28,24 Z"/>
+    <path d="M 135,85 L 137,89 L 141,89 L 138,92 L 139,96 L 135,94 L 131,96 L 132,92 L 129,89 L 133,89 Z" transform="scale(0.8) translate(30, 10)"/>
+    <path d="M 120,25 L 121,27 L 124,27 L 122,29 L 123,32 L 120,30 L 117,32 L 118,29 L 116,27 L 119,27 Z" transform="scale(0.6) translate(60, 10)"/>
+  </g>
+
+  <!-- Floating question marks -->
+  <g fill="#a855f7" font-family="'Plus Jakarta Sans', sans-serif" font-size="16" font-weight="800" opacity="0.8">
+    <text x="35" y="85" transform="rotate(-15, 35, 85)">?</text>
+    <text x="115" y="45" transform="rotate(20, 115, 45)" fill="#60a5fa">?</text>
+  </g>
+
+  <!-- Lightning Bolt -->
+  <path d="M 130,60 L 120,72 H 128 L 124,84 L 136,70 H 128 L 130,60 Z" fill="#eab308" filter="drop-shadow(0 2px 4px rgba(234,179,8,0.3))"/>
+
+  <!-- Golden Trophy (Center) -->
+  <g transform="translate(80, 60)">
+    <!-- Base -->
+    <ellipse cx="0" cy="24" rx="16" ry="5" fill="#9a3412"/>
+    <path d="M -8,12 H 8 V 22 H -8 Z" fill="url(#trophyGrad2)"/>
+    <path d="M -5,0 H 5 V 12 H -5 Z" fill="url(#trophyGrad2)"/>
+
+    <!-- Cup Body -->
+    <path d="M -16,-20 H 16 V -4 C 16,8 -16,8 -16,-4 Z" fill="url(#trophyGrad2)" stroke="#b45309" stroke-width="1"/>
+    
+    <!-- Handles -->
+    <path d="M -16,-15 C -25,-15 -25,-3 -16,-3" stroke="#b45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M 16,-15 C 25,-15 25,-3 16,-3" stroke="#b45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- Star decoration on cup -->
+    <path d="M 0,-10 L 2,-6 L 6,-6 L 3,-3 L 4,1 L 0,-1 L -4,1 L -3,-3 L -6,-6 L -2,-6 Z" fill="#ffffff" opacity="0.9"/>
+  </g>
+</svg>

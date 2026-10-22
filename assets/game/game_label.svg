@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" fill="none">
+  <defs>
+    <radialGradient id="cellBg2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="75%" stop-color="#a7f3d0"/>
+      <stop offset="100%" stop-color="#047857" stop-opacity="0.3"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Cell Cytoplasm -->
+  <circle cx="55" cy="60" r="40" fill="url(#cellBg2)" stroke="#34d399" stroke-width="1.5"/>
+  <circle cx="55" cy="60" r="37" fill="#ffffff" fill-opacity="0.1" stroke="#ffffff" stroke-width="1" stroke-dasharray="2 2"/>
+
+  <!-- Nucleus -->
+  <circle cx="50" cy="55" r="13" fill="#d946ef" stroke="#f472b6" stroke-width="0.5"/>
+  <circle cx="48" cy="52" r="4.5" fill="#fbcfe8"/>
+
+  <!-- Mitochondria -->
+  <g transform="translate(68, 78) rotate(40)">
+    <rect x="-8" y="-4" width="16" height="8" rx="4" fill="#fb923c" stroke="#ffedd5" stroke-width="0.5"/>
+    <path d="M -5,0 Q -3,-2 -1,0 Q 1,2 3,0 Q 5,-2 6,0" stroke="#fff" stroke-width="0.75" fill="none"/>
+  </g>
+
+  <!-- Ribosomes -->
+  <circle cx="35" cy="40" r="1.2" fill="#fef08a"/>
+  <circle cx="72" cy="45" r="1" fill="#fef08a"/>
+  <circle cx="32" cy="72" r="1.5" fill="#fef08a"/>
+  <circle cx="55" cy="80" r="1" fill="#fef08a"/>
+
+  <!-- Pointers and Labels text -->
+  <!-- Nukleus pointer -->
+  <path d="M 50,55 L 105,25 H 120" stroke="#047857" stroke-width="0.75" stroke-linecap="round" fill="none"/>
+  <circle cx="50" cy="55" r="1.5" fill="#047857"/>
+  <text x="123" y="28" font-family="'Inter', sans-serif" font-size="7.5" font-weight="bold" fill="#065f46">Nukleus</text>
+
+  <!-- Mitokondria pointer -->
+  <path d="M 68,78 L 105,62 H 120" stroke="#047857" stroke-width="0.75" stroke-linecap="round" fill="none"/>
+  <circle cx="68" cy="78" r="1.5" fill="#047857"/>
+  <text x="123" y="65" font-family="'Inter', sans-serif" font-size="7.5" font-weight="bold" fill="#065f46">Mitokondria</text>
+
+  <!-- Ribosom pointer -->
+  <path d="M 32,72 L 105,98 H 120" stroke="#047857" stroke-width="0.75" stroke-linecap="round" fill="none"/>
+  <circle cx="32" cy="72" r="1.5" fill="#047857"/>
+  <text x="123" y="101" font-family="'Inter', sans-serif" font-size="7.5" font-weight="bold" fill="#065f46">Ribosom</text>
+</svg>

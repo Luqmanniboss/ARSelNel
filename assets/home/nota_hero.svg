@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 280" fill="none">
+  <defs>
+    <!-- Soft Glow filter -->
+    <filter id="nota-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="nota-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#b45309" flood-opacity="0.22" />
+    </filter>
+
+    <!-- Gradients -->
+    <!-- Open Book / Tablet Cover -->
+    <linearGradient id="bookCoverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+
+    <!-- Notebook Page Gradient -->
+    <linearGradient id="pageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+
+    <!-- Pen Body Gradient -->
+    <linearGradient id="penBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d97706"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+
+    <!-- Cell Diagram Membrane Gradient -->
+    <radialGradient id="cellDiagramGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="60%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Faint Molecular & Study Grid in Background -->
+  <g opacity="0.3" stroke="#d97706" stroke-width="1.2">
+    <line x1="30" y1="50" x2="80" y2="35"/>
+    <line x1="80" y1="35" x2="110" y2="70"/>
+    <line x1="250" y1="45" x2="290" y2="75"/>
+    <circle cx="30" cy="50" r="3" fill="#f59e0b"/>
+    <circle cx="80" cy="35" r="3.5" fill="#f59e0b"/>
+    <circle cx="110" cy="70" r="2.5" fill="#f59e0b"/>
+    <circle cx="250" cy="45" r="3" fill="#f59e0b"/>
+    <circle cx="290" cy="75" r="3.5" fill="#f59e0b"/>
+  </g>
+
+  <!-- MAIN ILLUSTRATION: Open Interactive Science Notebook -->
+  <g id="notebook-main" transform="translate(155, 145) rotate(-3)">
+    <!-- Book Back Cover / Shadow Plate -->
+    <rect x="-105" y="-72" width="210" height="144" rx="18" fill="#ca8a04" opacity="0.4" transform="translate(4, 6)"/>
+
+    <!-- Book Cover Base (Warm Golden Yellow) -->
+    <rect x="-105" y="-72" width="210" height="144" rx="18" fill="url(#bookCoverGrad)" stroke="#ca8a04" stroke-width="2" filter="url(#nota-shadow)"/>
+
+    <!-- Book Spine Crease & Ring Binder -->
+    <line x1="0" y1="-72" x2="0" y2="72" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+    <rect x="-6" y="-72" width="12" height="144" fill="#a16207" opacity="0.2"/>
+
+    <!-- Left Notebook Page -->
+    <rect x="-95" y="-62" width="90" height="124" rx="10" fill="url(#pageGrad)" stroke="#fef08a" stroke-width="1.5"/>
+
+    <!-- Left Page Ruled Lines -->
+    <line x1="-85" y1="-44" x2="-15" y2="-44" stroke="#eab308" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-85" y1="-30" x2="-25" y2="-30" stroke="#fef08a" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-85" y1="-18" x2="-20" y2="-18" stroke="#fef08a" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-85" y1="-6" x2="-35" y2="-6" stroke="#fef08a" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-85" y1="6" x2="-20" y2="6" stroke="#fef08a" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-85" y1="18" x2="-30" y2="18" stroke="#fef08a" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-85" y1="30" x2="-25" y2="30" stroke="#fef08a" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Yellow Sticky Note on Left Page -->
+    <g transform="translate(-52, 28) rotate(-6)">
+      <rect x="-26" y="-18" width="52" height="36" rx="4" fill="#fef08a" stroke="#facc15" stroke-width="1" filter="url(#nota-shadow)"/>
+      <line x1="-20" y1="-8" x2="18" y2="-8" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="-20" y1="0" x2="14" y2="0" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="-20" y1="8" x2="5" y2="8" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="16" cy="7" r="3" fill="#22c55e"/>
+    </g>
+
+    <!-- Right Notebook Page (Interactive Cell Study Diagram) -->
+    <rect x="5" y="-62" width="90" height="124" rx="10" fill="url(#pageGrad)" stroke="#fef08a" stroke-width="1.5"/>
+
+    <!-- Biological Cell Diagram Drawn on Right Page -->
+    <g transform="translate(50, -5)">
+      <!-- Cell Membrane Boundary -->
+      <path d="M -30,-22 C -32,-38 -10,-42 15,-38 C 36,-34 40,-12 34,14 C 28,34 5,40 -15,34 C -32,28 -28,-6 -30,-22 Z" 
+            fill="url(#cellDiagramGrad)" stroke="#ca8a04" stroke-width="1.8" filter="url(#nota-glow)"/>
+
+      <!-- Nucleus -->
+      <circle cx="2" cy="-2" r="13" fill="#854d0e" stroke="#78350f" stroke-width="1.2"/>
+      <circle cx="-1" cy="-4" r="4.5" fill="#fef08a"/>
+
+      <!-- Mitochondria on Diagram -->
+      <g transform="translate(-14, 15) rotate(-20)">
+        <ellipse cx="0" cy="0" rx="9" ry="4.5" fill="#f59e0b" stroke="#78350f" stroke-width="0.9"/>
+        <path d="M -5,-1 Q -2,0 -5,1 M 0,-1.5 Q 2,0 0,1.5 M 5,-1 Q 7,0 5,1" stroke="#78350f" stroke-width="0.8" fill="none"/>
+      </g>
+
+      <!-- Vacuole / Vesicles -->
+      <circle cx="18" cy="-18" r="5" fill="#bae6fd" stroke="#0284c7" stroke-width="0.8"/>
+      <circle cx="20" cy="14" r="3.5" fill="#bae6fd" stroke="#0284c7" stroke-width="0.8"/>
+
+      <!-- Label Pointer Callout Lines -->
+      <line x1="2" y1="-2" x2="35" y2="-2" stroke="#78350f" stroke-width="1" stroke-dasharray="2,2"/>
+      <circle cx="35" cy="-2" r="2" fill="#78350f"/>
+    </g>
+
+    <!-- Page Header Label Pill -->
+    <rect x="15" y="-54" width="70" height="10" rx="5" fill="#fef08a" stroke="#facc15" stroke-width="0.8"/>
+    <text x="50" y="-46.5" font-family="'Plus Jakarta Sans', sans-serif" font-size="6" font-weight="800" fill="#78350f" text-anchor="middle">SAINS BAB 2</text>
+  </g>
+
+  <!-- FOREGROUND: Floating Smart Digital Stylus / Pen -->
+  <g id="digital-stylus" transform="translate(225, 110) rotate(38)">
+    <!-- Pen Shadow -->
+    <rect x="-5" y="-45" width="10" height="90" rx="5" fill="#000000" opacity="0.18" transform="translate(5, 7)"/>
+    
+    <!-- Pen Barrel -->
+    <rect x="-5" y="-45" width="10" height="85" rx="5" fill="url(#penBodyGrad)" stroke="#78350f" stroke-width="1.2" filter="url(#nota-shadow)"/>
+    
+    <!-- Pen Clip & Grip Rings -->
+    <rect x="-1" y="-42" width="2" height="28" rx="1" fill="#fef08a"/>
+    <rect x="-5" y="10" width="10" height="15" fill="#78350f" opacity="0.25"/>
+    <line x1="-5" y1="14" x2="5" y2="14" stroke="#fef08a" stroke-width="0.8"/>
+    <line x1="-5" y1="18" x2="5" y2="18" stroke="#fef08a" stroke-width="0.8"/>
+
+    <!-- Stylus Cone Tip -->
+    <polygon points="-4,40 4,40 0,55" fill="#fde047" stroke="#78350f" stroke-width="1"/>
+    <!-- Glowing Stylus Tip Point -->
+    <circle cx="0" cy="55" r="2" fill="#f59e0b" filter="url(#nota-glow)"/>
+  </g>
+
+  <!-- Floating Sparkles & Educational Icons -->
+  <g fill="#78350f">
+    <!-- Star 1 (Top Left) -->
+    <path d="M 65,65 Q 65,72 72,72 Q 65,72 65,79 Q 65,72 58,72 Q 65,72 65,65 Z" fill="#d97706" opacity="0.9"/>
+    <!-- Star 2 (Bottom Right) -->
+    <path d="M 265,200 Q 265,206 271,206 Q 265,206 265,212 Q 265,206 259,206 Q 265,206 265,200 Z" fill="#d97706" opacity="0.85"/>
+    <!-- Floating Lightbulb Badge (Top Right) -->
+    <g transform="translate(240, 52) scale(0.9)">
+      <circle cx="0" cy="0" r="13" fill="#ffffff" stroke="#facc15" stroke-width="1.5" filter="url(#nota-shadow)"/>
+      <path d="M -4,-4 C -4,-7 4,-7 4,-4 C 4,-2 2,-1 1,1 L -1,1 C -2,-1 -4,-2 -4,-4 Z" fill="#eab308"/>
+      <line x1="-2" y1="3" x2="2" y2="3" stroke="#a16207" stroke-width="1.2"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" fill="none">
+  <!-- Microscope (Right side, back) -->
+  <g transform="translate(160, 40) scale(0.75)" opacity="0.95">
+    <!-- Stand/Arm -->
+    <path d="M 40,110 C 40,50 90,50 90,80 L 80,105" stroke="#94a3b8" stroke-width="12" stroke-linecap="round" fill="none"/>
+    <path d="M 85,75 L 65,45" stroke="#475569" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Stage -->
+    <line x1="25" y1="95" x2="95" y2="95" stroke="#1e293b" stroke-width="5" stroke-linecap="round"/>
+    <!-- Base -->
+    <path d="M 20,135 H 85 C 92,135 95,138 95,142 H 10 V 142 C 10,138 13,135 20,135 Z" fill="#334155"/>
+    <rect x="25" y="125" width="50" height="10" fill="#475569" rx="2"/>
+
+    <!-- Eyepiece Tube -->
+    <rect x="53" y="10" width="10" height="30" fill="#cbd5e1" stroke="#475569" stroke-width="2" transform="rotate(-30, 58, 25)"/>
+    <rect x="49" y="5" width="14" height="6" fill="#1e293b" rx="1" transform="rotate(-30, 56, 8)"/>
+    
+    <!-- Adjustment Knobs -->
+    <circle cx="55" cy="115" r="7" fill="#64748b" stroke="#1e293b" stroke-width="2"/>
+    <circle cx="55" cy="115" r="3" fill="#1e293b"/>
+    
+    <!-- Light source -->
+    <circle cx="50" cy="120" r="5" fill="#fef08a" opacity="0.8"/>
+  </g>
+
+  <!-- Prokaryotic Cell (Center) -->
+  <g transform="translate(65, 95) rotate(-15)">
+    <!-- Flagellum/Tail -->
+    <path d="M -30,0 C -50,5 -60,-15 -80,-10 C -95,-5 -105,10 -120,5" stroke="#0d9488" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M -30,-5 C -45,-12 -55,-2 -70,-8" stroke="#14b8a6" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/>
+    
+    <!-- Capsule/Body (Teal/Green rod) -->
+    <rect x="-35" y="-22" width="70" height="44" rx="22" fill="#115e59" stroke="#2dd4bf" stroke-width="3" filter="drop-shadow(0 10px 15px rgba(13,148,136,0.3))"/>
+    
+    <!-- Cell Wall / Membrane Inner layers -->
+    <rect x="-31" y="-18" width="62" height="36" rx="18" fill="#134e4a" stroke="#0d9488" stroke-width="1.5"/>
+    <rect x="-27" y="-14" width="54" height="28" rx="14" fill="#0f766e" opacity="0.5"/>
+
+    <!-- Pili (Hair-like structures around capsule) -->
+    <line x1="-20" y1="-23" x2="-23" y2="-29" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="0" y1="-23" x2="0" y2="-30" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="-23" x2="23" y2="-29" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-20" y1="23" x2="-23" y2="29" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="0" y1="23" x2="0" y2="30" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="23" x2="23" y2="29" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="36" y1="-12" x2="43" y2="-17" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="36" y1="12" x2="43" y2="17" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Circular Nucleoid DNA (Coiled red/orange lines in center) -->
+    <path d="M -15,-5 Q -5,12 5,-2 Q 15,-10 8,5 Q 2,12 -8,-4 Q -12,-8 -15,-5 Z" stroke="#fb923c" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+    
+    <!-- Ribosomes (yellow dots) -->
+    <circle cx="-20" cy="5" r="1.5" fill="#fef08a"/>
+    <circle cx="-12" cy="-10" r="1.5" fill="#fef08a"/>
+    <circle cx="15" cy="-8" r="1.5" fill="#fef08a"/>
+    <circle cx="18" cy="6" r="1.5" fill="#fef08a"/>
+    <circle cx="2" cy="8" r="1.5" fill="#fef08a"/>
+  </g>
+
+  <!-- Quiz Checklist Card (Left, front) -->
+  <g transform="translate(130, 105) rotate(10)" filter="drop-shadow(0 8px 12px rgba(0,0,0,0.15))">
+    <rect x="-25" y="-35" width="50" height="70" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+    <rect x="-25" y="-35" width="50" height="12" rx="6" fill="#2dd4bf" />
+    <line x1="-25" y1="-23" x2="25" y2="-23" stroke="#2dd4bf" stroke-width="1"/>
+    
+    <!-- Title Lines -->
+    <line x1="-16" y1="-30" x2="-8" y2="-30" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <!-- Checklist items -->
+    <!-- Item 1 (Checked) -->
+    <circle cx="-14" cy="-10" r="4" fill="#10b981"/>
+    <path d="M -16,-10 L -14,-8 L -11,-12" stroke="#ffffff" stroke-width="1" fill="none"/>
+    <line x1="-6" y1="-10" x2="16" y2="-10" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Item 2 (Checked) -->
+    <circle cx="-14" cy="5" r="4" fill="#10b981"/>
+    <path d="M -16,5 L -14,7 L -11,3" stroke="#ffffff" stroke-width="1" fill="none"/>
+    <line x1="-6" y1="5" x2="12" y2="5" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Item 3 (Unchecked/Crossed) -->
+    <circle cx="-14" cy="20" r="4" fill="#ef4444"/>
+    <line x1="-16" y1="18" x2="-12" y2="22" stroke="#ffffff" stroke-width="1"/>
+    <line x1="-12" y1="18" x2="-16" y2="22" stroke="#ffffff" stroke-width="1"/>
+    <line x1="-6" y1="20" x2="8" y2="20" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Floating puzzle piece (Top left) -->
+  <g transform="translate(110, 45) rotate(-20)" fill="#60a5fa" stroke="#3b82f6" stroke-width="1" opacity="0.9">
+    <path d="M -12,-12 H -4 C -4,-8 0,-8 0,-12 H 8 V -4 C 12,-4 12,0 8,0 V 8 H 0 C 0,4 -4,4 -4,8 H -12 V 0 C -8,0 -8,-4 -12,-4 Z"/>
+  </g>
+
+  <!-- Floating science particles / molecules (Background) -->
+  <g stroke="#38bdf8" stroke-width="1" opacity="0.6">
+    <!-- Molecule 1 -->
+    <circle cx="45" cy="40" r="3" fill="#e0f2fe"/>
+    <circle cx="58" cy="32" r="2.5" fill="#e0f2fe"/>
+    <circle cx="35" cy="28" r="2" fill="#e0f2fe"/>
+    <line x1="45" y1="40" x2="58" y2="32" stroke-width="1"/>
+    <line x1="45" y1="40" x2="35" y2="28" stroke-width="1"/>
+
+    <!-- Molecule 2 -->
+    <circle cx="210" cy="120" r="2" fill="#fef08a" stroke="#eab308"/>
+    <circle cx="222" cy="112" r="3.5" fill="#fef08a" stroke="#eab308"/>
+    <circle cx="202" cy="104" r="1.5" fill="#fef08a" stroke="#eab308"/>
+    <line x1="210" y1="120" x2="222" y2="112" stroke-width="0.8"/>
+    <line x1="210" y1="120" x2="202" y2="104" stroke-width="0.8"/>
+  </g>
+</svg>

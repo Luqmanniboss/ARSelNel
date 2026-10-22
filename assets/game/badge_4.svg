@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <defs>
+    <linearGradient id="badge4Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <polygon points="40,5 49,27 72,27 54,42 61,65 40,52 19,65 26,42 8,27 31,27" fill="#fef8e0" stroke="#f57f17" stroke-width="1.5"/>
+  <g transform="translate(40,40) scale(0.85)">
+    <polygon points="0,-35 9,-13 32,-13 14,2 21,25 0,12 -21,25 -14,2 -32,-13 -9,-13" fill="url(#badge4Grad)" filter="drop-shadow(0 4px 6px rgba(245,158,11,0.25))"/>
+  </g>
+  <path d="M 40,26 L 42,30 L 46,30 L 43,33 L 44,37 L 40,35 L 36,37 L 37,33 L 34,30 L 38,30 Z" fill="#ffffff"/>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" fill="none">
+  <!-- Notebook base -->
+  <rect x="30" y="15" width="55" height="70" rx="4" fill="#fff" stroke="#f59e0b" stroke-width="1.5"/>
+  
+  <!-- Spiral bindings -->
+  <path d="M 26,22 C 29,22 31,24 31,26 C 31,28 29,30 26,30" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 26,32 C 29,32 31,34 31,36 C 31,38 29,40 26,40" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 26,42 C 29,42 31,44 31,46 C 31,48 29,50 26,50" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 26,52 C 29,52 31,54 31,56 C 31,58 29,60 26,60" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 26,62 C 29,62 31,64 31,66 C 31,68 29,70 26,70" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 26,72 C 29,72 31,74 31,76 C 31,78 29,80 26,80" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Lines on page -->
+  <line x1="38" y1="28" x2="77" y2="28" stroke="#fcd34d" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="38" y1="36" x2="77" y2="36" stroke="#e0e7ff" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="38" y1="44" x2="77" y2="44" stroke="#e0e7ff" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Sticky post-it note -->
+  <rect x="42" y="52" width="34" height="26" fill="#fef08a" stroke="#fbbf24" stroke-width="1" transform="rotate(-4, 59, 65)"/>
+  <line x1="46" y1="58" x2="72" y2="56" stroke="#fbbf24" stroke-width="1" stroke-linecap="round"/>
+  <line x1="46" y1="64" x2="68" y2="62" stroke="#fbbf24" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Floating pencil -->
+  <g transform="translate(85, 30) rotate(45)">
+    <rect x="-3" y="-15" width="6" height="30" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1"/>
+    <!-- Eraser -->
+    <rect x="-3" y="-18" width="6" height="4" fill="#f472b6" rx="1"/>
+    <!-- Pencil tip -->
+    <path d="M -3,15 L 0,22 L 3,15 Z" fill="#ffedd5"/>
+    <path d="M -1.5,18.5 L 0,22 L 1.5,18.5 Z" fill="#1e293b"/>
+  </g>
+</svg>

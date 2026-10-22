@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html class="light" lang="ms" data-page-theme="games">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>ARSelNel - Labelkan Organel</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  
+  <!-- Auth Guard & Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <style>
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; user-select: none; }
+    .site-header { width: 100%; }
+    .nav-container, .main-container {
+      width: calc(100% - 48px);
+      max-width: 1300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    @media (max-width: 640px) {
+      .nav-container, .main-container { width: calc(100% - 24px); }
+    }
+
+    /* Drop Zone Target Styling */
+    .drop-slot {
+      border: 2px dashed #94a3b8;
+      background: rgba(241, 245, 249, 0.85);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .drop-slot.hovered, .drop-slot.selected-target {
+      border-color: #059669;
+      background: #ecfdf5;
+      transform: scale(1.02);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+    }
+    .drop-slot.filled-correct {
+      border: 2px solid #059669;
+      background: #d1fae5;
+      color: #064e3b;
+      cursor: default;
+    }
+
+    /* Draggable/Selectable Label Pill */
+    .organelle-pill {
+      user-select: none;
+      cursor: grab;
+      touch-action: none;
+      transition: all 0.15s ease;
+    }
+    .organelle-pill:active {
+      cursor: grabbing;
+      transform: scale(0.97);
+    }
+    .organelle-pill.selected {
+      ring: 3px solid #059669;
+      border-color: #059669;
+      background: #ecfdf5;
+      color: #065f46;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+    }
+    .organelle-pill.placed {
+      opacity: 0.35;
+      pointer-events: none;
+      filter: grayscale(1);
+    }
+  </style>
+
+  <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased pb-12 min-h-screen">
+
+  <!-- Header Legasi (Diurus oleh student-shell) -->
+  <header class="site-header fixed top-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all">
+    <div class="nav-container h-20 flex items-center justify-between">
+      <a href="../halaman_utama/code.html" class="flex items-center gap-2.5">
+        <img src="../assets/home/logo.svg" class="w-10 h-10 text-emerald-700" alt="ARSelNel Logo" />
+        <span class="font-headline text-2xl font-extrabold text-emerald-800 tracking-tight">ARSelNel</span>
+      </a>
+      <a href="../hab_permainan/code.html" class="font-headline text-sm font-bold text-slate-600 hover:text-emerald-700 flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        <span>Kembali ke Hab Permainan</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Kandungan Utama Permainan -->
+  <main class="main-container mt-24 space-y-5">
+    
+    <!-- Topbar Banner Permainan -->
+    <section class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-headline font-bold uppercase tracking-wider">
+            Permainan Interaktif 1
+          </span>
+          <span class="text-xs text-slate-500 font-medium">Sains Tingkatan 1 • Bab 2: Struktur Sel</span>
+        </div>
+        <h1 class="font-headline text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1 flex items-center gap-2">
+          <span>Labelkan Organel Sel</span>
+          <span class="material-symbols-outlined text-emerald-600 text-2xl">label</span>
+        </h1>
+      </div>
+
+      <!-- Skor & Kawalan Atas -->
+      <div class="flex items-center gap-2.5">
+        <div class="px-3.5 py-1.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-1.5 text-xs font-bold text-amber-900 shadow-sm">
+          <span class="material-symbols-outlined text-amber-500 text-base fill-current">stars</span>
+          <span id="score-counter">0 / 150 pts</span>
+        </div>
+        <div class="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-700">
+          <span class="material-symbols-outlined text-slate-500 text-base">timer</span>
+          <span id="timer-display">00:00</span>
+        </div>
+        <a href="../hab_permainan/code.html" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-200 text-xs font-bold transition-colors">
+          Keluar
+        </a>
+      </div>
+    </section>
+
+    <!-- Bar Pemilihan Peringkat (Stage 1: Sel Haiwan | Stage 2: Sel Tumbuhan) -->
+    <div class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
+      <div class="flex items-center gap-2">
+        <button id="btn-stage-animal" class="stage-tab px-4 py-2 rounded-xl text-xs font-headline font-bold bg-emerald-600 text-white shadow-sm flex items-center gap-1.5 transition-all">
+          <span>🐾 Peringkat 1: Sel Haiwan</span>
+          <span id="badge-animal-status" class="w-4 h-4 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px]">4</span>
+        </button>
+        <button id="btn-stage-plant" class="stage-tab px-4 py-2 rounded-xl text-xs font-headline font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 transition-all">
+          <span>🌿 Peringkat 2: Sel Tumbuhan</span>
+          <span id="badge-plant-status" class="w-4 h-4 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-[10px]">6</span>
+        </button>
+      </div>
+
+      <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+        <span class="material-symbols-outlined text-emerald-600 text-sm">touch_app</span>
+        <span>Ketik label, kemudian ketik sasaran pada rajah untuk meletakkannya!</span>
+      </div>
+    </div>
+
+    <!-- Zon Interaktif Permainan: Rajah Sel & Palet Label Organel -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      
+      <!-- Panel Kiri: Kanvas / Rajah SVG Sel dengan Hotspot Drop Target (8 cols) -->
+      <div class="lg:col-span-8 p-5 sm:p-7 bg-white rounded-3xl border-2 border-slate-200 shadow-sm relative overflow-hidden">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div>
+            <h3 id="diagram-title" class="font-headline font-bold text-slate-900 text-lg">Rajah Sel Haiwan</h3>
+            <p id="diagram-subtitle" class="text-xs text-slate-500">Padankan 4 organel penting sel haiwan ke penuding yang betul.</p>
+          </div>
+          <span id="stage-progress-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            0 / 4 Selesai
+          </span>
+        </div>
+
+        <!-- Bekas Rajah Interaktif SVG Sel Haiwan -->
+        <div id="container-animal-cell" class="relative w-full max-w-lg mx-auto aspect-square flex items-center justify-center">
+          <svg viewBox="0 0 500 500" class="w-full h-full drop-shadow-md">
+            <!-- Selaput Membran Luar Sel Haiwan (Bentuk fleksibel tidak tetap) -->
+            <path d="M 120 90 C 230 60, 360 80, 420 160 C 470 230, 450 350, 380 410 C 300 470, 160 450, 90 380 C 40 310, 50 170, 120 90 Z" 
+                  fill="#fef3c7" stroke="#d97706" stroke-width="6" stroke-linejoin="round" />
+            <!-- Sitoplasma Jeli -->
+            <path d="M 130 105 C 225 80, 345 95, 400 170 C 445 235, 430 335, 365 390 C 290 445, 175 430, 105 365 C 65 305, 75 180, 130 105 Z" 
+                  fill="#fffbeb" opacity="0.9" />
+
+            <!-- Nukleus di Tengah -->
+            <circle cx="260" cy="250" r="68" fill="#c084fc" stroke="#7e22ce" stroke-width="4" />
+            <circle cx="260" cy="250" r="30" fill="#6b21a8" />
+            <circle cx="280" cy="235" r="8" fill="#e9d5ff" opacity="0.6" />
+
+            <!-- Mitokondria (Bujur dwilapisan dengan cristae) -->
+            <!-- Mitokondria 1 -->
+            <g transform="translate(130, 200) rotate(-25)">
+              <ellipse cx="30" cy="18" rx="28" ry="16" fill="#f87171" stroke="#b91c1c" stroke-width="3"/>
+              <path d="M 12 18 Q 20 10, 28 18 T 46 18" stroke="#ffffff" stroke-width="2.5" fill="none"/>
+            </g>
+            <!-- Mitokondria 2 -->
+            <g transform="translate(320, 140) rotate(35)">
+              <ellipse cx="30" cy="18" rx="26" ry="15" fill="#f87171" stroke="#b91c1c" stroke-width="3"/>
+              <path d="M 12 18 Q 20 10, 28 18 T 46 18" stroke="#ffffff" stroke-width="2.5" fill="none"/>
+            </g>
+
+            <!-- Garisan Penunjuk Label -->
+            <!-- 1. Nukleus (ke atas-kiri) -->
+            <line x1="260" y1="210" x2="220" y2="40" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="260" cy="210" r="4" fill="#7e22ce" />
+
+            <!-- 2. Membran Sel (ke atas-kanan) -->
+            <line x1="420" y1="160" x2="380" y2="40" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="420" cy="160" r="4" fill="#d97706" />
+
+            <!-- 3. Sitoplasma (ke bawah-kiri) -->
+            <line x1="170" y1="340" x2="80" y2="440" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="170" cy="340" r="4" fill="#ca8a04" />
+
+            <!-- 4. Mitokondria (ke bawah-kanan) -->
+            <line x1="330" y1="360" x2="400" y2="440" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="330" cy="360" r="4" fill="#b91c1c" />
+          </svg>
+
+          <!-- 4 Drop Slots untuk Sel Haiwan -->
+          <!-- Slot 1: Nukleus (atas-kiri) -->
+          <div class="drop-slot absolute top-2 left-10 w-36 sm:w-40 py-2 px-3 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="nukleus">
+            <span class="placeholder-text">🎯 Jatuhkan Nukleus</span>
+          </div>
+
+          <!-- Slot 2: Membran Sel (atas-kanan) -->
+          <div class="drop-slot absolute top-2 right-6 w-36 sm:w-40 py-2 px-3 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="membran_sel">
+            <span class="placeholder-text">🎯 Jatuhkan Membran</span>
+          </div>
+
+          <!-- Slot 3: Sitoplasma (bawah-kiri) -->
+          <div class="drop-slot absolute bottom-2 left-4 w-36 sm:w-40 py-2 px-3 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="sitoplasma">
+            <span class="placeholder-text">🎯 Jatuhkan Sitoplasma</span>
+          </div>
+
+          <!-- Slot 4: Mitokondria (bawah-kanan) -->
+          <div class="drop-slot absolute bottom-2 right-4 w-36 sm:w-40 py-2 px-3 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="mitokondria">
+            <span class="placeholder-text">🎯 Jatuhkan Mitokondria</span>
+          </div>
+        </div>
+
+        <!-- Bekas Rajah Interaktif SVG Sel Tumbuhan (Tersembunyi secara lalai) -->
+        <div id="container-plant-cell" class="relative w-full max-w-lg mx-auto aspect-square hidden items-center justify-center">
+          <svg viewBox="0 0 500 500" class="w-full h-full drop-shadow-md">
+            <!-- Dinding Sel Tumbuhan (Bentuk tetap segiempat bersudut tegar) -->
+            <polygon points="80,70 420,70 450,420 60,420" fill="#bbf7d0" stroke="#15803d" stroke-width="10" stroke-linejoin="round"/>
+            <!-- Membran Sel Dalam -->
+            <polygon points="90,82 410,82 438,408 72,408" fill="#dcfce7" stroke="#16a34a" stroke-width="3" stroke-linejoin="round"/>
+
+            <!-- Vakuol Pusat Besar di Tengah -->
+            <ellipse cx="260" cy="270" rx="90" ry="65" fill="#bae6fd" stroke="#0284c7" stroke-width="3" />
+            <text x="260" y="275" font-size="12" fill="#0369a1" font-weight="bold" text-anchor="middle" opacity="0.6">Sap Sel</text>
+
+            <!-- Nukleus di Sisi Tepi -->
+            <circle cx="160" cy="170" r="45" fill="#c084fc" stroke="#7e22ce" stroke-width="3"/>
+            <circle cx="160" cy="170" r="18" fill="#6b21a8"/>
+
+            <!-- Kloroplas Hijau Terang -->
+            <ellipse cx="360" cy="150" rx="26" ry="16" fill="#22c55e" stroke="#14532d" stroke-width="2.5"/>
+            <ellipse cx="370" cy="350" rx="26" ry="16" fill="#22c55e" stroke="#14532d" stroke-width="2.5"/>
+            <ellipse cx="150" cy="360" rx="24" ry="15" fill="#22c55e" stroke="#14532d" stroke-width="2.5"/>
+
+            <!-- Garisan Penunjuk Label Sel Tumbuhan -->
+            <!-- 1. Dinding Sel (kiri atas) -->
+            <line x1="80" y1="110" x2="30" y2="35" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="80" cy="110" r="4" fill="#15803d" />
+
+            <!-- 2. Kloroplas (kanan atas) -->
+            <line x1="360" y1="150" x2="400" y2="35" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="360" cy="150" r="4" fill="#22c55e" />
+
+            <!-- 3. Nukleus (kiri tengah) -->
+            <line x1="160" y1="170" x2="20" y2="190" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="160" cy="170" r="4" fill="#7e22ce" />
+
+            <!-- 4. Vakuol Besar (kanan tengah) -->
+            <line x1="320" y1="270" x2="440" y2="230" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="320" cy="270" r="4" fill="#0284c7" />
+
+            <!-- 5. Sitoplasma (kiri bawah) -->
+            <line x1="180" y1="360" x2="40" y2="440" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="180" cy="360" r="4" fill="#ca8a04" />
+
+            <!-- 6. Membran Sel (kanan bawah) -->
+            <line x1="420" y1="380" x2="440" y2="440" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="420" cy="380" r="4" fill="#16a34a" />
+          </svg>
+
+          <!-- 6 Drop Slots untuk Sel Tumbuhan -->
+          <div class="drop-slot absolute top-1 left-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="dinding_sel">
+            <span class="placeholder-text">🎯 Dinding Sel</span>
+          </div>
+
+          <div class="drop-slot absolute top-1 right-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="kloroplas">
+            <span class="placeholder-text">🎯 Kloroplas</span>
+          </div>
+
+          <div class="drop-slot absolute top-[38%] left-1 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="nukleus">
+            <span class="placeholder-text">🎯 Nukleus</span>
+          </div>
+
+          <div class="drop-slot absolute top-[45%] right-1 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="vakuol">
+            <span class="placeholder-text">🎯 Vakuol Besar</span>
+          </div>
+
+          <div class="drop-slot absolute bottom-2 left-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="sitoplasma">
+            <span class="placeholder-text">🎯 Sitoplasma</span>
+          </div>
+
+          <div class="drop-slot absolute bottom-2 right-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="membran_sel">
+            <span class="placeholder-text">🎯 Membran Sel</span>
+          </div>
+        </div>
+
+        <!-- Banner Maklum Balas Semerta -->
+        <div id="live-feedback" class="mt-4 p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 min-h-[46px] flex items-center gap-2.5 transition-all">
+          <span class="material-symbols-outlined text-emerald-600 text-xl">info</span>
+          <span id="feedback-message">Sila pilih label organel di sebelah kanan, kemudian letakkan pada sasaran yang tepat.</span>
+        </div>
+      </div>
+
+      <!-- Panel Kanan: Kotak Pilihan Label Organel (4 cols) -->
+      <div class="lg:col-span-4 p-5 bg-white rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+        <div>
+          <h3 class="font-headline font-bold text-slate-900 text-base">Label Organel Tersedia</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Tarik atau klik label di bawah, kemudian pasangkan pada rajah.</p>
+        </div>
+
+        <!-- Senarai Label Draggable -->
+        <div id="organelles-pool" class="flex flex-col gap-2.5">
+          <!-- Dijana secara dinamik mengikut stage aktif -->
+        </div>
+
+        <!-- Panduan & Butang Reset -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <button id="btn-reset-stage" class="text-xs font-bold text-slate-500 hover:text-rose-600 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Ulang Semula Rajah Ini</span>
+          </button>
+          <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg">
+            +15 pts setiap padanan
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Kemenangan Selesai Labelkan Organel -->
+    <div id="modal-completion" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-slate-100 animate-scale-up">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 text-3xl mx-auto flex items-center justify-center mb-3">
+          🧬
+        </div>
+        <h2 class="font-headline text-2xl font-extrabold text-slate-900">Syabas! Organel Berjaya Dilabel!</h2>
+        <p class="text-xs sm:text-sm text-slate-600 mt-1">Anda telah menguasai anatomi struktur sel haiwan dan tumbuhan Sains Tingkatan 1.</p>
+        
+        <div class="grid grid-cols-2 gap-3 my-4">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 font-semibold block">Skor Diperoleh</span>
+            <span class="font-headline text-xl font-extrabold text-emerald-700">+150 pts</span>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 font-semibold block">Ketepatan Padanan</span>
+            <span class="font-headline text-xl font-extrabold text-teal-700">100% Tepat</span>
+          </div>
+        </div>
+
+        <div id="save-status-msg" class="text-xs text-slate-500 mb-4 font-medium">
+          Menyimpan pencapaian ke rekod pembelajaran anda...
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <button onclick="window.location.reload()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-headline font-bold text-sm rounded-xl transition-all shadow-md">
+            Main Semula
+          </button>
+          <a href="../hab_permainan/code.html" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-headline font-bold text-xs rounded-xl transition-colors">
+            Kembali ke Hab Permainan
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // DATA PERMAINAN: Labelkan Organel
+    const STAGES = {
+      animal: {
+        title: "Rajah Sel Haiwan",
+        subtitle: "Padankan 4 organel penting sel haiwan ke penuding yang betul.",
+        total: 4,
+        organelles: [
+          { id: "nukleus", name: "Nukleus", desc: "Mengawal semua aktiviti sel dan membawa maklumat genetik (DNA)." },
+          { id: "membran_sel", name: "Membran Sel", desc: "Mengawal atur pergerakan bahan masuk dan keluar sel secara separa telap." },
+          { id: "sitoplasma", name: "Sitoplasma", desc: "Medium seperti jeli tempat berlakunya tindak balas biokimia metabolisme sel." },
+          { id: "mitokondria", name: "Mitokondria", desc: "Menjana tenaga dalam bentuk ATP melalui proses respirasi sel." }
+        ]
+      },
+      plant: {
+        title: "Rajah Sel Tumbuhan",
+        subtitle: "Padankan 6 organel penting sel tumbuhan ke penuding yang betul.",
+        total: 6,
+        organelles: [
+          { id: "dinding_sel", name: "Dinding Sel", desc: "Memberi sokongan mekanikal dan mengekalkan bentuk tetap sel tumbuhan." },
+          { id: "kloroplas", name: "Kloroplas", desc: "Mengandungi klorofil hijau untuk menyerap cahaya bagi fotosintesis." },
+          { id: "nukleus", name: "Nukleus", desc: "Pusat kawalan utama aktiviti sel tumbuhan." },
+          { id: "vakuol", name: "Vakuol Besar", desc: "Diisi sap sel untuk mengekalkan kesegahan (turgiditi) tumbuhan." },
+          { id: "sitoplasma", name: "Sitoplasma", desc: "Bahan jeli tempat organel terapung dan menjalankan tindak balas." },
+          { id: "membran_sel", name: "Membran Sel", desc: "Lapisan di sebelah dalam dinding sel yang mengawal bahan kimia." }
+        ]
+      }
+    };
+
+    let currentStage = 'animal';
+    let selectedPill = null;
+    let placedCount = { animal: 0, plant: 0 };
+    let score = 0;
+    let secondsElapsed = 0;
+    let timerId = null;
+
+    // Elemen DOM
+    const stageTitle = document.getElementById('diagram-title');
+    const stageSubtitle = document.getElementById('diagram-subtitle');
+    const stageBadge = document.getElementById('stage-progress-badge');
+    const poolContainer = document.getElementById('organelles-pool');
+    const animalContainer = document.getElementById('container-animal-cell');
+    const plantContainer = document.getElementById('container-plant-cell');
+    const feedbackMsg = document.getElementById('feedback-message');
+    const scoreCounter = document.getElementById('score-counter');
+    const timerDisplay = document.getElementById('timer-display');
+    const modalCompletion = document.getElementById('modal-completion');
+
+    // Mulakan Jam
+    timerId = setInterval(() => {
+      secondsElapsed++;
+      const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      const s = String(secondsElapsed % 60).padStart(2, '0');
+      timerDisplay.textContent = `${m}:${s}`;
+    }, 1000);
+
+    // Audio SFX ringkas Web Audio API
+    function playTone(freq, type = 'sine', duration = 0.15) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (_) {}
+    }
+
+    function renderStage(stageKey) {
+      currentStage = stageKey;
+      selectedPill = null;
+      const data = STAGES[stageKey];
+
+      stageTitle.textContent = data.title;
+      stageSubtitle.textContent = data.subtitle;
+      stageBadge.textContent = `${placedCount[stageKey]} / ${data.total} Selesai`;
+
+      if (stageKey === 'animal') {
+        animalContainer.classList.remove('hidden');
+        animalContainer.classList.add('flex');
+        plantContainer.classList.add('hidden');
+        plantContainer.classList.remove('flex');
+        document.getElementById('btn-stage-animal').className = 'stage-tab px-4 py-2 rounded-xl text-xs font-headline font-bold bg-emerald-600 text-white shadow-sm flex items-center gap-1.5 transition-all';
+        document.getElementById('btn-stage-plant').className = 'stage-tab px-4 py-2 rounded-xl text-xs font-headline font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 transition-all';
+      } else {
+        plantContainer.classList.remove('hidden');
+        plantContainer.classList.add('flex');
+        animalContainer.classList.add('hidden');
+        animalContainer.classList.remove('flex');
+        document.getElementById('btn-stage-plant').className = 'stage-tab px-4 py-2 rounded-xl text-xs font-headline font-bold bg-emerald-600 text-white shadow-sm flex items-center gap-1.5 transition-all';
+        document.getElementById('btn-stage-animal').className = 'stage-tab px-4 py-2 rounded-xl text-xs font-headline font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 transition-all';
+      }
+
+      // Bina Palet Label Organel
+      poolContainer.innerHTML = '';
+      data.organelles.forEach(org => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'organelle-pill p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:border-emerald-400 hover:bg-emerald-50/50 flex items-center justify-between text-left group';
+        btn.dataset.id = org.id;
+        btn.dataset.name = org.name;
+        btn.innerHTML = `
+          <div>
+            <span class="font-headline font-bold text-sm text-slate-800 block">${org.name}</span>
+            <span class="text-[11px] text-slate-500 block leading-tight mt-0.5">${org.desc}</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-emerald-600 ml-2">drag_indicator</span>
+        `;
+
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.organelle-pill').forEach(p => p.classList.remove('selected'));
+          btn.classList.add('selected');
+          selectedPill = org;
+          feedbackMsg.innerHTML = `Label <strong>${org.name}</strong> dipilih. Sila ketik sasaran pada rajah untuk meletakkannya.`;
+          playTone(440, 'triangle', 0.08);
+        });
+
+        poolContainer.appendChild(btn);
+      });
+
+      // Bind Drop Slots untuk Stage ini
+      const activeContainer = stageKey === 'animal' ? animalContainer : plantContainer;
+      const slots = activeContainer.querySelectorAll('.drop-slot');
+
+      slots.forEach(slot => {
+        slot.classList.remove('filled-correct', 'hovered', 'selected-target');
+        const targetId = slot.dataset.target;
+        const matchingOrg = data.organelles.find(o => o.id === targetId);
+        slot.innerHTML = `<span class="placeholder-text">🎯 Jatuhkan ${matchingOrg ? matchingOrg.name : 'Label'}</span>`;
+
+        slot.onclick = () => {
+          if (!selectedPill) {
+            feedbackMsg.innerHTML = `<span class="text-amber-700 font-bold">Pilih satu label organel dahulu</span> di panel kanan, kemudian ketik sasaran ini.`;
+            playTone(220, 'sawtooth', 0.1);
+            return;
+          }
+
+          if (selectedPill.id === targetId) {
+            // Betul!
+            slot.classList.add('filled-correct');
+            slot.classList.remove('drop-slot');
+            slot.innerHTML = `
+              <div class="flex items-center justify-center gap-1.5 font-headline font-bold text-emerald-900">
+                <span class="material-symbols-outlined text-emerald-600 text-sm font-bold">check_circle</span>
+                <span>${selectedPill.name}</span>
+              </div>
+            `;
+            
+            // Tandakan label pill selesai
+            const matchedPill = poolContainer.querySelector(`.organelle-pill[data-id="${selectedPill.id}"]`);
+            if (matchedPill) matchedPill.classList.add('placed');
+
+            placedCount[stageKey]++;
+            score += 15;
+            scoreCounter.textContent = `${score} / 150 pts`;
+            stageBadge.textContent = `${placedCount[stageKey]} / ${data.total} Selesai`;
+
+            feedbackMsg.innerHTML = `<span class="text-emerald-700 font-bold">✓ Tepat sekali!</span> <strong>${selectedPill.name}</strong> diletakkan dengan betul.`;
+            playTone(659.25, 'sine', 0.15);
+            setTimeout(() => playTone(880, 'sine', 0.2), 80);
+
+            selectedPill = null;
+            document.querySelectorAll('.organelle-pill').forEach(p => p.classList.remove('selected'));
+
+            // Semak jika stage selesai
+            if (placedCount[stageKey] === data.total) {
+              if (stageKey === 'animal' && placedCount.plant < STAGES.plant.total) {
+                feedbackMsg.innerHTML = `<span class="text-emerald-700 font-bold">🎉 Syabas! Peringkat 1 Sel Haiwan Selesai!</span> Teruskan ke Peringkat 2 Sel Tumbuhan.`;
+                setTimeout(() => renderStage('plant'), 1200);
+              } else if (placedCount.animal === STAGES.animal.total && placedCount.plant === STAGES.plant.total) {
+                // Selesai semua!
+                completeGame();
+              }
+            }
+          } else {
+            // Salah
+            feedbackMsg.innerHTML = `<span class="text-rose-600 font-bold">Cuba lagi!</span> Label <strong>${selectedPill.name}</strong> tidak sepadan dengan kedudukan ini.`;
+            playTone(240, 'sawtooth', 0.15);
+          }
+        };
+      });
+    }
+
+    function completeGame() {
+      clearInterval(timerId);
+      modalCompletion.classList.remove('hidden');
+      modalCompletion.classList.add('flex');
+      playTone(523.25, 'triangle', 0.2);
+      setTimeout(() => playTone(659.25, 'triangle', 0.2), 120);
+      setTimeout(() => playTone(783.99, 'triangle', 0.4), 240);
+
+      // Simpan skor ke Supabase & LocalStorage
+      const user = (window.AuthGuard && window.AuthGuard.getUser) ? window.AuthGuard.getUser() : { id: 'std_anon', name: 'Pelajar' };
+      const submission = {
+        id: crypto.randomUUID ? crypto.randomUUID() : 'lbl_' + Date.now(),
+        quizId: 'labelkan-organel',
+        topic: 'Struktur Sel Haiwan dan Tumbuhan',
+        title: 'Labelkan Organel Sel',
+        studentId: user.id || 'std_anon',
+        studentName: user.nickname || user.name || 'Pelajar',
+        correct: 10,
+        total: 10,
+        score: 100,
+        rawPoints: 150,
+        timeSpent: `${Math.floor(secondsElapsed / 60)}m ${secondsElapsed % 60}s`,
+        completedAt: new Date().toISOString()
+      };
+
+      try {
+        const key = `arselnel_learning_progress_${user.id}`;
+        let rec = JSON.parse(localStorage.getItem(key) || 'null') || { quizzes: [] };
+        if (!rec.quizzes) rec.quizzes = [];
+        rec.quizzes.push(submission);
+        localStorage.setItem(key, JSON.stringify(rec));
+
+        const subKey = 'arselnel_quiz_submissions';
+        let subs = JSON.parse(localStorage.getItem(subKey) || '[]');
+        subs.push(submission);
+        localStorage.setItem(subKey, JSON.stringify(subs.slice(-500)));
+
+        const statusEl = document.getElementById('save-status-msg');
+        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user.authProvider === 'supabase') {
+          window.ARSupabase.saveQuizAttempt(submission)
+            .then(() => { statusEl.textContent = '✓ Skor 150 pts berjaya disegerakkan ke Supabase!'; })
+            .catch(() => { statusEl.textContent = '✓ Skor disimpan secara setempat pada peranti.'; });
+        } else {
+          statusEl.textContent = '✓ Skor 150 pts berjaya disimpan ke rekod pembelajaran anda.';
+        }
+      } catch (_) {}
+    }
+
+    // Event Listeners
+    document.getElementById('btn-stage-animal').addEventListener('click', () => renderStage('animal'));
+    document.getElementById('btn-stage-plant').addEventListener('click', () => renderStage('plant'));
+    document.getElementById('btn-reset-stage').addEventListener('click', () => {
+      placedCount[currentStage] = 0;
+      renderStage(currentStage);
+      feedbackMsg.textContent = 'Rajah telah dimulakan semula. Sila letakkan label.';
+    });
+
+    // Mula Permainan
+    renderStage('animal');
+  </script>
+  <script src="../assets/js/student-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html class="light" lang="ms" data-page-theme="games">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>ARSelNel - Susun Organisasi Kehidupan</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  
+  <!-- Auth Guard & Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <style>
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; user-select: none; }
+    .site-header { width: 100%; }
+    .nav-container, .main-container {
+      width: calc(100% - 48px);
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    @media (max-width: 640px) {
+      .nav-container, .main-container { width: calc(100% - 24px); }
+    }
+
+    /* Sequence Item Card Animation */
+    .sequence-card {
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+      touch-action: none;
+    }
+    .sequence-card.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+    .sequence-card.correct-order {
+      border-color: #10b981;
+      background: #f0fdf4;
+    }
+    .sequence-card.wrong-order {
+      border-color: #f43f5e;
+      background: #fff1f2;
+    }
+  </style>
+
+  <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased pb-12 min-h-screen">
+
+  <!-- Header Legasi (Diurus oleh student-shell) -->
+  <header class="site-header fixed top-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all">
+    <div class="nav-container h-20 flex items-center justify-between">
+      <a href="../halaman_utama/code.html" class="flex items-center gap-2.5">
+        <img src="../assets/home/logo.svg" class="w-10 h-10 text-purple-700" alt="ARSelNel Logo" />
+        <span class="font-headline text-2xl font-extrabold text-purple-800 tracking-tight">ARSelNel</span>
+      </a>
+      <a href="../hab_permainan/code.html" class="font-headline text-sm font-bold text-slate-600 hover:text-purple-700 flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        <span>Kembali ke Hab Permainan</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Kandungan Utama Permainan -->
+  <main class="main-container mt-24 space-y-6">
+    
+    <!-- Topbar Banner Permainan -->
+    <section class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs font-headline font-bold uppercase tracking-wider">
+            Permainan Interaktif 3
+          </span>
+          <span class="text-xs text-slate-500 font-medium">Sains Tingkatan 1 • Bab 2: Tahap Organisasi Sel</span>
+        </div>
+        <h1 class="font-headline text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1 flex items-center gap-2">
+          <span>Susun Organisasi Kehidupan</span>
+          <span class="material-symbols-outlined text-purple-600 text-2xl">account_tree</span>
+        </h1>
+      </div>
+
+      <!-- Skor & Jam -->
+      <div class="flex items-center gap-2.5">
+        <div class="px-3.5 py-1.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-1.5 text-xs font-bold text-amber-900 shadow-sm">
+          <span class="material-symbols-outlined text-amber-500 text-base fill-current">stars</span>
+          <span id="score-counter">0 / 200 pts</span>
+        </div>
+        <div class="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-700">
+          <span class="material-symbols-outlined text-slate-500 text-base">timer</span>
+          <span id="timer-display">00:00</span>
+        </div>
+        <a href="../hab_permainan/code.html" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-200 text-xs font-bold transition-colors">
+          Keluar
+        </a>
+      </div>
+    </section>
+
+    <!-- Bar Formula Hierarki Kehidupan -->
+    <div class="p-4 bg-gradient-to-r from-purple-50 via-white to-purple-50 border border-purple-200 rounded-2xl shadow-sm">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs">
+            H
+          </span>
+          <div>
+            <h4 class="font-headline font-bold text-slate-900 text-sm">Prinsip Hierarki Sains Tingkatan 1</h4>
+            <p class="text-xs text-slate-500">Susun kad mengikut turutan daripada unit paling asas ke organisma lengkap:</p>
+          </div>
+        </div>
+
+        <!-- Formula Pills -->
+        <div class="flex items-center gap-1 text-xs font-bold flex-wrap">
+          <span class="px-2.5 py-1 bg-white border border-purple-300 text-purple-900 rounded-lg shadow-xs">1. Sel</span>
+          <span class="text-purple-400">→</span>
+          <span class="px-2.5 py-1 bg-white border border-purple-300 text-purple-900 rounded-lg shadow-xs">2. Tisu</span>
+          <span class="text-purple-400">→</span>
+          <span class="px-2.5 py-1 bg-white border border-purple-300 text-purple-900 rounded-lg shadow-xs">3. Organ</span>
+          <span class="text-purple-400">→</span>
+          <span class="px-2.5 py-1 bg-white border border-purple-300 text-purple-900 rounded-lg shadow-xs">4. Sistem</span>
+          <span class="text-purple-400">→</span>
+          <span class="px-2.5 py-1 bg-purple-600 text-white rounded-lg shadow-xs">5. Organisma</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pilihan Pusingan Cabaran -->
+    <div class="flex items-center gap-2">
+      <button id="tab-round-1" class="px-4 py-2 rounded-xl text-xs font-headline font-bold bg-purple-600 text-white shadow-sm flex items-center gap-1.5 transition-all">
+        <span>Pusingan 1: Sistem Peredaran Darah</span>
+      </button>
+      <button id="tab-round-2" class="px-4 py-2 rounded-xl text-xs font-headline font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 transition-all">
+        <span>Pusingan 2: Organisasi Tumbuhan</span>
+      </button>
+      <button id="tab-round-3" class="px-4 py-2 rounded-xl text-xs font-headline font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 transition-all">
+        <span>Pusingan 3: Sistem Pencernaan</span>
+      </button>
+    </div>
+
+    <!-- RUANG UTAMA SUSUNAN KAD -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-slate-200 shadow-sm space-y-5">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+        <div>
+          <h3 id="round-title" class="font-headline font-extrabold text-slate-900 text-lg sm:text-xl">
+            Pusingan 1: Organisasi Sistem Peredaran Darah
+          </h3>
+          <p id="round-desc" class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Susun 5 kad di bawah daripada peringkat Sel hingga ke peringkat Organisma lengkap.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-shuffle" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-sm">shuffle</span>
+            <span>Kocok Semula</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Senarai Kad yang boleh disusun (Reorderable List) -->
+      <div id="sequence-list" class="space-y-3">
+        <!-- Dijana secara dinamik oleh JavaScript -->
+      </div>
+
+      <!-- Kotak Maklum Balas Semakan -->
+      <div id="sequence-feedback" class="hidden p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed transition-all">
+        <div id="sequence-feedback-text"></div>
+      </div>
+
+      <!-- Butang Tindakan Semak Susunan -->
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+        <span class="text-xs text-slate-500 hidden sm:inline-flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-purple-600 text-base">swap_vert</span>
+          <span>Gunakan butang anak panah ke atas/bawah untuk mengubah susunan.</span>
+        </span>
+        <button id="btn-check-sequence" type="button" class="w-full sm:w-auto px-8 py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-headline font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+          <span>Semak Susunan</span>
+          <span class="material-symbols-outlined text-lg">check_circle</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Modal Kemenangan Selesai Semua Pusingan -->
+    <div id="modal-completion" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-slate-100 animate-scale-up">
+        <div class="w-16 h-16 rounded-2xl bg-purple-100 text-purple-600 text-3xl mx-auto flex items-center justify-center mb-3">
+          👑
+        </div>
+        <h2 class="font-headline text-2xl font-extrabold text-slate-900">Tahniah! Master Organisasi Sel!</h2>
+        <p class="text-xs sm:text-sm text-slate-600 mt-1">Anda telah berjaya menyelesaikan kesemua susunan organisasi kehidupan dengan tepat.</p>
+        
+        <div class="grid grid-cols-2 gap-3 my-4">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 font-semibold block">Skor Diperoleh</span>
+            <span class="font-headline text-xl font-extrabold text-purple-700">+200 pts</span>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-xs text-slate-500 font-semibold block">Pangkat</span>
+            <span class="font-headline text-base font-extrabold text-emerald-700">Pakar Biologi</span>
+          </div>
+        </div>
+
+        <div id="save-status-msg" class="text-xs text-slate-500 mb-4 font-medium">
+          Menyimpan pencapaian ke rekod pembelajaran anda...
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <button onclick="window.location.reload()" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-headline font-bold text-sm rounded-xl transition-all shadow-md">
+            Main Semula
+          </button>
+          <a href="../hab_permainan/code.html" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-headline font-bold text-xs rounded-xl transition-colors">
+            Kembali ke Hab Permainan
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // DATA PERMAINAN: 3 Pusingan Hierarki Organisasi Sains Tingkatan 1
+    const ROUNDS = [
+      {
+        id: 1,
+        title: "Pusingan 1: Organisasi Sistem Peredaran Darah",
+        desc: "Susun 5 tahap ini daripada peringkat Sel hingga ke Organisma manusia lengkap.",
+        correctOrder: [1, 2, 3, 4, 5],
+        cards: [
+          { rank: 1, level: "Sel", name: "Sel Otot Jantung", icon: "🔴", desc: "Unit paling asas yang mampu mengecut dan mengendur secara ritmik." },
+          { rank: 2, level: "Tisu", name: "Tisu Otot Kardiak", icon: "🧬", desc: "Kumpulan sel otot sejenis yang bergabung untuk membentuk dinding otot." },
+          { rank: 3, level: "Organ", name: "Jantung", icon: "❤️", desc: "Organ berotot yang mengepam darah ke seluruh tubuh." },
+          { rank: 4, level: "Sistem", name: "Sistem Peredaran Darah", icon: "🫀", desc: "Gabungan jantung, salur darah dan darah untuk mengangkut oksigen." },
+          { rank: 5, level: "Organisma", name: "Manusia", icon: "🧍", desc: "Organisma multisel lengkap yang mengandungi pelbagai sistem berfungsi bersama." }
+        ],
+        explanation: "Sel Otot membentuk Tisu Otot Kardiak, membina Organ Jantung, menyertai Sistem Peredaran Darah, dan membentuk Organisma Manusia."
+      },
+      {
+        id: 2,
+        title: "Pusingan 2: Organisasi Tumbuhan Berbunga",
+        desc: "Susun organisasi sel tumbuhan daripada peringkat mikroskopik ke pokok lengkap.",
+        correctOrder: [1, 2, 3, 4, 5],
+        cards: [
+          { rank: 1, level: "Sel", name: "Sel Mesofil Palisad", icon: "🟢", desc: "Sel tumbuhan yang kaya dengan kloroplas untuk fotosintesis maksimum." },
+          { rank: 2, level: "Tisu", name: "Tisu Mesofil Fotosintesis", icon: "🌿", desc: "Lapisan tisu daun yang menjalankan proses fotosintesis utama." },
+          { rank: 3, level: "Organ", name: "Daun", icon: "🍃", desc: "Organ tumbuhan yang bertindak sebagai kilang makanan." },
+          { rank: 4, level: "Sistem", name: "Sistem Pucuk", icon: "🌱", desc: "Sistem bahagian atas tumbuhan meliputi batang, daun, tunas dan bunga." },
+          { rank: 5, level: "Organisma", name: "Pokok Bunga Raya", icon: "🌺", desc: "Tumbuhan lengkap dengan sistem akar dan sistem pucuk." }
+        ],
+        explanation: "Sel Mesofil membentuk Tisu Fotosintesis, membina Organ Daun, menyokong Sistem Pucuk, dan menghasilkan Pokok Lengkap."
+      },
+      {
+        id: 3,
+        title: "Pusingan 3: Organisasi Sistem Pencernaan",
+        desc: "Susun hierarki sistem pencernaan makanan manusia daripada sel hingga ke individu.",
+        correctOrder: [1, 2, 3, 4, 5],
+        cards: [
+          { rank: 1, level: "Sel", name: "Sel Epitelium Usus", icon: "🔬", desc: "Sel khusus yang merembeskan mukus dan menyerap nutrien terlarut." },
+          { rank: 2, level: "Tisu", name: "Tisu Epitelium", icon: "🧱", desc: "Lapisan tisu yang melapisi permukaan dalam saluran pencernaan." },
+          { rank: 3, level: "Organ", name: "Perut & Usus", icon: "🥣", desc: "Organ pencernaan yang merembeskan jus gastrik dan menghadamkan makanan." },
+          { rank: 4, level: "Sistem", name: "Sistem Pencernaan", icon: "🍱", desc: "Sistem organ yang menghancurkan dan menyerap nutrien daripada makanan." },
+          { rank: 5, level: "Organisma", name: "Individu Manusia", icon: "🏃", desc: "Makhluk hidup lengkap yang memerlukan tenaga daripada sistem pencernaan." }
+        ],
+        explanation: "Sel Epitelium membentuk Tisu Epitelium, membina Organ Perut, menjadi sebahagian Sistem Pencernaan, bagi Organisma Manusia."
+      }
+    ];
+
+    let currentRoundIndex = 0;
+    let currentCards = [];
+    let completedRounds = [false, false, false];
+    let score = 0;
+    let secondsElapsed = 0;
+    let timerId = null;
+
+    // DOM References
+    const roundTitle = document.getElementById('round-title');
+    const roundDesc = document.getElementById('round-desc');
+    const seqList = document.getElementById('sequence-list');
+    const seqFeedback = document.getElementById('sequence-feedback');
+    const seqFeedbackText = document.getElementById('sequence-feedback-text');
+    const btnCheck = document.getElementById('btn-check-sequence');
+    const scoreCounter = document.getElementById('score-counter');
+    const timerDisplay = document.getElementById('timer-display');
+    const modalCompletion = document.getElementById('modal-completion');
+
+    // Timer
+    timerId = setInterval(() => {
+      secondsElapsed++;
+      const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      const s = String(secondsElapsed % 60).padStart(2, '0');
+      timerDisplay.textContent = `${m}:${s}`;
+    }, 1000);
+
+    function playTone(freq, type = 'sine', duration = 0.15) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (_) {}
+    }
+
+    function initRound(roundIdx) {
+      currentRoundIndex = roundIdx;
+      const round = ROUNDS[roundIdx];
+
+      roundTitle.textContent = round.title;
+      roundDesc.textContent = round.desc;
+
+      // Kemas kini tab aktif
+      for (let i = 0; i < 3; i++) {
+        const tab = document.getElementById(`tab-round-${i + 1}`);
+        if (i === roundIdx) {
+          tab.className = 'px-4 py-2 rounded-xl text-xs font-headline font-bold bg-purple-600 text-white shadow-sm flex items-center gap-1.5 transition-all';
+        } else {
+          tab.className = 'px-4 py-2 rounded-xl text-xs font-headline font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 transition-all';
+        }
+      }
+
+      // Kocok kad secara rawak (tetapi pastikan tidak bermula dengan susunan yang sempurna)
+      currentCards = [...round.cards].sort(() => Math.random() - 0.5);
+      renderCards();
+
+      seqFeedback.classList.add('hidden');
+      btnCheck.disabled = false;
+      btnCheck.innerHTML = `<span>Semak Susunan</span><span class="material-symbols-outlined text-lg">check_circle</span>`;
+      btnCheck.className = 'w-full sm:w-auto px-8 py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-headline font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2';
+    }
+
+    function renderCards() {
+      seqList.innerHTML = '';
+      currentCards.forEach((card, idx) => {
+        const row = document.createElement('div');
+        row.className = 'sequence-card p-3.5 sm:p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-300 flex items-center justify-between gap-3 shadow-xs';
+        row.dataset.rank = card.rank;
+        row.dataset.index = idx;
+
+        row.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 font-headline font-extrabold text-sm flex items-center justify-center shrink-0">
+              ${idx + 1}
+            </span>
+            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-2xl shrink-0">
+              ${card.icon}
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-headline font-bold text-sm sm:text-base text-slate-900 truncate">${card.name}</span>
+                <span class="text-[10px] uppercase font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">${card.level}</span>
+              </div>
+              <p class="text-xs text-slate-500 truncate mt-0.5">${card.desc}</p>
+            </div>
+          </div>
+
+          <!-- Butang Gerak Atas / Bawah untuk Susunan -->
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" class="btn-move-up w-8 h-8 rounded-lg bg-slate-100 hover:bg-purple-100 text-slate-600 hover:text-purple-700 flex items-center justify-center transition-colors ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}" ${idx === 0 ? 'disabled' : ''} title="Alih Ke Atas">
+              <span class="material-symbols-outlined text-base">arrow_upward</span>
+            </button>
+            <button type="button" class="btn-move-down w-8 h-8 rounded-lg bg-slate-100 hover:bg-purple-100 text-slate-600 hover:text-purple-700 flex items-center justify-center transition-colors ${idx === currentCards.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}" ${idx === currentCards.length - 1 ? 'disabled' : ''} title="Alih Ke Bawah">
+              <span class="material-symbols-outlined text-base">arrow_downward</span>
+            </button>
+          </div>
+        `;
+
+        // Bind Move Up
+        row.querySelector('.btn-move-up').onclick = () => {
+          if (idx > 0) {
+            const temp = currentCards[idx];
+            currentCards[idx] = currentCards[idx - 1];
+            currentCards[idx - 1] = temp;
+            renderCards();
+            playTone(380, 'sine', 0.08);
+          }
+        };
+
+        // Bind Move Down
+        row.querySelector('.btn-move-down').onclick = () => {
+          if (idx < currentCards.length - 1) {
+            const temp = currentCards[idx];
+            currentCards[idx] = currentCards[idx + 1];
+            currentCards[idx + 1] = temp;
+            renderCards();
+            playTone(340, 'sine', 0.08);
+          }
+        };
+
+        seqList.appendChild(row);
+      });
+    }
+
+    function checkSequence() {
+      const isCorrect = currentCards.every((card, idx) => card.rank === idx + 1);
+      const rows = seqList.querySelectorAll('.sequence-card');
+
+      if (isCorrect) {
+        rows.forEach(r => {
+          r.classList.add('correct-order');
+          r.classList.remove('wrong-order', 'border-slate-200');
+        });
+
+        playTone(587.33, 'sine', 0.12);
+        setTimeout(() => playTone(880, 'sine', 0.2), 90);
+
+        seqFeedback.classList.remove('hidden');
+        seqFeedback.className = 'p-4 rounded-2xl border bg-emerald-50 border-emerald-300 text-emerald-950 text-xs sm:text-sm';
+        seqFeedbackText.innerHTML = `
+          <div class="flex items-start gap-2.5">
+            <span class="material-symbols-outlined text-emerald-600 text-xl font-bold shrink-0">verified</span>
+            <div>
+              <p class="font-headline font-bold text-emerald-800 text-sm">Susunan Tepat Sekali! (+${currentRoundIndex === 2 ? '80' : '60'} Mata)</p>
+              <p class="mt-1 text-emerald-900 leading-relaxed">${ROUNDS[currentRoundIndex].explanation}</p>
+            </div>
+          </div>
+        `;
+
+        if (!completedRounds[currentRoundIndex]) {
+          completedRounds[currentRoundIndex] = true;
+          score += (currentRoundIndex === 2 ? 80 : 60);
+          scoreCounter.textContent = `${score} / 200 pts`;
+        }
+
+        // Semak jika semua pusingan selesai
+        if (completedRounds.every(Boolean)) {
+          btnCheck.innerHTML = `<span>Selesai Semua Pusingan!</span><span class="material-symbols-outlined text-lg">celebration</span>`;
+          btnCheck.className = 'w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-headline font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2';
+          setTimeout(finishGame, 1500);
+        } else {
+          btnCheck.innerHTML = `<span>Pusingan Seterusnya</span><span class="material-symbols-outlined text-lg">arrow_forward</span>`;
+          btnCheck.className = 'w-full sm:w-auto px-8 py-3.5 bg-purple-700 hover:bg-purple-800 text-white font-headline font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2';
+          btnCheck.onclick = () => {
+            const nextIdx = (currentRoundIndex + 1) % 3;
+            initRound(nextIdx);
+            btnCheck.onclick = checkSequence;
+          };
+        }
+      } else {
+        // Ada yang salah
+        rows.forEach((r, idx) => {
+          const rank = parseInt(r.dataset.rank);
+          if (rank === idx + 1) {
+            r.classList.add('correct-order');
+            r.classList.remove('wrong-order');
+          } else {
+            r.classList.add('wrong-order');
+            r.classList.remove('correct-order');
+          }
+        });
+
+        playTone(220, 'sawtooth', 0.15);
+
+        seqFeedback.classList.remove('hidden');
+        seqFeedback.className = 'p-4 rounded-2xl border bg-amber-50 border-amber-300 text-amber-950 text-xs sm:text-sm';
+        seqFeedbackText.innerHTML = `
+          <div class="flex items-start gap-2.5">
+            <span class="material-symbols-outlined text-amber-600 text-xl font-bold shrink-0">info</span>
+            <div>
+              <p class="font-headline font-bold text-amber-900 text-sm">Susunan Belum Tepat</p>
+              <p class="mt-1 text-amber-900 leading-relaxed">
+                Petunjuk: Kad yang bertanda merah masih belum berada pada peringkat hierarki yang betul. 
+                Ingat: <strong>Sel (1) → Tisu (2) → Organ (3) → Sistem (4) → Organisma (5)</strong>.
+              </p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function finishGame() {
+      clearInterval(timerId);
+      modalCompletion.classList.remove('hidden');
+      modalCompletion.classList.add('flex');
+
+      playTone(523.25, 'triangle', 0.2);
+      setTimeout(() => playTone(659.25, 'triangle', 0.2), 120);
+      setTimeout(() => playTone(783.99, 'triangle', 0.4), 240);
+
+      // Simpan skor ke Supabase & LocalStorage
+      const user = (window.AuthGuard && window.AuthGuard.getUser) ? window.AuthGuard.getUser() : { id: 'std_anon', name: 'Pelajar' };
+      const submission = {
+        id: crypto.randomUUID ? crypto.randomUUID() : 'seq_' + Date.now(),
+        quizId: 'organisasi-kehidupan',
+        topic: 'Tahap Organisasi Sel: Sel ke Organisma',
+        title: 'Susun Organisasi Kehidupan',
+        studentId: user.id || 'std_anon',
+        studentName: user.nickname || user.name || 'Pelajar',
+        correct: 3,
+        total: 3,
+        score: 100,
+        rawPoints: score,
+        completedAt: new Date().toISOString()
+      };
+
+      try {
+        const key = `arselnel_learning_progress_${user.id}`;
+        let rec = JSON.parse(localStorage.getItem(key) || 'null') || { quizzes: [] };
+        if (!rec.quizzes) rec.quizzes = [];
+        rec.quizzes.push(submission);
+        localStorage.setItem(key, JSON.stringify(rec));
+
+        const subKey = 'arselnel_quiz_submissions';
+        let subs = JSON.parse(localStorage.getItem(subKey) || '[]');
+        subs.push(submission);
+        localStorage.setItem(subKey, JSON.stringify(subs.slice(-500)));
+
+        const statusEl = document.getElementById('save-status-msg');
+        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user.authProvider === 'supabase') {
+          window.ARSupabase.saveQuizAttempt(submission)
+            .then(() => { statusEl.textContent = '✓ Skor 200 pts berjaya disegerakkan ke Supabase!'; })
+            .catch(() => { statusEl.textContent = '✓ Skor disimpan secara setempat pada peranti.'; });
+        } else {
+          statusEl.textContent = '✓ Skor disimpan ke rekod pembelajaran anda.';
+        }
+      } catch (_) {}
+    }
+
+    // Bind Button Events
+    btnCheck.onclick = checkSequence;
+    document.getElementById('btn-shuffle').onclick = () => {
+      currentCards.sort(() => Math.random() - 0.5);
+      renderCards();
+      seqFeedback.classList.add('hidden');
+    };
+    document.getElementById('tab-round-1').onclick = () => initRound(0);
+    document.getElementById('tab-round-2').onclick = () => initRound(1);
+    document.getElementById('tab-round-3').onclick = () => initRound(2);
+
+    // Mula Pusingan Pertama
+    initRound(0);
+  </script>
+  <script src="../assets/js/student-shell.js"></script>
+</body>
+</html>

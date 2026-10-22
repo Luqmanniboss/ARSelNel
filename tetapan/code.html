@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ms" data-page-theme="settings">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Tetapan | ARSelNel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/supabase-client.js"></script><script src="../assets/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+</head>
+<body>
+  <main class="ars-page-wrap" data-settings-page>
+    <header class="ars-page-heading">
+      <div class="ars-heading-icon"><span class="material-symbols-outlined" aria-hidden="true">settings</span></div>
+      <div><h1>Tetapan</h1><p>Laraskan pengalaman ARSelNel supaya selesa untuk cara anda belajar.</p></div>
+    </header>
+
+    <div class="ars-settings-layout">
+      <section class="ars-card">
+        <h2><span class="material-symbols-outlined align-middle text-blue-500" aria-hidden="true">palette</span> Penampilan</h2>
+        <p class="ars-card-intro">Pilihan ini disimpan untuk akaun pada peranti ini.</p>
+        <div class="ars-setting-row"><div><strong>Mod paparan</strong><small>Pilih suasana yang selesa untuk mata.</small></div><select id="setting-appearance" class="ars-field max-w-40" aria-label="Mod paparan"><option value="light">Cerah</option><option value="dark">Gelap</option></select></div>
+        <div class="ars-setting-row"><label for="setting-font"><strong>Saiz tulisan</strong><small id="setting-font-value">100% — biasa</small></label><input id="setting-font" class="ars-range" type="range" min="90" max="125" step="5" value="100" aria-label="Saiz tulisan"/></div>
+        <label class="ars-setting-row"><span><strong>Animasi antara muka</strong><small>Kurangkan gerakan jika anda mahu paparan lebih tenang.</small></span><input class="ars-switch" type="checkbox" id="setting-animations" role="switch"/></label>
+        <label class="ars-setting-row"><span><strong>Kontras lebih jelas</strong><small>Tebalkan sempadan untuk memudahkan pembacaan.</small></span><input class="ars-switch" type="checkbox" id="setting-contrast" role="switch"/></label>
+      </section>
+
+      <section class="ars-card">
+        <h2><span class="material-symbols-outlined align-middle text-teal-500" aria-hidden="true">school</span> Pembelajaran</h2>
+        <p class="ars-card-intro">Kawal maklum balas dan aksesibiliti semasa belajar.</p>
+        <label class="ars-setting-row"><span><strong>Kesan bunyi</strong><small>Bunyi ringkas apabila memilih jawapan kuiz.</small></span><input class="ars-switch" type="checkbox" id="setting-sound" role="switch"/></label>
+        <label class="ars-setting-row"><span><strong>Animasi kuiz</strong><small>Gerakan kecil ketika menjawab soalan.</small></span><input class="ars-switch" type="checkbox" id="setting-quiz-animations" role="switch"/></label>
+        <label class="ars-setting-row"><span><strong>Kurangkan pergerakan</strong><small>Matikan animasi untuk pengalaman lebih tenang.</small></span><input class="ars-switch" type="checkbox" id="setting-reduced-motion" role="switch"/></label>
+        <div class="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+          <p class="ars-form-label mb-1">Rekod aktiviti anda</p>
+          <p id="settings-progress-summary" class="m-0 text-sm leading-relaxed text-slate-600">Tiada rekod pembelajaran disimpan lagi.</p>
+          <button id="reset-progress" type="button" class="ars-button-danger mt-4"><span class="material-symbols-outlined" aria-hidden="true">delete_sweep</span>Padam rekod kemajuan</button>
+        </div>
+      </section>
+
+      <section class="ars-card">
+        <h2><span class="material-symbols-outlined align-middle text-violet-500" aria-hidden="true">manage_accounts</span> Profil & akaun</h2>
+        <p class="ars-card-intro">Urus maklumat akaun anda.</p>
+        <div class="ars-setting-row"><div><strong>Maklumat profil</strong><small>Tukar nama, nama panggilan atau avatar.</small></div><a href="../profil/code.html" class="ars-button-secondary no-underline">Profil saya</a></div>
+        <div class="ars-setting-row"><div><strong>E-mel akaun</strong><small id="settings-email">Tidak tersedia</small></div><span class="material-symbols-outlined text-slate-400" aria-hidden="true">verified_user</span></div>
+        <div class="ars-setting-row"><div><strong>Tukar kata laluan</strong><small>Aplikasi ini belum menyediakan fungsi tukar kata laluan.</small></div><button type="button" class="ars-button-secondary" disabled aria-disabled="true" title="Fungsi ini belum disokong">Belum tersedia</button></div>
+        <div class="ars-notice mt-4">Tetapan dan rekod kemajuan disimpan dalam storan pelayar pada peranti ini. Ia tidak disegerakkan ke peranti lain dan boleh terpadam jika data pelayar dibersihkan.</div>
+        <div class="mt-4"><button type="button" id="settings-logout" class="ars-button-danger"><span class="material-symbols-outlined" aria-hidden="true">logout</span>Log keluar</button></div>
+      </section>
+
+      <section class="ars-card">
+        <h2><span class="material-symbols-outlined align-middle text-amber-500" aria-hidden="true">info</span> Simpanan tetapan</h2>
+        <p class="ars-card-intro">Perubahan disimpan secara automatik pada akaun ini.</p>
+        <p id="settings-status" class="ars-status" role="status" aria-live="polite">Tetapan anda dikemas kini secara automatik.</p>
+        <a href="../halaman_utama/code.html" class="ars-button-primary mt-3 no-underline"><span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>Kembali belajar</a>
+      </section>
+    </div>
+  </main>
+  <script src="../assets/js/profile-settings.js"></script>
+  <script src="../assets/js/student-shell.js"></script>
+</body>
+</html>

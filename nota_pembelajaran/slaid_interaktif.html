@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html class="light" lang="ms" data-page-theme="notes">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" name="viewport"/>
+  <title>ARSelNel Smart Notes | Slaid Interaktif Sains</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Student Shell Centralized Theme CSS -->
+  <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+
+  <!-- PDF.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- jsPDF & html2canvas for PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Tailwind Theme Config -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#facc15",
+            'primary-dark': "#eab308",
+            'primary-light': "#fef08a",
+            mint: "#91f8b8",
+            secondary: "#1960a3",
+            'secondary-light': "#7db6ff",
+            accent: "#f59e0b",
+            navy: "#0f172a",
+            background: "#0f172a"
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            headline: ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      background-color: #0f172a;
+    }
+    .font-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* Workspace canvas layer alignment */
+    #slide-viewport {
+      touch-action: none;
+      transition: transform 0.15s ease-out;
+    }
+
+    .tool-btn.active {
+      background-color: #facc15 !important;
+      color: #1e293b !important;
+      box-shadow: 0 4px 14px rgba(250, 204, 21, 0.45);
+    }
+    .tool-btn.active .material-symbols-outlined {
+      color: #1e293b !important;
+    }
+
+    .tool-btn:not(.active):hover {
+      background-color: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+
+    /* Annotation layer styles */
+    #annotation-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    #text-overlay-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 25;
+      pointer-events: none;
+    }
+
+    .smart-textbox {
+      position: absolute;
+      min-width: 120px;
+      padding: 6px 10px;
+      border: 1.5px dashed rgba(0, 101, 101, 0.7);
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      pointer-events: auto;
+      cursor: move;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      line-height: 1.4;
+    }
+
+    .smart-textbox:focus {
+      border-color: #006565;
+      box-shadow: 0 0 0 3px rgba(0, 101, 101, 0.25);
+    }
+
+    /* Slide Thumbnail drawer */
+    #thumbnail-drawer {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 9999px;
+    }
+  </style>
+
+  <!-- Auth Guard & Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/smart-notes.js"></script>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col text-slate-100 bg-[#0b1322]">
+
+  <!-- ======================================================================= -->
+  <!-- TOP APPLICATION BAR & TOOLBAR (COLLANOTE / GOODNOTES STYLE)             -->
+  <!-- ======================================================================= -->
+  <header class="h-16 shrink-0 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-3 sm:px-5 flex items-center justify-between z-40 gap-2">
+    
+    <!-- Left: Back button & Note Info -->
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+      <a href="../nota_pembelajaran/code.html" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center justify-center shrink-0" title="Kembali ke Nota Pembelajaran">
+        <span class="material-symbols-outlined text-xl">arrow_back</span>
+      </a>
+
+      <div class="min-w-0">
+        <div class="flex items-center gap-2">
+          <h1 id="viewer-note-title" class="font-headline font-bold text-sm sm:text-base text-white truncate max-w-[180px] sm:max-w-xs md:max-w-md">
+            Slaid Interaktif
+          </h1>
+          <span id="viewer-chapter-badge" class="hidden md:inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 truncate">
+            Bab 2
+          </span>
+        </div>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+          <span id="save-status-badge" class="inline-flex items-center gap-1 font-semibold text-emerald-400">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            <span>Disimpan</span>
+          </span>
+          <span class="hidden sm:inline">• Mod Anotasi Digital</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Interactive Drawing Tools -->
+    <div class="flex items-center gap-1 sm:gap-1.5 bg-slate-800/90 p-1 rounded-2xl border border-slate-700/60 shadow-inner overflow-x-auto max-w-full">
+      <!-- 1. Selection / Pointer Tool -->
+      <button type="button" id="tool-select" onclick="setTool('select')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Pilih / Gerakkan Anotasi (V)">
+        <span class="material-symbols-outlined text-xl">near_me</span>
+      </button>
+
+      <!-- 2. Pan / Hand Tool -->
+      <button type="button" id="tool-pan" onclick="setTool('pan')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Gerak Kanvas / Pan (H / Tahan Spacebar)">
+        <span class="material-symbols-outlined text-xl">pan_tool</span>
+      </button>
+
+      <!-- 3. Pen Tool -->
+      <button type="button" id="tool-pen" onclick="setTool('pen')" class="tool-btn active p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Pen Digital (P)">
+        <span class="material-symbols-outlined text-xl">stylus_note</span>
+      </button>
+
+      <!-- 3. Highlighter Tool -->
+      <button type="button" id="tool-highlighter" onclick="setTool('highlighter')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Penyerlah Semi-Telus (H)">
+        <span class="material-symbols-outlined text-xl">format_ink_highlighter</span>
+      </button>
+
+      <!-- 4. Eraser Tool -->
+      <button type="button" id="tool-eraser" onclick="setTool('eraser')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Pemadam Anotasi (E)">
+        <span class="material-symbols-outlined text-xl">ink_eraser</span>
+      </button>
+
+      <!-- 5. Text Tool -->
+      <button type="button" id="tool-text" onclick="setTool('text')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Kotak Teks (T)">
+        <span class="material-symbols-outlined text-xl">title</span>
+      </button>
+
+      <!-- 6. Shape Tool -->
+      <div class="relative">
+        <button type="button" id="tool-shape" onclick="toggleShapeMenu()" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Bentuk Geometri (S)">
+          <span class="material-symbols-outlined text-xl" id="current-shape-icon">shapes</span>
+        </button>
+
+        <!-- Shape dropdown -->
+        <div id="shape-menu" class="hidden absolute left-0 top-12 bg-slate-800 border border-slate-700 rounded-2xl p-2 shadow-2xl z-50 flex flex-col gap-1 w-36">
+          <button type="button" onclick="selectShape('rect')" class="flex items-center gap-2 p-2 rounded-xl hover:bg-slate-700 text-xs font-semibold text-slate-200">
+            <span class="material-symbols-outlined text-base text-teal-400">rectangle</span>
+            <span>Segi Empat</span>
+          </button>
+          <button type="button" onclick="selectShape('circle')" class="flex items-center gap-2 p-2 rounded-xl hover:bg-slate-700 text-xs font-semibold text-slate-200">
+            <span class="material-symbols-outlined text-base text-teal-400">circle</span>
+            <span>Bulatan</span>
+          </button>
+          <button type="button" onclick="selectShape('line')" class="flex items-center gap-2 p-2 rounded-xl hover:bg-slate-700 text-xs font-semibold text-slate-200">
+            <span class="material-symbols-outlined text-base text-teal-400">horizontal_rule</span>
+            <span>Garis Lurus</span>
+          </button>
+          <button type="button" onclick="selectShape('arrow')" class="flex items-center gap-2 p-2 rounded-xl hover:bg-slate-700 text-xs font-semibold text-slate-200">
+            <span class="material-symbols-outlined text-base text-teal-400">trending_flat</span>
+            <span>Anak Panah</span>
+          </button>
+        </div>
+      </div>
+
+      <span class="w-[1px] h-6 bg-slate-700 hidden sm:inline-block mx-0.5"></span>
+
+      <!-- Color Palette Picker Button -->
+      <div class="relative">
+        <button type="button" id="btn-color-picker" onclick="toggleColorMenu()" class="p-2 rounded-xl text-slate-300 hover:text-white transition flex items-center justify-center shrink-0" title="Warna Pen / Penyerlah">
+          <span id="active-color-dot" class="w-5 h-5 rounded-full border-2 border-white shadow-sm inline-block" style="background-color: #2563eb;"></span>
+        </button>
+
+        <!-- Color Palette Dropdown -->
+        <div id="color-menu" class="hidden absolute -left-12 sm:left-0 top-12 bg-slate-800 border border-slate-700 rounded-2xl p-3 shadow-2xl z-50 w-56 space-y-3">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Warna Pen Digital</span>
+            <div class="grid grid-cols-5 gap-2" id="pen-colors-grid">
+              <button type="button" onclick="pickColor('#1e293b')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-slate-900" title="Hitam"></button>
+              <button type="button" onclick="pickColor('#2563eb')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-blue-600 ring-2 ring-white" title="Biru"></button>
+              <button type="button" onclick="pickColor('#dc2626')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-red-600" title="Merah"></button>
+              <button type="button" onclick="pickColor('#16a34a')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-green-600" title="Hijau"></button>
+              <button type="button" onclick="pickColor('#9333ea')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-purple-600" title="Ungu"></button>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Warna Penyerlah (Highlighter)</span>
+            <div class="grid grid-cols-4 gap-2" id="hl-colors-grid">
+              <button type="button" onclick="pickHighlighterColor('rgba(250, 204, 21, 0.42)')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-yellow-400/80" title="Kuning"></button>
+              <button type="button" onclick="pickHighlighterColor('rgba(74, 222, 128, 0.42)')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-emerald-400/80" title="Hijau"></button>
+              <button type="button" onclick="pickHighlighterColor('rgba(96, 165, 250, 0.42)')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-sky-400/80" title="Biru"></button>
+              <button type="button" onclick="pickHighlighterColor('rgba(244, 114, 182, 0.42)')" class="w-7 h-7 rounded-full border-2 border-slate-600 hover:scale-110 transition bg-pink-400/80" title="Merah Jambu"></button>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-700">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Ketebalan Garisan: <span id="label-stroke-size" class="text-white">4px</span></span>
+            <input type="range" id="input-stroke-size" min="1" max="30" value="4" oninput="updateStrokeSize(this.value)" class="w-full accent-primary h-1.5 bg-slate-700 rounded-lg cursor-pointer"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Actions: Zoom Pill, Undo, Redo, Clear, Export, Fullscreen -->
+    <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+      <!-- Top Quick Zoom Pill -->
+      <div class="hidden md:flex items-center gap-0.5 bg-slate-800/80 px-2 py-1 rounded-xl border border-slate-700/60 text-xs mr-1">
+        <button type="button" onclick="zoomOut()" class="p-1 rounded-lg text-slate-400 hover:text-white transition" title="Zum Keluar (Ctrl + -)">
+          <span class="material-symbols-outlined text-base">zoom_out</span>
+        </button>
+        <button type="button" onclick="resetZoom()" id="top-zoom-label" class="font-bold text-amber-300 px-1.5 hover:text-white transition" title="Muat Semula Skrin (100% / Fit)">
+          100%
+        </button>
+        <button type="button" onclick="zoomIn()" class="p-1 rounded-lg text-slate-400 hover:text-white transition" title="Zum Masuk (Ctrl + +)">
+          <span class="material-symbols-outlined text-base">zoom_in</span>
+        </button>
+      </div>
+
+      <button type="button" onclick="undo()" id="btn-undo" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Buat Semula / Undo (Ctrl+Z)">
+        <span class="material-symbols-outlined text-xl">undo</span>
+      </button>
+
+      <button type="button" onclick="redo()" id="btn-redo" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Maju Semula / Redo (Ctrl+Y)">
+        <span class="material-symbols-outlined text-xl">redo</span>
+      </button>
+
+      <button type="button" onclick="confirmClearPage()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 transition" title="Padam Anotasi Halaman Ini">
+        <span class="material-symbols-outlined text-xl">delete_sweep</span>
+      </button>
+
+      <button type="button" onclick="exportNotePDF()" id="btn-export" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold text-xs transition shadow-md" title="Eksport Slaid & Anotasi ke PDF">
+        <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+        <span>Eksport</span>
+      </button>
+
+      <button type="button" onclick="toggleFullscreen()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Skrin Penuh (F11)">
+        <span class="material-symbols-outlined text-xl" id="fs-icon">fullscreen</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================================================================= -->
+  <!-- CENTER WORKSPACE: MULTI-LAYERED SLIDE & CANVAS                          -->
+  <!-- ======================================================================= -->
+  <main id="workspace-container" class="flex-1 relative overflow-hidden flex items-center justify-center p-2 sm:p-6 bg-[#080d19] select-none">
+
+    <!-- Zoomable Viewport Frame -->
+    <div id="slide-viewport" class="relative shadow-2xl rounded-3xl overflow-hidden border border-slate-800 bg-white" style="width: 100%; max-width: 1040px; aspect-ratio: 16 / 10; transform-origin: center center;">
+      
+      <!-- LAYER 1: ORIGINAL SLIDE CONTENT (TEACHER READ-ONLY) -->
+      <div id="slide-content-layer" class="w-full h-full relative overflow-hidden select-none">
+        <!-- Rendered dynamically by renderCurrentSlide() -->
+        <div id="slide-html-host" class="w-full h-full"></div>
+        <canvas id="pdf-render-canvas" class="hidden w-full h-full object-contain"></canvas>
+        <iframe id="embed-slide-frame" class="hidden w-full h-full border-none" sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
+      </div>
+
+      <!-- LAYER 2: INTERACTIVE STUDENT ANNOTATION CANVAS (COLLANOTE ENGINE) -->
+      <canvas id="annotation-canvas"></canvas>
+
+      <!-- LAYER 3: TEXTBOX & INTERACTIVE OVERLAY -->
+      <div id="text-overlay-layer"></div>
+
+    </div>
+
+    <!-- Floating Canvas Zoom & Pan Controller (Direct on Canvas) -->
+    <div id="floating-zoom-bar" class="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-2xl shadow-2xl transition-all">
+      <button type="button" onclick="zoomOut()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition active:scale-95" title="Zum Keluar (-)">
+        <span class="material-symbols-outlined text-lg">zoom_out</span>
+      </button>
+
+      <button type="button" onclick="resetZoom()" class="px-2.5 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs flex items-center justify-center transition active:scale-95" title="Klik untuk Reset Zoom (100% / Muat Skrin)">
+        <span id="floating-zoom-label">100%</span>
+      </button>
+
+      <button type="button" onclick="zoomIn()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition active:scale-95" title="Zum Masuk (+)">
+        <span class="material-symbols-outlined text-lg">zoom_in</span>
+      </button>
+
+      <span class="w-[1px] h-5 bg-slate-700 mx-0.5"></span>
+
+      <button type="button" onclick="resetZoom()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition active:scale-95" title="Muat Semula Skrin (Fit)">
+        <span class="material-symbols-outlined text-base">fit_screen</span>
+      </button>
+
+      <button type="button" id="floating-pan-btn" onclick="togglePanTool()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-teal-400 flex items-center justify-center transition active:scale-95" title="Alat Gerak Kanvas / Pan (H / Spacebar)">
+        <span class="material-symbols-outlined text-base">pan_tool</span>
+      </button>
+    </div>
+
+    <!-- Empty / Loading Indicator -->
+    <div id="loading-indicator" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 text-white">
+      <div class="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p class="font-headline font-bold text-base" id="loading-text">Sedang memuatkan slaid pembelajaran...</p>
+    </div>
+  </main>
+
+  <!-- ======================================================================= -->
+  <!-- BOTTOM NAVIGATION & ZOOM CONTROLS                                       -->
+  <!-- ======================================================================= -->
+  <footer class="h-16 shrink-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-4 sm:px-8 flex items-center justify-between z-40">
+    
+    <!-- Left: Slide Thumbnails Drawer Button -->
+    <button type="button" onclick="toggleThumbnailsDrawer()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-semibold">
+      <span class="material-symbols-outlined text-lg">view_carousel</span>
+      <span class="hidden sm:inline">Pilihan Slaid</span>
+    </button>
+
+    <!-- Center: Page Navigation (Prev, Page 1 / 6, Next) -->
+    <div class="flex items-center gap-2 sm:gap-4">
+      <button type="button" id="btn-prev-slide" onclick="prevSlide()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-slate-200 hover:text-white transition flex items-center gap-1 font-bold text-xs" title="Slaid Sebelumnya (Alt+Left)">
+        <span class="material-symbols-outlined text-lg">chevron_left</span>
+        <span class="hidden sm:inline">Sebelumnya</span>
+      </button>
+
+      <span id="page-indicator" class="font-headline font-extrabold text-xs sm:text-sm text-amber-300 px-3 py-1.5 rounded-xl bg-slate-800/60 border border-amber-500/30">
+        Slaid 1 / 6
+      </span>
+
+      <button type="button" id="btn-next-slide" onclick="nextSlide()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-amber-400 hover:bg-amber-500 disabled:opacity-40 disabled:pointer-events-none text-slate-900 transition flex items-center gap-1 font-extrabold text-xs shadow" title="Slaid Seterusnya (Alt+Right)">
+        <span class="hidden sm:inline">Seterusnya</span>
+        <span class="material-symbols-outlined text-lg">chevron_right</span>
+      </button>
+    </div>
+
+    <!-- Right: Zoom Controls -->
+    <div class="flex items-center gap-1 sm:gap-2">
+      <button type="button" onclick="zoomOut()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Zum Keluar (-)">
+        <span class="material-symbols-outlined text-lg">zoom_out</span>
+      </button>
+
+      <span id="zoom-level-label" class="text-xs font-bold text-slate-300 min-w-[40px] text-center hidden sm:inline-block">
+        100%
+      </span>
+
+      <button type="button" onclick="zoomIn()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Zum Masuk (+)">
+        <span class="material-symbols-outlined text-lg">zoom_in</span>
+      </button>
+
+      <button type="button" onclick="resetZoom()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Muat Skrin (Fit)">
+        <span class="material-symbols-outlined text-lg">fit_screen</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- ======================================================================= -->
+  <!-- SLIDE THUMBNAILS DRAWER (COLLAPSIBLE MODAL/SIDEBAR)                     -->
+  <!-- ======================================================================= -->
+  <aside id="thumbnail-drawer" class="fixed top-16 right-0 bottom-16 w-80 max-w-[85vw] bg-slate-900/98 backdrop-blur-xl border-l border-slate-800 z-50 p-4 translate-x-full shadow-2xl flex flex-col">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-amber-400">auto_stories</span>
+        <h3 class="font-headline font-bold text-sm text-white">Pratonton Semua Slaid</h3>
+      </div>
+      <button type="button" onclick="toggleThumbnailsDrawer()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+    </div>
+
+    <div id="thumbnail-list" class="flex-1 overflow-y-auto space-y-3 pr-1">
+      <!-- Dynamically populated thumbnails -->
+    </div>
+  </aside>
+
+  <!-- Supabase & ARSelNel Core Modules -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/smart-notes.js"></script>
+
+  <!-- ======================================================================= -->
+  <!-- CORE JAVASCRIPT: CANVAS ANNOTATION ENGINE & SLIDE RENDERER              -->
+  <!-- ======================================================================= -->
+  <script>
+    'use strict';
+
+    // Application State
+    const AppState = {
+      note: null,
+      currentPage: 1,
+      totalPages: 1,
+      tool: 'pen', // 'select' | 'pen' | 'highlighter' | 'eraser' | 'text' | 'shape' | 'pan'
+      activeShape: 'rect', // 'rect' | 'circle' | 'line' | 'arrow'
+      penColor: '#2563eb',
+      highlighterColor: 'rgba(250, 204, 21, 0.42)',
+      strokeSize: 4,
+      zoomLevel: 1.0,
+      panX: 0,
+      panY: 0,
+      isPanning: false,
+      lastPanPoint: { x: 0, y: 0 },
+      prevToolBeforeSpace: null,
+      isDrawing: false,
+      currentStroke: null,
+      strokes: [], // vector objects for current page
+      undoStack: [],
+      redoStack: [],
+      selectedObject: null,
+      autosaveTimer: null,
+      pdfDocument: null,
+      devicePixelRatio: window.devicePixelRatio || 1
+    };
+
+    const canvas = document.getElementById('annotation-canvas');
+    const ctx = canvas.getContext('2d');
+    const textLayer = document.getElementById('text-overlay-layer');
+    const viewport = document.getElementById('slide-viewport');
+
+    // -------------------------------------------------------------------------
+    // INITIALIZATION & URL PARAMETER PARSING
+    // -------------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const noteId = params.get('id') || 'slide_sel_1';
+      const initialPage = parseInt(params.get('page') || '1', 10);
+
+      try {
+        showLoading('Memuatkan nota pembelajaran...');
+        let note = await SmartNotes.getNoteById(noteId);
+        if (!note) {
+          const allNotes = await SmartNotes.getNotes();
+          note = allNotes[0] || null;
+        }
+
+        if (!note) {
+          alert('Nota tidak ditemui. Sila kembali ke senarai nota.');
+          window.location.href = '../nota_pembelajaran/code.html';
+          return;
+        }
+
+        AppState.note = note;
+        AppState.totalPages = note.slideCount || (note.slides ? note.slides.length : 1);
+        
+        // Restore progress
+        const progress = await SmartNotes.getNoteProgress(note.id);
+        AppState.currentPage = Math.min(Math.max(1, initialPage || progress.lastViewedPage || 1), AppState.totalPages);
+
+        // Update UI Header
+        document.getElementById('viewer-note-title').textContent = note.title;
+        document.getElementById('viewer-chapter-badge').textContent = note.chapter;
+
+        // Init Canvas & Listeners
+        initCanvasDimensions();
+        initCanvasPointerEvents();
+        initZoomAndPanEvents();
+        initKeyboardShortcuts();
+
+        // Load PDF if contentType is 'pdf'
+        if (note.contentType === 'pdf' && note.storagePath) {
+          await loadPdfFile(note.storagePath);
+        }
+
+        // Render current slide
+        await renderCurrentSlide();
+        renderThumbnailsDrawer();
+        hideLoading();
+      } catch (e) {
+        console.error('Ralat memuatkan slaid:', e);
+        hideLoading();
+        alert('Ralat semasa memuatkan slaid interaktif: ' + e.message);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      initCanvasDimensions();
+      redrawCurrentAnnotations();
+    });
+
+    // -------------------------------------------------------------------------
+    // CANVAS RESIZE & NORMALIZED COORDINATES ENGINE
+    // -------------------------------------------------------------------------
+    function initCanvasDimensions() {
+      const w = viewport.clientWidth;
+      const h = viewport.clientHeight;
+      const dpr = window.devicePixelRatio || 1;
+      AppState.devicePixelRatio = dpr;
+
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+
+      ctx.scale(dpr, dpr);
+    }
+
+    // Convert screen coordinates to normalized (0.0 to 1.0)
+    function toNormalized(x, y) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: Math.max(0, Math.min(1, (x - rect.left) / rect.width)),
+        y: Math.max(0, Math.min(1, (y - rect.top) / rect.height))
+      };
+    }
+
+    // Convert normalized (0.0 to 1.0) back to actual current canvas logical pixels
+    function fromNormalized(normX, normY) {
+      const w = viewport.clientWidth;
+      const h = viewport.clientHeight;
+      return {
+        x: normX * w,
+        y: normY * h
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // SLIDE RENDERING (INTERACTIVE SVG/HTML, PDF, GOOGLE SLIDES EMBED)
+    // -------------------------------------------------------------------------
+    async function renderCurrentSlide() {
+      const note = AppState.note;
+      const page = AppState.currentPage;
+
+      // Update Page Counter
+      document.getElementById('page-indicator').textContent = `Slaid ${page} / ${AppState.totalPages}`;
+      document.getElementById('btn-prev-slide').disabled = page <= 1;
+      document.getElementById('btn-next-slide').disabled = page >= AppState.totalPages;
+
+      const htmlHost = document.getElementById('slide-html-host');
+      const pdfCanvas = document.getElementById('pdf-render-canvas');
+      const embedFrame = document.getElementById('embed-slide-frame');
+
+      // Hide all layers initially
+      htmlHost.classList.add('hidden');
+      pdfCanvas.classList.add('hidden');
+      embedFrame.classList.add('hidden');
+
+      if (note.contentType === 'interactive' || !note.contentType) {
+        htmlHost.classList.remove('hidden');
+        const slideData = (note.slides && note.slides[page - 1]) || null;
+        if (slideData && slideData.contentHtml) {
+          htmlHost.innerHTML = slideData.contentHtml;
+        } else {
+          htmlHost.innerHTML = `
+            <div class="h-full flex flex-col justify-center items-center p-8 text-center text-slate-800">
+              <h2 class="font-headline font-bold text-2xl mb-2">${escapeHtml(note.title)}</h2>
+              <span class="text-sm text-slate-500">Halaman Slaid ${page}</span>
+            </div>
+          `;
+        }
+      } else if (note.contentType === 'pdf') {
+        pdfCanvas.classList.remove('hidden');
+        await renderPdfPage(page);
+      } else if (note.contentType === 'google_slides' || note.contentType === 'embed') {
+        embedFrame.classList.remove('hidden');
+        let src = note.sourceUrl;
+        if (note.contentType === 'google_slides') {
+          const val = SmartNotes.validateGoogleSlidesUrl(note.sourceUrl);
+          if (val.valid) src = val.embedUrl;
+        }
+        if (embedFrame.src !== src) embedFrame.src = src;
+      }
+
+      // Load Annotations for current page
+      await loadPageAnnotations(page);
+
+      // Save progress
+      SmartNotes.saveNoteProgress(note.id, page);
+    }
+
+    async function loadPdfFile(url) {
+      if (!window.pdfjsLib) return;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const loadingTask = pdfjsLib.getDocument(url);
+      AppState.pdfDocument = await loadingTask.promise;
+      AppState.totalPages = AppState.pdfDocument.numPages;
+    }
+
+    async function renderPdfPage(pageNumber) {
+      if (!AppState.pdfDocument) return;
+      const page = await AppState.pdfDocument.getPage(pageNumber);
+      const pdfCanvas = document.getElementById('pdf-render-canvas');
+      const pdfCtx = pdfCanvas.getContext('2d');
+      const rect = viewport.getBoundingClientRect();
+
+      const viewportPdf = page.getViewport({ scale: 1 });
+      const scale = rect.width / viewportPdf.width;
+      const scaledViewport = page.getViewport({ scale: scale * (window.devicePixelRatio || 1) });
+
+      pdfCanvas.width = scaledViewport.width;
+      pdfCanvas.height = scaledViewport.height;
+
+      await page.render({
+        canvasContext: pdfCtx,
+        viewport: scaledViewport
+      }).promise;
+    }
+
+    // -------------------------------------------------------------------------
+    // ANNOTATION ENGINE: VECTOR DRAWING, SMOOTH INK, HIGH-RES RENDERING
+    // -------------------------------------------------------------------------
+    async function loadPageAnnotations(page) {
+      clearTextLayer();
+      const data = await SmartNotes.getAnnotations(AppState.note.id, page);
+      AppState.strokes = Array.isArray(data.objects) ? data.objects : [];
+      AppState.undoStack = [];
+      AppState.redoStack = [];
+
+      redrawCurrentAnnotations();
+    }
+
+    function redrawCurrentAnnotations() {
+      ctx.clearRect(0, 0, viewport.clientWidth, viewport.clientHeight);
+      clearTextLayer();
+
+      for (const obj of AppState.strokes) {
+        if (obj.type === 'pen' || obj.type === 'highlighter') {
+          drawVectorStroke(obj);
+        } else if (obj.type === 'shape') {
+          drawVectorShape(obj);
+        } else if (obj.type === 'text') {
+          renderTextBox(obj);
+        }
+      }
+    }
+
+    function drawVectorStroke(stroke) {
+      if (!stroke.points || stroke.points.length < 1) return;
+
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (stroke.type === 'highlighter') {
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = stroke.color || AppState.highlighterColor;
+        ctx.lineWidth = stroke.width || 20;
+      } else {
+        ctx.globalAlpha = 1.0;
+        ctx.strokeStyle = stroke.color || AppState.penColor;
+        ctx.lineWidth = stroke.width || AppState.strokeSize;
+      }
+
+      ctx.beginPath();
+      const first = fromNormalized(stroke.points[0].x, stroke.points[0].y);
+      ctx.moveTo(first.x, first.y);
+
+      if (stroke.points.length === 1) {
+        ctx.lineTo(first.x + 0.1, first.y + 0.1);
+      } else if (stroke.points.length === 2) {
+        const second = fromNormalized(stroke.points[1].x, stroke.points[1].y);
+        ctx.lineTo(second.x, second.y);
+      } else {
+        // CollaNote quadratic bezier curve smoothing
+        for (let i = 1; i < stroke.points.length - 1; i++) {
+          const pt0 = fromNormalized(stroke.points[i].x, stroke.points[i].y);
+          const pt1 = fromNormalized(stroke.points[i + 1].x, stroke.points[i + 1].y);
+          const midX = (pt0.x + pt1.x) / 2;
+          const midY = (pt0.y + pt1.y) / 2;
+          ctx.quadraticCurveTo(pt0.x, pt0.y, midX, midY);
+        }
+        const last = fromNormalized(stroke.points[stroke.points.length - 1].x, stroke.points[stroke.points.length - 1].y);
+        ctx.lineTo(last.x, last.y);
+      }
+
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawVectorShape(shape) {
+      const p1 = fromNormalized(shape.startX, shape.startY);
+      const p2 = fromNormalized(shape.endX, shape.endY);
+
+      ctx.save();
+      ctx.strokeStyle = shape.color || AppState.penColor;
+      ctx.lineWidth = shape.width || AppState.strokeSize;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      if (shape.shapeType === 'rect') {
+        ctx.strokeRect(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y), Math.abs(p2.x - p1.x), Math.abs(p2.y - p1.y));
+      } else if (shape.shapeType === 'circle') {
+        const rx = Math.abs(p2.x - p1.x) / 2;
+        const ry = Math.abs(p2.y - p1.y) / 2;
+        const cx = Math.min(p1.x, p2.x) + rx;
+        const cy = Math.min(p1.y, p2.y) + ry;
+        ctx.ellipse(cx, cy, Math.max(1, rx), Math.max(1, ry), 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (shape.shapeType === 'line') {
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      } else if (shape.shapeType === 'arrow') {
+        drawArrow(ctx, p1.x, p1.y, p2.x, p2.y);
+      }
+      ctx.restore();
+    }
+
+    function drawArrow(ctx, fromX, fromY, toX, toY) {
+      const headlen = 16;
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.fill();
+    }
+
+    function renderTextBox(textObj) {
+      const p = fromNormalized(textObj.x, textObj.y);
+      const box = document.createElement('div');
+      box.className = 'smart-textbox';
+      box.contentEditable = 'true';
+      box.style.left = `${p.x}px`;
+      box.style.top = `${p.y}px`;
+      box.style.color = textObj.color || '#1e293b';
+      box.style.fontSize = `${textObj.fontSize || 16}px`;
+      box.textContent = textObj.text || 'Tulis di sini...';
+      box.dataset.id = textObj.id;
+
+      // Blur to save
+      box.addEventListener('input', () => {
+        textObj.text = box.textContent;
+        pushHistory();
+        scheduleAutosave();
+      });
+
+      // Draggable textbox
+      let isDragging = false, startX = 0, startY = 0;
+      box.addEventListener('mousedown', (e) => {
+        if (AppState.tool === 'select') {
+          isDragging = true;
+          startX = e.clientX - box.offsetLeft;
+          startY = e.clientY - box.offsetTop;
+          e.stopPropagation();
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+          const newX = e.clientX - startX;
+          const newY = e.clientY - startY;
+          box.style.left = `${newX}px`;
+          box.style.top = `${newY}px`;
+          const norm = toNormalized(newX, newY);
+          textObj.x = norm.x;
+          textObj.y = norm.y;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          scheduleAutosave();
+        }
+      });
+
+      textLayer.appendChild(box);
+    }
+
+    function clearTextLayer() {
+      textLayer.innerHTML = '';
+    }
+
+    // -------------------------------------------------------------------------
+    // POINTER & TOUCH INTERACTIONS (MOUSE, TOUCH, AND STYLUS / PEN)
+    // -------------------------------------------------------------------------
+    function initCanvasPointerEvents() {
+      canvas.addEventListener('pointerdown', handlePointerDown);
+      canvas.addEventListener('pointermove', handlePointerMove);
+      canvas.addEventListener('pointerup', handlePointerUp);
+      canvas.addEventListener('pointercancel', handlePointerUp);
+    }
+
+    function handlePointerDown(e) {
+      if (AppState.tool === 'pan' || e.button === 1 || e.spaceKey) {
+        AppState.isPanning = true;
+        AppState.lastPanPoint = { x: e.clientX, y: e.clientY };
+        canvas.style.cursor = 'grabbing';
+        return;
+      }
+
+      if (AppState.tool === 'select') return;
+
+      const norm = toNormalized(e.clientX, e.clientY);
+
+      if (AppState.tool === 'eraser') {
+        eraseAtNormalized(norm.x, norm.y);
+        AppState.isDrawing = true;
+        return;
+      }
+
+      if (AppState.tool === 'text') {
+        insertTextAt(norm.x, norm.y);
+        setTool('select');
+        return;
+      }
+
+      AppState.isDrawing = true;
+
+      if (AppState.tool === 'shape') {
+        AppState.currentStroke = {
+          id: `shape_${Date.now()}`,
+          type: 'shape',
+          shapeType: AppState.activeShape,
+          startX: norm.x,
+          startY: norm.y,
+          endX: norm.x,
+          endY: norm.y,
+          color: AppState.penColor,
+          width: AppState.strokeSize
+        };
+      } else {
+        // Pen or Highlighter
+        AppState.currentStroke = {
+          id: `stroke_${Date.now()}`,
+          type: AppState.tool,
+          color: AppState.tool === 'highlighter' ? AppState.highlighterColor : AppState.penColor,
+          width: AppState.tool === 'highlighter' ? 22 : AppState.strokeSize,
+          points: [norm]
+        };
+      }
+    }
+
+    function handlePointerMove(e) {
+      if (AppState.isPanning) {
+        const dx = e.clientX - AppState.lastPanPoint.x;
+        const dy = e.clientY - AppState.lastPanPoint.y;
+        AppState.panX += dx;
+        AppState.panY += dy;
+        AppState.lastPanPoint = { x: e.clientX, y: e.clientY };
+        applyZoom();
+        return;
+      }
+
+      if (!AppState.isDrawing) return;
+      const norm = toNormalized(e.clientX, e.clientY);
+
+      if (AppState.tool === 'eraser') {
+        eraseAtNormalized(norm.x, norm.y);
+        return;
+      }
+
+      if (AppState.tool === 'shape') {
+        AppState.currentStroke.endX = norm.x;
+        AppState.currentStroke.endY = norm.y;
+        redrawCurrentAnnotations();
+        drawVectorShape(AppState.currentStroke);
+      } else {
+        AppState.currentStroke.points.push(norm);
+        redrawCurrentAnnotations();
+        drawVectorStroke(AppState.currentStroke);
+      }
+    }
+
+    function handlePointerUp() {
+      if (AppState.isPanning) {
+        AppState.isPanning = false;
+        canvas.style.cursor = AppState.tool === 'pan' ? 'grab' : (AppState.tool === 'select' ? 'default' : 'crosshair');
+      }
+
+      if (!AppState.isDrawing) return;
+      AppState.isDrawing = false;
+
+      if (AppState.currentStroke) {
+        AppState.strokes.push(AppState.currentStroke);
+        AppState.currentStroke = null;
+        pushHistory();
+        redrawCurrentAnnotations();
+        scheduleAutosave();
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ERASER: STROKE & OBJECT LEVEL ERASURE
+    // -------------------------------------------------------------------------
+    function eraseAtNormalized(nx, ny) {
+      const threshold = 0.04; // 4% hit distance
+      const initialCount = AppState.strokes.length;
+
+      AppState.strokes = AppState.strokes.filter(stroke => {
+        if (stroke.type === 'pen' || stroke.type === 'highlighter') {
+          return !stroke.points.some(pt => Math.hypot(pt.x - nx, pt.y - ny) < threshold);
+        } else if (stroke.type === 'shape') {
+          const midX = (stroke.startX + stroke.endX) / 2;
+          const midY = (stroke.startY + stroke.endY) / 2;
+          return Math.hypot(midX - nx, midY - ny) >= threshold;
+        }
+        return true;
+      });
+
+      if (AppState.strokes.length !== initialCount) {
+        pushHistory();
+        redrawCurrentAnnotations();
+        scheduleAutosave();
+      }
+    }
+
+    function confirmClearPage() {
+      if (!AppState.strokes.length) return;
+      if (confirm('Padam semua anotasi peribadi pada halaman slaid ini? Slaid asal guru tidak akan terjejas.')) {
+        pushHistory();
+        AppState.strokes = [];
+        redrawCurrentAnnotations();
+        scheduleAutosave();
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // TEXT INSERTION
+    // -------------------------------------------------------------------------
+    function insertTextAt(nx, ny) {
+      const textObj = {
+        id: `text_${Date.now()}`,
+        type: 'text',
+        x: nx,
+        y: ny,
+        text: 'Klik untuk taip nota...',
+        color: AppState.penColor,
+        fontSize: 16
+      };
+      AppState.strokes.push(textObj);
+      pushHistory();
+      renderTextBox(textObj);
+      scheduleAutosave();
+    }
+
+    // -------------------------------------------------------------------------
+    // UNDO & REDO STACK
+    // -------------------------------------------------------------------------
+    function pushHistory() {
+      AppState.undoStack.push(JSON.stringify(AppState.strokes));
+      if (AppState.undoStack.length > 30) AppState.undoStack.shift();
+      AppState.redoStack = [];
+    }
+
+    function undo() {
+      if (!AppState.undoStack.length) return;
+      AppState.redoStack.push(JSON.stringify(AppState.strokes));
+      const previous = AppState.undoStack.pop();
+      AppState.strokes = JSON.parse(previous);
+      redrawCurrentAnnotations();
+      scheduleAutosave();
+    }
+
+    function redo() {
+      if (!AppState.redoStack.length) return;
+      AppState.undoStack.push(JSON.stringify(AppState.strokes));
+      const next = AppState.redoStack.pop();
+      AppState.strokes = JSON.parse(next);
+      redrawCurrentAnnotations();
+      scheduleAutosave();
+    }
+
+    // -------------------------------------------------------------------------
+    // AUTOSAVE & PERSISTENCE
+    // -------------------------------------------------------------------------
+    function scheduleAutosave() {
+      setSaveStatus('saving');
+      clearTimeout(AppState.autosaveTimer);
+      AppState.autosaveTimer = setTimeout(async () => {
+        await executeSave();
+      }, 800);
+    }
+
+    async function executeSave() {
+      if (!AppState.note) return;
+      try {
+        const payload = {
+          version: '1.0',
+          updatedAt: new Date().toISOString(),
+          objects: AppState.strokes
+        };
+        const res = await SmartNotes.saveAnnotations(AppState.note.id, AppState.currentPage, payload);
+        setSaveStatus(res && res.status === 'saved' ? 'saved' : 'local_only');
+      } catch (e) {
+        console.warn('SmartNotes: Gagal menyimpan ke awan, disimpan setempat', e);
+        setSaveStatus('failed');
+      }
+    }
+
+    function setSaveStatus(status) {
+      const badge = document.getElementById('save-status-badge');
+      if (status === 'saving') {
+        badge.className = 'inline-flex items-center gap-1 font-semibold text-amber-400';
+        badge.innerHTML = '<span class="material-symbols-outlined text-xs animate-spin">sync</span><span>Menyimpan...</span>';
+      } else if (status === 'saved') {
+        badge.className = 'inline-flex items-center gap-1 font-semibold text-emerald-400';
+        badge.innerHTML = '<span class="material-symbols-outlined text-xs">check_circle</span><span>Disimpan</span>';
+      } else if (status === 'local_only') {
+        badge.className = 'inline-flex items-center gap-1 font-semibold text-teal-400';
+        badge.innerHTML = '<span class="material-symbols-outlined text-xs">offline_pin</span><span>Disimpan (Setempat)</span>';
+      } else {
+        badge.className = 'inline-flex items-center gap-1 font-semibold text-rose-400';
+        badge.innerHTML = '<span class="material-symbols-outlined text-xs">error</span><span>Gagal Disimpan</span>';
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // PAGE NAVIGATION (PREV / NEXT / GOTO)
+    // -------------------------------------------------------------------------
+    async function prevSlide() {
+      if (AppState.currentPage <= 1) return;
+      await executeSave();
+      AppState.currentPage--;
+      await renderCurrentSlide();
+      highlightActiveThumbnail();
+    }
+
+    async function nextSlide() {
+      if (AppState.currentPage >= AppState.totalPages) return;
+      await executeSave();
+      AppState.currentPage++;
+      await renderCurrentSlide();
+      highlightActiveThumbnail();
+    }
+
+    async function goToSlide(page) {
+      if (page < 1 || page > AppState.totalPages || page === AppState.currentPage) return;
+      await executeSave();
+      AppState.currentPage = page;
+      await renderCurrentSlide();
+      highlightActiveThumbnail();
+      toggleThumbnailsDrawer(false);
+    }
+
+    // -------------------------------------------------------------------------
+    // TOOL SELECTION & CONFIGURATION
+    // -------------------------------------------------------------------------
+    function setTool(toolName) {
+      AppState.tool = toolName;
+      document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+
+      const target = document.getElementById(`tool-${toolName}`);
+      if (target) target.classList.add('active');
+
+      const floatPan = document.getElementById('floating-pan-btn');
+      if (floatPan) {
+        if (toolName === 'pan') {
+          floatPan.classList.add('bg-primary', 'text-white');
+          floatPan.classList.remove('bg-slate-800', 'text-slate-300');
+        } else {
+          floatPan.classList.remove('bg-primary', 'text-white');
+          floatPan.classList.add('bg-slate-800', 'text-slate-300');
+        }
+      }
+
+      if (toolName === 'eraser') {
+        canvas.style.cursor = 'cell';
+      } else if (toolName === 'text') {
+        canvas.style.cursor = 'text';
+      } else if (toolName === 'select') {
+        canvas.style.cursor = 'default';
+      } else if (toolName === 'pan') {
+        canvas.style.cursor = 'grab';
+      } else {
+        canvas.style.cursor = 'crosshair';
+      }
+
+      closeMenus();
+    }
+
+    function toggleShapeMenu() {
+      const menu = document.getElementById('shape-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function selectShape(shapeType) {
+      AppState.activeShape = shapeType;
+      setTool('shape');
+      const icons = { rect: 'rectangle', circle: 'circle', line: 'horizontal_rule', arrow: 'trending_flat' };
+      document.getElementById('current-shape-icon').textContent = icons[shapeType] || 'shapes';
+      closeMenus();
+    }
+
+    function toggleColorMenu() {
+      const menu = document.getElementById('color-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function pickColor(hex) {
+      AppState.penColor = hex;
+      document.getElementById('active-color-dot').style.backgroundColor = hex;
+      setTool('pen');
+      closeMenus();
+    }
+
+    function pickHighlighterColor(rgba) {
+      AppState.highlighterColor = rgba;
+      document.getElementById('active-color-dot').style.backgroundColor = rgba;
+      setTool('highlighter');
+      closeMenus();
+    }
+
+    function updateStrokeSize(val) {
+      AppState.strokeSize = parseInt(val, 10);
+      document.getElementById('label-stroke-size').textContent = `${val}px`;
+    }
+
+    function closeMenus() {
+      document.getElementById('shape-menu').classList.add('hidden');
+      document.getElementById('color-menu').classList.add('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const colorBtn = document.getElementById('btn-color-picker');
+      const colorMenu = document.getElementById('color-menu');
+      const shapeBtn = document.getElementById('tool-shape');
+      const shapeMenu = document.getElementById('shape-menu');
+
+      if (colorBtn && colorMenu && !colorBtn.contains(e.target) && !colorMenu.contains(e.target)) {
+        colorMenu.classList.add('hidden');
+      }
+      if (shapeBtn && shapeMenu && !shapeBtn.contains(e.target) && !shapeMenu.contains(e.target)) {
+        shapeMenu.classList.add('hidden');
+      }
+    });
+
+    // -------------------------------------------------------------------------
+    // ZOOM & PAN ENGINE (DESKTOP, TABLET & TOUCH COMPATIBLE)
+    // -------------------------------------------------------------------------
+    function zoomIn(step = 0.2) {
+      AppState.zoomLevel = Math.min(3.5, AppState.zoomLevel + step);
+      applyZoom();
+    }
+
+    function zoomOut(step = 0.2) {
+      AppState.zoomLevel = Math.max(0.5, AppState.zoomLevel - step);
+      applyZoom();
+    }
+
+    function resetZoom() {
+      AppState.zoomLevel = 1.0;
+      AppState.panX = 0;
+      AppState.panY = 0;
+      applyZoom();
+    }
+
+    function togglePanTool() {
+      if (AppState.tool === 'pan') {
+        setTool('pen');
+      } else {
+        setTool('pan');
+      }
+    }
+
+    function applyZoom() {
+      AppState.zoomLevel = Math.max(0.5, Math.min(3.5, Math.round(AppState.zoomLevel * 100) / 100));
+
+      if (AppState.zoomLevel === 1.0) {
+        AppState.panX = 0;
+        AppState.panY = 0;
+      }
+
+      viewport.style.transform = `translate(${AppState.panX}px, ${AppState.panY}px) scale(${AppState.zoomLevel})`;
+
+      const pct = `${Math.round(AppState.zoomLevel * 100)}%`;
+      const bottomLabel = document.getElementById('zoom-level-label');
+      if (bottomLabel) bottomLabel.textContent = pct;
+      const floatingLabel = document.getElementById('floating-zoom-label');
+      if (floatingLabel) floatingLabel.textContent = pct;
+      const topLabel = document.getElementById('top-zoom-label');
+      if (topLabel) topLabel.textContent = pct;
+    }
+
+    function initZoomAndPanEvents() {
+      const workspace = document.getElementById('workspace-container');
+      if (!workspace) return;
+
+      // 1. Mouse Wheel Zoom (Ctrl + Wheel or Trackpad Pinch) & Pan on Scroll
+      workspace.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          const zoomDelta = e.deltaY < 0 ? 0.15 : -0.15;
+          const oldZoom = AppState.zoomLevel;
+          const newZoom = Math.max(0.5, Math.min(3.5, oldZoom + zoomDelta));
+
+          // Center zoom on mouse position
+          const rect = viewport.getBoundingClientRect();
+          const offsetX = e.clientX - rect.left - rect.width / 2;
+          const offsetY = e.clientY - rect.top - rect.height / 2;
+          const factor = newZoom / oldZoom;
+          AppState.panX -= (offsetX * (factor - 1)) / oldZoom;
+          AppState.panY -= (offsetY * (factor - 1)) / oldZoom;
+          AppState.zoomLevel = newZoom;
+          applyZoom();
+        } else if (AppState.zoomLevel > 1.0) {
+          // Normal scroll when zoomed in pans the canvas
+          e.preventDefault();
+          AppState.panX -= e.deltaX * 0.8;
+          AppState.panY -= e.deltaY * 0.8;
+          applyZoom();
+        }
+      }, { passive: false });
+
+      // 2. Drag dark workspace background to pan
+      workspace.addEventListener('pointerdown', (e) => {
+        if (e.target === workspace) {
+          AppState.isPanning = true;
+          AppState.lastPanPoint = { x: e.clientX, y: e.clientY };
+          workspace.style.cursor = 'grabbing';
+        }
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (AppState.isPanning && workspace.style.cursor === 'grabbing') {
+          const dx = e.clientX - AppState.lastPanPoint.x;
+          const dy = e.clientY - AppState.lastPanPoint.y;
+          AppState.panX += dx;
+          AppState.panY += dy;
+          AppState.lastPanPoint = { x: e.clientX, y: e.clientY };
+          applyZoom();
+        }
+      });
+
+      window.addEventListener('pointerup', () => {
+        if (AppState.isPanning && workspace.style.cursor === 'grabbing') {
+          AppState.isPanning = false;
+          workspace.style.cursor = 'default';
+        }
+      });
+
+      // 3. Touch 2-finger pinch zoom & pan for mobile / tablet
+      let touchStartDist = 0;
+      let initialTouchZoom = 1.0;
+      let isPinching = false;
+
+      workspace.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          isPinching = true;
+          touchStartDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          initialTouchZoom = AppState.zoomLevel;
+        }
+      }, { passive: true });
+
+      workspace.addEventListener('touchmove', (e) => {
+        if (isPinching && e.touches.length === 2) {
+          const currentDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          if (touchStartDist > 0) {
+            const scaleFactor = currentDist / touchStartDist;
+            AppState.zoomLevel = Math.max(0.5, Math.min(3.5, initialTouchZoom * scaleFactor));
+            applyZoom();
+          }
+        }
+      }, { passive: true });
+
+      workspace.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) {
+          isPinching = false;
+          touchStartDist = 0;
+        }
+      }, { passive: true });
+    }
+
+    // -------------------------------------------------------------------------
+    // FULLSCREEN TOGGLE
+    // -------------------------------------------------------------------------
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        document.getElementById('fs-icon').textContent = 'fullscreen_exit';
+      } else {
+        document.exitFullscreen().catch(() => {});
+        document.getElementById('fs-icon').textContent = 'fullscreen';
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // THUMBNAILS DRAWER
+    // -------------------------------------------------------------------------
+    function toggleThumbnailsDrawer(forceState = null) {
+      const drawer = document.getElementById('thumbnail-drawer');
+      const isClosed = drawer.classList.contains('translate-x-full');
+      const open = forceState !== null ? forceState : isClosed;
+
+      if (open) {
+        drawer.classList.remove('translate-x-full');
+        highlightActiveThumbnail();
+      } else {
+        drawer.classList.add('translate-x-full');
+      }
+    }
+
+    function renderThumbnailsDrawer() {
+      const container = document.getElementById('thumbnail-list');
+      container.innerHTML = '';
+
+      for (let i = 1; i <= AppState.totalPages; i++) {
+        const item = document.createElement('div');
+        item.className = `p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between text-xs font-semibold ${
+          i === AppState.currentPage
+            ? 'bg-amber-950/60 border-amber-400 text-amber-200'
+            : 'bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-700'
+        }`;
+        item.dataset.page = i;
+        item.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-slate-700 flex items-center justify-center font-bold text-[10px] text-white">${i}</span>
+            <span class="truncate max-w-[170px]">${AppState.note.slides && AppState.note.slides[i - 1] ? escapeHtml(AppState.note.slides[i - 1].title || `Slaid ${i}`) : `Slaid ${i}`}</span>
+          </div>
+          <span class="material-symbols-outlined text-sm text-slate-400">arrow_forward</span>
+        `;
+        item.addEventListener('click', () => goToSlide(i));
+        container.appendChild(item);
+      }
+    }
+
+    function highlightActiveThumbnail() {
+      document.querySelectorAll('#thumbnail-list > div').forEach(el => {
+        const p = parseInt(el.dataset.page, 10);
+        if (p === AppState.currentPage) {
+          el.className = 'p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between text-xs font-semibold bg-amber-950/60 border-amber-400 text-amber-200';
+        } else {
+          el.className = 'p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between text-xs font-semibold bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-700';
+        }
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // EXPORT MERGED SLIDES & ANNOTATIONS TO PDF
+    // -------------------------------------------------------------------------
+    async function exportNotePDF() {
+      if (!window.jspdf || !window.html2canvas) {
+        alert('Modul eksport PDF sedang dimuatkan. Sila cuba sebentar lagi.');
+        return;
+      }
+
+      showLoading('Menjana PDF slaid & anotasi anda...');
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [1040, 650] });
+
+        // Merge Layer 1 + Layer 2
+        const viewportCanvas = await html2canvas(viewport, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
+
+        const imgData = viewportCanvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 1040, 650);
+
+        const cleanTitle = (AppState.note.title || 'ARSelNel_Nota').replace(/[^a-zA-Z0-9_-]/g, '_');
+        pdf.save(`${cleanTitle}_Slaid_${AppState.currentPage}.pdf`);
+        hideLoading();
+      } catch (err) {
+        console.error('Ralat semasa mengeksport PDF:', err);
+        hideLoading();
+        alert('Gagal mengeksport PDF: ' + err.message);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // KEYBOARD SHORTCUTS (Ctrl+Z, Ctrl+Y, Ctrl+S)
+    // -------------------------------------------------------------------------
+    function initKeyboardShortcuts() {
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+
+        // Ctrl + Z (Undo)
+        if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+          e.preventDefault();
+          undo();
+        }
+        // Ctrl + Y (Redo)
+        else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+          e.preventDefault();
+          redo();
+        }
+        // Ctrl + S (Save)
+        else if (e.ctrlKey && e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          executeSave();
+        }
+        // Zoom shortcuts: + / = or Ctrl + / =
+        else if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
+          e.preventDefault();
+          zoomIn();
+        } else if ((e.ctrlKey || e.metaKey) && (e.key === '-' || e.key === '_')) {
+          e.preventDefault();
+          zoomOut();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+          e.preventDefault();
+          resetZoom();
+        } else if (e.key === '+' || e.key === '=') {
+          zoomIn();
+        } else if (e.key === '-' || e.key === '_') {
+          zoomOut();
+        }
+        // Quick Tool Switches
+        else if (e.key.toLowerCase() === 'p') setTool('pen');
+        else if (e.key.toLowerCase() === 'm') setTool('highlighter');
+        else if (e.key.toLowerCase() === 'h') setTool('pan');
+        else if (e.key.toLowerCase() === 'e') setTool('eraser');
+        else if (e.key.toLowerCase() === 't') setTool('text');
+        else if (e.key.toLowerCase() === 'v') setTool('select');
+        // Slide navigation with arrow keys
+        else if (e.key === 'ArrowLeft') prevSlide();
+        else if (e.key === 'ArrowRight') nextSlide();
+      });
+
+      // Spacebar hold for temporary Pan tool
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        if (e.code === 'Space' && !e.repeat && AppState.tool !== 'pan') {
+          e.preventDefault();
+          AppState.prevToolBeforeSpace = AppState.tool;
+          setTool('pan');
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space' && AppState.prevToolBeforeSpace) {
+          setTool(AppState.prevToolBeforeSpace);
+          AppState.prevToolBeforeSpace = null;
+        }
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // UTILITY HELPERS
+    // -------------------------------------------------------------------------
+    function showLoading(text) {
+      document.getElementById('loading-text').textContent = text;
+      document.getElementById('loading-indicator').classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      document.getElementById('loading-indicator').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

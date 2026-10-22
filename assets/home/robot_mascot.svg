@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" fill="none">
+  <defs>
+    <linearGradient id="robotBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a7f3d0"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Speech bubble -->
+  <path d="M 75,15 H 105 C 109,15 112,18 112,22 V 34 C 112,38 109,41 105,41 H 83 L 76,47 V 41 C 72,41 69,38 69,34 V 22 C 69,18 72,15 75,15 Z" fill="#ffffff" stroke="#a7f3d0" stroke-width="1"/>
+  <circle cx="82" cy="28" r="2" fill="#10b981"/>
+  <circle cx="90" cy="28" r="2" fill="#10b981"/>
+  <circle cx="98" cy="28" r="2" fill="#10b981"/>
+
+  <!-- Robot Head -->
+  <rect x="25" y="35" width="42" height="34" rx="12" fill="url(#robotBody)" stroke="#059669" stroke-width="1.5"/>
+  
+  <!-- Robot Face Screen -->
+  <rect x="31" y="41" width="30" height="20" rx="6" fill="#1e293b"/>
+  <!-- Glowing Eyes -->
+  <ellipse cx="40" cy="51" rx="3.5" ry="2.5" fill="#34d399"/>
+  <ellipse cx="52" cy="51" rx="3.5" ry="2.5" fill="#34d399"/>
+  <!-- Winking detail or smile -->
+  <path d="M 44,57 Q 46,59 48,57" stroke="#34d399" stroke-width="1" stroke-linecap="round" fill="none"/>
+
+  <!-- Robot Ears / Side Knobs -->
+  <rect x="20" y="47" width="5" height="10" rx="2" fill="#059669"/>
+  <rect x="67" y="47" width="5" height="10" rx="2" fill="#059669"/>
+
+  <!-- Robot Antenna -->
+  <line x1="46" y1="35" x2="46" y2="24" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="46" cy="22" r="3.5" fill="#f59e0b"/>
+
+  <!-- Robot Body / Shoulders -->
+  <path d="M 18,88 C 18,74 28,73 46,73 C 64,73 74,74 74,88" fill="url(#robotBody)" stroke="#059669" stroke-width="1.5"/>
+  <!-- Robot Chest Screen -->
+  <circle cx="46" cy="81" r="4.5" fill="#34d399"/>
+</svg>

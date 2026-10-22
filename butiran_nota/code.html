@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html class="light" lang="ms" data-page-theme="notes">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Nota Detail: Perbezaan Sel Haiwan dan Sel Tumbuhan</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans for headings, Inter for body -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols for icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  
+  <!-- Auth Guard & Guest Restrictions -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/supabase-client.js"></script><script src="../assets/js/auth-guard.js"></script>
+  
+  <!-- Custom Styling -->
+  <style>
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background: #f6f9fc;
+    }
+    
+    .font-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    
+    /* Interactive organelle svg transitions */
+    .organelle-node {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .organelle-node:hover {
+      filter: brightness(1.2) drop-shadow(0 0 4px rgba(20, 184, 166, 0.6));
+    }
+    .organelle-node.active-node {
+      filter: brightness(1.3) drop-shadow(0 0 8px rgba(20, 184, 166, 0.9));
+      stroke: #006565 !important;
+      stroke-width: 2.5px !important;
+    }
+    
+    /* Soft pulsing effect for AR indicator */
+    @keyframes pulse-soft {
+      0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(0, 101, 101, 0.2); }
+      50% { transform: scale(1.03); box-shadow: 0 8px 25px rgba(0, 101, 101, 0.35); }
+    }
+    .pulse-soft-btn {
+      animation: pulse-soft 2.5s infinite ease-in-out;
+    }
+
+    /* Accessibility: Respect user motion settings */
+    @media (prefers-reduced-motion: reduce) {
+      .pulse-soft-btn, .transition-all, .duration-300 {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+      }
+    }
+
+    .site-header {
+      width: 100%;
+    }
+
+    .nav-container,
+    .main-container,
+    .section-container {
+      width: calc(100% - 96px);
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    main {
+      width: 100%;
+    }
+
+    footer {
+      width: 100%;
+    }
+
+    @media (min-width: 1700px) {
+      .nav-container,
+      .main-container,
+      .section-container {
+        width: calc(100% - 140px);
+        max-width: 1700px;
+      }
+    }
+
+    @media (max-width: 800px) {
+      .nav-container,
+      .main-container,
+      .section-container {
+        width: calc(100% - 32px);
+      }
+    }
+  </style>
+
+  <!-- Tailwind Theme Configuration -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#006565",          /* Teal */
+            'primary-dark': "#004d4d",     /* Dark Teal */
+            'primary-light': "#76d6d5",    /* Turquoise */
+            mint: "#91f8b8",             /* Mint green */
+            secondary: "#1960a3",        /* Blue */
+            'secondary-light': "#7db6ff",  /* Light Blue */
+            accent: "#f59e0b",           /* Warm Yellow */
+            'accent-soft': "#fef08a",     /* Soft Yellow/Cream */
+            navy: "#0f172a",             /* Dark Navy Text */
+            background: "#f8fafc"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "touch-target-min": "48px",
+            "margin-mobile": "20px",
+            "stack-sm": "8px",
+            "gutter-mobile": "16px",
+            "stack-md": "16px",
+            "stack-lg": "24px"
+          },
+          fontFamily: {
+            "headline-md": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-md": ["Inter"],
+            "label-lg": ["Inter"]
+          },
+          fontSize: {
+            "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "600"}]
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+</head>
+<body class="bg-background text-navy antialiased pb-0">
+
+  <!-- Faint scientific backgrounds & translucent circles -->
+  <div class="absolute left-0 top-0 w-[400px] h-[400px] bg-teal-500/5 rounded-full blur-[100px] pointer-events-none -translate-x-1/2 -translate-y-1/2"></div>
+  <div class="absolute right-0 top-[150px] w-[350px] h-[350px] bg-blue-500/5 rounded-full blur-[80px] pointer-events-none translate-x-1/3"></div>
+
+  <!-- Top Application Bar / Sticky Desktop Header -->
+  <header class="site-header fixed top-0 left-0 right-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
+    <div class="nav-container h-20 flex items-center justify-between">
+      <!-- Logo and Name -->
+      <a href="../halaman_utama/code.html" class="flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 rounded-lg p-1 transition-all" aria-label="ARSelNel Utama">
+        <img src="../assets/home/logo.svg" class="w-10 h-10 text-primary" alt="ARSelNel Logo" />
+        <span class="font-headline text-2xl font-extrabold text-primary tracking-tight">ARSelNel</span>
+      </a>
+
+      <!-- Main Navigation (Desktop & Tablet horizontal view) -->
+      <nav class="hidden lg:flex items-center gap-6 xl:gap-8">
+        <a href="../halaman_utama/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Utama">Utama</a>
+        <a href="../modul_pembelajaran/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Modul Pembelajaran">Modul Pembelajaran</a>
+        <a href="../pengimbas_ar/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Terokai AR">Terokai AR</a>
+        <a href="../selbot_ai/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Tanya AI">Tanya AI</a>
+        <a href="../nota_pembelajaran/code.html" class="font-headline text-base xl:text-lg font-bold text-primary hover:text-primary-dark transition-colors px-1 py-2 border-b-2 border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Nota">Nota</a>
+        <a href="../perpustakaan_video/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Video">Video</a>
+        <a href="../hab_permainan/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Permainan Sains">Permainan Sains</a>
+      </nav>
+      
+      <!-- Right Actions (Notifications, Avatar, Hamburger Toggle) -->
+      <div class="flex items-center gap-3">
+        <!-- Notification Button -->
+        <button class="relative w-12 h-12 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Notifikasi">
+          <span class="material-symbols-outlined text-3xl">notifications</span>
+          <span class="absolute top-3.5 right-3.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+        </button>
+        
+        <!-- Divider (Desktop) -->
+        <span class="hidden sm:inline-block w-[1px] h-8 bg-slate-200"></span>
+        
+        <!-- Student Profile -->
+        <a href="../bantuan_maklumat/code.html" class="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 group" aria-label="Profil Pelajar">
+          <div class="relative w-11 h-11 rounded-full overflow-hidden border border-teal-100">
+            <img class="w-full h-full object-cover" src="../assets/home/avatar.svg" alt="Avatar Pelajar" />
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+          </div>
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-xl">keyboard_arrow_down</span>
+        </a>
+
+        <!-- Hamburger Button (Mobile & Tablet) -->
+        <button id="hamburger-btn" class="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Menu Utama">
+          <span class="material-symbols-outlined text-2xl" id="hamburger-icon">menu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Dropdown Menu -->
+    <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-100 bg-white/95 backdrop-blur-md absolute top-20 left-0 right-0 w-full shadow-lg transition-all duration-300">
+      <nav class="flex flex-col p-4 gap-2">
+        <a href="../halaman_utama/code.html" class="font-headline text-base font-bold text-primary bg-teal-50/50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Utama">
+          <span class="material-symbols-outlined text-xl">home</span>
+          Utama
+        </a>
+        <a href="../modul_pembelajaran/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Modul Pembelajaran">
+          <span class="material-symbols-outlined text-xl">science</span>
+          Modul Pembelajaran
+        </a>
+        <a href="../pengimbas_ar/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Terokai AR">
+          <span class="material-symbols-outlined text-xl">view_in_ar</span>
+          Terokai AR
+        </a>
+        <a href="../selbot_ai/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Tanya AI">
+          <span class="material-symbols-outlined text-xl">smart_toy</span>
+          Tanya AI
+        </a>
+        <a href="../nota_pembelajaran/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Nota">
+          <span class="material-symbols-outlined text-xl">menu_book</span>
+          Nota
+        </a>
+        <a href="../perpustakaan_video/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Video">
+          <span class="material-symbols-outlined text-xl">play_circle</span>
+          Video
+        </a>
+        <a href="../hab_permainan/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Permainan Sains">
+          <span class="material-symbols-outlined text-xl">sports_esports</span>
+          Permainan Sains
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-container mt-28 space-y-6">
+    
+    <!-- Hero Section -->
+    <section class="space-y-2 py-4">
+      <h2 class="font-headline text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">Perbezaan Sel Haiwan dan Sel Tumbuhan</h2>
+      <p class="font-body text-slate-500 text-sm md:text-base leading-relaxed max-w-3xl">
+        Sel merupakan unit asas kehidupan. Walaupun kedua-duanya adalah sel eukariotik, sel haiwan dan sel tumbuhan mempunyai perbezaan struktur yang ketara untuk memenuhi fungsi hidup masing-masing.
+      </p>
+    </section>
+
+    <!-- Side-by-Side Diagram Explorer -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Sel Haiwan Card -->
+      <div class="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col items-center">
+        <span class="font-headline text-xs font-bold text-purple-600 uppercase tracking-widest bg-purple-50 px-4 py-1.5 rounded-full border border-purple-100 mb-4 select-none">Sel Haiwan</span>
+        
+        <!-- Interactive SVG Diagram for Sel Haiwan -->
+        <div class="relative w-full aspect-square bg-[#fbfbfe] rounded-3xl border border-slate-50 overflow-hidden flex items-center justify-center p-4">
+          <svg viewBox="0 0 200 200" class="w-full h-full object-contain max-w-[280px]">
+            <!-- Cytoplasm (Jelly base) -->
+            <path id="organelle-cytoplasm-animal" class="organelle-node fill-purple-500/5 stroke-purple-200/40" stroke-width="1.5" stroke-dasharray="3 2" d="M100,20 C140,20 180,50 180,100 C180,150 140,180 100,180 C60,180 20,150 20,100 C20,50 60,20 100,20 Z" />
+            
+            <!-- Cell Membrane (Flexible Outer border) -->
+            <path id="organelle-membrane-animal" class="organelle-node fill-none stroke-purple-400" stroke-width="3" stroke-linecap="round" d="M100,20 C140,20 180,50 180,100 C180,150 140,180 100,180 C60,180 20,150 20,100 C20,50 60,20 100,20 Z" />
+            
+            <!-- Lysosome/Small Vacuoles (Blue) -->
+            <circle id="organelle-vacuole-animal" class="organelle-node fill-sky-400 stroke-sky-200" stroke-width="1" cx="60" cy="70" r="8" />
+            <circle class="fill-white opacity-40" cx="58" cy="68" r="2" />
+            <circle class="fill-sky-400 stroke-sky-200" stroke-width="0.5" cx="130" cy="140" r="5" />
+            
+            <!-- Mitochondria (Orange) -->
+            <g id="organelle-mito-animal" class="organelle-node" transform="translate(135, 75) rotate(-20)">
+              <rect x="-10" y="-5" width="20" height="10" rx="5" fill="#f97316" stroke="#fff" stroke-width="0.75" />
+              <path d="M-6,0 Q-3,-3 0,0 Q3,3 6,0" stroke="#fff" stroke-width="1" fill="none" />
+            </g>
+            <g class="organelle-node" transform="translate(65, 130) rotate(35)">
+              <rect x="-10" y="-5" width="20" height="10" rx="5" fill="#f97316" stroke="#fff" stroke-width="0.75" />
+              <path d="M-6,0 Q-3,-3 0,0 Q3,3 6,0" stroke="#fff" stroke-width="1" fill="none" />
+            </g>
+
+            <!-- Nucleus (Large Purple Center Sphere) -->
+            <g id="organelle-nucleus-animal" class="organelle-node">
+              <circle cx="100" cy="100" r="24" fill="#a21caf" stroke="#fcd34d" stroke-width="0.5" />
+              <circle cx="95" cy="95" r="8" fill="#fae8ff" opacity="0.9" />
+              <circle cx="93" cy="93" r="3" fill="#fff" />
+            </g>
+            
+            <!-- Ribosomes/Internal particles (small dots) -->
+            <circle cx="140" cy="110" r="2" fill="#fbbf24"/>
+            <circle cx="70" cy="90" r="1.5" fill="#fbbf24"/>
+            <circle cx="105" cy="50" r="2" fill="#fbbf24"/>
+          </svg>
+
+          <!-- Floating Badges labels -->
+          <button class="organelle-badge-btn absolute top-4 left-4 bg-white/90 border border-slate-100 hover:border-purple-200 shadow-sm rounded-xl px-3 py-1 text-[11px] font-bold text-slate-700 tracking-tight" data-target="organelle-nucleus-animal">Nukleus</button>
+          <button class="organelle-badge-btn absolute bottom-4 right-4 bg-white/90 border border-slate-100 hover:border-purple-200 shadow-sm rounded-xl px-3 py-1 text-[11px] font-bold text-slate-700 tracking-tight" data-target="organelle-membrane-animal">Membran Sel</button>
+          <button class="organelle-badge-btn absolute bottom-4 left-4 bg-white/90 border border-slate-100 hover:border-purple-200 shadow-sm rounded-xl px-3 py-1 text-[11px] font-bold text-slate-700 tracking-tight" data-target="organelle-mito-animal">Mitokondria</button>
+        </div>
+      </div>
+
+      <!-- Sel Tumbuhan Card -->
+      <div class="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col items-center">
+        <span class="font-headline text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100 mb-4 select-none">Sel Tumbuhan</span>
+        
+        <!-- Interactive SVG Diagram for Sel Tumbuhan -->
+        <div class="relative w-full aspect-square bg-[#fafefa] rounded-3xl border border-slate-50 overflow-hidden flex items-center justify-center p-4">
+          <svg viewBox="0 0 200 200" class="w-full h-full object-contain max-w-[280px]">
+            <!-- Outer Dinding Sel (Green rigid wall) -->
+            <polygon id="organelle-wall-plant" class="organelle-node fill-emerald-500/5 stroke-emerald-600" stroke-width="4.5" points="100,16 176,55 176,145 100,184 24,145 24,55" />
+            
+            <!-- Inner Membrane -->
+            <polygon id="organelle-membrane-plant" class="organelle-node fill-none stroke-emerald-300" stroke-width="2" points="100,21 171,57 171,143 100,179 29,143 29,57" />
+            
+            <!-- Large Central Vacuole (Blue) -->
+            <ellipse id="organelle-vacuole-plant" class="organelle-node fill-sky-400/80 stroke-sky-600" stroke-width="1" cx="120" cy="100" rx="22" ry="34" />
+            
+            <!-- Nucleus (Purple, pushed to left) -->
+            <g id="organelle-nucleus-plant" class="organelle-node">
+              <circle cx="65" cy="100" r="18" fill="#a21caf" stroke="#fcd34d" stroke-width="0.5" />
+              <circle cx="61" cy="96" r="6" fill="#fae8ff" opacity="0.9" />
+            </g>
+            
+            <!-- Chloroplasts (Green Oval discs) -->
+            <g id="organelle-chloro-plant" class="organelle-node" transform="translate(65, 55) rotate(-30)">
+              <ellipse cx="0" cy="0" rx="7" ry="11" fill="#15803d" stroke="#fff" stroke-width="0.75" />
+              <line x1="-4" y1="0" x2="4" y2="0" stroke="#fff" stroke-width="1"/>
+            </g>
+            <g class="organelle-node" transform="translate(135, 145) rotate(30)">
+              <ellipse cx="0" cy="0" rx="7" ry="11" fill="#15803d" stroke="#fff" stroke-width="0.75" />
+              <line x1="-4" y1="0" x2="4" y2="0" stroke="#fff" stroke-width="1"/>
+            </g>
+
+            <!-- Mitochondria (Orange) -->
+            <g id="organelle-mito-plant" class="organelle-node" transform="translate(135, 50) rotate(15)">
+              <rect x="-8" y="-4" width="16" height="8" rx="4" fill="#f97316" stroke="#fff" stroke-width="0.75" />
+            </g>
+          </svg>
+
+          <!-- Floating Badges labels -->
+          <button class="organelle-badge-btn absolute top-4 right-4 bg-white/90 border border-slate-100 hover:border-emerald-200 shadow-sm rounded-xl px-3 py-1 text-[11px] font-bold text-slate-700 tracking-tight" data-target="organelle-wall-plant">Dinding Sel</button>
+          <button class="organelle-badge-btn absolute bottom-4 left-4 bg-white/90 border border-slate-100 hover:border-emerald-200 shadow-sm rounded-xl px-3 py-1 text-[11px] font-bold text-slate-700 tracking-tight" data-target="organelle-chloro-plant">Kloroplas</button>
+          <button class="organelle-badge-btn absolute bottom-4 right-4 bg-white/90 border border-slate-100 hover:border-emerald-200 shadow-sm rounded-xl px-3 py-1 text-[11px] font-bold text-slate-700 tracking-tight" data-target="organelle-vacuole-plant">Vakuola Besar</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Interactive Organelle Detail Card (Updates in real-time) -->
+    <section>
+      <div id="detail-panel" class="bg-gradient-to-br from-teal-50 to-emerald-50/50 border border-teal-100/60 rounded-2xl p-4 shadow-sm flex items-start gap-5">
+        <div class="w-12 h-12 rounded-2xl bg-teal-500/10 text-primary flex items-center justify-center shrink-0">
+          <span id="detail-icon" class="material-symbols-outlined text-2xl font-bold">info</span>
+        </div>
+        <div class="text-left space-y-2">
+          <h3 id="detail-title" class="font-headline text-lg font-extrabold text-teal-900">Maklumat Organel</h3>
+          <p id="detail-desc" class="font-body text-slate-600 text-xs sm:text-sm leading-relaxed">
+            Klik pada organel sel atau butang label dalam gambar rajah di atas untuk meneroka struktur dan fungsinya dengan lebih mendalam!
+          </p>
+          <div id="detail-fun-container" class="hidden mt-2.5 p-3 bg-white/80 border border-teal-100/40 rounded-xl">
+            <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Fakta Menarik</span>
+            <p id="detail-fun" class="font-body text-[11px] text-teal-800 leading-relaxed mt-0.5"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Grid Comparison Table -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Bento 1 -->
+      <div class="bg-white border border-slate-100 p-5 rounded-3xl flex flex-col items-center justify-center text-center shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined font-medium text-xl">rectangle</span>
+        </div>
+        <h4 class="font-headline text-xs font-bold text-slate-700">Bentuk</h4>
+        <div class="mt-2 text-[11px] leading-relaxed text-slate-500 font-semibold">
+          <p>Haiwan: <span class="text-purple-600 font-bold">Tidak Tetap</span></p>
+          <p>Tumbuhan: <span class="text-emerald-600 font-bold">Tetap</span></p>
+        </div>
+      </div>
+
+      <!-- Bento 2 -->
+      <div class="bg-white border border-slate-100 p-5 rounded-3xl flex flex-col items-center justify-center text-center shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined font-medium text-xl">shield</span>
+        </div>
+        <h4 class="font-headline text-xs font-bold text-slate-700">Dinding Sel</h4>
+        <div class="mt-2 text-[11px] leading-relaxed text-slate-500 font-semibold">
+          <p>Haiwan: <span class="text-slate-400 font-bold">Tiada</span></p>
+          <p>Tumbuhan: <span class="text-emerald-600 font-bold">Ada</span></p>
+        </div>
+      </div>
+
+      <!-- Bento 3 -->
+      <div class="bg-white border border-slate-100 p-5 rounded-3xl flex flex-col items-center justify-center text-center shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined font-medium text-xl">eco</span>
+        </div>
+        <h4 class="font-headline text-xs font-bold text-slate-700">Kloroplas</h4>
+        <div class="mt-2 text-[11px] leading-relaxed text-slate-500 font-semibold">
+          <p>Haiwan: <span class="text-slate-400 font-bold">Tiada</span></p>
+          <p>Tumbuhan: <span class="text-emerald-600 font-bold">Ada</span></p>
+        </div>
+      </div>
+
+      <!-- Bento 4 -->
+      <div class="bg-white border border-slate-100 p-5 rounded-3xl flex flex-col items-center justify-center text-center shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined font-medium text-xl">layers</span>
+        </div>
+        <h4 class="font-headline text-xs font-bold text-slate-700">Vakuola</h4>
+        <div class="mt-2 text-[11px] leading-relaxed text-slate-500 font-semibold">
+          <p>Haiwan: <span class="text-purple-600 font-bold">Kecil / Tiada</span></p>
+          <p>Tumbuhan: <span class="text-emerald-600 font-bold">Besar</span></p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Tahukah Anda Card -->
+    <section>
+      <div class="bg-gradient-to-br from-blue-900 to-secondary text-white p-4 rounded-2xl relative overflow-hidden shadow-sm">
+        <!-- Floating details -->
+        <div class="absolute -right-6 -top-6 opacity-10 pointer-events-none">
+          <span class="material-symbols-outlined text-9xl">lightbulb</span>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="bg-white/20 p-3 rounded-2xl shrink-0">
+            <span class="material-symbols-outlined text-white text-2xl font-bold">lightbulb</span>
+          </div>
+          <div class="text-left">
+            <h3 class="font-headline text-lg font-extrabold mb-1">Tahukah Anda?</h3>
+            <p class="font-body text-xs sm:text-sm text-blue-50 opacity-90 leading-relaxed max-w-2xl">
+              Dinding sel pada tumbuhan diperbuat daripada selulosa, iaitu sejenis karbohidrat kompleks yang memberikan sokongan mekanikal yang kuat supaya tumbuhan boleh berdiri tegak tanpa rangka tulang!
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Uji Minda: Interactive Mini Quiz -->
+    <section class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+          <span class="material-symbols-outlined text-xl font-bold">sports_esports</span>
+        </div>
+        <div class="text-left">
+          <h3 class="font-headline text-base font-extrabold text-slate-800">Uji Minda: Kuiz Padanan Sel</h3>
+          <p class="font-body text-[11px] text-slate-400">Pilih jawapan yang betul untuk menguji pemahaman anda!</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Q1 -->
+        <div class="quiz-question border border-slate-50 p-4 rounded-2xl text-left bg-slate-50/20" data-correct="B">
+          <p class="font-headline text-xs sm:text-sm font-bold text-slate-700">1. Manakah antara berikut yang MEMPUNYAI dinding sel yang tegar?</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="A">A. Sel Haiwan</button>
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="B">B. Sel Tumbuhan</button>
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="C">C. Kedua-duanya sekali</button>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-question border border-slate-50 p-4 rounded-2xl text-left bg-slate-50/20" data-correct="C">
+          <p class="font-headline text-xs sm:text-sm font-bold text-slate-700">2. Apakah fungsi utama kloroplas?</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="A">A. Menjana tenaga sel</button>
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="B">B. Mengawal keluar masuk bahan</button>
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="C">C. Fotosintesis makanan</button>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-question border border-slate-50 p-4 rounded-2xl text-left bg-slate-50/20" data-correct="B">
+          <p class="font-headline text-xs sm:text-sm font-bold text-slate-700">3. Vakuol yang bersaiz besar merupakan ciri khas bagi...</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="A">A. Sel Haiwan</button>
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="B">B. Sel Tumbuhan</button>
+            <button class="quiz-opt-btn border border-slate-200 hover:border-primary-light px-4 py-2.5 bg-white rounded-xl text-xs font-semibold text-slate-600 text-left transition-all" data-option="C">C. Sel Bakteria</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Check answer action -->
+      <div class="flex items-center justify-between pt-2">
+        <p id="quiz-feedback" class="text-xs font-bold text-slate-500 text-left"></p>
+        <button id="check-quiz-btn" class="bg-primary hover:bg-primary-dark text-white font-headline font-bold text-xs px-6 py-3 rounded-xl shadow-sm transition-all focus:outline-none active:scale-95">
+          Semak Jawapan
+        </button>
+      </div>
+    </section>
+
+    <!-- Explanatory Box -->
+    <section>
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 text-left">
+        <h3 class="font-headline text-lg font-extrabold text-primary mb-2">Mengapa berbeza?</h3>
+        <p class="font-body text-xs sm:text-sm text-slate-500 leading-relaxed">
+          Perbezaan ini wujud kerana cara hidup yang berbeza. Tumbuhan memerlukan <strong>kloroplas</strong> untuk menghasilkan makanan sendiri melalui fotosintesis, manakala haiwan perlu bergerak aktif untuk mencari makanan, maka sel haiwan tidak mempunyai dinding sel yang kaku supaya lebih fleksibel.
+        </p>
+      </div>
+    </section>
+    <!-- Actions Section -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
+      <!-- Explore AR Button -->
+      <a href="../pengimbas_ar/code.html" class="pulse-soft-btn flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white py-4 rounded-2xl font-headline font-bold text-base shadow-md transition-all active:scale-[0.98]">
+        <span class="material-symbols-outlined text-xl font-bold">qr_code_scanner</span>
+        <span>Terokai dalam AR</span>
+      </a>
+      <!-- Ask AI Button -->
+      <a href="../selbot_ai/code.html" class="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 py-4 rounded-2xl font-headline font-bold text-base shadow-sm hover:bg-slate-50 active:scale-[0.98] transition-all">
+        <span class="material-symbols-outlined text-xl">smart_toy</span>
+        <span>Tanya AI</span>
+      </a>
+    </section>
+
+  </main>
+
+  <!-- Interactive JavaScript logic -->
+  <script>
+    // Organelle details database
+    const organelleDb = {
+      'organelle-nucleus-animal': {
+        title: "Nukleus Sel Haiwan",
+        icon: "adjust",
+        desc: "Mengandungi bahan genetik (DNA) yang mengawal segala aktiviti sel seperti metabolisme dan proses pertumbuhan sel.",
+        fun: "Nukleus bertindak seperti 'pusat kawalan' atau otak bagi sel haiwan."
+      },
+      'organelle-membrane-animal': {
+        title: "Membran Sel Haiwan",
+        icon: "circle",
+        desc: "Lapisan luar yang nipis dan kenyal. Mengawal pergerakan bahan masuk dan keluar daripada sel.",
+        fun: "Membran sel bersifat separa telap (memilih bahan tertentu sahaja untuk masuk)."
+      },
+      'organelle-vacuole-animal': {
+        title: "Vakuola Sel Haiwan",
+        icon: "layers",
+        desc: "Rongga kecil berisi cecair sel yang menyimpan air, nutrien, dan bahan buangan sementara.",
+        fun: "Vakuol pada sel haiwan biasanya bersaiz kecil dan bersifat sementara, tidak seperti sel tumbuhan."
+      },
+      'organelle-mito-animal': {
+        title: "Mitokondria Sel Haiwan",
+        icon: "local_fire_department",
+        desc: "Organel berbentuk rod yang menjana tenaga untuk sel melalui proses respirasi selular.",
+        fun: "Sering dipanggil 'powerhouse' kerana membekalkan tenaga yang diperlukan untuk anda berlari dan bergerak!"
+      },
+      'organelle-cytoplasm-animal': {
+        title: "Sitoplasma Sel",
+        icon: "grain",
+        desc: "Bahan berbentuk jeli yang mengisi ruang dalam sel. Tempat berlakunya tindak balas kimia organik sel.",
+        fun: "Terdiri daripada hampir 80% air dan mengandungi garam mineral yang larut."
+      },
+      'organelle-wall-plant': {
+        title: "Dinding Sel Tumbuhan",
+        icon: "shield",
+        desc: "Lapisan luar yang tegar dan kuat diperbuat daripada selulosa. Menyokong, melindungi dan mengekalkan bentuk sel.",
+        fun: "Dinding sel membolehkan pokok tumbuh tegak tanpa memerlukan tulang sokongan seperti haiwan!"
+      },
+      'organelle-membrane-plant': {
+        title: "Membran Sel Tumbuhan",
+        icon: "circle",
+        desc: "Lapisan nipis di bawah dinding sel. Mengawal atur pergerakan bahan masuk dan keluar daripada sel.",
+        fun: "Sama seperti sel haiwan, ia bertindak sebagai pintu gerbang keselamatan sel."
+      },
+      'organelle-vacuole-plant': {
+        title: "Vakuola Besar Tumbuhan",
+        icon: "layers",
+        desc: "Kantung cecair besar (sap sel) yang memberikan tekanan segah kepada sel tumbuhan bagi sokongan tumbuhan herba.",
+        fun: "Sap sel di dalamnya mengandungi gula, asid amino, garam mineral, dan pigmen warna."
+      },
+      'organelle-nucleus-plant': {
+        title: "Nukleus Sel Tumbuhan",
+        icon: "adjust",
+        desc: "Pusat kawalan berbentuk bulat yang mengandungi nukleolus dan DNA untuk aktiviti biologi tumbuhan.",
+        fun: "Kedudukannya biasanya ditolak ke tepi oleh vakuol besar di tengah."
+      },
+      'organelle-chloro-plant': {
+        title: "Kloroplas Tumbuhan",
+        icon: "eco",
+        desc: "Organel berbentuk cakera yang mengandungi klorofil hijau. Menyerap tenaga cahaya matahari untuk fotosintesis.",
+        fun: "Pigmen klorofil inilah yang menjadikan daun pokok berwarna hijau!"
+      },
+      'organelle-mito-plant': {
+        title: "Mitokondria Tumbuhan",
+        icon: "local_fire_department",
+        desc: "Tempat respirasi sel berlaku untuk menjana tenaga bagi sel-sel tumbuhan menjalankan aktiviti.",
+        fun: "Tumbuhan juga memerlukan tenaga daripada mitokondria, bukan sahaja haiwan!"
+      }
+    };
+
+    const detailPanel = document.getElementById('detail-panel');
+    const detailTitle = document.getElementById('detail-title');
+    const detailDesc = document.getElementById('detail-desc');
+    const detailIcon = document.getElementById('detail-icon');
+    const detailFunContainer = document.getElementById('detail-fun-container');
+    const detailFun = document.getElementById('detail-fun');
+
+    // Function to update detail panel contents
+    function showOrganelleDetail(id) {
+      const data = organelleDb[id];
+      if (!data) return;
+
+      // Remove active state from all nodes
+      document.querySelectorAll('.organelle-node').forEach(node => {
+        node.classList.remove('active-node');
+      });
+
+      // Highlight target node
+      const nodeEl = document.getElementById(id);
+      if (nodeEl) {
+        nodeEl.classList.add('active-node');
+      }
+
+      // Update panel
+      detailTitle.textContent = data.title;
+      detailDesc.textContent = data.desc;
+      detailIcon.textContent = data.icon;
+      detailFun.textContent = data.fun;
+      detailFunContainer.classList.remove('hidden');
+    }
+
+    // Attach click listeners to SVG elements
+    document.querySelectorAll('.organelle-node').forEach(node => {
+      node.addEventListener('click', () => {
+        showOrganelleDetail(node.id);
+      });
+    });
+
+    // Attach click listeners to text labels
+    document.querySelectorAll('.organelle-badge-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        showOrganelleDetail(targetId);
+      });
+    });
+
+    // Interactive Quiz scoring logic
+    const quizQuestions = document.querySelectorAll('.quiz-question');
+    const checkQuizBtn = document.getElementById('check-quiz-btn');
+    const quizFeedback = document.getElementById('quiz-feedback');
+
+    // Click handler for quiz options
+    quizQuestions.forEach(q => {
+      const options = q.querySelectorAll('.quiz-opt-btn');
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          // Clear active state of other options in this question
+          options.forEach(o => {
+            o.classList.remove('border-primary', 'bg-teal-50/50', 'text-primary');
+            o.classList.add('border-slate-200', 'bg-white', 'text-slate-600');
+          });
+          // Add active state to selected
+          opt.classList.add('border-primary', 'bg-teal-50/50', 'text-primary');
+          opt.classList.remove('border-slate-200', 'bg-white', 'text-slate-600');
+          q.setAttribute('data-selected', opt.getAttribute('data-option'));
+        });
+      });
+    });
+
+    // Verify button listener
+    checkQuizBtn.addEventListener('click', () => {
+      let score = 0;
+      let unanswered = false;
+
+      quizQuestions.forEach(q => {
+        const selected = q.getAttribute('data-selected');
+        const correct = q.getAttribute('data-correct');
+        const options = q.querySelectorAll('.quiz-opt-btn');
+
+        if (!selected) {
+          unanswered = true;
+          return;
+        }
+
+        // Reset visual indicators first
+        options.forEach(o => {
+          o.classList.remove('border-emerald-500', 'bg-emerald-50', 'text-emerald-700', 'border-rose-500', 'bg-rose-50', 'text-rose-700');
+        });
+
+        const selectedOptEl = q.querySelector(`[data-option="${selected}"]`);
+
+        if (selected === correct) {
+          score++;
+          selectedOptEl.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
+        } else {
+          selectedOptEl.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-700');
+          const correctOptEl = q.querySelector(`[data-option="${correct}"]`);
+          correctOptEl.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
+        }
+      });
+
+      if (unanswered) {
+        quizFeedback.textContent = "Sila jawab semua soalan sebelum semak!";
+        quizFeedback.className = "text-xs font-bold text-rose-500 text-left";
+      } else {
+        quizFeedback.textContent = `Keputusan: ${score} daripada ${quizQuestions.length} betul!`;
+        if (score === quizQuestions.length) {
+          quizFeedback.className = "text-xs font-bold text-emerald-600 text-left";
+        } else {
+          quizFeedback.className = "text-xs font-bold text-amber-600 text-left";
+        }
+      }
+    });
+  </script>
+
+  <!-- Desktop Footer -->
+  <footer class="bg-slate-900 text-slate-400 mt-20 border-t border-slate-800">
+    <div class="section-container py-16">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10">
+        <!-- Logo and Branding info -->
+        <div class="md:col-span-5 flex flex-col gap-4">
+          <a href="../halaman_utama/code.html" class="flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 rounded-lg p-1 transition-all w-fit">
+            <img src="../assets/home/logo.svg" class="w-10 h-10 text-primary-light" alt="ARSelNel Logo" />
+            <span class="font-headline text-2xl font-extrabold text-white tracking-tight">ARSelNel</span>
+          </a>
+          <p class="font-body text-sm text-slate-400 leading-relaxed max-w-sm">
+            Platform pembelajaran sains interaktif yang memfokuskan kepada topik Biologi untuk pelajar Tingkatan 1. Meneroka rahsia dunia sel melalui visualisasi 3D dan AR yang menarik.
+          </p>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="md:col-span-4 flex flex-col gap-4">
+          <h4 class="font-headline text-base font-bold text-white uppercase tracking-wider">Navigasi Utama</h4>
+          <ul class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm font-semibold">
+            <li><a href="../halaman_utama/code.html" class="hover:text-primary-light transition-colors">Utama</a></li>
+            <li><a href="../modul_pembelajaran/code.html" class="hover:text-primary-light transition-colors">Modul Pembelajaran</a></li>
+            <li><a href="../pengimbas_ar/code.html" class="hover:text-primary-light transition-colors">Terokai AR</a></li>
+            <li><a href="../selbot_ai/code.html" class="hover:text-primary-light transition-colors">Tanya AI</a></li>
+            <li><a href="../nota_pembelajaran/code.html" class="hover:text-primary-light transition-colors">Nota</a></li>
+            <li><a href="../perpustakaan_video/code.html" class="hover:text-primary-light transition-colors">Video</a></li>
+            <li><a href="../hab_permainan/code.html" class="hover:text-primary-light transition-colors">Permainan Sains</a></li>
+          </ul>
+        </div>
+
+        <!-- Call to action/Support info -->
+        <div class="md:col-span-3 flex flex-col gap-4">
+          <h4 class="font-headline text-base font-bold text-white uppercase tracking-wider">Perlukan Bantuan?</h4>
+          <p class="font-body text-sm text-slate-400">Hubungi pembantu pintar kami atau layari maklumat bantuan.</p>
+          <a href="../bantuan_maklumat/code.html" class="w-fit inline-flex items-center gap-2 bg-teal-600 text-white hover:bg-teal-500 font-headline text-xs font-bold px-4 py-2.5 rounded-xl shadow transition-colors">
+            <span>Bantuan & Maklumat</span>
+            <span class="material-symbols-outlined text-sm">info</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Bottom border and copyrights -->
+      <div class="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+        <p>© 2026 ARSelNel. Hak Cipta Terpelihara. Direka untuk pelajar Sains Tingkatan 1.</p>
+        <div class="flex gap-4">
+          <a href="#" class="hover:underline">Polisi Privasi</a>
+          <a href="#" class="hover:underline">Terma Penggunaan</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Script -->
+  <script>
+    // Toggle Hamburger Menu for Mobile/Tablet
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+
+    hamburgerBtn.addEventListener('click', () => {
+      const isExpanded = mobileMenu.classList.contains('hidden');
+      if (isExpanded) {
+        mobileMenu.classList.remove('hidden');
+        hamburgerIcon.textContent = 'close';
+      } else {
+        mobileMenu.classList.add('hidden');
+        hamburgerIcon.textContent = 'menu';
+      }
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!hamburgerBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+        mobileMenu.classList.add('hidden');
+        hamburgerIcon.textContent = 'menu';
+      }
+    });
+
+    // Touch micro-interactions feedback
+    document.querySelectorAll('a, button, [onclick]').forEach(el => {
+      el.addEventListener('mousedown', () => {
+        el.classList.add('scale-98');
+      });
+      el.addEventListener('mouseup', () => {
+        el.classList.remove('scale-98');
+      });
+      el.addEventListener('mouseleave', () => {
+        el.classList.remove('scale-98');
+      });
+    });
+
+    // Scroll effect for header shadow
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('header');
+      if (window.scrollY > 15) {
+        header.classList.add('shadow-md', 'border-slate-200');
+        header.classList.remove('border-slate-100');
+      } else {
+        header.classList.remove('shadow-md', 'border-slate-200');
+        header.classList.add('border-slate-100');
+      }
+    });
+
+    // Guest Mode check for restricted topics
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.AuthGuard && window.AuthGuard.isGuest()) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const topicParam = parseInt(urlParams.get('topic') || '1', 10);
+        if (topicParam > 1) {
+          window.AuthGuard.showGuestLimitModal(`Topik Nota ${topicParam}`, 'Akses Terhad! Sebagai pengguna Mod Tetamu, anda hanya dibenarkan membaca Topik 1. Sila daftar akaun percuma untuk membuka kesemua topik.');
+          setTimeout(() => {
+            window.location.href = '../nota_pembelajaran/code.html';
+          }, 3500);
+        }
+      }
+    });
+  </script>
+  <script src="../assets/js/student-shell.js"></script>
+</body>
+</html>

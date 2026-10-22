@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html class="light" lang="ms" data-page-theme="ai">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>SelBot — Pembantu Pembelajaran ARSelNel</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans for headings, Inter for body -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols for icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  
+  <!-- Auth Guard & Guest Restrictions -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/supabase-client.js"></script><script src="../assets/js/auth-guard.js"></script>
+  
+  <!-- Custom Styling -->
+  <style>
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background: #f6f9fc;
+    }
+    
+    .font-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    /* Scrollbar style for conversation panel */
+    .chat-scroll-container::-webkit-scrollbar {
+      width: 5px;
+    }
+    .chat-scroll-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .chat-scroll-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    .chat-scroll-container::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    
+    /* Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: float 4s ease-in-out infinite;
+    }
+    
+    @keyframes bounce-dots {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    .bounce-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: #ec4899;
+      border-radius: 50%;
+      animation: bounce-dots 1s infinite ease-in-out;
+    }
+    .bounce-dot:nth-child(2) { animation-delay: 0.2s; }
+    .bounce-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* Accessibility: Respect user motion settings */
+    @media (prefers-reduced-motion: reduce) {
+      .animate-float, .bounce-dot, .transition-all, .duration-300 {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+      }
+    }
+
+    .site-header {
+      width: 100%;
+    }
+
+    .nav-container,
+    .main-container,
+    .section-container {
+      width: calc(100% - 96px);
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    main {
+      width: 100%;
+    }
+
+    footer {
+      width: 100%;
+    }
+
+    @media (min-width: 1700px) {
+      .nav-container,
+      .main-container,
+      .section-container {
+        width: calc(100% - 140px);
+        max-width: 1700px;
+      }
+    }
+
+    @media (max-width: 800px) {
+      .nav-container,
+      .main-container,
+      .section-container {
+        width: calc(100% - 32px);
+      }
+    }
+  </style>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#ec4899",          /* Pink */
+            'primary-dark': "#db2777",     /* Dark Pink */
+            'primary-light': "#f472b6",    /* Light Pink */
+            'primary-soft': "#fce7f3",     /* Soft Pink */
+            'primary-softer': "#fdf2f8",   /* Softer Pink */
+            secondary: "#f97316",        /* Orange */
+            'secondary-light': "#fb923c",  /* Light Orange */
+            accent: "#f59e0b",           /* Warm Yellow */
+            'accent-soft': "#fef08a",     /* Soft Yellow/Cream */
+            navy: "#0f172a",             /* Dark Navy Text */
+            background: "#f8fafc"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "touch-target-min": "48px",
+            "margin-mobile": "20px",
+            "stack-sm": "8px",
+            "gutter-mobile": "16px",
+            "stack-md": "16px",
+            "stack-lg": "24px"
+          },
+          fontFamily: {
+            "headline-md": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-md": ["Inter"],
+            "label-lg": ["Inter"]
+          },
+          fontSize: {
+            "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "600"}]
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+</head>
+<body class="bg-[#fdf2f8] text-navy antialiased pb-0" data-page-theme="ai">
+
+  <!-- Top Application Bar / Sticky Desktop Header -->
+  <header class="site-header fixed top-0 left-0 right-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
+    <div class="nav-container h-20 flex items-center justify-between">
+      <!-- Logo and Name -->
+      <a href="../halaman_utama/code.html" class="flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 rounded-lg p-1 transition-all" aria-label="ARSelNel Utama">
+        <img src="../assets/home/logo.svg" class="w-10 h-10 text-primary" alt="ARSelNel Logo" />
+        <span class="font-headline text-2xl font-extrabold text-primary tracking-tight">ARSelNel</span>
+      </a>
+
+      <!-- Main Navigation (Desktop & Tablet horizontal view) -->
+      <nav class="hidden lg:flex items-center gap-6 xl:gap-8">
+        <a href="../halaman_utama/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Utama">Utama</a>
+        <a href="../modul_pembelajaran/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Modul Pembelajaran">Modul Pembelajaran</a>
+        <a href="../pengimbas_ar/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Terokai AR">Terokai AR</a>
+        <a href="../selbot_ai/code.html" class="font-headline text-base xl:text-lg font-bold text-primary hover:text-primary-dark transition-colors px-1 py-2 border-b-2 border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Tanya AI">Tanya AI</a>
+        <a href="../nota_pembelajaran/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Nota">Nota</a>
+        <a href="../perpustakaan_video/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Video">Video</a>
+        <a href="../hab_permainan/code.html" class="font-headline text-base xl:text-lg font-semibold text-slate-500 hover:text-primary transition-colors px-1 py-2 border-b-2 border-transparent hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Permainan Sains">Permainan Sains</a>
+      </nav>
+      
+      <!-- Right Actions (Notifications, Avatar, Hamburger Toggle) -->
+      <div class="flex items-center gap-3">
+        <!-- Notification Button -->
+        <button class="relative w-12 h-12 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Notifikasi">
+          <span class="material-symbols-outlined text-3xl">notifications</span>
+          <span class="absolute top-3.5 right-3.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+        </button>
+        
+        <!-- Divider (Desktop) -->
+        <span class="hidden sm:inline-block w-[1px] h-8 bg-slate-200"></span>
+        
+        <!-- Student Profile -->
+        <a href="../bantuan_maklumat/code.html" class="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 group" aria-label="Profil Pelajar">
+          <div class="relative w-11 h-11 rounded-full overflow-hidden border border-teal-100">
+            <img class="w-full h-full object-cover" src="../assets/home/avatar.svg" alt="Avatar Pelajar" />
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+          </div>
+          <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-xl">keyboard_arrow_down</span>
+        </a>
+
+        <!-- Hamburger Button (Mobile & Tablet) -->
+        <button id="hamburger-btn" class="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600" aria-label="Menu Utama">
+          <span class="material-symbols-outlined text-2xl" id="hamburger-icon">menu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Dropdown Menu -->
+    <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-100 bg-white/95 backdrop-blur-md absolute top-20 left-0 right-0 w-full shadow-lg transition-all duration-300">
+      <nav class="flex flex-col p-4 gap-2">
+        <a href="../halaman_utama/code.html" class="font-headline text-base font-bold text-primary bg-teal-50/50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Utama">
+          <span class="material-symbols-outlined text-xl">home</span>
+          Utama
+        </a>
+        <a href="../modul_pembelajaran/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Modul Pembelajaran">
+          <span class="material-symbols-outlined text-xl">science</span>
+          Modul Pembelajaran
+        </a>
+        <a href="../pengimbas_ar/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Terokai AR">
+          <span class="material-symbols-outlined text-xl">view_in_ar</span>
+          Terokai AR
+        </a>
+        <a href="../selbot_ai/code.html" class="font-headline text-base font-bold text-primary bg-teal-50/50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Tanya AI">
+          <span class="material-symbols-outlined text-xl">smart_toy</span>
+          Tanya AI
+        </a>
+        <a href="../nota_pembelajaran/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Nota">
+          <span class="material-symbols-outlined text-xl">menu_book</span>
+          Nota
+        </a>
+        <a href="../perpustakaan_video/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Video">
+          <span class="material-symbols-outlined text-xl">play_circle</span>
+          Video
+        </a>
+        <a href="../hab_permainan/code.html" class="font-headline text-base font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 rounded-xl px-4 py-2.5 flex items-center gap-3 transition-all" aria-label="Permainan Sains">
+          <span class="material-symbols-outlined text-xl">sports_esports</span>
+          Permainan Sains
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-container mt-28 space-y-6">
+    
+    <!-- SelBot Welcome Card (Hero) -->
+    <section class="module-hero relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-950 via-rose-800 to-pink-600 text-white p-6 shadow-sm border border-pink-500/30">
+      <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-pink-200 via-transparent to-transparent"></div>
+      
+      <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <!-- Text intro -->
+        <div class="flex-1 text-left flex flex-col items-start gap-2">
+          <h2 class="font-headline text-3xl font-extrabold text-white">SelBot</h2>
+          <p class="font-body text-pink-50 opacity-90 text-[14px] leading-relaxed max-w-xl">
+            Hai, Saintis Muda! Saya SelBot. Tanyakan apa-apa soalan tentang struktur, fungsi dan organisasi sel. Saya sedia membantu mengulang kaji!
+          </p>
+        </div>
+        <!-- Mascot visual -->
+        <div class="w-28 h-28 shrink-0 flex items-center justify-center pointer-events-none">
+          <img src="../assets/selbot/selbot-welcome.svg" class="h-full w-full object-contain animate-float" alt="Waving SelBot Mascot" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Two-Column Workspace -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      
+      <!-- LEFT COLUMN: Chat Panel (70%) -->
+      <div class="lg:col-span-8 bg-white border border-pink-100/80 rounded-2xl shadow-sm flex flex-col h-[560px] overflow-hidden">
+        
+        <!-- Chat Panel Header -->
+        <div class="px-6 py-4 border-b border-pink-100/70 flex items-center justify-between bg-[#fdf2f8]/50">
+          <div class="flex items-center gap-3">
+            <img src="../assets/selbot/selbot-avatar.svg" class="w-10 h-10 object-contain" alt="SelBot Chat Avatar" />
+            <div>
+              <h3 class="font-headline text-sm font-extrabold text-slate-800 leading-snug">SelBot</h3>
+              <span class="text-[10px] font-bold text-pink-600 uppercase tracking-wider">Sains Tingkatan 1</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <!-- Reset Button -->
+            <button id="reset-chat-btn" class="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-red-500 hover:bg-slate-100 transition-colors focus:outline-none" aria-label="Padam Perbualan">
+              <span class="material-symbols-outlined text-xl">delete</span>
+            </button>
+            <button class="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-pink-600 hover:bg-slate-100 transition-colors focus:outline-none" aria-label="Lagi Pilihan">
+              <span class="material-symbols-outlined text-xl">more_vert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Conversation Feed -->
+        <div id="chat-feed" class="chat-scroll-container flex-1 overflow-y-auto p-6 space-y-4">
+          
+          <!-- SelBot Welcome Bubble -->
+          <div class="flex items-start gap-3 max-w-[85%]">
+            <img src="../assets/selbot/selbot-avatar.svg" class="w-8 h-8 object-contain shrink-0 mt-0.5" alt="SelBot Avatar" />
+            <div class="bg-[#fdf2f8] border border-[#fbcfe8] p-4 rounded-[1.25rem] rounded-tl-none text-left">
+              <p class="font-body text-xs sm:text-sm text-slate-700 leading-relaxed">
+                Hai! Saya SelBot. Tanyakan apa-apa soalan tentang struktur, fungsi dan organisasi sel. Sila pilih soalan cadangan di bawah atau taip sendiri!
+              </p>
+              <span class="block text-[9px] text-slate-400 font-semibold mt-2">10:24 pagi</span>
+            </div>
+          </div>
+
+          <!-- Dynamic messages get appended here -->
+          <div id="message-container" class="space-y-4"></div>
+
+          <!-- Typing Indicator (Hidden by default) -->
+          <div id="typing-indicator" class="hidden flex items-start gap-3 max-w-[85%]">
+            <img src="../assets/selbot/selbot-avatar.svg" class="w-8 h-8 object-contain shrink-0 mt-0.5" alt="SelBot Avatar" />
+            <div class="bg-[#fdf2f8] border border-[#fbcfe8] px-4 py-3.5 rounded-[1.25rem] rounded-tl-none flex items-center gap-1">
+              <span class="bounce-dot"></span>
+              <span class="bounce-dot"></span>
+              <span class="bounce-dot"></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Predefined Suggested Question Chips -->
+        <div class="px-6 py-2 border-t border-slate-50 flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-3">
+          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Apakah fungsi nukleus?">
+            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
+            Apakah fungsi nukleus?
+          </button>
+          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Apa beza sel haiwan dan sel tumbuhan?">
+            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
+            Apa beza sel haiwan dan sel tumbuhan?
+          </button>
+          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Terangkan maksud mitosis">
+            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
+            Terangkan maksud mitosis
+          </button>
+          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Apakah fungsi mitokondria?">
+            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
+            Apakah fungsi mitokondria?
+          </button>
+          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Bagaimana sel membentuk tisu?">
+            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
+            Bagaimana sel membentuk tisu?
+          </button>
+        </div>
+
+        <!-- Chat Input Composer -->
+        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+          <div class="relative flex items-center bg-white border border-pink-100 rounded-2xl shadow-sm pr-2 focus-within:border-pink-300 transition-colors">
+            <!-- Audio button -->
+            <button class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-pink-600 transition-colors focus:outline-none" aria-label="Input Suara">
+              <span class="material-symbols-outlined">mic</span>
+            </button>
+            <input id="chat-input" class="flex-grow h-12 border-none bg-transparent pl-2 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-0" placeholder="Tanya sesuatu tentang sel..." type="text" />
+            
+            <!-- Send Button -->
+            <button id="send-btn" class="w-9 h-9 bg-slate-200 text-slate-400 rounded-xl flex items-center justify-center transition-all focus:outline-none disabled:cursor-not-allowed" disabled aria-label="Hantar Soalan">
+              <span class="material-symbols-outlined text-lg font-bold">send</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Support Panel (30%) -->
+      <div class="lg:col-span-4 space-y-4">
+        
+        <!-- CARD 1: Topik Popular (Level 1 Content Card with Pink Accents) -->
+        <div class="p-5 bg-white border border-pink-100 rounded-2xl shadow-sm">
+          <h4 class="font-headline text-sm font-extrabold text-slate-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-pink-500 text-lg">local_fire_department</span>
+            Topik Popular
+          </h4>
+          <div class="mt-4 space-y-3.5">
+            <!-- Topic 1 -->
+            <div>
+              <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                <span>Struktur Sel</span>
+                <span class="text-pink-600 font-extrabold">85%</span>
+              </div>
+              <div class="w-full h-2 bg-[#fdf2f8] rounded-full mt-1.5 overflow-hidden">
+                <div class="h-full bg-pink-500 rounded-full" style="width: 85%"></div>
+              </div>
+            </div>
+            <!-- Topic 2 -->
+            <div>
+              <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                <span>Fungsi Organel</span>
+                <span class="text-pink-600 font-extrabold">60%</span>
+              </div>
+              <div class="w-full h-2 bg-[#fdf2f8] rounded-full mt-1.5 overflow-hidden">
+                <div class="h-full bg-pink-500 rounded-full" style="width: 60%"></div>
+              </div>
+            </div>
+            <!-- Topic 3 -->
+            <div>
+              <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                <span>Sel Haiwan &amp; Tumbuhan</span>
+                <span class="text-pink-600 font-extrabold">40%</span>
+              </div>
+              <div class="w-full h-2 bg-[#fdf2f8] rounded-full mt-1.5 overflow-hidden">
+                <div class="h-full bg-pink-500 rounded-full" style="width: 40%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: Tips Bertanya (Level 2 Highlight Card with Softer Pink Theme) -->
+        <div class="p-5 bg-[#fdf2f8] border border-[#fbcfe8] rounded-2xl shadow-sm flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center shrink-0 text-pink-600">
+              <span class="material-symbols-outlined text-xl">lightbulb</span>
+            </div>
+            <div>
+              <h4 class="font-headline text-sm font-bold text-[#9d174d]">Tips Bertanya</h4>
+              <p class="font-body text-xs text-slate-500 leading-relaxed mt-0.5">Panduan berinteraksi dengan SelBot.</p>
+            </div>
+          </div>
+          <p class="font-body text-xs text-slate-600 leading-relaxed">Tulis soalan yang jelas supaya SelBot boleh memberikan jawapan yang lebih tepat.</p>
+          <ul class="text-[11px] text-slate-600 font-semibold space-y-1.5 list-disc pl-4">
+            <li>"Apakah fungsi mitokondria?"</li>
+            <li>"Bandingkan sel haiwan dan sel tumbuhan."</li>
+            <li>"Apakah fungsi nukleus dalam sel?"</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Desktop Footer -->
+  <footer class="bg-slate-900 text-slate-400 mt-20 border-t border-slate-800">
+    <div class="section-container py-16">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10">
+        <!-- Logo and Branding info -->
+        <div class="md:col-span-5 flex flex-col gap-4">
+          <a href="../halaman_utama/code.html" class="flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 rounded-lg p-1 transition-all w-fit">
+            <img src="../assets/home/logo.svg" class="w-10 h-10 text-primary-light" alt="ARSelNel Logo" />
+            <span class="font-headline text-2xl font-extrabold text-white tracking-tight">ARSelNel</span>
+          </a>
+          <p class="font-body text-sm text-slate-400 leading-relaxed max-w-sm">
+            Platform pembelajaran sains interaktif yang memfokuskan kepada topik Biologi untuk pelajar Tingkatan 1. Meneroka rahsia dunia sel melalui visualisasi 3D dan AR yang menarik.
+          </p>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="md:col-span-4 flex flex-col gap-4">
+          <h4 class="font-headline text-base font-bold text-white uppercase tracking-wider">Navigasi Utama</h4>
+          <ul class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm font-semibold">
+            <li><a href="../halaman_utama/code.html" class="hover:text-primary-light transition-colors">Utama</a></li>
+            <li><a href="../modul_pembelajaran/code.html" class="hover:text-primary-light transition-colors">Modul Pembelajaran</a></li>
+            <li><a href="../pengimbas_ar/code.html" class="hover:text-primary-light transition-colors">Terokai AR</a></li>
+            <li><a href="../selbot_ai/code.html" class="hover:text-primary-light transition-colors">Tanya AI</a></li>
+            <li><a href="../nota_pembelajaran/code.html" class="hover:text-primary-light transition-colors">Nota</a></li>
+            <li><a href="../perpustakaan_video/code.html" class="hover:text-primary-light transition-colors">Video</a></li>
+            <li><a href="../hab_permainan/code.html" class="hover:text-primary-light transition-colors">Permainan Sains</a></li>
+          </ul>
+        </div>
+
+        <!-- Call to action/Support info -->
+        <div class="md:col-span-3 flex flex-col gap-4">
+          <h4 class="font-headline text-base font-bold text-white uppercase tracking-wider">Perlukan Bantuan?</h4>
+          <p class="font-body text-sm text-slate-400">Hubungi pembantu pintar kami atau layari maklumat bantuan.</p>
+          <a href="../bantuan_maklumat/code.html" class="w-fit inline-flex items-center gap-2 bg-teal-600 text-white hover:bg-teal-500 font-headline text-xs font-bold px-4 py-2.5 rounded-xl shadow transition-colors">
+            <span>Bantuan & Maklumat</span>
+            <span class="material-symbols-outlined text-sm">info</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Bottom border and copyrights -->
+      <div class="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+        <p>© 2026 ARSelNel. Hak Cipta Terpelihara. Direka untuk pelajar Sains Tingkatan 1.</p>
+        <div class="flex gap-4">
+          <a href="#" class="hover:underline">Polisi Privasi</a>
+          <a href="#" class="hover:underline">Terma Penggunaan</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript chatbot logic -->
+  <script>
+    // Toggle Hamburger Menu for Mobile/Tablet
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+
+    hamburgerBtn.addEventListener('click', () => {
+      const isExpanded = mobileMenu.classList.contains('hidden');
+      if (isExpanded) {
+        mobileMenu.classList.remove('hidden');
+        hamburgerIcon.textContent = 'close';
+      } else {
+        mobileMenu.classList.add('hidden');
+        hamburgerIcon.textContent = 'menu';
+      }
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!hamburgerBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+        mobileMenu.classList.add('hidden');
+        hamburgerIcon.textContent = 'menu';
+      }
+    });
+
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const messageContainer = document.getElementById('message-container');
+    const chatFeed = document.getElementById('chat-feed');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const resetBtn = document.getElementById('reset-chat-btn');
+
+    // Enable/disable send button based on text input
+    input.addEventListener('input', () => {
+      const val = input.value.trim();
+      if (val.length > 0) {
+        sendBtn.disabled = false;
+        sendBtn.classList.remove('bg-slate-200', 'text-slate-400');
+        sendBtn.classList.add('bg-pink-600', 'text-white', 'hover:bg-pink-700');
+      } else {
+        sendBtn.disabled = true;
+        sendBtn.classList.add('bg-slate-200', 'text-slate-400');
+        sendBtn.classList.remove('bg-pink-600', 'text-white', 'hover:bg-pink-700');
+      }
+    });
+
+    // Helper to format current time
+    function getCurrentTime() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes();
+      const ampm = hours >= 12 ? 'petang' : 'pagi';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // the hour '0' should be '12'
+      const strMinutes = minutes < 10 ? '0' + minutes : minutes;
+      return `${hours}:${strMinutes} ${ampm}`;
+    }
+
+    // Append standard visual messages
+    function appendMessage(text, isUser = true, visualCardHtml = '') {
+      const wrapper = document.createElement('div');
+      wrapper.className = isUser ? 'flex justify-end' : 'flex items-start gap-3 max-w-[85%]';
+      
+      const timeStr = getCurrentTime();
+
+      if (isUser) {
+        wrapper.innerHTML = `
+          <div class="bg-gradient-to-r from-pink-600 to-rose-500 text-white p-4 rounded-[1.25rem] rounded-tr-none text-left shadow-sm">
+            <p class="font-body text-xs sm:text-sm leading-relaxed">${text}</p>
+            <span class="block text-[9px] text-pink-100 text-right font-semibold mt-1.5">${timeStr}</span>
+          </div>
+        `;
+      } else {
+        wrapper.innerHTML = `
+          <img src="../assets/selbot/selbot-avatar.svg" class="w-8 h-8 object-contain shrink-0 mt-0.5" alt="SelBot Avatar" />
+          <div class="bg-[#fdf2f8] border border-[#fbcfe8] p-4 rounded-[1.25rem] rounded-tl-none text-left w-full">
+            <p class="font-body text-xs sm:text-sm text-slate-700 leading-relaxed">${text}</p>
+            ${visualCardHtml}
+            <span class="block text-[9px] text-slate-400 font-semibold mt-2">${timeStr}</span>
+          </div>
+        `;
+      }
+      
+      messageContainer.appendChild(wrapper);
+      
+      // Auto scroll to bottom
+      chatFeed.scrollTop = chatFeed.scrollHeight;
+    }
+
+    // Submit dialog response
+    function submitQuestion(val) {
+      if (!val) return;
+      
+      // 1. Add student message
+      appendMessage(val, true);
+      
+      // Clear input and disable send button
+      input.value = '';
+      sendBtn.disabled = true;
+      sendBtn.classList.add('bg-slate-200', 'text-slate-400');
+      sendBtn.classList.remove('bg-pink-600', 'text-white', 'hover:bg-pink-700');
+
+      // 2. Show typing indicator
+      typingIndicator.classList.remove('hidden');
+      chatFeed.scrollTop = chatFeed.scrollHeight;
+
+      // Guest mode restriction check: allow max 2 messages, on 3rd prompt warn and trigger modal
+      if (window.AuthGuard && window.AuthGuard.isGuest()) {
+        const guestPromptCount = window.AuthGuard.incrementGuestAiPrompts();
+        if (guestPromptCount > 2) {
+          setTimeout(() => {
+            typingIndicator.classList.add('hidden');
+            const limitReply = "Anda telah mencapai had pertanyaan mod tetamu. Sila log masuk untuk meneruskan sesi pembelajaran tanpa had!";
+            appendMessage(limitReply, false);
+            setTimeout(() => {
+              if (window.showGuestLimitModal) {
+                window.showGuestLimitModal('Selbot AI Assistant', 'Anda telah mencapai had 2 soalan dalam Mod Tetamu. Sila log masuk atau daftar akaun percuma untuk meneruskan sesi pembelajaran tanpa had bersama SelBot AI!');
+              }
+            }, 600);
+          }, 700);
+          return;
+        }
+      }
+
+      // 3. Delayed reply response
+      setTimeout(() => {
+        typingIndicator.classList.add('hidden');
+        
+        let response = "Maaf, saya tidak pasti tentang soalan itu. Sila tanya soalan yang berkaitan dengan sains sel haiwan, sel tumbuhan, atau organel.";
+        let visualCardHtml = '';
+
+        const normalizedVal = val.toLowerCase().trim();
+
+        if (normalizedVal.includes('nukleus')) {
+          response = "Nukleus ialah pusat kawalan sel. Ia menyimpan bahan genetik dan mengawal aktiviti seperti pertumbuhan, pembahagian serta penghasilan protein.";
+          visualCardHtml = `
+            <div class="mt-3 p-3.5 bg-white border border-pink-200 rounded-xl flex items-center gap-3">
+              <div class="flex-grow">
+                <h4 class="font-headline text-[13px] font-extrabold text-[#9d174d]">Fungsi Utama Nukleus</h4>
+                <ul class="text-[11px] text-slate-600 font-semibold space-y-0.5 list-disc pl-4 mt-1.5">
+                  <li>Menyimpan DNA/bahan genetik</li>
+                  <li>Mengawal aktiviti sel</li>
+                  <li>Membantu pembahagian sel</li>
+                </ul>
+              </div>
+              <img src="../assets/nota/icon_topic2.svg" class="w-12 h-12 object-contain bg-pink-50 rounded-xl p-1 border border-pink-100 shrink-0" alt="Nukleus Visual" />
+            </div>
+          `;
+        } else if (normalizedVal.includes('beza') || normalizedVal.includes('haiwan dan sel tumbuhan') || normalizedVal.includes('haiwan atau sel tumbuhan')) {
+          response = "Sel tumbuhan mempunyai dinding sel, kloroplas, dan vakuol yang besar, manakala sel haiwan tiada dinding sel atau kloroplas, dan biasanya mempunyai vakuol kecil atau tiada langsung.";
+          visualCardHtml = `
+            <div class="mt-3 p-3 bg-white border border-pink-200 rounded-xl">
+              <h4 class="font-headline text-[13px] font-extrabold text-[#9d174d] mb-2">Perbandingan Ringkas</h4>
+              <div class="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-700">
+                <div class="p-2 bg-pink-50 border border-pink-100 rounded-lg">
+                  <span class="text-[#9d174d] font-extrabold block text-xs">Sel Tumbuhan</span>
+                  • Ada Dinding Sel<br>• Ada Kloroplas<br>• Vakuol Besar
+                </div>
+                <div class="p-2 bg-purple-50 border border-purple-100 rounded-lg">
+                  <span class="text-purple-700 font-extrabold block text-xs">Sel Haiwan</span>
+                  • Tiada Dinding Sel<br>• Tiada Kloroplas<br>• Vakuol Kecil/Tiada
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (normalizedVal.includes('mitosis')) {
+          response = "Mitosis ialah proses pembahagian sel yang menghasilkan dua sel anak yang seiras, mengandungi bilangan kromosom yang sama dengan sel induk. Ia penting untuk pertumbuhan dan menggantikan sel yang rosak.";
+        } else if (normalizedVal.includes('mitokondria')) {
+          response = "Mitokondria ialah tapak penjanaan tenaga bagi sel melalui proses respirasi selular.";
+        } else if (normalizedVal.includes('tisu') || normalizedVal.includes('sel membentuk tisu')) {
+          response = "Sel-sel yang mempunyai struktur dan fungsi yang sama akan berkumpul bersama untuk membentuk tisu.";
+        }
+
+        appendMessage(response, false, visualCardHtml);
+      }, 1000);
+    }
+
+    // Trigger send on button click
+    sendBtn.addEventListener('click', () => {
+      const val = input.value.trim();
+      submitQuestion(val);
+    });
+
+    // Enter key submits question
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const val = input.value.trim();
+        submitQuestion(val);
+      }
+    });
+
+    // Click suggested questions chips
+    document.querySelectorAll('.suggestion-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const question = chip.getAttribute('data-question');
+        submitQuestion(question);
+      });
+    });
+
+    // Clear dialog history button
+    resetBtn.addEventListener('click', () => {
+      if (confirm('Padam semua sejarah sembang dengan SelBot?')) {
+        messageContainer.innerHTML = '';
+      }
+    });
+
+    // Micro-interactions and touch feedbacks
+    document.querySelectorAll('a, button, [onclick]').forEach(el => {
+      el.addEventListener('mousedown', () => {
+        el.classList.add('scale-98');
+      });
+      el.addEventListener('mouseup', () => {
+        el.classList.remove('scale-98');
+      });
+      el.addEventListener('mouseleave', () => {
+        el.classList.remove('scale-98');
+      });
+    });
+
+    // Scroll effect for header shadow
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('header');
+      if (window.scrollY > 15) {
+        header.classList.add('shadow-md', 'border-slate-200');
+        header.classList.remove('border-slate-100');
+      } else {
+        header.classList.remove('shadow-md', 'border-slate-200');
+        header.classList.add('border-slate-100');
+      }
+    });
+  </script>
+  <script src="../assets/js/student-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html class="light" lang="ms" data-page-theme="games">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+  <title>ARSelNel - Maze Chase: Misi Sel Haiwan & Tumbuhan</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  
+  <!-- Auth Guard & Supabase Integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/cms-content-adapter.js"></script>
+
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; user-select: none; }
+    .site-header { width: 100%; }
+    .nav-container, .main-container {
+      width: calc(100% - 32px);
+      max-width: 1080px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    @media (max-width: 640px) {
+      .nav-container, .main-container { width: calc(100% - 16px); }
+    }
+  </style>
+
+  <!-- Dedicated Maze Chase CSS & Student Shell -->
+  <link rel="stylesheet" href="../assets/game/maze-chase/maze.css"/>
+  <link rel="stylesheet" href="../assets/css/student-shell.css"/>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Header Kompak & Kemas (Tinggi 56px untuk Jimat Ruang Skrin Laptop - Task 2) -->
+  <header class="site-header fixed top-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all">
+    <div class="nav-container h-14 flex items-center justify-between">
+      <a href="../halaman_utama/code.html" class="flex items-center gap-2">
+        <img src="../assets/home/logo.svg" class="w-8 h-8 text-sky-700" alt="ARSelNel Logo" />
+        <span class="font-headline text-xl font-extrabold text-sky-800 tracking-tight">ARSelNel</span>
+      </a>
+
+      <!-- Breadcrumb Tajuk Modul -->
+      <div class="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-500">
+        <span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold border border-indigo-200">MAZE CHASE 2D</span>
+        <span>•</span>
+        <span class="text-slate-700 font-bold">Misi Sel Haiwan &amp; Tumbuhan</span>
+      </div>
+
+      <a href="../hab_permainan/code.html" class="font-headline text-xs font-bold text-slate-600 hover:text-sky-700 flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition-colors">
+        <span class="material-symbols-outlined text-base">arrow_back</span>
+        <span class="hidden sm:inline">Hab Permainan</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Kandungan Utama Permainan (Padat, Bebas Skrol Berlebihan pada Laptop - Task 2 & 3) -->
+  <main class="main-container mt-16 mb-2 flex-grow flex flex-col justify-start">
+    
+    <!-- KONTENA UTAMA VIEWPORT MAZE CHASE 2D -->
+    <div class="maze-viewport-container" id="maze-viewport-wrapper">
+
+      <!-- A. Panel Soalan Selalu Kelihatan di Atas Peta (Always-Visible Compact Question Panel - Task 3) -->
+      <div class="maze-question-panel" id="maze-sticky-question-panel">
+        
+        <!-- Baris Metadata Soalan -->
+        <div class="maze-question-meta-row">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="maze-question-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-headline font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+              Aras Rendah • +50 pts
+            </span>
+            <span id="maze-question-layout-title" class="text-xs font-bold text-indigo-800 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-200/60 hidden sm:inline-block">
+              Maze 1: Koridor Asas Sel
+            </span>
+            <span class="text-[11px] text-slate-500 font-semibold hidden md:inline-flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs text-indigo-500">my_location</span>
+              <span>Pergi ke zon yang mengandungi jawapan betul.</span>
+            </span>
+          </div>
+
+          <!-- Rajah Mini Ilustrasi Sel (40px padat) -->
+          <div id="maze-question-illustration" class="w-10 h-10 shrink-0 rounded-xl bg-white border border-slate-200 shadow-inner flex items-center justify-center p-0.5 overflow-hidden">
+            <!-- Disuntik oleh cell_illustrations.js -->
+          </div>
+        </div>
+
+        <!-- Teks Soalan Sains -->
+        <h2 id="maze-question-text" class="maze-question-text">
+          Memuatkan soalan sains...
+        </h2>
+
+        <!-- Arahan Pintar untuk Telefon / Skrin Kecil -->
+        <p class="text-[11px] text-indigo-700 font-semibold md:hidden mt-0.5 flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs">my_location</span>
+          <span>Pergi ke zon yang mengandungi jawapan betul.</span>
+        </p>
+      </div>
+
+      <!-- B. Floating HUD Bar (Di Atas Kanvas) -->
+      <div class="maze-hud-bar">
+        <!-- Kiri: Profil Pelajar -->
+        <div class="maze-hud-pill">
+          <span class="material-symbols-outlined text-indigo-400 text-sm">face</span>
+          <span id="maze-hud-player-name" class="truncate max-w-[110px] sm:max-w-[150px]">Pelajar Saintis</span>
+        </div>
+
+        <!-- Tengah: Metrik Skor, Nyawa, Soalan & Pemasa -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <div class="maze-hud-pill bg-amber-950/40 border-amber-500/40 text-amber-300">
+            <span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+            <span id="maze-hud-score">0 pts</span>
+          </div>
+
+          <div class="maze-hud-pill bg-rose-950/40 border-rose-500/40 text-rose-300">
+            <span class="text-xs">❤️</span>
+            <span id="maze-hud-lives">❤️❤️❤️</span>
+          </div>
+
+          <div class="maze-hud-pill bg-indigo-950/40 border-indigo-500/40 text-indigo-200">
+            <span class="material-symbols-outlined text-indigo-400 text-sm">psychology</span>
+            <span id="maze-hud-question">Soalan 1/10</span>
+          </div>
+
+          <!-- Lencana Power-Up Aktif (Task 4 & 12) -->
+          <div id="maze-hud-powerups" class="hidden items-center gap-1">
+          </div>
+
+          <div class="maze-hud-pill bg-slate-900/60 border-slate-700 text-slate-300">
+            <span class="material-symbols-outlined text-slate-400 text-sm">timer</span>
+            <span id="maze-hud-timer">00:00</span>
+          </div>
+        </div>
+
+        <!-- Kanan: Butang Kawalan HUD -->
+        <div class="flex items-center gap-1.5">
+          <button id="maze-hud-pause-btn" class="maze-hud-btn" title="Jeda Permainan (Esc / P)" aria-label="Jeda Permainan">
+            <span class="material-symbols-outlined text-base">pause</span>
+          </button>
+          <button id="maze-hud-mute-btn" class="maze-hud-btn" title="Kawalan Bunyi" aria-label="Kawalan Bunyi">
+            <span class="material-symbols-outlined text-base">volume_up</span>
+          </button>
+          <button id="maze-hud-help-btn" class="maze-hud-btn" title="Panduan Misi" aria-label="Panduan Misi">
+            <span class="material-symbols-outlined text-base">help</span>
+          </button>
+          <a href="../hab_permainan/code.html" class="maze-hud-btn hover:text-rose-400" title="Keluar ke Hab Permainan" aria-label="Keluar">
+            <span class="material-symbols-outlined text-base">close</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- C. Elemen Canvas 2D Maze -->
+      <div class="maze-canvas-container">
+        <canvas id="maze-canvas"></canvas>
+
+        <!-- D. D-Pad Maya Skrin Sentuh (Mobile & Tablet) -->
+        <div class="maze-mobile-dpad lg:hidden" id="maze-mobile-dpad" aria-label="Kawalan Arah Skrin Sentuh">
+          <div></div>
+          <button id="maze-dpad-up" class="maze-dpad-key" aria-label="Atas">
+            <span class="material-symbols-outlined text-lg">arrow_upward</span>
+          </button>
+          <div></div>
+          
+          <button id="maze-dpad-left" class="maze-dpad-key" aria-label="Kiri">
+            <span class="material-symbols-outlined text-lg">arrow_back</span>
+          </button>
+          <div class="flex items-center justify-center opacity-30 pointer-events-none">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+          </div>
+          <button id="maze-dpad-right" class="maze-dpad-key" aria-label="Kanan">
+            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+          </button>
+
+          <div></div>
+          <button id="maze-dpad-down" class="maze-dpad-key" aria-label="Bawah">
+            <span class="material-symbols-outlined text-lg">arrow_downward</span>
+          </button>
+          <div></div>
+        </div>
+      </div>
+
+      <!-- E. Floating Toast Notis -->
+      <div id="maze-toast-notice" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-slate-900/90 text-white font-headline text-xs font-bold border border-slate-700 shadow-xl z-50 transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none">
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL DIALOG PERMAINAN ==================== -->
+
+  <!-- 1. Modal Pengenalan & Taklimat (Pre-game Instruction Welcome Screen - Task 9) -->
+  <div id="maze-welcome-modal" class="maze-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="maze-welcome-title">
+    <div class="maze-modal-card p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Potret Guru & Tajuk -->
+      <div class="text-center pb-3 border-b border-slate-100">
+        <div class="relative w-16 h-16 mx-auto mb-2">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-700 flex items-center justify-center text-3xl shadow-md border-2 border-indigo-200">
+            🏃‍♂️
+          </div>
+          <span class="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-indigo-900 text-white text-[9px] font-headline font-bold uppercase tracking-wider">
+            Maze 2D
+          </span>
+        </div>
+
+        <h2 id="maze-welcome-title" class="font-headline text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+          Maze Chase: Misi Sel Haiwan &amp; Tumbuhan
+        </h2>
+        <p class="font-body text-xs sm:text-sm text-indigo-800 font-semibold mt-1 max-w-md mx-auto">
+          Selamat datang, Saintis Muda! Cari jawapan yang betul di dalam maze sambil mengelakkan virus yang mengejar anda.
+        </p>
+      </div>
+
+      <!-- Cara Bermain (11 Perkara Bahasa Melayu & Petunjuk - Task 9) -->
+      <div class="my-3 p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200/90 text-left">
+        <h4 class="font-headline text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5 mb-2">
+          <span class="material-symbols-outlined text-sm text-indigo-600">sports_esports</span>
+          Cara Bermain:
+        </h4>
+        <ol class="space-y-1.5 text-xs text-slate-700 list-decimal list-inside leading-relaxed">
+          <li>Gunakan kekunci <strong>WASD</strong> atau <strong>anak panah</strong> (atau D-pad di skrin sentuh) untuk menggerakkan avatar.</li>
+          <li>Sebelum setiap soalan bermula, anda diberikan <strong>15 saat untuk membaca soalan dan pilihan jawapan</strong>.</li>
+          <li>Jika sudah bersedia, tekan <strong>Mula Sekarang</strong> tanpa perlu menunggu 15 saat.</li>
+          <li>Cari zon <strong>A, B, C atau D</strong> yang mengandungi jawapan betul.</li>
+          <li>Elakkan <strong>virus hijau, ungu dan merah</strong> yang bergerak di dalam maze.</li>
+          <li>Virus akan mengejar anda apabila anda memasuki kawasan pengesanannya.</li>
+          <li>Gunakan <strong>portal teleport</strong> untuk berpindah ke kawasan lain dan melarikan diri.</li>
+          <li>Kutip <strong>power-up</strong> untuk mendapatkan kelajuan, perisai, pembekuan virus atau nyawa tambahan.</li>
+          <li>Jika anda memilih jawapan salah, satu nyawa ditolak dan pilihan jawapan tersebut akan <strong>disingkirkan</strong>.</li>
+          <li>Setiap jawapan betul akan membawa anda ke maze baharu.</li>
+          <li>Selesaikan kesemua 10 soalan untuk menamatkan cabaran.</li>
+        </ol>
+
+        <!-- Petunjuk Ringkas / Legend -->
+        <div class="mt-3 pt-2.5 border-t border-indigo-200/60 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-slate-700">
+          <div class="flex items-center gap-1.5"><span>🟢</span><span><strong>Virus hijau:</strong> mengesan dalam 3 jubin.</span></div>
+          <div class="flex items-center gap-1.5"><span>🟣</span><span><strong>Virus ungu:</strong> mengesan dalam 6 jubin.</span></div>
+          <div class="flex items-center gap-1.5"><span>🔴</span><span><strong>Virus merah:</strong> mengesan dalam 9 jubin.</span></div>
+          <div class="flex items-center gap-1.5"><span>🌀</span><span><strong>Portal:</strong> berpindah ke lokasi lain.</span></div>
+          <div class="flex items-center gap-1.5 sm:col-span-2"><span>⚡</span><span><strong>Power-up:</strong> memberikan kuasa sementara.</span></div>
+        </div>
+      </div>
+
+      <!-- Butang Tindakan Mula -->
+      <div class="flex flex-col sm:flex-row gap-2">
+        <a href="../hab_permainan/code.html" class="flex-1 py-2.5 px-3 rounded-xl font-headline font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-base">arrow_back</span>
+          <span>Kembali ke Hab</span>
+        </a>
+        <button id="maze-start-btn" class="flex-[2] py-2.5 px-5 rounded-xl font-headline font-bold text-xs sm:text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5">
+          <span>Mula Permainan</span>
+          <span class="material-symbols-outlined text-base">play_arrow</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 1B. Modal Pratonton Soalan (15-Saat Question-Reading Phase - Task 4 & 5) -->
+  <div id="maze-preview-modal" class="maze-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="maze-preview-title">
+    <div class="maze-modal-card p-5 sm:p-7 max-h-[92vh] overflow-y-auto">
+      
+      <!-- Tajuk & Status Masa -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-lg font-bold shadow-sm">
+            💡
+          </div>
+          <div>
+            <h3 id="maze-preview-title" class="font-headline text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+              Bersedia untuk Soalan Seterusnya!
+            </h3>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <span id="maze-preview-qnum" class="font-bold text-indigo-700">Soalan 1/10</span>
+              <span>•</span>
+              <span id="maze-preview-diff" class="px-2 py-0.5 rounded-full font-bold uppercase text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300">Aras Rendah</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lingkaran Pemasa 15-Saat -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 shadow-sm">
+          <span class="material-symbols-outlined text-base text-amber-600 animate-pulse">timer</span>
+          <span class="text-xs font-bold text-amber-900">Masa Membaca:</span>
+          <span id="maze-preview-countdown" class="font-headline text-base font-extrabold text-amber-700 w-6 text-center">15</span>
+          <span class="text-xs font-semibold text-amber-800">saat</span>
+        </div>
+      </div>
+
+      <!-- Kandungan Soalan & Ilustrasi Organel -->
+      <div class="my-3.5 flex items-start gap-3 bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100/90 text-left">
+        <div id="maze-preview-illustration" class="w-14 h-14 shrink-0 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center p-1 overflow-hidden">
+        </div>
+        <div class="flex-grow">
+          <h4 id="maze-preview-question-text" class="font-headline text-sm sm:text-base font-bold text-slate-900 leading-snug">
+            Memuatkan soalan...
+          </h4>
+          <p class="text-[11px] text-indigo-700 font-semibold mt-1">
+            Fahami 4 pilihan jawapan di bawah, kemudian cari dan masuki zon jawapan yang betul di dalam maze!
+          </p>
+        </div>
+      </div>
+
+      <!-- 4 Pilihan Jawapan A, B, C, D (Lengkap & Berwarna mengikut Zon) -->
+      <div class="space-y-2 mb-4 text-left">
+        <div id="maze-preview-opt-A" class="flex items-center gap-3 p-2.5 rounded-xl border border-red-200 bg-red-50/50 hover:bg-red-50 transition-colors">
+          <span class="w-7 h-7 shrink-0 rounded-lg bg-red-500 text-white font-headline font-bold text-xs flex items-center justify-center shadow-sm">A</span>
+          <span id="maze-preview-text-A" class="text-xs sm:text-sm font-semibold text-slate-800">Jawapan A</span>
+        </div>
+        <div id="maze-preview-opt-B" class="flex items-center gap-3 p-2.5 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-50 transition-colors">
+          <span class="w-7 h-7 shrink-0 rounded-lg bg-blue-600 text-white font-headline font-bold text-xs flex items-center justify-center shadow-sm">B</span>
+          <span id="maze-preview-text-B" class="text-xs sm:text-sm font-semibold text-slate-800">Jawapan B</span>
+        </div>
+        <div id="maze-preview-opt-C" class="flex items-center gap-3 p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 transition-colors">
+          <span class="w-7 h-7 shrink-0 rounded-lg bg-emerald-600 text-white font-headline font-bold text-xs flex items-center justify-center shadow-sm">C</span>
+          <span id="maze-preview-text-C" class="text-xs sm:text-sm font-semibold text-slate-800">Jawapan C</span>
+        </div>
+        <div id="maze-preview-opt-D" class="flex items-center gap-3 p-2.5 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-50 transition-colors">
+          <span class="w-7 h-7 shrink-0 rounded-lg bg-amber-500 text-white font-headline font-bold text-xs flex items-center justify-center shadow-sm">D</span>
+          <span id="maze-preview-text-D" class="text-xs sm:text-sm font-semibold text-slate-800">Jawapan D</span>
+        </div>
+      </div>
+
+      <!-- Butang Mula Sekarang (Skip Pemasa Membaca - Task 4) -->
+      <button id="maze-preview-start-btn" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-headline font-extrabold text-xs sm:text-sm rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-base">play_arrow</span>
+        <span>Mula Sekarang</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- 2. Modal Jeda Permainan (Pause Menu - Task 13) -->
+  <div id="maze-pause-modal" class="maze-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="maze-pause-title">
+    <div class="maze-modal-card p-6 sm:p-7 text-center">
+      <div class="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 text-2xl mx-auto flex items-center justify-center mb-2">
+        ⏸️
+      </div>
+      <h3 id="maze-pause-title" class="font-headline text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+        Permainan Dijeda
+      </h3>
+      <p class="text-xs text-slate-500 mt-0.5">Pemasa, pergerakan avatar dan virus telah dibekukan.</p>
+
+      <div class="flex flex-col gap-2 my-4">
+        <button id="maze-pause-resume-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-headline font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-base">play_arrow</span>
+          <span>Sambung Permainan</span>
+        </button>
+        <button id="maze-pause-restart-btn" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-headline font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-sm">replay</span>
+          <span>Mula Semula</span>
+        </button>
+        <a href="../hab_permainan/code.html" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-headline font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-sm">logout</span>
+          <span>Keluar ke Hab Permainan</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Modal Maklum Balas Jawapan Semerta -->
+  <div id="maze-feedback-modal" class="maze-modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="maze-modal-card p-6 sm:p-7 text-center">
+      <div id="maze-feedback-icon" class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 text-2xl mx-auto flex items-center justify-center mb-2 shadow-inner">
+        🌟
+      </div>
+      <h3 id="maze-feedback-title" class="font-headline text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+        Tahniah! Jawapan Tepat!
+      </h3>
+      <div id="maze-feedback-status" class="my-1.5">
+      </div>
+
+      <!-- Ilustrasi Organel Berkaitan -->
+      <div id="maze-feedback-illustration" class="w-24 h-24 mx-auto my-2.5 p-1 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden">
+      </div>
+
+      <div id="maze-feedback-desc" class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 text-left leading-relaxed mb-3">
+      </div>
+
+      <button id="maze-feedback-next-btn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-headline font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5">
+        <span>Bersedia untuk Maze Seterusnya</span>
+        <span class="material-symbols-outlined text-base">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Modal Permainan Tamat (Game Over - Task 14) -->
+  <div id="maze-gameover-modal" class="maze-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="maze-gameover-title">
+    <div class="maze-modal-card p-6 sm:p-7 text-center">
+      <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 text-2xl mx-auto flex items-center justify-center mb-2">
+        💀
+      </div>
+      <h2 id="maze-gameover-title" class="font-headline text-xl sm:text-2xl font-extrabold text-slate-900">
+        Permainan Tamat!
+      </h2>
+      <p class="text-xs text-slate-600 mt-1">Anda telah kehabisan semua 3 nyawa. Teruskan usaha dan cuba lagi untuk menewaskan virus maze!</p>
+
+      <div class="grid grid-cols-3 gap-2 text-center my-3">
+        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[10px] text-slate-500 font-semibold block">Skor</span>
+          <span id="maze-gameover-score" class="font-headline text-sm sm:text-base font-extrabold text-rose-600">0 pts</span>
+        </div>
+        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[10px] text-slate-500 font-semibold block">Tepat</span>
+          <span id="maze-gameover-correct" class="font-headline text-sm sm:text-base font-extrabold text-emerald-600">0 / 10</span>
+        </div>
+        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[10px] text-slate-500 font-semibold block">Kemajuan</span>
+          <span id="maze-gameover-progress" class="font-headline text-xs font-extrabold text-slate-700">Soalan 1</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <button onclick="window.location.reload()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-headline font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-base">refresh</span>
+          <span>Cuba Lagi</span>
+        </button>
+        <a href="../hab_permainan/code.html" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-headline font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-sm">home</span>
+          <span>Kembali ke Hab Permainan</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Modal Kemenangan (Victory - Task 14) -->
+  <div id="maze-victory-modal" class="maze-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="maze-victory-title">
+    <div class="maze-modal-card p-6 sm:p-7 text-center max-h-[90vh] overflow-y-auto">
+      <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 text-2xl mx-auto flex items-center justify-center mb-2">
+        🏆
+      </div>
+      <h2 id="maze-victory-title" class="font-headline text-xl sm:text-2xl font-extrabold text-slate-900">
+        Tahniah, Saintis Muda!
+      </h2>
+      <p class="text-xs text-slate-600 mt-1">
+        Kamu berjaya menewaskan cabaran Maze Chase dan menunjukkan pengetahuan tentang sel haiwan serta sel tumbuhan!
+      </p>
+
+      <!-- Metrik Pencapaian -->
+      <div class="grid grid-cols-4 gap-1.5 text-center my-3">
+        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[10px] text-slate-500 font-semibold block">Skor</span>
+          <span id="maze-victory-score" class="font-headline text-sm font-extrabold text-amber-600">1000 pts</span>
+        </div>
+        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[10px] text-slate-500 font-semibold block">Tepat</span>
+          <span id="maze-victory-correct" class="font-headline text-sm font-extrabold text-emerald-600">10 / 10</span>
+        </div>
+        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[10px] text-slate-500 font-semibold block">Masa</span>
+          <span id="maze-victory-time" class="font-headline text-sm font-extrabold text-indigo-700">02m 30s</span>
+        </div>
+        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[10px] text-slate-500 font-semibold block">Nyawa</span>
+          <span id="maze-victory-lives" class="font-headline text-xs font-extrabold text-rose-600">❤️❤️❤️</span>
+        </div>
+      </div>
+
+      <!-- Prestasi Mengikut Aras Kepayahan -->
+      <div id="maze-victory-breakdown" class="space-y-1 my-2.5 text-left text-xs">
+      </div>
+
+      <!-- Status Penyimpanan Rekod -->
+      <div id="maze-save-status-msg" class="text-xs text-slate-500 mb-3 font-medium">
+        Menyimpan pencapaian ke rekod pembelajaran anda...
+      </div>
+
+      <!-- Butang Tindakan -->
+      <div class="flex flex-col gap-2">
+        <button onclick="window.location.reload()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-headline font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-base">replay</span>
+          <span>Main Semula</span>
+        </button>
+        <div class="grid grid-cols-2 gap-2">
+          <a href="../hab_permainan/code.html" class="py-2 px-3 rounded-xl font-headline font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-sm">home</span>
+            <span>Hab Permainan</span>
+          </a>
+          <a href="../keputusan_permainan/code.html" class="py-2 px-3 rounded-xl font-headline font-bold text-xs bg-slate-800 text-white hover:bg-slate-900 transition-colors flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-sm">leaderboard</span>
+            <span>Papan Skor</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Skrip Enjin dan Logik Permainan Maze Chase 2D -->
+  <script src="../assets/game/maze-chase/cell_illustrations.js"></script>
+  <script src="../assets/game/maze-chase/maze_data.js"></script>
+  <script src="../assets/game/maze-chase/maze_game.js"></script>
+  <script src="../assets/game/maze-chase/maze_ui.js"></script>
+  <script src="../assets/js/student-shell.js"></script>
+</body>
+</html>
