@@ -1,6 +1,7 @@
 /**
  * ARSelNel - Generate Seed SQL from data/cms_backup.json
  * Generates supabase/seed_cms_data.sql for populating live Supabase tables
+ * Matches exact schema defined in 202610230001_cms_full_schema.sql
  */
 
 const fs = require('fs');
@@ -54,8 +55,13 @@ if (Array.isArray(col.maze_questions) && col.maze_questions.length > 0) {
   sql += `-- 3. Seed CMS Game Questions (${col.maze_questions.length} questions)\n`;
   for (const mq of col.maze_questions) {
     const optsJson = JSON.stringify(mq.options || {});
-    sql += `INSERT INTO public.cms_game_questions (id, game_type, question, options, correct_answer, explanation, difficulty, points, image, publication_status, display_order)
-VALUES (${escapeSql('maze_' + mq.id)}, 'maze_chase', ${escapeSql(mq.question)}, ${escapeSql(optsJson)}::jsonb, ${escapeSql(String(mq.correct))}, ${escapeSql(mq.explanation)}, ${escapeSql(mq.difficulty || 'easy')}, ${mq.points || 100}, ${escapeSql(mq.illustration || '')}, 'published', ${mq.id || 0})
+    const diff = (mq.difficulty === 'hard' || mq.difficulty === 'high') ? 'high' : (mq.difficulty === 'low' || mq.difficulty === 'easy') ? 'low' : 'medium';
+    const diffLabel = mq.difficultyLabel || (diff === 'high' ? 'Aras Sukar / KBAT' : diff === 'low' ? 'Aras Rendah' : 'Aras Sederhana');
+    const correctIdx = typeof mq.correct === 'number' ? mq.correct : ({ A: 0, B: 1, C: 2, D: 3 }[mq.correct] ?? 0);
+    const correctLetter = ['A', 'B', 'C', 'D'][correctIdx] || 'A';
+
+    sql += `INSERT INTO public.cms_game_questions (id, game_id, maze_title, difficulty, difficulty_label, points, question, options, correct_answer, correct_index, explanation, reward, display_order, publication_status)
+VALUES (${escapeSql('maze_' + mq.id)}, 'maze_chase', ${escapeSql(mq.mazeTitle || 'Maze ' + mq.id)}, ${escapeSql(diff)}, ${escapeSql(diffLabel)}, ${mq.points || 100}, ${escapeSql(mq.question)}, ${escapeSql(optsJson)}::jsonb, ${escapeSql(correctLetter)}, ${correctIdx}, ${escapeSql(mq.explanation)}, '+100 XP', ${mq.id || 0}, 'published')
 ON CONFLICT (id) DO NOTHING;\n`;
   }
   sql += '\n';
@@ -76,8 +82,9 @@ ON CONFLICT (id) DO NOTHING;\n`;
 if (Array.isArray(col.cellquest_organelles) && col.cellquest_organelles.length > 0) {
   sql += `-- 5. Seed CellQuest Organelles (${col.cellquest_organelles.length} organelles)\n`;
   for (const o of col.cellquest_organelles) {
-    sql += `INSERT INTO public.cms_cellquest_organelles (id, cell_type, key, name, icon, description, fact, color_hex, display_order, publication_status)
-VALUES (${escapeSql(o.id)}, ${escapeSql(o.cell_type || 'both')}, ${escapeSql(o.key)}, ${escapeSql(o.name)}, ${escapeSql(o.icon || '🧬')}, ${escapeSql(o.description)}, ${escapeSql(o.fact || '')}, ${escapeSql(o.color_hex || '#006565')}, ${o.display_order || 0}, 'published')
+    const cType = (o.cell_type === 'animal' || o.cell_type === 'plant') ? o.cell_type : 'both';
+    sql += `INSERT INTO public.cms_cellquest_organelles (id, cell_type, name, icon, description, fact, color, display_order, publication_status)
+VALUES (${escapeSql(o.id)}, ${escapeSql(cType)}, ${escapeSql(o.name)}, ${escapeSql(o.icon || '🧬')}, ${escapeSql(o.description)}, ${escapeSql(o.fact || '')}, ${escapeSql(o.color_hex || '#13a99c')}, ${o.display_order || 0}, 'published')
 ON CONFLICT (id) DO NOTHING;\n`;
   }
   sql += '\n';
@@ -87,8 +94,17 @@ ON CONFLICT (id) DO NOTHING;\n`;
 if (col.dashboard_config) {
   const d = col.dashboard_config;
   sql += `-- 6. Seed Dashboard Config\n`;
-  sql += `INSERT INTO public.cms_dashboard_config (id, hero_title, hero_description, hero_button_primary, hero_button_secondary, rec_title, rec_description, rec_badge, modules_config)
-VALUES ('default', ${escapeSql(d.heroTitle)}, ${escapeSql(d.heroDescription)}, ${escapeSql(d.heroButtonPrimaryText)}, ${escapeSql(d.heroButtonSecondaryText)}, ${escapeSql(d.featuredRecommendation ? d.featuredRecommendation.title : '')}, ${escapeSql(d.featuredRecommendation ? d.featuredRecommendation.description : '')}, ${escapeSql(d.featuredRecommendation ? d.featuredRecommendation.badge : 'Popular')}, ${escapeSql(JSON.stringify(d.moduleDescriptions || {}))}::jsonb)
+  const recJson = JSON.stringify(d.featuredRecommendation || {
+    title: "Cadangan Hari Ini: Perbandingan Sel Haiwan & Tumbuhan",
+    description: "Ketahui 3 perbezaan utama antara sel haiwan dan tumbuhan untuk menguasai soalan peperiksaan Sains.",
+    buttonText: "Mula Belajar Sekarang",
+    buttonUrl: "../nota_pembelajaran/code.html",
+    badge: "Disyorkan"
+  });
+  const modulesJson = JSON.stringify(d.moduleDescriptions || {});
+
+  sql += `INSERT INTO public.cms_dashboard_config (id, hero_greeting, hero_module_badge, hero_title, hero_description, hero_button_primary_text, hero_button_primary_url, hero_button_secondary_text, hero_button_secondary_url, featured_recommendation, module_descriptions)
+VALUES ('default', ${escapeSql(d.heroGreeting || 'Hai, Saintis Muda!')}, ${escapeSql(d.heroModuleBadge || 'Modul 1: Sains Hayat')}, ${escapeSql(d.heroTitle || 'Struktur, Fungsi dan Organisasi Sel')}, ${escapeSql(d.heroDescription || '')}, ${escapeSql(d.heroButtonPrimaryText || '🔬 Mula Teroka Sel')}, ${escapeSql(d.heroButtonPrimaryUrl || '../cellquest/code.html')}, ${escapeSql(d.heroButtonSecondaryText || 'Mulakan Cabaran Sains')}, ${escapeSql(d.heroButtonSecondaryUrl || '../hab_permainan/code.html')}, ${escapeSql(recJson)}::jsonb, ${escapeSql(modulesJson)}::jsonb)
 ON CONFLICT (id) DO NOTHING;\n\n`;
 }
 
@@ -104,5 +120,5 @@ ON CONFLICT (id) DO NOTHING;\n`;
 }
 
 fs.writeFileSync(outputPath, sql, 'utf8');
-console.log('Seed SQL file successfully created at:', outputPath);
+console.log('Seed SQL file successfully generated at:', outputPath);
 console.log('Size:', sql.length, 'bytes');
