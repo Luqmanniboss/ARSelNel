@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "cleanUrls": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.glb",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf-binary" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.gltf",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf+json" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.svg",
+      "headers": [
+        { "key": "Content-Type", "value": "image/svg+xml" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "/splash_screen/code.html" },
+    { "source": "/login", "destination": "/auth/login.html" },
+    { "source": "/register", "destination": "/auth/register.html" },
+    { "source": "/admin", "destination": "/admin_dashboard/code.html" },
+    { "source": "/dashboard", "destination": "/admin_dashboard/code.html" },
+    { "source": "/utama", "destination": "/halaman_utama/code.html" },
+    { "source": "/halaman_utama", "destination": "/halaman_utama/code.html" },
+    { "source": "/cellquest", "destination": "/cellquest/code.html" },
+    { "source": "/hab_permainan", "destination": "/hab_permainan/code.html" },
+    { "source": "/kuiz_interaktif", "destination": "/kuiz_interaktif/code.html" },
+    { "source": "/nota_pembelajaran", "destination": "/nota_pembelajaran/code.html" },
+    { "source": "/perpustakaan_video", "destination": "/perpustakaan_video/code.html" },
+    { "source": "/selbot_ai", "destination": "/selbot_ai/code.html" },
+    { "source": "/manual_penggunaan", "destination": "/manual_penggunaan/code.html" },
+    { "source": "/bantuan_maklumat", "destination": "/bantuan_maklumat/code.html" },
+    { "source": "/profil", "destination": "/profil/code.html" },
+    { "source": "/tetapan", "destination": "/tetapan/code.html" },
+    { "source": "/pengimbas_ar", "destination": "/pengimbas_ar/code.html" },
+    { "source": "/paparan_model_ar", "destination": "/paparan_model_ar/code.html" },
+    { "source": "/modul_pembelajaran", "destination": "/modul_pembelajaran/code.html" },
+    { "source": "/keputusan_permainan", "destination": "/keputusan_permainan/code.html" }
+  ]
+}

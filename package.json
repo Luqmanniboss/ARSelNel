@@ -2,9 +2,9 @@
   "name": "stitch-arselnel-interactive-science-learning",
   "version": "1.0.0",
   "description": "ARSelNel - Sistem Pembelajaran Sains Interaktif (Modul 3D, AR, Kuiz & Admin CMS)",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "keywords": [
     "science",
