@@ -1,0 +1,6 @@
+local-server.js
+tests/
+scratch*.js
+.env
+.env.*
+.vscode/
