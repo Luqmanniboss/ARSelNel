@@ -60,8 +60,10 @@ if (Array.isArray(col.maze_questions) && col.maze_questions.length > 0) {
     const correctIdx = typeof mq.correct === 'number' ? mq.correct : ({ A: 0, B: 1, C: 2, D: 3 }[mq.correct] ?? 0);
     const correctLetter = ['A', 'B', 'C', 'D'][correctIdx] || 'A';
 
+    const orderInt = parseInt(String(mq.id).replace(/\D/g, ''), 10) || 1;
+
     sql += `INSERT INTO public.cms_game_questions (id, game_id, maze_title, difficulty, difficulty_label, points, question, options, correct_answer, correct_index, explanation, reward, display_order, publication_status)
-VALUES (${escapeSql('maze_' + mq.id)}, 'maze_chase', ${escapeSql(mq.mazeTitle || 'Maze ' + mq.id)}, ${escapeSql(diff)}, ${escapeSql(diffLabel)}, ${mq.points || 100}, ${escapeSql(mq.question)}, ${escapeSql(optsJson)}::jsonb, ${escapeSql(correctLetter)}, ${correctIdx}, ${escapeSql(mq.explanation)}, '+100 XP', ${mq.id || 0}, 'published')
+VALUES (${escapeSql('maze_' + mq.id)}, 'maze_chase', ${escapeSql(mq.mazeTitle || 'Maze ' + orderInt)}, ${escapeSql(diff)}, ${escapeSql(diffLabel)}, ${mq.points || 100}, ${escapeSql(mq.question)}, ${escapeSql(optsJson)}::jsonb, ${escapeSql(correctLetter)}, ${correctIdx}, ${escapeSql(mq.explanation)}, '+100 XP', ${orderInt}, 'published')
 ON CONFLICT (id) DO NOTHING;\n`;
   }
   sql += '\n';
