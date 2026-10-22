@@ -3267,7 +3267,7 @@
       const diagBadge = document.getElementById('diag-badge-icon');
 
       if (statusPillText) statusPillText.textContent = 'Menyemak sambungan awan...';
-      const check = await CMSAdapter.checkConnection();
+      const check = await CMSAdapter.checkConnection(true);
 
       const label = check.statusLabel;
       const isConnected = check.status === 'connected';

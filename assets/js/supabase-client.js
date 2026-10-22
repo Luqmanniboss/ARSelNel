@@ -43,10 +43,20 @@
   }
   const ready = (async () => {
     try {
-      const response = await fetch('/api/public-config', { headers: { Accept: 'application/json' } });
-      if (!response.ok) throw new Error(`Konfigurasi pelayan tidak tersedia (HTTP ${response.status}).`);
-      const config = await response.json();
-      if (!config.configured) return state;
+      let config = null;
+      try {
+        const response = await fetch('/api/public-config', { headers: { Accept: 'application/json' } });
+        if (response.ok) config = await response.json();
+      } catch (_) {}
+
+      // Fallback if running via file:// or non-Node server
+      if (!config || !config.configured || !config.url) {
+        config = {
+          configured: true,
+          url: 'https://kxjhlbudsiojpvzwqwva.supabase.co',
+          publishableKey: 'sb_publishable_XDyfEuHJHOSZdefeu1k3Og_kWXMzM0U'
+        };
+      }
       if (!global.supabase || typeof global.supabase.createClient !== 'function') {
         throw new Error('Pustaka Supabase tidak dapat dimuat. Semak sambungan internet dan cuba lagi.');
       }
