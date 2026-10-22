@@ -73,8 +73,10 @@ ON CONFLICT (id) DO NOTHING;\n`;
 if (Array.isArray(col.ar_models) && col.ar_models.length > 0) {
   sql += `-- 4. Seed CellQuest 3D Models (${col.ar_models.length} models)\n`;
   for (const m of col.ar_models) {
-    sql += `INSERT INTO public.cms_cellquest_models (id, cell_type, name, model_url, format, mesh_mappings, is_active, publication_status)
-VALUES (${escapeSql(m.id)}, ${escapeSql(m.cell_type)}, ${escapeSql(m.name)}, ${escapeSql(m.model_url)}, ${escapeSql(m.format || 'glb')}, '{}'::jsonb, true, 'published')
+    const cType = (m.cell_type) || (/haiwan/i.test(m.name) || m.id === 'ar_1' ? 'animal' : 'plant');
+    const mUrl = m.model_url || m.fileUrl || (cType === 'animal' ? '../models/animal_cell_final.glb' : '../models/plantcellnew.glb');
+    sql += `INSERT INTO public.cms_cellquest_models (id, cell_type, name, model_url, format, mesh_mappings, is_active)
+VALUES (${escapeSql(m.id)}, ${escapeSql(cType)}, ${escapeSql(m.name)}, ${escapeSql(mUrl)}, 'GLB', '{}'::jsonb, true)
 ON CONFLICT (id) DO NOTHING;\n`;
   }
   sql += '\n';

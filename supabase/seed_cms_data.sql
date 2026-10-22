@@ -65,11 +65,11 @@ VALUES ('maze_maze_q10', 'maze_chase', 'Maze 10: Pengkhususan Sel', 'high', 'Ara
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. Seed CellQuest 3D Models (2 models)
-INSERT INTO public.cms_cellquest_models (id, cell_type, name, model_url, format, mesh_mappings, is_active, publication_status)
-VALUES ('ar_1', NULL, 'Model 3D Sel Haiwan Holistik', NULL, 'GLB 3D Model', '{}'::jsonb, true, 'published')
+INSERT INTO public.cms_cellquest_models (id, cell_type, name, model_url, format, mesh_mappings, is_active)
+VALUES ('ar_1', 'animal', 'Model 3D Sel Haiwan Holistik', '../models/animal_cell_final.glb', 'GLB', '{}'::jsonb, true)
 ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.cms_cellquest_models (id, cell_type, name, model_url, format, mesh_mappings, is_active, publication_status)
-VALUES ('ar_2', NULL, 'Model 3D Sel Tumbuhan Berlapis', NULL, 'GLB 3D Model', '{}'::jsonb, true, 'published')
+INSERT INTO public.cms_cellquest_models (id, cell_type, name, model_url, format, mesh_mappings, is_active)
+VALUES ('ar_2', 'plant', 'Model 3D Sel Tumbuhan Berlapis', '../models/plantcellnew.glb', 'GLB', '{}'::jsonb, true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 5. Seed CellQuest Organelles (12 organelles)
