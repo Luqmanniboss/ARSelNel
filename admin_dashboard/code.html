@@ -1403,19 +1403,35 @@
   <!-- ======================================================== -->
   <!-- MODAL 3: VIDEO CRUD DIALOG -->
   <!-- ======================================================== -->
-  <dialog id="modal-video" class="w-[min(94vw,560px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60">
+  <dialog id="modal-video" class="w-[min(94vw,580px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60">
     <form id="form-video" class="p-6 sm:p-8" onsubmit="handleSaveVideo(event)">
       <div class="flex items-center justify-between pb-4 border-b border-slate-100">
         <div>
           <h3 id="modal-video-title" class="font-headline font-extrabold text-xl text-slate-900">Tambah Video Pembelajaran</h3>
-          <p class="text-xs text-slate-500">Pautan YouTube atau MP4 video sains</p>
+          <p class="text-xs text-slate-500">Pautan YouTube atau muat naik fail video sains (MP4 / WebM)</p>
         </div>
         <button type="button" onclick="document.getElementById('modal-video').close()" class="text-2xl text-slate-400 hover:text-slate-700">×</button>
       </div>
 
       <input type="hidden" id="video-id" value=""/>
+      <input type="hidden" id="video-source-mode" value="url"/>
 
       <div class="space-y-4 my-5 max-h-[68vh] overflow-y-auto px-1 pr-2">
+        <!-- Kaedah Input Video (Method A: URL vs Method B: File Upload) -->
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Kaedah Video *</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="tab-video-src-url" onclick="setVideoSourceMode('url')" class="p-3 rounded-2xl border border-teal-600 bg-teal-50 text-primary font-bold text-xs flex items-center justify-center gap-2 transition">
+              <span class="material-symbols-outlined text-base">link</span>
+              <span>Pautan URL (YouTube)</span>
+            </button>
+            <button type="button" id="tab-video-src-file" onclick="setVideoSourceMode('file')" class="p-3 rounded-2xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 font-semibold text-xs flex items-center justify-center gap-2 transition">
+              <span class="material-symbols-outlined text-base">cloud_upload</span>
+              <span>Muat Naik Fail (MP4/WebM)</span>
+            </button>
+          </div>
+        </div>
+
         <div>
           <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tajuk Video *</label>
           <input type="text" id="video-title-input" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="Contoh: Eksplorasi Sel Haiwan & Tumbuhan 3D"/>
@@ -1432,23 +1448,49 @@
           </div>
           <div>
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tempoh Masa (e.g. 05:30)</label>
-            <input type="text" id="video-duration-input" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="05:30"/>
+            <input type="text" id="video-duration-input" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="05:30" value="05:00"/>
+          </div>
+        </div>
+
+        <!-- Section: URL Input (Method A) -->
+        <div id="video-section-url">
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">URL Video (YouTube / Web) *</label>
+          <input type="url" id="video-url-input" class="w-full rounded-xl border-slate-200 text-sm" placeholder="https://www.youtube.com/watch?v=... atau https://..."/>
+          <p class="text-[11px] text-slate-400 mt-1">Pautan YouTube akan ditukar secara automatik kepada format embed responsif.</p>
+        </div>
+
+        <!-- Section: File Upload (Method B) -->
+        <div id="video-section-file" class="hidden">
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Pilih Fail Video (MP4 / WebM, Maks 50MB) *</label>
+          <input type="file" id="video-file-input" accept="video/mp4,video/webm,video/ogg,.mp4,.webm" class="w-full rounded-xl border-slate-200 text-xs sm:text-sm file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-50 file:text-teal-800 hover:file:bg-teal-100"/>
+          <div id="video-upload-progress-container" class="hidden mt-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-semibold text-slate-700">Kemajuan Muat Naik</span>
+              <span id="video-upload-pct" class="text-xs font-bold text-primary">0%</span>
+            </div>
+            <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+              <div id="video-upload-bar" class="h-full bg-primary transition-all duration-200" style="width: 0%"></div>
+            </div>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">URL Video (YouTube Embed atau MP4) *</label>
-          <input type="url" id="video-url-input" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="https://www.youtube.com/embed/..."/>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">URL Gambar Thumbnail (Pilihan)</label>
+          <input type="url" id="video-thumbnail-input" class="w-full rounded-xl border-slate-200 text-sm" placeholder="https://images.unsplash.com/..."/>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">URL Gambar Thumbnail</label>
-          <input type="url" id="video-thumbnail-input" class="w-full rounded-xl border-slate-200 text-sm" placeholder="https://..."/>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Pengajar / Saluran</label>
-          <input type="text" id="video-instructor-input" class="w-full rounded-xl border-slate-200 text-sm" placeholder="Cikgu Sains ARSelNel"/>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Pengajar / Saluran</label>
+            <input type="text" id="video-instructor-input" class="w-full rounded-xl border-slate-200 text-sm" placeholder="Cikgu Sains ARSelNel" value="Cikgu Sains ARSelNel"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Status Penerbitan</label>
+            <select id="video-status-input" class="w-full rounded-xl border-slate-200 text-sm">
+              <option value="published">Diterbitkan (Boleh diakses oleh murid)</option>
+              <option value="draft">Draf (Disimpan dahulu)</option>
+            </select>
+          </div>
         </div>
 
         <div>
@@ -1459,7 +1501,10 @@
 
       <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
         <button type="button" onclick="document.getElementById('modal-video').close()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
-        <button type="submit" class="px-6 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md">Simpan Video</button>
+        <button type="submit" id="btn-save-video" class="px-6 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md inline-flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">check</span>
+          <span>Simpan Video</span>
+        </button>
       </div>
     </form>
   </dialog>
@@ -1797,15 +1842,23 @@
       </div>
     </form>
   </dialog>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/cms-content-adapter.js"></script>
+  <script src="../assets/js/smart-notes.js"></script>
   <script src="../assets/js/admin.js"></script>
 
   <script>
     let activeView = 'overview';
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       initAdminUI();
       if (localStorage.getItem('arselnel_demo_mode') === 'true') document.getElementById('cms-demo-notice').classList.remove('hidden');
       renderAllViews();
+      if (window.AdminCMS && typeof window.AdminCMS.syncFromSupabase === 'function') {
+        const synced = await window.AdminCMS.syncFromSupabase();
+        if (synced) renderAllViews();
+      }
     });
 
     function initAdminUI() {
@@ -2118,51 +2171,72 @@
       }
     }
 
-    function handleSaveQuiz(e) {
+    async function handleSaveQuiz(e) {
       e.preventDefault();
-      const id = document.getElementById('quiz-id').value;
-      const type = document.getElementById('quiz-type-input').value;
-
-      let options = [
-        { label: 'A', text: document.getElementById('opt-A').value.trim() },
-        { label: 'B', text: document.getElementById('opt-B').value.trim() }
-      ];
-      if (type !== 'tf') {
-        options.push({ label: 'C', text: document.getElementById('opt-C').value.trim() });
-        options.push({ label: 'D', text: document.getElementById('opt-D').value.trim() });
+      const saveBtn = e.target.querySelector('button[type="submit"]');
+      const originalHtml = saveBtn ? saveBtn.innerHTML : 'Simpan Soalan';
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">sync</span><span>Menyimpan...</span>';
       }
 
-      const correctRadio = document.querySelector('input[name="quiz-correct-answer"]:checked');
+      try {
+        const id = document.getElementById('quiz-id').value;
+        const type = document.getElementById('quiz-type-input').value;
 
-      const quizData = {
-        id: id || undefined,
-        title: document.getElementById('quiz-title-input').value.trim(),
-        topic: document.getElementById('quiz-topic-input').value,
-        type: type,
-        question: document.getElementById('quiz-question-input').value.trim(),
-        options: options,
-        correctAnswer: correctRadio ? correctRadio.value : 'A',
-        points: parseInt(document.getElementById('quiz-points-input').value, 10) || 10,
-        difficulty: document.getElementById('quiz-difficulty-input').value,
-        explanation: document.getElementById('quiz-explanation-input').value.trim(),
-        image: '../assets/nota/icon_topic2.svg'
-      };
+        let options = [
+          { label: 'A', text: document.getElementById('opt-A').value.trim() },
+          { label: 'B', text: document.getElementById('opt-B').value.trim() }
+        ];
+        if (type !== 'tf') {
+          options.push({ label: 'C', text: document.getElementById('opt-C').value.trim() });
+          options.push({ label: 'D', text: document.getElementById('opt-D').value.trim() });
+        }
 
-      AdminCMS.saveQuiz(quizData);
-      document.getElementById('modal-quiz').close();
-      renderQuizzes();
-      renderOverviewStats();
-      renderActivities();
-      showToast('Soalan kuiz berjaya disimpan!', 'success');
-    }
+        const correctRadio = document.querySelector('input[name="quiz-correct-answer"]:checked');
 
-    function confirmDeleteQuiz(id) {
-      if (confirm('Padam soalan kuiz ini?')) {
-        AdminCMS.deleteQuiz(id);
+        const quizData = {
+          id: id || undefined,
+          title: document.getElementById('quiz-title-input').value.trim(),
+          topic: document.getElementById('quiz-topic-input').value,
+          type: type,
+          question: document.getElementById('quiz-question-input').value.trim(),
+          options: options,
+          correctAnswer: correctRadio ? correctRadio.value : 'A',
+          points: parseInt(document.getElementById('quiz-points-input').value, 10) || 10,
+          difficulty: document.getElementById('quiz-difficulty-input').value,
+          explanation: document.getElementById('quiz-explanation-input').value.trim(),
+          image: '../assets/nota/icon_topic2.svg'
+        };
+
+        await AdminCMS.saveQuiz(quizData);
+        document.getElementById('modal-quiz').close();
         renderQuizzes();
         renderOverviewStats();
         renderActivities();
-        showToast('Soalan kuiz telah dipadam.', 'info');
+        showToast('Berjaya! Kandungan telah disimpan ke Supabase.', 'success');
+      } catch (err) {
+        console.error('Error saving quiz:', err);
+        showToast('Ralat menyimpan soalan kuiz: ' + (err.message || 'Sila cuba lagi.'), 'error');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = originalHtml;
+        }
+      }
+    }
+
+    async function confirmDeleteQuiz(id) {
+      if (confirm('Padam soalan kuiz ini?')) {
+        try {
+          await AdminCMS.deleteQuiz(id);
+          renderQuizzes();
+          renderOverviewStats();
+          renderActivities();
+          showToast('Soalan kuiz telah dipadam.', 'info');
+        } catch (err) {
+          showToast('Ralat memadam kuiz: ' + err.message, 'error');
+        }
       }
     }
 
@@ -2246,36 +2320,63 @@
       textarea.focus();
     }
 
-    function handleSaveNote(e) {
+    async function handleSaveNote(e) {
       e.preventDefault();
-      const id = document.getElementById('note-id').value;
-      const noteData = {
-        id: id || undefined,
-        title: document.getElementById('note-title-input').value.trim(),
-        topic: document.getElementById('note-topic-input').value.trim(),
-        form: document.getElementById('note-form-input').value.trim(),
-        readingTime: document.getElementById('note-time-input').value.trim(),
-        summary: document.getElementById('note-summary-input').value.trim(),
-        content: document.getElementById('note-content-input').value.trim(),
-        image: document.getElementById('note-image-input').value.trim(),
-        status: document.getElementById('note-status-input').value
-      };
+      const saveBtn = e.target.querySelector('button[type="submit"]');
+      const originalHtml = saveBtn ? saveBtn.innerHTML : 'Simpan Nota';
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">sync</span><span>Menyimpan...</span>';
+      }
 
-      AdminCMS.saveNote(noteData);
-      document.getElementById('modal-note').close();
-      renderNotes();
-      renderOverviewStats();
-      renderActivities();
-      showToast('Nota pembelajaran berjaya disimpan!', 'success');
-    }
+      try {
+        const id = document.getElementById('note-id').value;
+        const status = document.getElementById('note-status-input').value;
+        const noteData = {
+          id: id || undefined,
+          title: document.getElementById('note-title-input').value.trim(),
+          topic: document.getElementById('note-topic-input').value.trim(),
+          form: document.getElementById('note-form-input').value.trim(),
+          readingTime: document.getElementById('note-time-input').value.trim(),
+          summary: document.getElementById('note-summary-input').value.trim(),
+          content: document.getElementById('note-content-input').value.trim(),
+          image: document.getElementById('note-image-input').value.trim(),
+          status: status
+        };
 
-    function confirmDeleteNote(id) {
-      if (confirm('Padam nota pembelajaran ini?')) {
-        AdminCMS.deleteNote(id);
+        await AdminCMS.saveNote(noteData);
+        document.getElementById('modal-note').close();
         renderNotes();
         renderOverviewStats();
         renderActivities();
-        showToast('Nota telah dipadam.', 'info');
+
+        if (status === 'published') {
+          showToast('Kandungan telah diterbitkan dan boleh diakses oleh murid.', 'success');
+        } else {
+          showToast('Berjaya! Kandungan telah disimpan ke Supabase.', 'success');
+        }
+      } catch (err) {
+        console.error('Error saving note:', err);
+        showToast('Ralat menyimpan nota: ' + (err.message || 'Sila cuba lagi.'), 'error');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = originalHtml;
+        }
+      }
+    }
+
+    async function confirmDeleteNote(id) {
+      if (confirm('Padam nota pembelajaran ini?')) {
+        try {
+          await AdminCMS.deleteNote(id);
+          renderNotes();
+          renderOverviewStats();
+          renderActivities();
+          showToast('Nota telah dipadam.', 'info');
+        } catch (err) {
+          showToast('Ralat memadam nota: ' + err.message, 'error');
+        }
       }
     }
 
@@ -2317,7 +2418,10 @@
       const empty = document.getElementById('slide-empty-state');
       if (!tbody || !empty) return;
 
-      const slides = await SmartNotes.getNotes({ chapter, status, search });
+      const notesApi = window.SmartNotes || window.CMSAdapter;
+      const slides = (notesApi && typeof notesApi.getNotes === 'function')
+        ? await notesApi.getNotes({ chapter, status, search })
+        : [];
       empty.classList.toggle('hidden', slides.length > 0);
 
       const typeBadges = {
@@ -2432,25 +2536,26 @@
           const fileInput = document.getElementById('admin-slide-file-input');
           if (fileInput.files && fileInput.files[0]) {
             const file = fileInput.files[0];
-            const dataUrl = await readFileAsDataURL(file);
-            const res = await fetch('/api/slides/upload', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ filename: file.name, dataUrl })
+            saveBtn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">cloud_upload</span><span>Memuat naik...</span>';
+            const uploadRes = await CMSAdapter.uploadMedia(file, 'slides', (pct) => {
+              saveBtn.innerHTML = `<span class="material-symbols-outlined text-base animate-spin">cloud_upload</span><span>Memuat naik (${pct}%)...</span>`;
             });
-            const json = await res.json();
-            if (!json.success) throw new Error(json.error || 'Gagal memuat naik fail.');
-            storagePath = json.url;
-            sourceUrl = json.url;
+            if (!uploadRes || !uploadRes.url) throw new Error('Muat naik gagal. Sila semak sambungan dan cuba lagi.');
+            storagePath = uploadRes.url;
+            sourceUrl = uploadRes.url;
           }
         } else if (type === 'google_slides') {
           sourceUrl = document.getElementById('admin-slide-url-input').value.trim();
-          const val = SmartNotes.validateGoogleSlidesUrl(sourceUrl);
-          if (!val.valid) throw new Error(val.error);
+          const val = (window.SmartNotes && typeof window.SmartNotes.validateGoogleSlidesUrl === 'function')
+            ? window.SmartNotes.validateGoogleSlidesUrl(sourceUrl)
+            : { valid: Boolean(sourceUrl && sourceUrl.includes('google.com')), embedUrl: sourceUrl };
+          if (!val.valid) throw new Error(val.error || 'Pautan Google Slides tidak sah.');
         } else if (type === 'embed') {
           sourceUrl = document.getElementById('admin-slide-url-input').value.trim();
-          const val = SmartNotes.validateEmbedUrl(sourceUrl);
-          if (!val.valid) throw new Error(val.error);
+          const val = (window.SmartNotes && typeof window.SmartNotes.validateEmbedUrl === 'function')
+            ? window.SmartNotes.validateEmbedUrl(sourceUrl)
+            : { valid: Boolean(sourceUrl), embedUrl: sourceUrl };
+          if (!val.valid) throw new Error(val.error || 'Kod embed tidak sah.');
         }
 
         const noteData = {
@@ -2465,12 +2570,27 @@
           publicationStatus: status
         };
 
-        await SmartNotes.saveNote(noteData);
+        const notesApi = window.SmartNotes || window.CMSAdapter;
+        if (!notesApi || typeof notesApi.saveNote !== 'function') {
+          throw new Error('Sistem nota sedang dimuatkan. Sila muat semula halaman.');
+        }
+
+        await notesApi.saveNote(noteData);
         document.getElementById('modal-slide-admin').close();
         await renderAdminSlides();
-        showToast('Nota / slaid pengajaran berjaya disimpan!', 'success');
+
+        if (status === 'published') {
+          showToast('Kandungan telah diterbitkan dan boleh diakses oleh murid.', 'success');
+        } else {
+          showToast('Berjaya! Kandungan telah disimpan ke Supabase.', 'success');
+        }
       } catch (err) {
-        showToast('Ralat: ' + err.message, 'error');
+        console.error('Error saving slide:', err);
+        let msg = err.message || 'Muat naik gagal. Sila semak sambungan dan cuba lagi.';
+        if (msg.includes('tidak tersedia') || msg.includes('404')) {
+          msg = 'Perkhidmatan muat naik tidak tersedia. Sila semak konfigurasi pelayan.';
+        }
+        showToast(msg, 'error');
       } finally {
         saveBtn.disabled = false;
         saveBtn.innerHTML = '<span class="material-symbols-outlined text-base">check</span><span>Simpan & Terbitkan</span>';
@@ -2478,7 +2598,8 @@
     }
 
     async function editAdminSlide(id) {
-      const note = await SmartNotes.getNoteById(id);
+      const notesApi = window.SmartNotes || window.CMSAdapter;
+      const note = notesApi && typeof notesApi.getNoteById === 'function' ? await notesApi.getNoteById(id) : null;
       if (!note) return;
       document.getElementById('admin-slide-id').value = note.id;
       document.getElementById('admin-slide-title-input').value = note.title;
@@ -2493,14 +2614,20 @@
     }
 
     async function togglePublishAdminSlide(id) {
-      await SmartNotes.togglePublishStatus(id);
+      const notesApi = window.SmartNotes || window.CMSAdapter;
+      if (notesApi && typeof notesApi.togglePublishStatus === 'function') {
+        await notesApi.togglePublishStatus(id);
+      }
       await renderAdminSlides();
       showToast('Status penerbitan dikemas kini.', 'info');
     }
 
     async function deleteAdminSlide(id) {
       if (confirm('Padam bahan slaid ini? Semua anotasi murid bagi slaid ini juga akan dipadam.')) {
-        await SmartNotes.deleteNote(id);
+        const notesApi = window.SmartNotes || window.CMSAdapter;
+        if (notesApi && typeof notesApi.deleteNote === 'function') {
+          await notesApi.deleteNote(id);
+        }
         await renderAdminSlides();
         showToast('Slaid telah dipadam.', 'info');
       }
@@ -2563,10 +2690,32 @@
       `).join('');
     }
 
+    function setVideoSourceMode(mode) {
+      document.getElementById('video-source-mode').value = mode;
+      const tabUrl = document.getElementById('tab-video-src-url');
+      const tabFile = document.getElementById('tab-video-src-file');
+      const secUrl = document.getElementById('video-section-url');
+      const secFile = document.getElementById('video-section-file');
+
+      if (mode === 'file') {
+        tabFile.className = 'p-3 rounded-2xl border border-teal-600 bg-teal-50 text-primary font-bold text-xs flex items-center justify-center gap-2 transition';
+        tabUrl.className = 'p-3 rounded-2xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 font-semibold text-xs flex items-center justify-center gap-2 transition';
+        secFile.classList.remove('hidden');
+        secUrl.classList.add('hidden');
+      } else {
+        tabUrl.className = 'p-3 rounded-2xl border border-teal-600 bg-teal-50 text-primary font-bold text-xs flex items-center justify-center gap-2 transition';
+        tabFile.className = 'p-3 rounded-2xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 font-semibold text-xs flex items-center justify-center gap-2 transition';
+        secUrl.classList.remove('hidden');
+        secFile.classList.add('hidden');
+      }
+    }
+
     function openVideoModal() {
       document.getElementById('form-video').reset();
       document.getElementById('video-id').value = '';
+      setVideoSourceMode('url');
       document.getElementById('modal-video-title').textContent = 'Tambah Video Sains';
+      document.getElementById('video-upload-progress-container')?.classList.add('hidden');
       document.getElementById('modal-video').showModal();
     }
 
@@ -2577,45 +2726,137 @@
       document.getElementById('video-id').value = v.id;
       document.getElementById('video-title-input').value = v.title;
       document.getElementById('video-category-input').value = v.category;
-      document.getElementById('video-duration-input').value = v.duration;
-      document.getElementById('video-url-input').value = v.url;
-      document.getElementById('video-thumbnail-input').value = v.thumbnail;
+      document.getElementById('video-duration-input').value = v.duration || '05:00';
+      document.getElementById('video-url-input').value = v.url || '';
+      document.getElementById('video-thumbnail-input').value = v.thumbnail || '';
       document.getElementById('video-instructor-input').value = v.instructor || '';
       document.getElementById('video-desc-input').value = v.description || '';
+      if (document.getElementById('video-status-input')) {
+        document.getElementById('video-status-input').value = v.status || 'published';
+      }
 
+      setVideoSourceMode('url');
+      document.getElementById('video-upload-progress-container')?.classList.add('hidden');
       document.getElementById('modal-video-title').textContent = 'Kemas Kini Video Sains';
       document.getElementById('modal-video').showModal();
     }
 
-    function handleSaveVideo(e) {
+    async function handleSaveVideo(e) {
       e.preventDefault();
-      const id = document.getElementById('video-id').value;
-      const videoData = {
-        id: id || undefined,
-        title: document.getElementById('video-title-input').value.trim(),
-        category: document.getElementById('video-category-input').value,
-        duration: document.getElementById('video-duration-input').value.trim(),
-        url: document.getElementById('video-url-input').value.trim(),
-        thumbnail: document.getElementById('video-thumbnail-input').value.trim() || 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&auto=format&fit=crop&q=80',
-        instructor: document.getElementById('video-instructor-input').value.trim(),
-        description: document.getElementById('video-desc-input').value.trim()
-      };
+      const saveBtn = document.getElementById('btn-save-video') || e.target.querySelector('button[type="submit"]');
+      const originalHtml = saveBtn ? saveBtn.innerHTML : 'Simpan Video';
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">sync</span><span>Menyimpan...</span>';
+      }
 
-      AdminCMS.saveVideo(videoData);
-      document.getElementById('modal-video').close();
-      renderVideos();
-      renderOverviewStats();
-      renderActivities();
-      showToast('Video pembelajaran berjaya disimpan!', 'success');
-    }
+      const progressContainer = document.getElementById('video-upload-progress-container');
+      const progressBar = document.getElementById('video-upload-bar');
+      const progressPct = document.getElementById('video-upload-pct');
 
-    function confirmDeleteVideo(id) {
-      if (confirm('Padam video ini daripada perpustakaan?')) {
-        AdminCMS.deleteVideo(id);
+      try {
+        const id = document.getElementById('video-id').value;
+        const title = document.getElementById('video-title-input').value.trim();
+        const category = document.getElementById('video-category-input').value;
+        const duration = document.getElementById('video-duration-input').value.trim() || '05:00';
+        const instructor = document.getElementById('video-instructor-input').value.trim() || 'Cikgu Sains ARSelNel';
+        const description = document.getElementById('video-desc-input').value.trim();
+        const status = document.getElementById('video-status-input') ? document.getElementById('video-status-input').value : 'published';
+        let thumbnail = document.getElementById('video-thumbnail-input').value.trim() || 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&auto=format&fit=crop&q=80';
+
+        const mode = document.getElementById('video-source-mode').value || 'url';
+        let videoUrl = '';
+
+        if (mode === 'file') {
+          const fileInput = document.getElementById('video-file-input');
+          const file = fileInput.files && fileInput.files[0];
+          if (!file && !document.getElementById('video-url-input').value) {
+            throw new Error('Sila pilih fail video untuk dimuat naik.');
+          }
+          if (file) {
+            const validTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+            if (!validTypes.includes(file.type) && !/\.(mp4|webm|ogv)$/i.test(file.name)) {
+              throw new Error('Format video tidak disokong. Sila pilih fail MP4 atau WebM.');
+            }
+            if (file.size > 50 * 1024 * 1024) {
+              throw new Error('Saiz video melebihi had maksimum 50MB.');
+            }
+
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            if (progressBar) progressBar.style.width = '10%';
+            if (progressPct) progressPct.textContent = 'Memulakan muat naik... 10%';
+            if (saveBtn) saveBtn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">cloud_upload</span><span>Memuat naik video...</span>';
+
+            const uploadRes = await CMSAdapter.uploadMedia(file, 'videos', (pct) => {
+              if (progressBar) progressBar.style.width = pct + '%';
+              if (progressPct) progressPct.textContent = `Memuat naik... ${pct}%`;
+            });
+
+            if (!uploadRes || !uploadRes.url) {
+              throw new Error('Muat naik gagal. Sila semak sambungan dan cuba lagi.');
+            }
+            videoUrl = uploadRes.url;
+            if (progressPct) progressPct.textContent = 'Muat naik selesai 100%';
+          } else {
+            videoUrl = document.getElementById('video-url-input').value.trim();
+          }
+        } else {
+          videoUrl = document.getElementById('video-url-input').value.trim();
+          if (!videoUrl) throw new Error('Sila masukkan URL video yang sah.');
+          videoUrl = CMSAdapter.normalizeVideoUrl(videoUrl);
+        }
+
+        const videoData = {
+          id: id || undefined,
+          title,
+          category,
+          duration,
+          url: videoUrl,
+          thumbnail,
+          instructor,
+          description,
+          status
+        };
+
+        await AdminCMS.saveVideo(videoData);
+
+        document.getElementById('modal-video').close();
         renderVideos();
         renderOverviewStats();
         renderActivities();
-        showToast('Video telah dipadam.', 'info');
+
+        if (status === 'published') {
+          showToast('Kandungan telah diterbitkan dan boleh diakses oleh murid.', 'success');
+        } else {
+          showToast('Berjaya! Kandungan telah disimpan ke Supabase.', 'success');
+        }
+      } catch (err) {
+        console.error('Error saving video:', err);
+        let msg = err.message || 'Muat naik gagal. Sila semak sambungan dan cuba lagi.';
+        if (msg.includes('tidak tersedia') || msg.includes('404')) {
+          msg = 'Perkhidmatan muat naik tidak tersedia. Sila semak konfigurasi pelayan.';
+        }
+        showToast(msg, 'error');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = originalHtml;
+        }
+        if (progressContainer) setTimeout(() => progressContainer.classList.add('hidden'), 2500);
+      }
+    }
+
+    async function confirmDeleteVideo(id) {
+      if (confirm('Padam video ini daripada perpustakaan?')) {
+        try {
+          await AdminCMS.deleteVideo(id);
+          renderVideos();
+          renderOverviewStats();
+          renderActivities();
+          showToast('Video telah dipadam.', 'info');
+        } catch (err) {
+          showToast('Ralat memadam video: ' + err.message, 'error');
+        }
       }
     }
 

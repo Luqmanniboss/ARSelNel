@@ -491,16 +491,48 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       return list.find(q => q.id === id);
     }
 
-    saveQuiz(quizData) {
+    async syncFromSupabase() {
+      if (!global.CMSAdapter) return false;
+      try {
+        const [videos, quizzes, notes] = await Promise.all([
+          typeof global.CMSAdapter.getVideos === 'function' ? global.CMSAdapter.getVideos({ status: 'all' }) : Promise.resolve(null),
+          typeof global.CMSAdapter.getQuizzes === 'function' ? global.CMSAdapter.getQuizzes() : Promise.resolve(null),
+          typeof global.CMSAdapter.getNotes === 'function' ? global.CMSAdapter.getNotes({ status: 'all' }) : Promise.resolve(null)
+        ]);
+        if (Array.isArray(videos) && videos.length > 0) {
+          this.saveCollection(CMS_STORAGE.VIDEOS, videos);
+        }
+        if (Array.isArray(quizzes) && quizzes.length > 0) {
+          this.saveCollection(CMS_STORAGE.QUIZZES, quizzes);
+        }
+        if (Array.isArray(notes) && notes.length > 0) {
+          this.saveCollection(CMS_STORAGE.NOTES, notes);
+        }
+        return true;
+      } catch (e) {
+        console.warn('AdminCMS.syncFromSupabase notice:', e);
+        return false;
+      }
+    }
+
+    async saveQuiz(quizData) {
+      let saved = null;
+      if (global.CMSAdapter && typeof global.CMSAdapter.saveQuiz === 'function') {
+        saved = await global.CMSAdapter.saveQuiz(quizData);
+      }
       const list = this.getCollection(CMS_STORAGE.QUIZZES, SEED_QUIZZES);
-      if (quizData.id) {
-        const index = list.findIndex(q => q.id === quizData.id);
+      const targetId = (saved && saved.id) || quizData.id;
+      if (targetId) {
+        const index = list.findIndex(q => q.id === targetId);
         if (index !== -1) {
-          list[index] = { ...list[index], ...quizData, updatedAt: new Date().toISOString() };
+          list[index] = { ...list[index], ...(saved || quizData), updatedAt: new Date().toISOString() };
           this.logActivity(`Soalan kuiz "${quizData.title}" telah dikemas kini`, 'quiz');
+        } else {
+          list.unshift(saved || { ...quizData, id: targetId, createdAt: new Date().toISOString().split('T')[0] });
+          this.logActivity(`Soalan kuiz baru "${quizData.title}" telah ditambah`, 'quiz');
         }
       } else {
-        const newQuiz = {
+        const newQuiz = saved || {
           ...quizData,
           id: 'quiz_' + Date.now(),
           createdAt: new Date().toISOString().split('T')[0]
@@ -509,13 +541,13 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
         this.logActivity(`Soalan kuiz baru "${newQuiz.title}" telah ditambah`, 'quiz');
       }
       this.saveCollection(CMS_STORAGE.QUIZZES, list);
-      if (global.CMSAdapter && typeof global.CMSAdapter.saveQuiz === 'function') {
-        global.CMSAdapter.saveQuiz(quizData.id ? list.find(q => q.id === quizData.id) : list[0]).catch(e => console.warn('CMSAdapter quiz sync warning', e));
-      }
-      return true;
+      return saved || true;
     }
 
-    deleteQuiz(id) {
+    async deleteQuiz(id) {
+      if (global.CMSAdapter && typeof global.CMSAdapter.deleteQuiz === 'function') {
+        await global.CMSAdapter.deleteQuiz(id);
+      }
       let list = this.getCollection(CMS_STORAGE.QUIZZES, SEED_QUIZZES);
       const target = list.find(q => q.id === id);
       list = list.filter(q => q.id !== id);
@@ -546,16 +578,38 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       return list.find(n => n.id === id);
     }
 
-    saveNote(noteData) {
+    async saveNote(noteData) {
+      let saved = null;
+      if (global.CMSAdapter && typeof global.CMSAdapter.saveNote === 'function') {
+        saved = await global.CMSAdapter.saveNote(noteData);
+      }
+      if (global.SmartNotes && typeof global.SmartNotes.saveNote === 'function') {
+        try {
+          await global.SmartNotes.saveNote({
+            id: (saved && saved.id) || noteData.id,
+            title: noteData.title,
+            chapter: noteData.topic || noteData.chapter || 'Bab 2: Sel Sebagai Unit Asas Hidupan',
+            description: noteData.summary || noteData.description || '',
+            contentType: noteData.contentType || 'text',
+            publicationStatus: noteData.status || noteData.publicationStatus || 'published'
+          });
+        } catch (e) {
+          console.warn('SmartNotes sync notice:', e);
+        }
+      }
       const list = this.getCollection(CMS_STORAGE.NOTES, SEED_NOTES);
-      if (noteData.id) {
-        const index = list.findIndex(n => n.id === noteData.id);
+      const targetId = (saved && saved.id) || noteData.id;
+      if (targetId) {
+        const index = list.findIndex(n => n.id === targetId);
         if (index !== -1) {
-          list[index] = { ...list[index], ...noteData, updatedAt: new Date().toISOString() };
+          list[index] = { ...list[index], ...(saved || noteData), updatedAt: new Date().toISOString() };
           this.logActivity(`Nota "${noteData.title}" telah dikemas kini`, 'note');
+        } else {
+          list.unshift(saved || { ...noteData, id: targetId, views: 0, createdAt: new Date().toISOString().split('T')[0] });
+          this.logActivity(`Nota baru "${noteData.title}" telah ditambah`, 'note');
         }
       } else {
-        const newNote = {
+        const newNote = saved || {
           ...noteData,
           id: 'note_' + Date.now(),
           views: 0,
@@ -565,13 +619,16 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
         this.logActivity(`Nota baru "${newNote.title}" telah ditambah`, 'note');
       }
       this.saveCollection(CMS_STORAGE.NOTES, list);
-      if (global.CMSAdapter && typeof global.CMSAdapter.saveNote === 'function') {
-        global.CMSAdapter.saveNote(noteData.id ? list.find(n => n.id === noteData.id) : list[0]).catch(e => console.warn('CMSAdapter note sync warning', e));
-      }
-      return true;
+      return saved || true;
     }
 
-    deleteNote(id) {
+    async deleteNote(id) {
+      if (global.CMSAdapter && typeof global.CMSAdapter.deleteNote === 'function') {
+        await global.CMSAdapter.deleteNote(id);
+      }
+      if (global.SmartNotes && typeof global.SmartNotes.deleteNote === 'function') {
+        try { await global.SmartNotes.deleteNote(id); } catch (_) {}
+      }
       let list = this.getCollection(CMS_STORAGE.NOTES, SEED_NOTES);
       const target = list.find(n => n.id === id);
       list = list.filter(n => n.id !== id);
@@ -601,16 +658,24 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       return list.find(v => v.id === id);
     }
 
-    saveVideo(videoData) {
+    async saveVideo(videoData) {
+      let saved = null;
+      if (global.CMSAdapter && typeof global.CMSAdapter.saveVideo === 'function') {
+        saved = await global.CMSAdapter.saveVideo(videoData);
+      }
       const list = this.getCollection(CMS_STORAGE.VIDEOS, SEED_VIDEOS);
-      if (videoData.id) {
-        const index = list.findIndex(v => v.id === videoData.id);
+      const targetId = (saved && saved.id) || videoData.id;
+      if (targetId) {
+        const index = list.findIndex(v => v.id === targetId);
         if (index !== -1) {
-          list[index] = { ...list[index], ...videoData };
+          list[index] = { ...list[index], ...(saved || videoData) };
           this.logActivity(`Video "${videoData.title}" dikemas kini`, 'video');
+        } else {
+          list.unshift(saved || { ...videoData, id: targetId, views: 0, createdAt: new Date().toISOString().split('T')[0] });
+          this.logActivity(`Video baru "${videoData.title}" dimuat naik`, 'video');
         }
       } else {
-        const newVid = {
+        const newVid = saved || {
           ...videoData,
           id: 'vid_' + Date.now(),
           views: 0,
@@ -620,13 +685,13 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
         this.logActivity(`Video baru "${newVid.title}" dimuat naik`, 'video');
       }
       this.saveCollection(CMS_STORAGE.VIDEOS, list);
-      if (global.CMSAdapter && typeof global.CMSAdapter.saveVideo === 'function') {
-        global.CMSAdapter.saveVideo(videoData.id ? list.find(v => v.id === videoData.id) : list[0]).catch(e => console.warn('CMSAdapter video sync warning', e));
-      }
-      return true;
+      return saved || true;
     }
 
-    deleteVideo(id) {
+    async deleteVideo(id) {
+      if (global.CMSAdapter && typeof global.CMSAdapter.deleteVideo === 'function') {
+        await global.CMSAdapter.deleteVideo(id);
+      }
       let list = this.getCollection(CMS_STORAGE.VIDEOS, SEED_VIDEOS);
       const target = list.find(v => v.id === id);
       list = list.filter(v => v.id !== id);

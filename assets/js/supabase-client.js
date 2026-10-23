@@ -46,7 +46,12 @@
       let config = null;
       try {
         const response = await fetch('/api/public-config', { headers: { Accept: 'application/json' } });
-        if (response.ok) config = await response.json();
+        if (response.ok) {
+          const cType = response.headers.get('content-type') || '';
+          if (cType.includes('application/json')) {
+            config = await response.json();
+          }
+        }
       } catch (_) {}
 
       // Fallback if running via file:// or non-Node server

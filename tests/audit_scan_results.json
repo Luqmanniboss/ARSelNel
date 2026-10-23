@@ -1,0 +1,681 @@
+[
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 6,
+    "keyword": "DELETE",
+    "statement": "id uuid primary key references auth.users(id) on delete cascade,",
+    "context": "create table if not exists public.profiles ( | id uuid primary key references auth.users(id) on delete cascade, | full_name text not null default '',"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 6,
+    "keyword": "CASCADE",
+    "statement": "id uuid primary key references auth.users(id) on delete cascade,",
+    "context": "create table if not exists public.profiles ( | id uuid primary key references auth.users(id) on delete cascade, | full_name text not null default '',"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 18,
+    "keyword": "DELETE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | activity_id text not null,"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 18,
+    "keyword": "CASCADE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | activity_id text not null,"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 30,
+    "keyword": "DELETE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | legacy_source_id text not null,"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 30,
+    "keyword": "CASCADE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | legacy_source_id text not null,"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 42,
+    "keyword": "DELETE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | activity_id text not null,"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 42,
+    "keyword": "CASCADE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | activity_id text not null,"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 51,
+    "keyword": "DELETE",
+    "statement": "user_id uuid primary key references auth.users(id) on delete cascade,",
+    "context": "create table if not exists public.user_settings ( | user_id uuid primary key references auth.users(id) on delete cascade, | setting_value jsonb not null default '{}'::jsonb,"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 51,
+    "keyword": "CASCADE",
+    "statement": "user_id uuid primary key references auth.users(id) on delete cascade,",
+    "context": "create table if not exists public.user_settings ( | user_id uuid primary key references auth.users(id) on delete cascade, | setting_value jsonb not null default '{}'::jsonb,"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 60,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.profiles enable row level security;",
+    "context": " | alter table public.profiles enable row level security; | alter table public.learning_progress enable row level security;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 61,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.learning_progress enable row level security;",
+    "context": "alter table public.profiles enable row level security; | alter table public.learning_progress enable row level security; | alter table public.quiz_attempts enable row level security;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 62,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.quiz_attempts enable row level security;",
+    "context": "alter table public.learning_progress enable row level security; | alter table public.quiz_attempts enable row level security; | alter table public.activity_results enable row level security;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 63,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.activity_results enable row level security;",
+    "context": "alter table public.quiz_attempts enable row level security; | alter table public.activity_results enable row level security; | alter table public.user_settings enable row level security;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 64,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.user_settings enable row level security;",
+    "context": "alter table public.activity_results enable row level security; | alter table public.user_settings enable row level security; | "
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 73,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='profiles' and policyname='students update own profile') then",
+    "context": "end if; | if not exists (select 1 from pg_policies where schemaname='public' and tablename='profiles' and policyname='students update own profile') then | create policy \"students update own profile\" on public.profiles for update to authenticated using ((select auth.uid()) = id) with check ((select auth.uid()) = id and role = 'student');"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 74,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own profile\" on public.profiles for update to authenticated using ((select auth.uid()) = id) with check ((select auth.uid()) = id and role = 'student');",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='profiles' and policyname='students update own profile') then | create policy \"students update own profile\" on public.profiles for update to authenticated using ((select auth.uid()) = id) with check ((select auth.uid()) = id and role = 'student'); | end if;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 82,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_progress' and policyname='students update own learning progress') then",
+    "context": "end if; | if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_progress' and policyname='students update own learning progress') then | create policy \"students update own learning progress\" on public.learning_progress for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 83,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own learning progress\" on public.learning_progress for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_progress' and policyname='students update own learning progress') then | create policy \"students update own learning progress\" on public.learning_progress for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id); | end if;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 91,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='quiz_attempts' and policyname='students update own quiz attempts') then",
+    "context": "end if; | if not exists (select 1 from pg_policies where schemaname='public' and tablename='quiz_attempts' and policyname='students update own quiz attempts') then | create policy \"students update own quiz attempts\" on public.quiz_attempts for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 92,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own quiz attempts\" on public.quiz_attempts for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='quiz_attempts' and policyname='students update own quiz attempts') then | create policy \"students update own quiz attempts\" on public.quiz_attempts for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id); | end if;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 106,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_settings' and policyname='students update own settings') then",
+    "context": "end if; | if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_settings' and policyname='students update own settings') then | create policy \"students update own settings\" on public.user_settings for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 107,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own settings\" on public.user_settings for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_settings' and policyname='students update own settings') then | create policy \"students update own settings\" on public.user_settings for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id); | end if;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 111,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update on public.profiles to authenticated;",
+    "context": " | grant select, insert, update on public.profiles to authenticated; | grant select, insert, update on public.learning_progress to authenticated;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 112,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update on public.learning_progress to authenticated;",
+    "context": "grant select, insert, update on public.profiles to authenticated; | grant select, insert, update on public.learning_progress to authenticated; | grant select, insert, update on public.quiz_attempts to authenticated;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 113,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update on public.quiz_attempts to authenticated;",
+    "context": "grant select, insert, update on public.learning_progress to authenticated; | grant select, insert, update on public.quiz_attempts to authenticated; | grant select, insert on public.activity_results to authenticated;"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 115,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update on public.user_settings to authenticated;",
+    "context": "grant select, insert on public.activity_results to authenticated; | grant select, insert, update on public.user_settings to authenticated; | "
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 119,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.handle_new_student_profile()",
+    "context": "-- text; it never determines authorization or permits a role escalation. | create or replace function public.handle_new_student_profile() | returns trigger"
+  },
+  {
+    "file": "202610200001_initial_learning_data.sql",
+    "lineNum": 134,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (id) do nothing;",
+    "context": ") | on conflict (id) do nothing; | return new;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 15,
+    "keyword": "DELETE",
+    "statement": "created_by uuid references auth.users(id) on delete set null,",
+    "context": "publication_status text not null default 'published' check (publication_status in ('draft', 'published')), | created_by uuid references auth.users(id) on delete set null, | created_at timestamptz not null default now(),"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 23,
+    "keyword": "DELETE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "note_id text not null, | student_id uuid not null references auth.users(id) on delete cascade, | page_number integer not null check (page_number >= 1),"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 23,
+    "keyword": "CASCADE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "note_id text not null, | student_id uuid not null references auth.users(id) on delete cascade, | page_number integer not null check (page_number >= 1),"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 32,
+    "keyword": "DELETE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | student_id uuid not null references auth.users(id) on delete cascade, | note_id text not null,"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 32,
+    "keyword": "CASCADE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | student_id uuid not null references auth.users(id) on delete cascade, | note_id text not null,"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 43,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.learning_notes enable row level security;",
+    "context": " | alter table public.learning_notes enable row level security; | alter table public.student_annotations enable row level security;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 44,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.student_annotations enable row level security;",
+    "context": "alter table public.learning_notes enable row level security; | alter table public.student_annotations enable row level security; | alter table public.student_note_progress enable row level security;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 45,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.student_note_progress enable row level security;",
+    "context": "alter table public.student_annotations enable row level security; | alter table public.student_note_progress enable row level security; | "
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 57,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers update learning notes') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers update learning notes') then | create policy \"teachers update learning notes\" on public.learning_notes for update to authenticated using (true) with check (true);"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 58,
+    "keyword": "UPDATE",
+    "statement": "create policy \"teachers update learning notes\" on public.learning_notes for update to authenticated using (true) with check (true);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers update learning notes') then | create policy \"teachers update learning notes\" on public.learning_notes for update to authenticated using (true) with check (true); | end if;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 61,
+    "keyword": "DELETE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers delete learning notes') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers delete learning notes') then | create policy \"teachers delete learning notes\" on public.learning_notes for delete to authenticated using (true);"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 62,
+    "keyword": "DELETE",
+    "statement": "create policy \"teachers delete learning notes\" on public.learning_notes for delete to authenticated using (true);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers delete learning notes') then | create policy \"teachers delete learning notes\" on public.learning_notes for delete to authenticated using (true); | end if;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 74,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students update own annotations') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students update own annotations') then | create policy \"students update own annotations\" on public.student_annotations for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 75,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own annotations\" on public.student_annotations for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students update own annotations') then | create policy \"students update own annotations\" on public.student_annotations for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id); | end if;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 78,
+    "keyword": "DELETE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students delete own annotations') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students delete own annotations') then | create policy \"students delete own annotations\" on public.student_annotations for delete to authenticated using ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 79,
+    "keyword": "DELETE",
+    "statement": "create policy \"students delete own annotations\" on public.student_annotations for delete to authenticated using ((select auth.uid()) = student_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students delete own annotations') then | create policy \"students delete own annotations\" on public.student_annotations for delete to authenticated using ((select auth.uid()) = student_id); | end if;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 91,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_note_progress' and policyname='students update own progress') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_note_progress' and policyname='students update own progress') then | create policy \"students update own progress\" on public.student_note_progress for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 92,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own progress\" on public.student_note_progress for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_note_progress' and policyname='students update own progress') then | create policy \"students update own progress\" on public.student_note_progress for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id); | end if;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 97,
+    "keyword": "DELETE",
+    "statement": "grant insert, update, delete on public.learning_notes to authenticated;",
+    "context": "grant select on public.learning_notes to anon, authenticated; | grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 97,
+    "keyword": "UPDATE",
+    "statement": "grant insert, update, delete on public.learning_notes to authenticated;",
+    "context": "grant select on public.learning_notes to anon, authenticated; | grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 98,
+    "keyword": "DELETE",
+    "statement": "grant select, insert, update, delete on public.student_annotations to authenticated;",
+    "context": "grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 98,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update, delete on public.student_annotations to authenticated;",
+    "context": "grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated;"
+  },
+  {
+    "file": "202610200002_smart_notes_annotation_system.sql",
+    "lineNum": 99,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update on public.student_note_progress to authenticated;",
+    "context": "grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated; | "
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 12,
+    "keyword": "DELETE",
+    "statement": "user_id uuid primary key references auth.users(id) on delete cascade,",
+    "context": "create table if not exists public.admin_users ( | user_id uuid primary key references auth.users(id) on delete cascade, | email text not null unique,"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 12,
+    "keyword": "CASCADE",
+    "statement": "user_id uuid primary key references auth.users(id) on delete cascade,",
+    "context": "create table if not exists public.admin_users ( | user_id uuid primary key references auth.users(id) on delete cascade, | email text not null unique,"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 20,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_admin()",
+    "context": "-- Security definer role check function | create or replace function public.is_admin() | returns boolean"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 182,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.admin_users enable row level security;",
+    "context": "-- Enable Row Level Security (RLS) on all CMS tables | alter table public.admin_users enable row level security; | alter table public.cms_videos enable row level security;"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 183,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.cms_videos enable row level security;",
+    "context": "alter table public.admin_users enable row level security; | alter table public.cms_videos enable row level security; | alter table public.cms_quizzes enable row level security;"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 184,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.cms_quizzes enable row level security;",
+    "context": "alter table public.cms_videos enable row level security; | alter table public.cms_quizzes enable row level security; | alter table public.cms_game_questions enable row level security;"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 185,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.cms_game_questions enable row level security;",
+    "context": "alter table public.cms_quizzes enable row level security; | alter table public.cms_game_questions enable row level security; | alter table public.cms_cellquest_organelles enable row level security;"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 186,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.cms_cellquest_organelles enable row level security;",
+    "context": "alter table public.cms_game_questions enable row level security; | alter table public.cms_cellquest_organelles enable row level security; | alter table public.cms_cellquest_models enable row level security;"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 187,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.cms_cellquest_models enable row level security;",
+    "context": "alter table public.cms_cellquest_organelles enable row level security; | alter table public.cms_cellquest_models enable row level security; | alter table public.cms_dashboard_config enable row level security;"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 188,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.cms_dashboard_config enable row level security;",
+    "context": "alter table public.cms_cellquest_models enable row level security; | alter table public.cms_dashboard_config enable row level security; | alter table public.cms_manual_steps enable row level security;"
+  },
+  {
+    "file": "202610230001_cms_full_schema.sql",
+    "lineNum": 189,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.cms_manual_steps enable row level security;",
+    "context": "alter table public.cms_dashboard_config enable row level security; | alter table public.cms_manual_steps enable row level security; | "
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 22,
+    "keyword": "DELETE",
+    "statement": "created_by uuid references auth.users(id) on delete set null,",
+    "context": "publication_status text not null default 'published' check (publication_status in ('draft', 'published', 'archived')), | created_by uuid references auth.users(id) on delete set null, | views integer not null default 0,"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 37,
+    "keyword": "DELETE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "note_id text not null, | student_id uuid not null references auth.users(id) on delete cascade, | page_number integer not null check (page_number >= 1),"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 37,
+    "keyword": "CASCADE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "note_id text not null, | student_id uuid not null references auth.users(id) on delete cascade, | page_number integer not null check (page_number >= 1),"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 46,
+    "keyword": "DELETE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | student_id uuid not null references auth.users(id) on delete cascade, | note_id text not null,"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 46,
+    "keyword": "CASCADE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | student_id uuid not null references auth.users(id) on delete cascade, | note_id text not null,"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 57,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.learning_notes enable row level security;",
+    "context": "-- 3. Enable Row Level Security (RLS) | alter table public.learning_notes enable row level security; | alter table public.student_annotations enable row level security;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 58,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.student_annotations enable row level security;",
+    "context": "alter table public.learning_notes enable row level security; | alter table public.student_annotations enable row level security; | alter table public.student_note_progress enable row level security;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 59,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.student_note_progress enable row level security;",
+    "context": "alter table public.student_annotations enable row level security; | alter table public.student_note_progress enable row level security; | "
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 79,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers update learning notes') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers update learning notes') then | create policy \"teachers update learning notes\" on public.learning_notes"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 80,
+    "keyword": "UPDATE",
+    "statement": "create policy \"teachers update learning notes\" on public.learning_notes",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers update learning notes') then | create policy \"teachers update learning notes\" on public.learning_notes | for update to authenticated using (true) with check (true);"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 81,
+    "keyword": "UPDATE",
+    "statement": "for update to authenticated using (true) with check (true);",
+    "context": "create policy \"teachers update learning notes\" on public.learning_notes | for update to authenticated using (true) with check (true); | end if;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 84,
+    "keyword": "DELETE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers delete learning notes') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers delete learning notes') then | create policy \"teachers delete learning notes\" on public.learning_notes"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 85,
+    "keyword": "DELETE",
+    "statement": "create policy \"teachers delete learning notes\" on public.learning_notes",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='learning_notes' and policyname='teachers delete learning notes') then | create policy \"teachers delete learning notes\" on public.learning_notes | for delete to authenticated using (true);"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 86,
+    "keyword": "DELETE",
+    "statement": "for delete to authenticated using (true);",
+    "context": "create policy \"teachers delete learning notes\" on public.learning_notes | for delete to authenticated using (true); | end if;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 98,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students update own annotations') then",
+    "context": "end if; | if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students update own annotations') then | create policy \"students update own annotations\" on public.student_annotations for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 99,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own annotations\" on public.student_annotations for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students update own annotations') then | create policy \"students update own annotations\" on public.student_annotations for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id); | end if;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 101,
+    "keyword": "DELETE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students delete own annotations') then",
+    "context": "end if; | if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students delete own annotations') then | create policy \"students delete own annotations\" on public.student_annotations for delete to authenticated using ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 102,
+    "keyword": "DELETE",
+    "statement": "create policy \"students delete own annotations\" on public.student_annotations for delete to authenticated using ((select auth.uid()) = student_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_annotations' and policyname='students delete own annotations') then | create policy \"students delete own annotations\" on public.student_annotations for delete to authenticated using ((select auth.uid()) = student_id); | end if;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 114,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_note_progress' and policyname='students update own progress') then",
+    "context": "end if; | if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_note_progress' and policyname='students update own progress') then | create policy \"students update own progress\" on public.student_note_progress for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 115,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own progress\" on public.student_note_progress for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_note_progress' and policyname='students update own progress') then | create policy \"students update own progress\" on public.student_note_progress for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id); | end if;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 121,
+    "keyword": "DELETE",
+    "statement": "grant insert, update, delete on public.learning_notes to authenticated;",
+    "context": "grant select on public.learning_notes to anon, authenticated; | grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 121,
+    "keyword": "UPDATE",
+    "statement": "grant insert, update, delete on public.learning_notes to authenticated;",
+    "context": "grant select on public.learning_notes to anon, authenticated; | grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 122,
+    "keyword": "DELETE",
+    "statement": "grant select, insert, update, delete on public.student_annotations to authenticated;",
+    "context": "grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 122,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update, delete on public.student_annotations to authenticated;",
+    "context": "grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 123,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update on public.student_note_progress to authenticated;",
+    "context": "grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated; | "
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 144,
+    "keyword": "UPDATE",
+    "statement": "on conflict (id) do update set",
+    "context": ") | on conflict (id) do update set | public = true,"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 144,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (id) do update set",
+    "context": ") | on conflict (id) do update set | public = true,"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 160,
+    "keyword": "UPDATE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='authenticated update educational_media') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='authenticated update educational_media') then | create policy \"authenticated update educational_media\" on storage.objects"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 161,
+    "keyword": "UPDATE",
+    "statement": "create policy \"authenticated update educational_media\" on storage.objects",
+    "context": "if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='authenticated update educational_media') then | create policy \"authenticated update educational_media\" on storage.objects | for update to authenticated using (bucket_id = 'educational_media');"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 162,
+    "keyword": "UPDATE",
+    "statement": "for update to authenticated using (bucket_id = 'educational_media');",
+    "context": "create policy \"authenticated update educational_media\" on storage.objects | for update to authenticated using (bucket_id = 'educational_media'); | end if;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 165,
+    "keyword": "DELETE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='authenticated delete educational_media') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='authenticated delete educational_media') then | create policy \"authenticated delete educational_media\" on storage.objects"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 166,
+    "keyword": "DELETE",
+    "statement": "create policy \"authenticated delete educational_media\" on storage.objects",
+    "context": "if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='authenticated delete educational_media') then | create policy \"authenticated delete educational_media\" on storage.objects | for delete to authenticated using (bucket_id = 'educational_media');"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 167,
+    "keyword": "DELETE",
+    "statement": "for delete to authenticated using (bucket_id = 'educational_media');",
+    "context": "create policy \"authenticated delete educational_media\" on storage.objects | for delete to authenticated using (bucket_id = 'educational_media'); | end if;"
+  },
+  {
+    "file": "202610230002_complete_cms_and_storage.sql",
+    "lineNum": 231,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (id) do nothing;",
+    "context": ") | on conflict (id) do nothing; | "
+  }
+]

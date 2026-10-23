@@ -1047,7 +1047,7 @@
         if (global.ARSupabase && typeof global.ARSupabase.getClient === 'function') {
           const client = await global.ARSupabase.getClient();
           if (client) {
-            await client.from('learning_notes').upsert({
+            const { error } = await client.from('learning_notes').upsert({
               id: normalized.id,
               title: normalized.title,
               chapter: normalized.chapter,
@@ -1060,10 +1060,18 @@
               publication_status: normalized.publicationStatus,
               updated_at: normalized.updatedAt
             }, { onConflict: 'id' });
+
+            if (error) {
+              console.warn('SmartNotes: Supabase upsert error', error);
+              if (error.code === 'PGRST205' || (error.message && error.message.includes('learning_notes'))) {
+                throw new Error('Jadual "learning_notes" belum wujud di Supabase. Sila jalankan migrasi SQL di Supabase SQL Editor.');
+              }
+              throw new Error(`Gagal menyimpan ke Supabase: ${error.message || 'Ralat pangkalan data'}`);
+            }
           }
         }
       } catch (e) {
-        console.warn('SmartNotes: Penyegerakan Supabase nota tertangguh (disimpan secara setempat)', e);
+        throw e;
       }
 
       return normalized;

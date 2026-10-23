@@ -413,6 +413,49 @@
     }
   };
 
+  // =========================================================================
+  // ROBUST RESPONSE PARSER & MEDIA HELPERS
+  // =========================================================================
+  async function parseApiResponse(response) {
+    const contentType = response.headers.get('content-type') || '';
+    if (!response.ok) {
+      let bodySnippet = '';
+      try { bodySnippet = await response.text(); } catch (_) {}
+      throw new Error(`Permintaan pelayan gagal (${response.status}): ${bodySnippet.slice(0, 180)}`);
+    }
+    if (!contentType.includes('application/json')) {
+      throw new Error('Pelayan tidak memulangkan JSON. Sila semak konfigurasi API dan Vercel.');
+    }
+    return response.json();
+  }
+
+  function normalizeVideoUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== 'string') return '';
+    const trimmed = rawUrl.trim();
+    const watchMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.|m\.)?youtube\.com\/watch\?(?:.*&)?v=([a-zA-Z0-9_-]+)/i);
+    if (watchMatch && watchMatch[1]) {
+      return `https://www.youtube.com/embed/${watchMatch[1]}`;
+    }
+    const shortMatch = trimmed.match(/(?:https?:\/\/)?youtu\.be\/([a-zA-Z0-9_-]+)/i);
+    if (shortMatch && shortMatch[1]) {
+      return `https://www.youtube.com/embed/${shortMatch[1]}`;
+    }
+    const embedMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]+)/i);
+    if (embedMatch && embedMatch[1]) {
+      return `https://www.youtube.com/embed/${embedMatch[1]}`;
+    }
+    return trimmed;
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   class CMSContentAdapter {
     constructor() {
       this.supabaseClient = null;
@@ -425,6 +468,8 @@
         isAdmin: false,
         tablesVerified: []
       };
+      this.parseApiResponse = parseApiResponse;
+      this.normalizeVideoUrl = normalizeVideoUrl;
       this.initPromise = this.init();
     }
 
@@ -437,7 +482,7 @@
         let config = null;
         try {
           const res = await fetch('/api/public-config', { headers: { Accept: 'application/json' } });
-          if (res.ok) config = await res.json();
+          if (res.ok) config = await parseApiResponse(res);
         } catch (_) {}
 
         // Resilient fallback if running via file:// protocol or alternative local server
@@ -575,6 +620,117 @@
     }
 
     // =========================================================================
+    // MEDIA & FILE UPLOAD HANDLER (Supabase Storage First, Safe Serverless Fallback)
+    // =========================================================================
+    async uploadMedia(file, folder = 'media', onProgress = null) {
+      await this.initPromise;
+      if (!file) throw new Error('Tiada fail dipilih.');
+
+      const cleanName = (file.name || 'upload').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const ext = '.' + (cleanName.split('.').pop() || '').toLowerCase();
+      const isVideo = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext);
+      const isDoc = ['.pdf', '.pptx', '.ppt'].includes(ext);
+      const isImg = ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'].includes(ext);
+
+      if (!isVideo && !isDoc && !isImg) {
+        throw new Error(`Format fail '${ext}' tidak disokong. Sila pilih fail PDF, PPTX, imej, atau video.`);
+      }
+
+      const maxVideoSize = 100 * 1024 * 1024; // 100MB
+      const maxDocSize = 50 * 1024 * 1024;    // 50MB
+      const maxImgSize = 15 * 1024 * 1024;    // 15MB
+
+      if (isVideo && file.size > maxVideoSize) {
+        throw new Error('Saiz video melebihi had maksimum 100MB.');
+      }
+      if (isDoc && file.size > maxDocSize) {
+        throw new Error('Saiz dokumen melebihi had maksimum 50MB.');
+      }
+      if (isImg && file.size > maxImgSize) {
+        throw new Error('Saiz imej melebihi had maksimum 15MB.');
+      }
+
+      if (typeof onProgress === 'function') onProgress(15, 'Menyediakan fail untuk muat naik...');
+
+      const timestamp = Date.now();
+      const storagePath = `${folder}/${timestamp}_${cleanName}`;
+
+      // 1. Direct upload to Supabase Storage if client connected
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          if (typeof onProgress === 'function') onProgress(40, 'Memuat naik ke Supabase Storage...');
+          const { data, error } = await this.supabaseClient.storage
+            .from('educational_media')
+            .upload(storagePath, file, {
+              cacheControl: '3600',
+              upsert: true
+            });
+
+          if (!error && data) {
+            const { data: pubData } = this.supabaseClient.storage
+              .from('educational_media')
+              .getPublicUrl(storagePath);
+
+            if (typeof onProgress === 'function') onProgress(100, 'Muat naik ke Supabase Storage selesai!');
+            return {
+              success: true,
+              url: pubData ? pubData.publicUrl : '',
+              storagePath: storagePath,
+              filename: cleanName,
+              size: file.size,
+              source: 'supabase-storage',
+              message: 'Fail berjaya dimuat naik ke Supabase Storage.'
+            };
+          } else if (error) {
+            console.warn('[CMSAdapter] Supabase Storage upload error:', error.message || error);
+          }
+        } catch (e) {
+          console.warn('[CMSAdapter] Supabase Storage exception:', e);
+        }
+      }
+
+      // 2. Fallback to /api/slides/upload serverless function if <= 4.5MB
+      if (file.size <= 4.5 * 1024 * 1024) {
+        try {
+          if (typeof onProgress === 'function') onProgress(60, 'Memuat naik melalui pelayan API...');
+          const dataUrl = await readFileAsDataURL(file);
+          const response = await fetch('/api/slides/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: file.name, dataUrl })
+          });
+          const json = await parseApiResponse(response);
+          if (json && json.success) {
+            if (typeof onProgress === 'function') onProgress(100, 'Muat naik pelayan berjaya!');
+            return json;
+          }
+        } catch (apiErr) {
+          console.warn('[CMSAdapter] /api/slides/upload fallback failed:', apiErr.message);
+        }
+      } else {
+        throw new Error(`Muat naik gagal: Saiz fail (${(file.size / (1024*1024)).toFixed(1)}MB) melebihi had muat naik pelayan (4.5MB) dan storan Supabase belum tersedia. Sila semak sambungan Supabase Storage.`);
+      }
+
+      // 3. Fallback to Data URL for smaller documents/images (< 3MB)
+      if (file.size <= 3 * 1024 * 1024) {
+        if (typeof onProgress === 'function') onProgress(90, 'Memproses data tempatan...');
+        const dataUrl = await readFileAsDataURL(file);
+        if (typeof onProgress === 'function') onProgress(100, 'Selesai');
+        return {
+          success: true,
+          url: dataUrl,
+          storagePath: `data:${cleanName}`,
+          filename: cleanName,
+          size: file.size,
+          source: 'data-url',
+          message: 'Fail disimpan sebagai Data URL tempatan.'
+        };
+      }
+
+      throw new Error('Muat naik gagal. Sila semak sambungan internet dan konfigurasi Supabase Storage.');
+    }
+
+    // =========================================================================
     // 1. NOTES CMS
     // =========================================================================
     async getNotes(filters = {}) {
@@ -604,7 +760,6 @@
               views: row.views || 0,
               createdAt: row.created_at
             }));
-            // Cache locally
             localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
             return notes;
           }
@@ -634,22 +789,26 @@
 
     async saveNote(note) {
       await this.initPromise;
+      if (!note || !note.title) {
+        throw new Error('Tajuk nota adalah wajib diisi.');
+      }
+
       const record = {
         id: note.id || `note_${Date.now()}`,
-        title: note.title,
-        chapter: note.chapter || 'Bab 2: Sel Sebagai Unit Asas',
+        title: String(note.title).trim(),
+        chapter: note.chapter || 'Bab 2: Sel Sebagai Unit Asas Hidupan',
         description: note.description || '',
         contentType: note.contentType || 'interactive',
         sourceUrl: note.sourceUrl || '',
         storagePath: note.storagePath || '',
-        slideCount: Number(note.slideCount) || 1,
+        slideCount: Number(note.slideCount) || (note.slides ? note.slides.length : 1),
         publicationStatus: note.publicationStatus || 'published',
         slides: note.slides || [],
         views: Number(note.views) || 0,
         createdAt: note.createdAt || new Date().toISOString()
       };
 
-      // 1. Save locally (immediate guarantee)
+      // 1. Save locally (guarantee caching)
       try {
         const local = await this.getNotes({ status: 'all' });
         const idx = local.findIndex(x => x.id === record.id);
@@ -661,6 +820,7 @@
       }
 
       // 2. Sync to Supabase if connected
+      let remotePersisted = false;
       if (this.supabaseClient && this.connectionStatus === 'connected') {
         try {
           const dbRow = {
@@ -679,13 +839,40 @@
           const { error } = await this.supabaseClient
             .from('learning_notes')
             .upsert(dbRow, { onConflict: 'id' });
-          if (error) console.warn('[CMSAdapter] Remote saveNote error:', error);
+          if (error) {
+            console.warn('[CMSAdapter] Remote saveNote error:', error);
+            // If table doesn't exist, provide clear message
+            if (error.code === 'PGRST205' || (error.message && error.message.includes('learning_notes'))) {
+              throw new Error('Jadual "learning_notes" belum wujud di Supabase. Sila jalankan migrasi SQL di Supabase SQL Editor.');
+            }
+            throw new Error(`Gagal menyimpan ke Supabase: ${error.message || 'Ralat RLS/Pangkalan Data'}`);
+          }
+          remotePersisted = true;
         } catch (e) {
-          console.warn('[CMSAdapter] Remote saveNote exception:', e);
+          throw e;
         }
       }
 
-      return record;
+      return { ...record, remotePersisted };
+    }
+
+    async deleteNote(id) {
+      await this.initPromise;
+      try {
+        const local = await this.getNotes({ status: 'all' });
+        const filtered = local.filter(x => x.id !== id);
+        localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(filtered));
+      } catch (_) {}
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { error } = await this.supabaseClient.from('learning_notes').delete().eq('id', id);
+          if (error && error.code !== 'PGRST205') {
+            console.warn('[CMSAdapter] Remote deleteNote error:', error);
+          }
+        } catch (_) {}
+      }
+      return true;
     }
 
     // =========================================================================
@@ -742,11 +929,17 @@
 
     async saveVideo(video) {
       await this.initPromise;
+      if (!video || !video.title || !video.url) {
+        throw new Error('Tajuk video dan pautan/fail video adalah wajib diisi.');
+      }
+
+      const normalizedUrl = normalizeVideoUrl(video.url);
+
       const record = {
         id: video.id || `vid_${Date.now()}`,
-        title: video.title,
+        title: String(video.title).trim(),
         category: video.category || 'Biologi Sel',
-        url: video.url,
+        url: normalizedUrl,
         thumbnail: video.thumbnail || 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&auto=format&fit=crop&q=80',
         duration: video.duration || '05:00',
         instructor: video.instructor || 'Cikgu Sains ARSelNel',
@@ -767,6 +960,7 @@
         console.error('[CMSAdapter] Failed to save video locally:', err);
       }
 
+      let remotePersisted = false;
       if (this.supabaseClient && this.connectionStatus === 'connected') {
         try {
           const { error } = await this.supabaseClient.from('cms_videos').upsert({
@@ -783,13 +977,34 @@
             display_order: record.displayOrder,
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
-          if (error) console.warn('[CMSAdapter] Remote saveVideo error:', error);
+          if (error) {
+            console.warn('[CMSAdapter] Remote saveVideo error:', error);
+            throw new Error(`Gagal menyimpan video ke Supabase: ${error.message || 'Ralat pangkalan data'}`);
+          }
+          remotePersisted = true;
         } catch (e) {
-          console.warn('[CMSAdapter] Remote saveVideo exception:', e);
+          throw e;
         }
       }
 
-      return record;
+      return { ...record, remotePersisted };
+    }
+
+    async deleteVideo(id) {
+      await this.initPromise;
+      try {
+        const local = await this.getVideos({ status: 'all' });
+        const filtered = local.filter(x => x.id !== id);
+        localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(filtered));
+      } catch (_) {}
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { error } = await this.supabaseClient.from('cms_videos').delete().eq('id', id);
+          if (error) console.warn('[CMSAdapter] Remote deleteVideo error:', error);
+        } catch (_) {}
+      }
+      return true;
     }
 
     // =========================================================================
@@ -848,14 +1063,18 @@
 
     async saveQuiz(quiz) {
       await this.initPromise;
+      if (!quiz || !quiz.question) {
+        throw new Error('Teks soalan kuiz adalah wajib diisi.');
+      }
+
       const record = {
         id: quiz.id || `quiz_${Date.now()}`,
-        title: quiz.title,
+        title: quiz.title || 'Soalan Kuiz Sains',
         topic: quiz.topic || 'Struktur Sel Haiwan & Tumbuhan',
         type: quiz.type || 'mcq',
         question: quiz.question,
         options: quiz.options || [],
-        correctAnswer: quiz.correctAnswer,
+        correctAnswer: quiz.correctAnswer || 'A',
         points: Number(quiz.points) || 10,
         difficulty: quiz.difficulty || 'Sederhana',
         explanation: quiz.explanation || '',
@@ -875,6 +1094,7 @@
         console.error('[CMSAdapter] Failed to save quiz locally:', err);
       }
 
+      let remotePersisted = false;
       if (this.supabaseClient && this.connectionStatus === 'connected') {
         try {
           const { error } = await this.supabaseClient.from('cms_quizzes').upsert({
@@ -893,13 +1113,34 @@
             display_order: record.displayOrder,
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
-          if (error) console.warn('[CMSAdapter] Remote saveQuiz error:', error);
+          if (error) {
+            console.warn('[CMSAdapter] Remote saveQuiz error:', error);
+            throw new Error(`Gagal menyimpan soalan kuiz ke Supabase: ${error.message}`);
+          }
+          remotePersisted = true;
         } catch (e) {
-          console.warn('[CMSAdapter] Remote saveQuiz exception:', e);
+          throw e;
         }
       }
 
-      return record;
+      return { ...record, remotePersisted };
+    }
+
+    async deleteQuiz(id) {
+      await this.initPromise;
+      try {
+        const local = await this.getQuizzes({ status: 'all' });
+        const filtered = local.filter(x => x.id !== id);
+        localStorage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(filtered));
+      } catch (_) {}
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { error } = await this.supabaseClient.from('cms_quizzes').delete().eq('id', id);
+          if (error) console.warn('[CMSAdapter] Remote deleteQuiz error:', error);
+        } catch (_) {}
+      }
+      return true;
     }
 
     // =========================================================================
@@ -1357,6 +1598,58 @@
       }
 
       return record;
+    }
+
+    async deleteGameQuestion(gameId, id) {
+      await this.initPromise;
+      try {
+        const localKey = `${STORAGE_KEYS.GAME_QUESTIONS}_${gameId}`;
+        const local = await this.getGameQuestions(gameId, { status: 'all' });
+        const filtered = local.filter(x => x.id !== id);
+        localStorage.setItem(localKey, JSON.stringify(filtered));
+      } catch (_) {}
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { error } = await this.supabaseClient.from('cms_game_questions').delete().eq('id', id);
+          if (error) console.warn('[CMSAdapter] Remote deleteGameQuestion error:', error);
+        } catch (_) {}
+      }
+      return true;
+    }
+
+    async deleteCellQuestOrganelle(id) {
+      await this.initPromise;
+      try {
+        const local = await this.getCellQuestOrganelles({ status: 'all' });
+        const filtered = local.filter(x => x.id !== id);
+        localStorage.setItem(STORAGE_KEYS.ORGANELLES, JSON.stringify(filtered));
+      } catch (_) {}
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { error } = await this.supabaseClient.from('cms_cellquest_organelles').delete().eq('id', id);
+          if (error) console.warn('[CMSAdapter] Remote deleteCellQuestOrganelle error:', error);
+        } catch (_) {}
+      }
+      return true;
+    }
+
+    async deleteManualStep(id) {
+      await this.initPromise;
+      try {
+        const local = await this.getManualSteps({ status: 'all' });
+        const filtered = local.filter(x => x.id !== id);
+        localStorage.setItem(STORAGE_KEYS.MANUAL, JSON.stringify(filtered));
+      } catch (_) {}
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { error } = await this.supabaseClient.from('cms_manual_steps').delete().eq('id', id);
+          if (error) console.warn('[CMSAdapter] Remote deleteManualStep error:', error);
+        } catch (_) {}
+      }
+      return true;
     }
 
     // =========================================================================
