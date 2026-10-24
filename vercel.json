@@ -46,6 +46,8 @@
     { "source": "/", "destination": "/splash_screen/code.html" },
     { "source": "/login", "destination": "/auth/login.html" },
     { "source": "/register", "destination": "/auth/register.html" },
+    { "source": "/auth/callback", "destination": "/auth/callback.html" },
+    { "source": "/callback", "destination": "/auth/callback.html" },
     { "source": "/admin", "destination": "/admin_dashboard/code.html" },
     { "source": "/dashboard", "destination": "/admin_dashboard/code.html" },
     { "source": "/utama", "destination": "/halaman_utama/code.html" },

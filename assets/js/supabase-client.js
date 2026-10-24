@@ -84,6 +84,9 @@
       : (typeof error === 'string' ? error : '');
     const message = raw || 'Permintaan tidak berjaya.';
 
+    if (/bad_oauth_state|oauth state has expired|state.*expired/i.test(message)) return 'Sesi log masuk Google telah tamat. Sila cuba log masuk semula.';
+    if (/unable to exchange external code/i.test(message)) return 'Pengesahan kod luaran Google gagal atau telah luput. Sila mulakan log masuk Google semula.';
+    if (/access_denied/i.test(message)) return 'Log masuk Google dibatalkan atau tidak dibenarkan oleh pengguna.';
     if (/invalid login credentials/i.test(message)) return 'E-mel atau kata laluan tidak tepat.';
     if (/email not confirmed/i.test(message)) return 'Sahkan e-mel anda melalui pautan yang dihantar sebelum log masuk.';
     if (/already registered|user already registered|user_already_exists/i.test(message)) return 'E-mel ini telah didaftarkan dalam sistem ARSelNel. Sila log masuk ke akaun anda atau gunakan tetapan semula kata laluan.';
@@ -344,14 +347,29 @@
 
       return data;
     },
+    getOAuthRedirectUrl: () => {
+      if (typeof window !== 'undefined' && window.location) {
+        const hostname = (window.location.hostname || '').toLowerCase();
+        if (hostname === 'arselnel-seven.vercel.app') {
+          return 'https://arselnel-seven.vercel.app/auth/callback.html';
+        }
+        if (window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file:')) {
+          return `${window.location.origin}/auth/callback.html`;
+        }
+      }
+      return 'https://arselnel-seven.vercel.app/auth/callback.html';
+    },
     signInWithGoogle: async (redirectTo) => {
       await ready;
       if (!state.client) throw new Error(state.error ? friendlyError(state.error) : 'Supabase belum dikonfigurasi.');
-      const defaultRedirect = `${window.location.origin}/auth/login.html?oauth=google`;
+      const canonicalRedirect = (global.ARSupabase && global.ARSupabase.getOAuthRedirectUrl)
+        ? global.ARSupabase.getOAuthRedirectUrl()
+        : `${window.location.origin}/auth/callback.html`;
+      const targetRedirect = redirectTo || canonicalRedirect;
       const { data, error } = await state.client.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectTo || defaultRedirect,
+          redirectTo: targetRedirect,
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account'
@@ -369,8 +387,11 @@
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
 
       // Check if OAuth provider reported an error
-      const errorMsg = searchParams.get('error_description') || searchParams.get('error') ||
-                       hashParams.get('error_description') || hashParams.get('error');
+      const rawError = searchParams.get('error') || hashParams.get('error');
+      const rawErrorCode = searchParams.get('error_code') || hashParams.get('error_code');
+      const rawErrorDesc = searchParams.get('error_description') || hashParams.get('error_description');
+      const errorMsg = rawErrorDesc || rawErrorCode || rawError;
+
       if (errorMsg) {
         if (window.location.search || window.location.hash) {
           history.replaceState(null, '', window.location.pathname);
@@ -387,7 +408,34 @@
       }
 
       // Check if session was retrieved by Supabase Auth (detectSessionInUrl: true)
-      const { data: { session }, error: sessionError } = await state.client.auth.getSession();
+      let { data: { session }, error: sessionError } = await state.client.auth.getSession();
+      
+      // Safe fallback exchange if detectSessionInUrl hasn't populated session yet
+      const code = searchParams.get('code');
+      if (!session && code) {
+        try {
+          const { data: exchangeData, error: exchangeError } = await state.client.auth.exchangeCodeForSession(code);
+          if (exchangeData && exchangeData.session) {
+            session = exchangeData.session;
+          } else if (exchangeError) {
+            // Concurrently handled by detectSessionInUrl
+            const retry = await state.client.auth.getSession();
+            if (retry.data && retry.data.session) {
+              session = retry.data.session;
+            } else {
+              throw exchangeError;
+            }
+          }
+        } catch (exErr) {
+          const retry = await state.client.auth.getSession();
+          if (retry.data && retry.data.session) {
+            session = retry.data.session;
+          } else {
+            throw exErr;
+          }
+        }
+      }
+
       if (sessionError) throw sessionError;
       if (!session || !session.user) return null;
 
@@ -417,11 +465,12 @@
         }
       } catch (_) {}
 
-      const meta = user.user_metadata || {};
-      if (meta.role === 'admin' || meta.role === 'guru' || meta.role === 'teacher') {
+      // Preserve existing database admin role if profile exists
+      if (existingProfile && (existingProfile.role === 'admin' || existingProfile.role === 'teacher' || existingProfile.role === 'guru')) {
         isAdmin = true;
       }
 
+      const meta = user.user_metadata || {};
       const fullName = (existingProfile && existingProfile.full_name) || meta.full_name || meta.name || user.email.split('@')[0];
       const nickname = (existingProfile && existingProfile.nickname) || meta.preferred_username || (fullName.split(' ')[0] || 'Pelajar');
       const className = (existingProfile && existingProfile.class_name) || 'Tingkatan 1 Al-Farabi';

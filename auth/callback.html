@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html class="light" lang="ms">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Pengesahan Log Masuk Google | ARSelNel Sains Interaktif</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/home/logo.svg"/>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind Theme Config -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#006565",
+            'primary-dark': "#004d4d",
+            'primary-light': "#76d6d5",
+            'primary-container': "#008080",
+            mint: "#91f8b8",
+            secondary: "#1960a3",
+            accent: "#f59e0b",
+            navy: "#0f172a",
+            background: "#f6f9fc"
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            headline: ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 50% 20%, #004d4d 0%, #002b2b 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .font-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .card-glass {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      padding: 40px 32px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(16px);
+      text-align: center;
+    }
+    .spinner-ring {
+      display: inline-block;
+      width: 52px;
+      height: 52px;
+      border: 4px solid rgba(118, 214, 213, 0.2);
+      border-radius: 50%;
+      border-top-color: #76d6d5;
+      animation: spin 0.85s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="card-glass relative overflow-hidden" id="main-container">
+    <!-- Ambient glow behind mascot -->
+    <div class="absolute -top-16 -left-16 w-36 h-36 rounded-full bg-teal-400/20 blur-3xl pointer-events-none"></div>
+    <div class="absolute -top-16 -right-16 w-36 h-36 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none"></div>
+
+    <!-- Mascot & Logo -->
+    <div class="relative w-20 h-20 mx-auto mb-5 flex items-center justify-center">
+      <div class="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center p-3 shadow-inner">
+        <img src="../assets/home/robot_mascot.svg" alt="SelBot AI" class="w-full h-full object-contain" onerror="this.src='../assets/home/logo.svg'"/>
+      </div>
+      <div id="status-badge" class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-teal-500 text-white flex items-center justify-center shadow-lg border-2 border-[#003d3d]">
+        <span id="status-icon" class="material-symbols-outlined text-sm">sync</span>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <h1 id="title-text" class="font-headline text-2xl font-extrabold text-white mb-2">
+      Pengesahan Google
+    </h1>
+    <p id="desc-text" class="text-sm text-teal-100/80 mb-6 leading-relaxed">
+      Sila tunggu sebentar sementara ARSelNel mengesahkan akaun dan menyediakan persekitaran pembelajaran anda.
+    </p>
+
+    <!-- LOADING STATE -->
+    <div id="loading-state" class="py-4">
+      <div class="spinner-ring mb-4" role="status" aria-label="Memuatkan..."></div>
+      <p id="loading-step" class="text-xs uppercase tracking-wider font-semibold text-teal-200/90">
+        Menghubungkan ke Supabase Auth...
+      </p>
+    </div>
+
+    <!-- ERROR STATE (Hidden by default) -->
+    <div id="error-state" class="hidden text-left bg-rose-500/10 border border-rose-400/30 rounded-2xl p-4 mb-6">
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined text-rose-400 text-2xl shrink-0 mt-0.5">error</span>
+        <div class="flex-1">
+          <strong class="font-headline font-bold text-sm text-rose-200 block mb-1" id="error-title">
+            Pengesahan Tidak Berjaya
+          </strong>
+          <p class="text-xs text-rose-100/90 leading-relaxed" id="error-message">
+            Ralat berlaku semasa memproses sesi log masuk.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS (Hidden during loading) -->
+    <div id="action-buttons" class="hidden flex-col gap-3 mt-4">
+      <button id="btn-retry-google" type="button" class="w-full py-3 px-5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-headline font-bold text-sm shadow-lg flex items-center justify-center gap-3 transition active:scale-98">
+        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span id="retry-btn-text">Cuba Log Masuk Google Semula</span>
+      </button>
+
+      <a id="btn-back-login" href="./login.html" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 transition flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        <span>Kembali ke Halaman Log Masuk</span>
+      </a>
+    </div>
+  </main>
+
+  <!-- Load Supabase and Core Auth Modules -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+
+  <script>
+    (function () {
+      'use strict';
+
+      let isProcessing = false;
+      const loadingState = document.getElementById('loading-state');
+      const errorState = document.getElementById('error-state');
+      const errorTitle = document.getElementById('error-title');
+      const errorMessage = document.getElementById('error-message');
+      const actionButtons = document.getElementById('action-buttons');
+      const loadingStep = document.getElementById('loading-step');
+      const statusIcon = document.getElementById('status-icon');
+      const statusBadge = document.getElementById('status-badge');
+      const btnRetry = document.getElementById('btn-retry-google');
+      const retryBtnText = document.getElementById('retry-btn-text');
+
+      function showError(title, message, isExpired = false) {
+        if (loadingState) loadingState.classList.add('hidden');
+        if (errorState) errorState.classList.remove('hidden');
+        if (actionButtons) {
+          actionButtons.classList.remove('hidden');
+          actionButtons.classList.add('flex');
+        }
+        if (errorTitle) errorTitle.textContent = title;
+        if (errorMessage) errorMessage.textContent = message;
+
+        if (statusBadge) {
+          statusBadge.className = 'absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg border-2 border-[#003d3d]';
+        }
+        if (statusIcon) statusIcon.textContent = 'priority_high';
+
+        if (isExpired && retryBtnText) {
+          retryBtnText.textContent = 'Cuba Log Masuk Google Semula';
+        }
+
+        // Clean query/hash parameters to prevent refreshing onto a stale or expired error
+        if (window.location.search || window.location.hash) {
+          try {
+            window.history.replaceState(null, '', window.location.pathname);
+          } catch (_) {}
+        }
+      }
+
+      function showSuccess(message) {
+        if (loadingStep) loadingStep.textContent = message;
+        if (statusBadge) {
+          statusBadge.className = 'absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg border-2 border-[#003d3d]';
+        }
+        if (statusIcon) statusIcon.textContent = 'check';
+      }
+
+      async function startFreshGoogleLogin() {
+        if (btnRetry) btnRetry.disabled = true;
+        if (retryBtnText) retryBtnText.textContent = 'Menghubungkan ke Google...';
+        try {
+          const redirectUrl = window.ARSupabase && window.ARSupabase.getOAuthRedirectUrl
+            ? window.ARSupabase.getOAuthRedirectUrl()
+            : `${window.location.origin}/auth/callback.html`;
+          await window.ARSupabase.signInWithGoogle(redirectUrl);
+        } catch (err) {
+          if (btnRetry) btnRetry.disabled = false;
+          if (retryBtnText) retryBtnText.textContent = 'Cuba Log Masuk Google Semula';
+          showError('Permulaan Semula Gagal', window.ARSupabase ? window.ARSupabase.friendlyError(err) : 'Sila cuba lagi dari halaman log masuk.');
+        }
+      }
+
+      if (btnRetry) {
+        btnRetry.addEventListener('click', startFreshGoogleLogin);
+      }
+
+      async function processCallback() {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+
+        // 1. Check for provider errors first
+        const rawError = searchParams.get('error') || hashParams.get('error');
+        const rawErrorCode = searchParams.get('error_code') || hashParams.get('error_code');
+        const rawErrorDesc = searchParams.get('error_description') || hashParams.get('error_description');
+
+        if (rawError || rawErrorCode || rawErrorDesc) {
+          const fullDesc = (rawErrorDesc ? decodeURIComponent(rawErrorDesc) : '') || rawError || '';
+          const codeVal = (rawErrorCode || '').toLowerCase();
+
+          if (codeVal === 'bad_oauth_state' || /state.*expired|bad_oauth_state/i.test(fullDesc)) {
+            showError(
+              'Sesi Google Telah Tamat',
+              'Sesi log masuk Google telah tamat. Sila cuba log masuk semula.',
+              true
+            );
+            return;
+          }
+
+          if (codeVal === 'access_denied' || /access_denied/i.test(fullDesc)) {
+            showError(
+              'Log Masuk Dibatalkan',
+              'Log masuk Google telah dibatalkan atau kebenaran akaun tidak diberikan. Sila cuba log masuk semula.',
+              false
+            );
+            return;
+          }
+
+          if (/unable to exchange external code/i.test(fullDesc)) {
+            showError(
+              'Kod Luaran Tamat Tempoh',
+              'Kod pengesahan Google tidak dapat ditukar atau telah luput tempoh. Sila cuba log masuk semula.',
+              true
+            );
+            return;
+          }
+
+          showError(
+            'Ralat Log Masuk Google',
+            fullDesc || 'Pengesahan penyedia Google gagal. Sila cuba log masuk semula.',
+            true
+          );
+          return;
+        }
+
+        // 2. Check if auth parameters are present
+        const code = searchParams.get('code');
+        const accessToken = hashParams.get('access_token');
+        const hasAuthParams = !!(code || accessToken || searchParams.has('oauth') || hashParams.has('token_type'));
+
+        // If opened directly without authentication parameters
+        if (!hasAuthParams) {
+          // Check if user is already logged in
+          const existingUser = window.AuthGuard && window.AuthGuard.getUser ? window.AuthGuard.getUser() : null;
+          if (existingUser) {
+            showSuccess('Sesi dikesan! Mengalihkan ke papan pemuka...');
+            setTimeout(() => {
+              if (existingUser.role === 'admin' || existingUser.role === 'teacher' || existingUser.role === 'guru') {
+                window.location.replace('../admin_dashboard/code.html');
+              } else {
+                window.location.replace('../halaman_utama/code.html');
+              }
+            }, 600);
+            return;
+          }
+
+          showError(
+            'Tiada Data Pengesahan',
+            'Tiada data pengesahan dikesan. Sila log masuk melalui halaman log masuk rasmi ARSelNel.',
+            false
+          );
+          return;
+        }
+
+        // 3. Wait for ARSupabase client to be ready
+        if (loadingStep) loadingStep.textContent = 'Mengesahkan kod akses sesi...';
+        try {
+          if (!window.ARSupabase) {
+            throw new Error('Modul pengesahan ARSupabase tidak dapat dimuat.');
+          }
+          await window.ARSupabase.ready;
+          const client = await window.ARSupabase.getClient();
+          if (!client) {
+            throw new Error('Pelayan Supabase tidak dapat disambung.');
+          }
+
+          // 4. Resolve session safely
+          let session = null;
+          const { data: initialSessionData } = await client.auth.getSession();
+          if (initialSessionData && initialSessionData.session) {
+            session = initialSessionData.session;
+          } else if (code) {
+            // If detectSessionInUrl did not populate session yet, exchange once
+            try {
+              const { data: exData, error: exError } = await client.auth.exchangeCodeForSession(code);
+              if (exData && exData.session) {
+                session = exData.session;
+              } else if (exError) {
+                // Check if automatic detection completed concurrently
+                const retry = await client.auth.getSession();
+                if (retry.data && retry.data.session) {
+                  session = retry.data.session;
+                } else {
+                  throw exError;
+                }
+              }
+            } catch (exchangeErr) {
+              const retry = await client.auth.getSession();
+              if (retry.data && retry.data.session) {
+                session = retry.data.session;
+              } else {
+                throw exchangeErr;
+              }
+            }
+          }
+
+          if (!session || !session.user) {
+            throw new Error('Gagal mendapatkan sesi akaun yang sah daripada Google.');
+          }
+
+          const user = session.user;
+          if (loadingStep) loadingStep.textContent = 'Memuatkan profil dan peranan...';
+
+          // 5. Query existing profile and admin role safely
+          let existingProfile = null;
+          try {
+            const { data: prof } = await client
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
+            existingProfile = prof;
+          } catch (_) {}
+
+          let isAdmin = false;
+          try {
+            const { data: adminRow } = await client
+              .from('admin_users')
+              .select('role')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            if (adminRow && (adminRow.role === 'admin' || adminRow.role === 'teacher' || adminRow.role === 'superadmin')) {
+              isAdmin = true;
+            }
+          } catch (_) {}
+
+          // Role determination (never automatically grant admin from user_metadata)
+          if (existingProfile && (existingProfile.role === 'admin' || existingProfile.role === 'teacher' || existingProfile.role === 'guru')) {
+            isAdmin = true;
+          }
+
+          const meta = user.user_metadata || {};
+          const fullName = (existingProfile && existingProfile.full_name) || meta.full_name || meta.name || user.email.split('@')[0];
+          const nickname = (existingProfile && existingProfile.nickname) || meta.preferred_username || (fullName.split(' ')[0] || 'Pelajar');
+          const className = (existingProfile && existingProfile.class_name) || 'Tingkatan 1 Al-Farabi';
+          const avatar = (existingProfile && existingProfile.avatar) || meta.avatar_url || meta.picture || '../assets/home/avatar.svg';
+          const finalRole = isAdmin ? 'admin' : 'student';
+
+          // 6. First-time student profile upsert (never touch admin accounts)
+          if (!existingProfile && !isAdmin) {
+            try {
+              await client.from('profiles').upsert({
+                id: user.id,
+                full_name: fullName,
+                nickname: nickname,
+                class_name: className,
+                role: 'student',
+                avatar: avatar,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'id' });
+            } catch (profErr) {
+              console.warn('Pemberitahuan simpanan profil:', profErr);
+            }
+          }
+
+          // 7. Save authenticated session into AuthGuard
+          const appUser = {
+            id: user.id,
+            name: fullName,
+            nickname: nickname,
+            email: user.email,
+            username: nickname,
+            role: finalRole,
+            grade: className,
+            avatar: avatar,
+            isDemo: false,
+            authProvider: 'google'
+          };
+
+          if (window.AuthGuard && typeof window.AuthGuard.saveUser === 'function') {
+            window.AuthGuard.saveUser(appUser, true);
+          }
+
+          // 8. Clean URL parameters immediately
+          try {
+            window.history.replaceState(null, '', window.location.pathname);
+          } catch (_) {}
+
+          showSuccess('Log masuk berjaya! Membuka papan pemuka...');
+
+          // 9. Redirect to appropriate dashboard
+          setTimeout(async () => {
+            if (isAdmin) {
+              localStorage.setItem('arselnelAdmin', 'true');
+              window.location.replace('../admin_dashboard/code.html');
+            } else {
+              localStorage.removeItem('arselnelAdmin');
+              try {
+                if (window.ARSupabase && typeof window.ARSupabase.hydrateStudentData === 'function') {
+                  await window.ARSupabase.hydrateStudentData();
+                }
+              } catch (_) {}
+              window.location.replace('../halaman_utama/code.html');
+            }
+          }, 450);
+
+        } catch (err) {
+          const friendly = window.ARSupabase ? window.ARSupabase.friendlyError(err) : (err.message || 'Ralat tidak diketahui.');
+          const isExpired = /tamat|expired|bad_oauth_state/i.test(friendly);
+          showError('Pengesahan Gagal', friendly, isExpired);
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', processCallback);
+    })();
+  </script>
+</body>
+</html>

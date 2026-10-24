@@ -152,7 +152,40 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     return res.end('Not found');
   }
-  let filePath = path.join(ROOT_DIR, pathname === '/' ? 'splash_screen/code.html' : pathname);
+  // Route rewrites mapping (mirroring vercel.json)
+  const ROUTE_ALIASES = {
+    '/': 'splash_screen/code.html',
+    '/login': 'auth/login.html',
+    '/register': 'auth/register.html',
+    '/auth/callback': 'auth/callback.html',
+    '/callback': 'auth/callback.html',
+    '/admin': 'admin_dashboard/code.html',
+    '/dashboard': 'admin_dashboard/code.html',
+    '/utama': 'halaman_utama/code.html',
+    '/halaman_utama': 'halaman_utama/code.html',
+    '/cellquest': 'cellquest/code.html',
+    '/hab_permainan': 'hab_permainan/code.html',
+    '/kuiz_interaktif': 'kuiz_interaktif/code.html',
+    '/nota_pembelajaran': 'nota_pembelajaran/code.html',
+    '/perpustakaan_video': 'perpustakaan_video/code.html',
+    '/selbot_ai': 'selbot_ai/code.html',
+    '/manual_penggunaan': 'manual_penggunaan/code.html',
+    '/bantuan_maklumat': 'bantuan_maklumat/code.html',
+    '/profil': 'profil/code.html',
+    '/tetapan': 'tetapan/code.html',
+    '/pengimbas_ar': 'pengimbas_ar/code.html',
+    '/paparan_model_ar': 'paparan_model_ar/code.html',
+    '/modul_pembelajaran': 'modul_pembelajaran/code.html',
+    '/keputusan_permainan': 'keputusan_permainan/code.html'
+  };
+
+  let targetRelative = ROUTE_ALIASES[pathname] || (pathname.startsWith('/') ? pathname.slice(1) : pathname);
+  let filePath = path.join(ROOT_DIR, targetRelative);
+
+  // Fallback to .html extension if file does not exist directly
+  if (!fs.existsSync(filePath) && fs.existsSync(filePath + '.html')) {
+    filePath = filePath + '.html';
+  }
 
   // Check if directory was requested, serve index or code.html
   try {
@@ -186,12 +219,16 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`\n======================================================`);
-  console.log(`🚀 ARSelNel Pelayan Sains Interaktif sedang berjalan!`);
-  console.log(`📡 URL Pelayan : http://localhost:${PORT}`);
-  console.log(`🔐 Log Masuk   : http://localhost:${PORT}/auth/login.html`);
-  console.log(`🧪 Papan Pemuka: http://localhost:${PORT}/admin/dashboard.html`);
-  console.log(`🏠 Laman Utama : http://localhost:${PORT}/halaman_utama/code.html`);
-  console.log(`======================================================\n`);
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`\n======================================================`);
+    console.log(`🚀 ARSelNel Pelayan Sains Interaktif sedang berjalan!`);
+    console.log(`📡 URL Pelayan : http://localhost:${PORT}`);
+    console.log(`🔐 Log Masuk   : http://localhost:${PORT}/auth/login.html`);
+    console.log(`🧪 Papan Pemuka: http://localhost:${PORT}/admin/dashboard.html`);
+    console.log(`🏠 Laman Utama : http://localhost:${PORT}/halaman_utama/code.html`);
+    console.log(`======================================================\n`);
+  });
+}
+
+module.exports = server;

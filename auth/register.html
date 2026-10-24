@@ -416,17 +416,24 @@
       }
     }
 
+    let isGoogleAuthBusy = false;
     async function handleGoogleAuth() {
+      if (isGoogleAuthBusy) return;
       hideError();
       hideSuccess();
       const googleBtn = document.getElementById('google-register-btn');
       const googleText = document.getElementById('google-btn-text');
+      isGoogleAuthBusy = true;
       if (googleBtn) googleBtn.disabled = true;
       if (googleText) googleText.textContent = 'Menghubungkan ke Google...';
 
       try {
-        await ARSupabase.signInWithGoogle(`${window.location.origin}/auth/login.html?oauth=google`);
+        const canonicalCallback = (window.ARSupabase && typeof window.ARSupabase.getOAuthRedirectUrl === 'function')
+          ? window.ARSupabase.getOAuthRedirectUrl()
+          : `${window.location.origin}/auth/callback.html`;
+        await ARSupabase.signInWithGoogle(canonicalCallback);
       } catch (err) {
+        isGoogleAuthBusy = false;
         if (googleBtn) googleBtn.disabled = false;
         if (googleText) googleText.textContent = 'Teruskan dengan Google';
         showError(`Log masuk Google gagal: ${ARSupabase.friendlyError(err)}`);
