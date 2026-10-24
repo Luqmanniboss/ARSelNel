@@ -26,9 +26,7 @@
       // Sync currentUser between keys if needed
       const user = this.getUser();
       if (user) {
-        // Supabase-backed users are cached only for this tab, matching the
-        // Auth client's sessionStorage token lifetime.
-        this.saveUser(user, user.authProvider !== 'supabase');
+        this.saveUser(user, true);
       }
     }
 
@@ -140,15 +138,19 @@
     }
 
     logout(redirectUrl, preserveLocalProfile = false) {
+      if (global.ARSupabase && typeof global.ARSupabase.signOut === 'function') {
+        try { global.ARSupabase.signOut(); } catch (_) {}
+      }
       if (!preserveLocalProfile) {
         const outgoing = this.getUser();
-        if (outgoing && outgoing.role === 'student' && !outgoing.isGuest && outgoing.authProvider !== 'supabase') {
+        if (outgoing && outgoing.role === 'student' && !outgoing.isGuest && outgoing.authProvider !== 'supabase' && outgoing.authProvider !== 'google') {
           try { sessionStorage.setItem('arselnel_local_migration_source', JSON.stringify({ id: outgoing.id, name: outgoing.name, nickname: outgoing.nickname, role: outgoing.role, isDemo: outgoing.isDemo === true })); } catch (_) {}
         }
       }
       if (!preserveLocalProfile) {
         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
         localStorage.removeItem(STORAGE_KEYS.LEGACY_USER);
+        localStorage.removeItem('arselnelAdmin');
       }
       sessionStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
       sessionStorage.removeItem(STORAGE_KEYS.LEGACY_USER);

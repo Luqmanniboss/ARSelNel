@@ -66,9 +66,8 @@
         throw new Error('Pustaka Supabase tidak dapat dimuat. Semak sambungan internet dan cuba lagi.');
       }
       state.client = global.supabase.createClient(config.url, config.publishableKey, {
-        // Keep refresh/access tokens scoped to the browser tab. User profiles
-        // and learning records are persisted separately in Postgres.
-        auth: { storage: global.sessionStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
+        // Persist session tokens securely for cross-page navigation, refresh, and OAuth flows
+        auth: { storage: global.localStorage || global.sessionStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
       });
       state.configured = true;
       return state;
@@ -80,11 +79,19 @@
   state.ready = ready;
 
   function friendlyError(error) {
-    const message = error && error.message ? error.message : 'Permintaan tidak berjaya.';
+    const raw = error && typeof error === 'object'
+      ? (error.message || error.msg || error.error_description || error.error_code || '')
+      : (typeof error === 'string' ? error : '');
+    const message = raw || 'Permintaan tidak berjaya.';
+
     if (/invalid login credentials/i.test(message)) return 'E-mel atau kata laluan tidak tepat.';
     if (/email not confirmed/i.test(message)) return 'Sahkan e-mel anda melalui pautan yang dihantar sebelum log masuk.';
-    if (/already registered|user already registered/i.test(message)) return 'E-mel ini telah didaftarkan. Cuba log masuk.';
-    if (/fetch|network|failed to load/i.test(message)) return 'Sambungan ke Supabase gagal. Periksa Internet dan cuba lagi.';
+    if (/already registered|user already registered|user_already_exists/i.test(message)) return 'E-mel ini telah didaftarkan dalam sistem ARSelNel. Sila log masuk ke akaun anda atau gunakan tetapan semula kata laluan.';
+    if (/invalid.*email|email.*is invalid|unable to validate email|email address.*invalid/i.test(message)) return 'Alamat e-mel ini tidak sah atau tidak diterima oleh pelayan pengesahan. Sila gunakan alamat e-mel sebenar (contoh: Gmail, Outlook, Yahoo atau e-mel sekolah/institusi).';
+    if (/password.*should be at least|password.*least 6/i.test(message)) return 'Kata laluan mestilah sekurang-kurangnya 6 aksara.';
+    if (/over_email_send_rate_limit|rate limit/i.test(message)) return 'Terlalu banyak percubaan dalam masa singkat. Sila tunggu beberapa minit sebelum mencuba lagi.';
+    if (/signup is disabled|signups not allowed/i.test(message)) return 'Pendaftaran akaun baharu ditutup sementara oleh pentadbir.';
+    if (/fetch|network|failed to load/i.test(message)) return 'Sambungan ke pelayan Supabase gagal. Sila periksa capaian Internet anda dan cuba lagi.';
     return message;
   }
 
@@ -95,7 +102,7 @@
     if (error) throw error;
     if (!data.user) throw new Error('Sesi akaun tidak sah. Sila log masuk semula.');
     const appUser = global.AuthGuard && global.AuthGuard.getUser ? global.AuthGuard.getUser() : null;
-    if (!appUser || appUser.authProvider !== 'supabase' || appUser.id !== data.user.id) {
+    if (!appUser || (appUser.authProvider !== 'supabase' && appUser.authProvider !== 'google') || appUser.id !== data.user.id) {
       throw new Error('Sesi akaun aplikasi dan Supabase tidak sepadan. Log keluar dan log masuk semula sebelum penyegerakan.');
     }
     return { client: state.client, authUser: data.user };
@@ -276,12 +283,156 @@
     signUp: async ({ email, password, fullName, username, className }) => {
       await ready;
       if (!state.client) throw new Error(state.error ? friendlyError(state.error) : 'Pendaftaran dalam talian belum disediakan.');
-      const redirectTo = `${location.origin}/auth/login.html?confirmed=1`;
+      const redirectTo = `${window.location.origin}/auth/login.html?confirmed=1`;
+      const studentUsername = username || email.split('@')[0];
+      const studentClass = className || 'Tingkatan 1 Al-Farabi';
       const { data, error } = await state.client.auth.signUp({
-        email, password, options: { emailRedirectTo: redirectTo, data: { full_name: fullName, username, class_name: className, role: 'student' } }
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: {
+            full_name: fullName,
+            username: studentUsername,
+            class_name: studentClass,
+            role: 'student'
+          }
+        }
+      });
+      if (error) throw error;
+
+      // If email confirmation is disabled, Supabase returns an active session immediately.
+      // Persist the student profile row to public.profiles using their authenticated user id.
+      if (data && data.session && data.user) {
+        try {
+          await state.client.from('profiles').upsert({
+            id: data.user.id,
+            full_name: fullName,
+            nickname: studentUsername,
+            class_name: studentClass,
+            role: 'student',
+            avatar: '../assets/home/avatar.svg',
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+        } catch (profileErr) {
+          console.warn('Amaran: Profil belum dapat disimpan terus ke Postgres:', profileErr);
+        }
+      }
+
+      return data;
+    },
+    signInWithGoogle: async (redirectTo) => {
+      await ready;
+      if (!state.client) throw new Error(state.error ? friendlyError(state.error) : 'Supabase belum dikonfigurasi.');
+      const defaultRedirect = `${window.location.origin}/auth/login.html?oauth=google`;
+      const { data, error } = await state.client.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTo || defaultRedirect,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account'
+          }
+        }
       });
       if (error) throw error;
       return data;
+    },
+    handleOAuthCallback: async () => {
+      await ready;
+      if (!state.client) return null;
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+
+      // Check if OAuth provider reported an error
+      const errorMsg = searchParams.get('error_description') || searchParams.get('error') ||
+                       hashParams.get('error_description') || hashParams.get('error');
+      if (errorMsg) {
+        if (window.location.search || window.location.hash) {
+          history.replaceState(null, '', window.location.pathname);
+        }
+        throw new Error(decodeURIComponent(errorMsg));
+      }
+
+      // Check if session was retrieved by Supabase Auth (detectSessionInUrl: true)
+      const { data: { session }, error: sessionError } = await state.client.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!session || !session.user) return null;
+
+      const user = session.user;
+
+      // 1. Fetch existing profile from database
+      let existingProfile = null;
+      try {
+        const { data: prof } = await state.client
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+        existingProfile = prof;
+      } catch (_) {}
+
+      // 2. Check if this user is a registered Admin
+      let isAdmin = false;
+      try {
+        const { data: adminRow } = await state.client
+          .from('admin_users')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (adminRow && (adminRow.role === 'admin' || adminRow.role === 'teacher' || adminRow.role === 'superadmin')) {
+          isAdmin = true;
+        }
+      } catch (_) {}
+
+      const meta = user.user_metadata || {};
+      if (meta.role === 'admin' || meta.role === 'guru' || meta.role === 'teacher') {
+        isAdmin = true;
+      }
+
+      const fullName = (existingProfile && existingProfile.full_name) || meta.full_name || meta.name || user.email.split('@')[0];
+      const nickname = (existingProfile && existingProfile.nickname) || meta.preferred_username || (fullName.split(' ')[0] || 'Pelajar');
+      const className = (existingProfile && existingProfile.class_name) || 'Tingkatan 1 Al-Farabi';
+      const avatar = (existingProfile && existingProfile.avatar) || meta.avatar_url || meta.picture || '../assets/home/avatar.svg';
+      const role = isAdmin ? 'admin' : ((existingProfile && existingProfile.role === 'admin') ? 'admin' : 'student');
+
+      // 3. First-time student: create profile in public.profiles table
+      if (!existingProfile && !isAdmin) {
+        try {
+          await state.client.from('profiles').upsert({
+            id: user.id,
+            full_name: fullName,
+            nickname: nickname,
+            class_name: className,
+            role: 'student',
+            avatar: avatar,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+        } catch (createErr) {
+          console.warn('Gagal mencipta profil pelajar Google baharu:', createErr);
+        }
+      }
+
+      const appUser = {
+        id: user.id,
+        name: fullName,
+        nickname: nickname,
+        email: user.email,
+        username: nickname,
+        role: role,
+        grade: className,
+        avatar: avatar,
+        isDemo: false,
+        authProvider: 'google'
+      };
+
+      // Clean URL params cleanly
+      if (window.location.search.includes('code=') || window.location.hash.includes('access_token=') || window.location.search.includes('oauth=')) {
+        history.replaceState(null, '', window.location.pathname);
+      }
+
+      return { session, user, appUser, isAdmin };
     },
     signOut: async () => {
       await ready;
