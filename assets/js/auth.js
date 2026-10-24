@@ -190,14 +190,22 @@
       return { success: false, message: 'Pendaftaran akaun memerlukan pelayan yang menyimpan kata laluan secara selamat. Tiada kata laluan telah disimpan.' };
     }
 
-    logout(redirectUrl = '../login/code.html') {
+    logout(redirectUrl = '../auth/login.html') {
       try {
+        if (global.ARSupabase && typeof global.ARSupabase.signOut === 'function') {
+          global.ARSupabase.signOut().catch(() => {});
+        }
         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
         localStorage.removeItem('currentUser');
         localStorage.removeItem(STORAGE_KEYS.TOKEN);
         localStorage.removeItem('arselnel_demo_mode');
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_FLAG);
+        localStorage.removeItem('arselnelAdmin');
+        localStorage.removeItem('arselnel_local_migration_source');
         sessionStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
         sessionStorage.removeItem(STORAGE_KEYS.ADMIN_FLAG);
+        sessionStorage.removeItem('arselnelAdmin');
+        sessionStorage.removeItem('arselnel_local_migration_source');
       } catch (e) {
         console.error('Error logging out', e);
       }
@@ -208,38 +216,10 @@
     }
 
     demoLogin(role = 'student') {
-      const isAdmin = role === 'admin' || role === 'teacher';
-      const user = isAdmin ? {
-        id: 'demo_teacher_admin', name: 'Cikgu Zulaikha', email: 'demo-guru@arselnel.local',
-        username: 'demo-guru', role: 'admin', department: 'Demo Panitia Sains',
-        grade: 'Ruang demonstrasi', avatar: '../assets/home/avatar.svg', isDemo: true
-      } : {
-        id: 'demo_student_aina', name: 'Aina Sofea binti Ahmad', nickname: 'Aina',
-        email: 'aina-demo@arselnel.local', username: 'aina-demo', role: 'student',
-        grade: 'Tingkatan 1 Al-Farabi', avatar: '../assets/home/avatar.svg', isDemo: true
+      return {
+        success: false,
+        message: 'Mod demo tidak lagi disokong dalam persekitaran produksi. Sila daftar akaun atau log masuk menggunakan akaun rasmi anda.'
       };
-      try {
-        localStorage.setItem('arselnel_demo_mode', 'true');
-        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        sessionStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
-        if (!isAdmin) {
-          const progressKey = `arselnel_learning_progress_${user.id}`;
-          if (!localStorage.getItem(progressKey)) {
-            const completedAt = new Date().toISOString();
-            const quizzes = [
-              { title: 'Kuiz Struktur Sel', topic: 'Struktur Sel', score: 80, correct: 4, total: 5, completedAt },
-              { title: 'Kuiz Sel Tumbuhan', topic: 'Sel Tumbuhan', score: 100, correct: 5, total: 5, completedAt }
-            ];
-            localStorage.setItem(progressKey, JSON.stringify({ quizzes, completedLessons: ['struktur-sel'] }));
-            localStorage.setItem('arselnel_demo_arselnel_quiz_submissions', JSON.stringify(quizzes.map(item => ({ ...item, studentId: user.id, studentName: 'Aina', isDemo: true }))));
-          }
-        }
-      } catch (error) {
-        return { success: false, message: 'Storan setempat tidak tersedia. Sila benarkan storan pelayar.' };
-      }
-      sessionStorage.setItem(STORAGE_KEYS.ADMIN_FLAG, isAdmin ? 'true' : 'false');
-      return { success: true, user, redirectUrl: isAdmin ? '../admin_dashboard/code.html' : '../halaman_utama/code.html' };
     }
 
     requireAuth(redirectTo = '../login/code.html') {

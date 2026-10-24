@@ -737,7 +737,7 @@
       await this.initPromise;
       let notes = [];
 
-      // Try Supabase first
+      // Try Supabase first (authoritative database source)
       if (this.supabaseClient && this.connectionStatus === 'connected') {
         try {
           let query = this.supabaseClient.from('learning_notes').select('*').order('created_at', { ascending: false });
@@ -745,7 +745,7 @@
             query = query.eq('publication_status', filters.status);
           }
           const { data, error } = await query;
-          if (!error && Array.isArray(data) && data.length > 0) {
+          if (!error && Array.isArray(data)) {
             notes = data.map(row => ({
               id: row.id,
               title: row.title,
@@ -756,6 +756,7 @@
               storagePath: row.storage_path || '',
               slideCount: row.slide_count || 1,
               publicationStatus: row.publication_status || 'published',
+              status: row.publication_status || 'published',
               slides: row.slide_data || [],
               views: row.views || 0,
               createdAt: row.created_at
@@ -889,7 +890,7 @@
             query = query.eq('publication_status', filters.status);
           }
           const { data, error } = await query;
-          if (!error && Array.isArray(data) && data.length > 0) {
+          if (!error && Array.isArray(data)) {
             videos = data.map(r => ({
               id: r.id,
               title: r.title,
@@ -901,6 +902,7 @@
               description: r.description,
               views: r.views,
               publicationStatus: r.publication_status,
+              status: r.publication_status || 'published',
               displayOrder: r.display_order,
               createdAt: r.created_at
             }));
@@ -1591,9 +1593,13 @@
           this.supabaseClient.from('learning_progress').select('id, activity_id, completion_status')
         ]);
 
+        // Distinct registered student accounts (excluding admin accounts)
         const students = (profilesRes.data || []).filter(s => {
+          if (!s) return false;
+          const role = s.role || 'student';
+          if (role !== 'student') return false;
           const name = (s.full_name || '').toLowerCase();
-          return !name.includes('demo') && !name.includes('test') && !name.includes('admin');
+          return !name.startsWith('demo_') && !name.includes('cikgu zulaikha');
         });
 
         const attempts = quizAttemptsRes.data || [];
@@ -1612,6 +1618,7 @@
 
         const videos = videosRes.data || [];
         const publishedVideos = videos.filter(v => v.publication_status === 'published');
+        const draftVideos = videos.filter(v => v.publication_status === 'draft');
         const totalVideoViews = videos.reduce((sum, v) => sum + (Number(v.views) || 0), 0);
 
         const models = modelsRes.data || [];
@@ -1631,6 +1638,7 @@
         });
 
         const popularTopics = Object.keys(topicMap).map(topic => ({
+          name: topic.replace(/[-_]/g, ' ').toUpperCase(),
           title: topic.replace(/[-_]/g, ' ').toUpperCase(),
           avgScore: Math.round(topicMap[topic].totalScore / topicMap[topic].count),
           attempts: topicMap[topic].count
@@ -1643,8 +1651,11 @@
             activities.push({
               id: ev.id,
               type: ev.event_type,
+              title: ev.title || 'Aktiviti Pembelajaran',
               text: `${ev.title}`,
               time: ev.created_at,
+              timestamp: ev.created_at,
+              studentName: ev.user_id ? 'Pelajar' : 'Pengguna',
               module: (ev.event_type || '').split('_')[0]
             });
           });
@@ -1653,8 +1664,11 @@
             activities.push({
               id: att.id,
               type: 'quiz',
+              title: `Kuiz Diselesaikan: ${att.score}%`,
               text: `Murid menyempurnakan Kuiz Sel dengan skor ${att.score}%`,
               time: att.submitted_at,
+              timestamp: att.submitted_at,
+              studentName: 'Pelajar',
               module: 'kuiz'
             });
           });
@@ -1665,19 +1679,25 @@
           activeStudents: students.length,
           totalQuizzes: publishedQuizzes.length,
           totalQuizAttempts: totalAttempts,
+          averageQuizScore: avgScore,
           avgQuizScore: avgScore,
           quizPassRate: passRate,
-          totalNotes: notes.length,
+          totalNotes: publishedNotes.length,
           publishedNotes: publishedNotes.length,
           draftNotes: draftNotes.length,
           totalNoteViews,
           completedNotesCount,
+          noteCompletionsCount: completedNotesCount,
           completedGamesCount,
           totalVideos: publishedVideos.length,
+          publishedVideos: publishedVideos.length,
+          draftVideos: draftVideos.length,
           totalVideoViews,
-          activeModelsCount: activeModels.length || 2,
+          totalARModels: activeModels.length,
+          activeModelsCount: activeModels.length,
           popularTopics,
           hasSufficientData: totalAttempts > 0,
+          recentActivities: activities,
           activities,
           lastUpdated: new Date().toISOString()
         };
@@ -1703,8 +1723,11 @@
       if (profilesRes.error) throw profilesRes.error;
 
       let students = (profilesRes.data || []).filter(s => {
+        if (!s) return false;
+        const role = s.role || 'student';
+        if (role !== 'student') return false;
         const name = (s.full_name || '').toLowerCase();
-        return !name.includes('demo') && !name.includes('test');
+        return !name.startsWith('demo_');
       }).map(p => {
         const studentAttempts = (attemptsRes.data || []).filter(a => a.user_id === p.id);
         const studentProgress = (progressRes.data || []).filter(pr => pr.user_id === p.id);
@@ -1712,7 +1735,7 @@
         const totalAttempts = studentAttempts.length;
         const avgScore = totalAttempts > 0
           ? Math.round(studentAttempts.reduce((s, a) => s + (Number(a.score) || 0), 0) / totalAttempts)
-          : 0;
+          : null;
 
         const completedNotes = studentProgress.filter(pr => pr.activity_id && pr.activity_id.startsWith('note-') && pr.completion_status === 'completed').length;
         const completedGames = studentProgress.filter(pr => pr.activity_id && pr.activity_id.startsWith('game-') && pr.completion_status === 'completed').length;
@@ -1722,10 +1745,12 @@
         return {
           id: p.id,
           name: p.full_name || 'Pelajar Sains',
-          email: p.nickname ? `${p.nickname}@sekolah.edu.my` : 'pelajar@arselnel.my',
+          email: p.nickname ? `${p.nickname}@sekolah.edu.my` : (p.email || 'pelajar@arselnel.my'),
           grade: p.class_name || 'Tingkatan 1',
+          quizzesAttempted: totalAttempts,
           quizAttemptsCount: totalAttempts,
-          avgScore,
+          averageScore: avgScore,
+          avgScore: avgScore,
           notesCompleted: completedNotes,
           gamesCompleted: completedGames,
           lastActive: lastActivityTime,
@@ -1733,8 +1758,8 @@
         };
       });
 
-      if (options.searchQuery) {
-        const q = options.searchQuery.toLowerCase();
+      if (options.searchQuery || options.search) {
+        const q = (options.searchQuery || options.search || '').toLowerCase();
         students = students.filter(s => s.name.toLowerCase().includes(q) || s.grade.toLowerCase().includes(q));
       }
       if (options.classFilter && options.classFilter !== 'all') {
@@ -1751,15 +1776,59 @@
       }
 
       const [profileRes, attemptsRes, progressRes] = await Promise.all([
-        this.supabaseClient.from('profiles').select('*').eq('id', studentId).single(),
+        this.supabaseClient.from('profiles').select('*').eq('id', studentId).maybeSingle(),
         this.supabaseClient.from('quiz_attempts').select('*').eq('user_id', studentId).order('submitted_at', { ascending: false }),
         this.supabaseClient.from('learning_progress').select('*').eq('user_id', studentId).order('updated_at', { ascending: false })
       ]);
 
+      const prof = profileRes.data || {};
+      const attempts = attemptsRes.data || [];
+      const prog = progressRes.data || [];
+
+      const totalAttempts = attempts.length;
+      const avg = totalAttempts > 0 ? Math.round(attempts.reduce((acc, a) => acc + (Number(a.score) || 0), 0) / totalAttempts) : null;
+
+      const studentObj = {
+        id: prof.id || studentId,
+        name: prof.full_name || 'Pelajar',
+        email: prof.nickname ? `${prof.nickname}@sekolah.edu.my` : (prof.email || 'pelajar@arselnel.my'),
+        grade: prof.class_name || 'Tingkatan 1',
+        averageScore: avg,
+        avgScore: avg,
+        quizzesAttempted: totalAttempts,
+        quizAttemptsCount: totalAttempts
+      };
+
+      const formattedAttempts = attempts.map(a => ({
+        id: a.id,
+        title: (a.result_data && a.result_data.title) || a.quiz_id || 'Kuiz Sains',
+        score: a.score,
+        totalQuestions: a.total_questions || 5,
+        correctAnswers: (a.result_data && a.result_data.correct) || Math.round((a.score / 100) * (a.total_questions || 5)),
+        date: a.submitted_at
+      }));
+
+      const noteProg = prog.filter(p => p.activity_id && p.activity_id.startsWith('note-')).map(p => ({
+        id: p.activity_id,
+        title: (p.result_data && p.result_data.title) || p.activity_id,
+        completed: p.completion_status === 'completed',
+        progress: p.progress_percentage
+      }));
+
+      const gameAct = prog.filter(p => p.activity_id && p.activity_id.startsWith('game-')).map(p => ({
+        id: p.activity_id,
+        title: (p.result_data && p.result_data.title) || p.activity_id,
+        completed: p.completion_status === 'completed',
+        score: (p.result_data && p.result_data.score) || null
+      }));
+
       return {
-        profile: profileRes.data || null,
-        quizAttempts: attemptsRes.data || [],
-        learningProgress: progressRes.data || []
+        student: studentObj,
+        profile: prof,
+        quizAttempts: formattedAttempts,
+        noteProgress: noteProg,
+        learningProgress: prog,
+        gameActivity: gameAct
       };
     }
 

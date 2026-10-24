@@ -664,7 +664,7 @@
         subs.push(submission);
         localStorage.setItem(subKey, JSON.stringify(subs.slice(-500)));
 
-        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user.authProvider === 'supabase') {
+        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google')) {
           window.ARSupabase.saveQuizAttempt(submission)
             .then(() => {
               if (statusEl) statusEl.textContent = '✓ Skor 1000 pts berjaya disegerakkan ke Supabase!';

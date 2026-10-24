@@ -314,20 +314,6 @@
 
           </div>
 
-          <!-- Quick Prototype Demos -->
-          <div class="mt-6 pt-4 border-t border-slate-100">
-            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block text-center mb-1">Mod demo setempat</span>
-            <p class="mb-3 text-center text-[11px] text-slate-500">Ruang latihan berasingan pada pelayar ini. Bukan log masuk produksi atau pangkalan data bersama.</p>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <button onclick="fillDemo('student')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-700">
-                Demo Pelajar (Aina)
-              </button>
-              <button onclick="fillDemo('admin')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-700">
-                Demo Guru (Admin)
-              </button>
-            </div>
-          </div>
-
         </div>
 
       </div>
@@ -398,31 +384,42 @@
       if (params.get('confirmed') === '1') {
         showSuccess('E-mel anda telah disahkan! Sila log masuk ke akaun pelajar anda.');
       }
+      if (params.get('logged_out') === '1') {
+        showSuccess('Anda telah berjaya log keluar daripada sistem.');
+        // Clean logged_out param so refreshing doesn't loop
+        history.replaceState(null, '', window.location.pathname + (params.get('role') === 'admin' ? '?role=admin' : ''));
+        return;
+      }
 
-      // Check and handle Google OAuth redirect
-      try {
-        const oauthResult = await ARSupabase.handleOAuthCallback();
-        if (oauthResult && oauthResult.appUser) {
-          showSuccess('Log masuk Google berjaya! Mengalihkan ke papan pemuka...');
-          AuthGuard.saveUser(oauthResult.appUser, true);
-          if (oauthResult.isAdmin) {
-            localStorage.setItem('arselnelAdmin', 'true');
-            window.location.assign('../admin_dashboard/code.html');
-          } else {
-            try { await ARSupabase.hydrateStudentData(); } catch (_) {}
-            const redirect = params.get('redirect');
-            if (redirect) {
-              let target;
-              try { target = new URL(redirect, location.href); } catch (_) {}
-              if (target && target.origin === location.origin) window.location.assign(target.href);
-              else window.location.assign('../halaman_utama/code.html');
+      // Check and handle Google OAuth redirect only if OAuth parameters exist in URL
+      const isOAuthRedirect = window.location.search.includes('code=') ||
+                              window.location.hash.includes('access_token=') ||
+                              window.location.search.includes('oauth=google');
+      if (isOAuthRedirect) {
+        try {
+          const oauthResult = await ARSupabase.handleOAuthCallback();
+          if (oauthResult && oauthResult.appUser) {
+            showSuccess('Log masuk Google berjaya! Mengalihkan ke papan pemuka...');
+            AuthGuard.saveUser(oauthResult.appUser, true);
+            if (oauthResult.isAdmin) {
+              localStorage.setItem('arselnelAdmin', 'true');
+              window.location.assign('../admin_dashboard/code.html');
             } else {
-              window.location.assign('../halaman_utama/code.html');
+              try { await ARSupabase.hydrateStudentData(); } catch (_) {}
+              const redirect = params.get('redirect');
+              if (redirect) {
+                let target;
+                try { target = new URL(redirect, location.href); } catch (_) {}
+                if (target && target.origin === location.origin) window.location.assign(target.href);
+                else window.location.assign('../halaman_utama/code.html');
+              } else {
+                window.location.assign('../halaman_utama/code.html');
+              }
             }
           }
+        } catch (oauthErr) {
+          showError(`Log masuk Google dibatalkan atau tidak berjaya: ${ARSupabase.friendlyError(oauthErr)}`);
         }
-      } catch (oauthErr) {
-        showError(`Log masuk Google dibatalkan atau tidak berjaya: ${ARSupabase.friendlyError(oauthErr)}`);
       }
     });
 
@@ -505,10 +502,6 @@
 
       const identifier = document.getElementById('login-id').value.trim();
       const password = document.getElementById('login-pass').value;
-      let sourceUser = AuthGuard.getUser();
-      if (!sourceUser) {
-        try { sourceUser = JSON.parse(sessionStorage.getItem('arselnel_local_migration_source') || 'null'); } catch (_) {}
-      }
 
       setFormLoading(true);
 
@@ -598,23 +591,7 @@
         try { await ARSupabase.hydrateStudentData(); }
         catch (syncError) { console.warn('Rekod pembelajaran awan belum dapat dimuatkan.', syncError); }
 
-        if (sourceUser && sourceUser.id && sourceUser.id !== profile.id && sourceUser.role === 'student' && !sourceUser.isGuest) {
-          const sourceName = sourceUser.nickname || sourceUser.name || 'profil setempat';
-          const sourceKey = `arselnel_learning_progress_${sourceUser.id}`;
-          let localCount = 0;
-          try {
-            const record = JSON.parse(localStorage.getItem(sourceKey) || '{}');
-            localCount += Array.isArray(record.quizzes) ? record.quizzes.length : 0;
-            localCount += Array.isArray(record.completedLessons) ? record.completedLessons.length : 0;
-            const cell = JSON.parse(localStorage.getItem(`arselnel_cellquest_progress_${sourceUser.id}`) || '{}');
-            if ((cell.completed && Object.values(cell.completed).some(Boolean)) || cell.xp) localCount++;
-          } catch (_) {}
-          if (localCount && window.confirm(`Import ${localCount} rekod pembelajaran daripada profil setempat “${sourceName}” ke akaun ${profile.email}? Rekod asal akan kekal pada peranti ini.`)) {
-            try { await ARSupabase.importLocalLearning(sourceUser.id); }
-            catch (importError) { window.alert(`Log masuk berjaya, tetapi sebahagian rekod belum disegerakkan. Salinan asal masih selamat pada peranti ini. Sebab: ${ARSupabase.friendlyError(importError)}`); }
-          }
-        }
-        sessionStorage.removeItem('arselnel_local_migration_source');
+        try { sessionStorage.removeItem('arselnel_local_migration_source'); } catch (_) {}
         const params = new URLSearchParams(window.location.search);
         const redirect = params.get('redirect');
         if (redirect) {
@@ -634,20 +611,6 @@
     function loginAsGuest() {
       AuthGuard.setGuestSession();
       window.location.href = '../halaman_utama/code.html';
-    }
-
-    function fillDemo(role) {
-      hideError();
-      const buttons = document.querySelectorAll('[onclick^="fillDemo("]');
-      buttons.forEach(button => { button.disabled = true; button.classList.add('opacity-60'); });
-      const result = Auth.demoLogin(role);
-      if (!result.success) {
-        buttons.forEach(button => { button.disabled = false; button.classList.remove('opacity-60'); });
-        showError(result.message || 'Mod demo tidak dapat dimulakan.');
-        return;
-      }
-      AuthGuard.saveUser(result.user, true);
-      window.location.assign(result.redirectUrl);
     }
   </script>
 </body>

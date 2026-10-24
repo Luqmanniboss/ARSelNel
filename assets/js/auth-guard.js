@@ -141,19 +141,20 @@
       if (global.ARSupabase && typeof global.ARSupabase.signOut === 'function') {
         try { global.ARSupabase.signOut(); } catch (_) {}
       }
-      if (!preserveLocalProfile) {
-        const outgoing = this.getUser();
-        if (outgoing && outgoing.role === 'student' && !outgoing.isGuest && outgoing.authProvider !== 'supabase' && outgoing.authProvider !== 'google') {
-          try { sessionStorage.setItem('arselnel_local_migration_source', JSON.stringify({ id: outgoing.id, name: outgoing.name, nickname: outgoing.nickname, role: outgoing.role, isDemo: outgoing.isDemo === true })); } catch (_) {}
-        }
-      }
+      try {
+        sessionStorage.removeItem('arselnel_local_migration_source');
+        localStorage.removeItem('arselnel_local_migration_source');
+      } catch (_) {}
+
       if (!preserveLocalProfile) {
         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
         localStorage.removeItem(STORAGE_KEYS.LEGACY_USER);
         localStorage.removeItem('arselnelAdmin');
+        localStorage.removeItem('arselnel_demo_mode');
       }
       sessionStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
       sessionStorage.removeItem(STORAGE_KEYS.LEGACY_USER);
+      sessionStorage.removeItem('arselnelAdmin');
       sessionStorage.removeItem(STORAGE_KEYS.GUEST_PROMPTS);
       sessionStorage.removeItem(STORAGE_KEYS.GUEST_QUIZ_COUNT);
       localStorage.removeItem(STORAGE_KEYS.GUEST_PROMPTS);

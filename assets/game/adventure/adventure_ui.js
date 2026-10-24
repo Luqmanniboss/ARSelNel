@@ -760,7 +760,7 @@
       } catch (_) {}
 
       // 3. Simpan ke Supabase jika disahkan
-      if (user.authProvider === 'supabase' && window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
+      if (user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google') && window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
         window.ARSupabase.saveQuizAttempt(submission)
           .then(() => {
             if (this.victoryStorageStatus) {

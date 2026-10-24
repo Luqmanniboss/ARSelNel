@@ -683,6 +683,12 @@
               <option value="Fisiologi Sel">Fisiologi Sel</option>
               <option value="Amali Sains">Amali Sains</option>
             </select>
+            <select id="filter-video-status" onchange="renderVideos()" class="py-2.5 px-3.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:border-teal-600">
+              <option value="all">Semua Status</option>
+              <option value="published">Diterbitkan Sahaja</option>
+              <option value="draft">Draf Sahaja</option>
+              <option value="archived">Diarkib</option>
+            </select>
           </div>
 
           <button type="button" onclick="openVideoModal()" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs sm:text-sm shadow flex items-center justify-center gap-2">
@@ -1962,12 +1968,27 @@
 
   <script>
     window.addEventListener('DOMContentLoaded', async () => {
-      initAdminUI();
-      renderAllViews();
-      if (window.AdminCMS && typeof window.AdminCMS.syncFromSupabase === 'function') {
-        const synced = await window.AdminCMS.syncFromSupabase();
-        if (synced) renderAllViews();
+      // Enforce Admin Authentication Guard
+      if (window.Auth && typeof window.Auth.isAdmin === 'function') {
+        const isAdmin = window.Auth.isAdmin();
+        if (!isAdmin) {
+          const authUser = window.Auth.getCurrentUser();
+          const role = (authUser && (authUser.role || (authUser.user_metadata && authUser.user_metadata.role))) || '';
+          if (role !== 'admin' && role !== 'guru' && role !== 'teacher') {
+            window.location.replace('../auth/login.html?role=admin');
+            return;
+          }
+        }
       }
+
+      initAdminUI();
+      // Synchronize authoritatively from Supabase before rendering
+      if (window.AdminCMS && typeof window.AdminCMS.syncFromSupabase === 'function') {
+        try {
+          await window.AdminCMS.syncFromSupabase();
+        } catch (_) {}
+      }
+      renderAllViews();
     });
 
     function initAdminUI() {
@@ -2598,12 +2619,36 @@
     // Video Management
     // ----------------------------------------------------
     function renderVideos() {
-      const cat = document.getElementById('filter-video-category').value;
-      const search = document.getElementById('search-video').value;
-      const videos = AdminCMS.getVideos(cat, search);
+      const cat = document.getElementById('filter-video-category')?.value || 'all';
+      const status = document.getElementById('filter-video-status')?.value || 'all';
+      const search = (document.getElementById('search-video')?.value || '').trim();
+      const videos = AdminCMS.getVideos(cat, search, status);
       const container = document.getElementById('video-grid-container');
+      if (!container) return;
 
-      container.innerHTML = videos.map(v => `
+      if (!videos || videos.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-white rounded-3xl border border-slate-100 p-8 shadow-xs">
+            <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">videocam_off</span>
+            <p class="font-headline font-bold text-slate-700 text-sm">Tiada video ditemui dalam pangkalan data${search ? ` bagi carian "${escapeHtml(search)}"` : ''}.</p>
+            <p class="text-xs text-slate-400 mt-1">Klik "+ Tambah Video Sains" di atas untuk memuat naik video pembelajaran baharu.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = videos.map(v => {
+        const publicationStatus = v.status || v.publicationStatus || 'published';
+        let statusBadge = '';
+        if (publicationStatus === 'published') {
+          statusBadge = '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Diterbitkan</span>';
+        } else if (publicationStatus === 'draft') {
+          statusBadge = '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Draf</span>';
+        } else {
+          statusBadge = '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Diarkib</span>';
+        }
+
+        return `
         <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col justify-between">
           <div>
             <div class="relative aspect-video bg-slate-900 group">
@@ -2614,14 +2659,17 @@
                 </span>
               </div>
               <span class="absolute bottom-2 right-2 px-2 py-0.5 rounded-lg bg-black/70 text-white text-[10px] font-bold font-mono">
-                ${escapeHtml(v.duration)}
+                ${escapeHtml(v.duration || '05:00')}
               </span>
             </div>
 
             <div class="p-5">
-              <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block mb-1.5">
-                ${escapeHtml(v.category)}
-              </span>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block">
+                  ${escapeHtml(v.category || 'Biologi Sel')}
+                </span>
+                ${statusBadge}
+              </div>
               <h4 class="font-headline font-bold text-slate-900 text-sm leading-snug line-clamp-2">${escapeHtml(v.title)}</h4>
               <p class="text-xs text-slate-500 line-clamp-2 mt-1">${escapeHtml(v.description || '')}</p>
             </div>
@@ -2639,7 +2687,8 @@
             </div>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function setVideoSourceMode(mode) {

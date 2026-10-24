@@ -278,6 +278,29 @@
       if (!state.client) throw new Error(state.error ? friendlyError(state.error) : 'Akaun dalam talian belum disediakan. Mod demo masih boleh digunakan.');
       const { data, error } = await state.client.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      // Reconcile student profile row if missing in public.profiles table
+      if (data && data.user) {
+        try {
+          const { data: existing } = await state.client.from('profiles').select('id').eq('id', data.user.id).maybeSingle();
+          const meta = data.user.user_metadata || {};
+          const isUserAdmin = meta.role === 'admin' || meta.role === 'guru' || meta.role === 'teacher';
+          if (!existing && !isUserAdmin) {
+            await state.client.from('profiles').upsert({
+              id: data.user.id,
+              full_name: meta.full_name || data.user.email.split('@')[0],
+              nickname: meta.username || meta.preferred_username || (data.user.email.split('@')[0]),
+              class_name: meta.class_name || 'Tingkatan 1 Al-Farabi',
+              role: 'student',
+              avatar: meta.avatar || '../assets/home/avatar.svg',
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+          }
+        } catch (reconcileErr) {
+          console.warn('Profile reconcile notice:', reconcileErr);
+        }
+      }
+
       return data;
     },
     signUp: async ({ email, password, fullName, username, className }) => {
@@ -353,6 +376,14 @@
           history.replaceState(null, '', window.location.pathname);
         }
         throw new Error(decodeURIComponent(errorMsg));
+      }
+
+      // CRITICAL: Only proceed if this page load is actually an OAuth callback!
+      // This prevents a lingering or concurrent session from auto-redirecting back to admin after logout.
+      const hasOAuthParams = searchParams.has('code') || hashParams.has('access_token') ||
+                             searchParams.has('oauth') || hashParams.has('token_type');
+      if (!hasOAuthParams) {
+        return null;
       }
 
       // Check if session was retrieved by Supabase Auth (detectSessionInUrl: true)
@@ -437,8 +468,11 @@
     signOut: async () => {
       await ready;
       if (!state.client) return;
-      const { error } = await state.client.auth.signOut({ scope: 'local' });
-      if (error) throw error;
+      try {
+        await state.client.auth.signOut();
+      } catch (err) {
+        console.warn('Supabase signOut notice:', err);
+      }
     },
     authenticatedClient,
     getProfile,

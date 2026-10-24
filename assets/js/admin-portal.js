@@ -374,9 +374,17 @@ async function renderStudents() {
     }
 
     tbody.innerHTML = students.map(s => {
-      const avgScoreBadge = s.averageScore != null 
-        ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold ${s.averageScore >= 80 ? 'bg-emerald-50 text-emerald-800' : s.averageScore >= 50 ? 'bg-teal-50 text-teal-800' : 'bg-rose-50 text-rose-800'}">${s.averageScore}%</span>`
-        : `<span class="text-xs text-slate-400">-</span>`;
+      const attemptsCount = (s.quizzesAttempted != null)
+        ? Number(s.quizzesAttempted)
+        : ((s.quizAttemptsCount != null) ? Number(s.quizAttemptsCount) : 0);
+
+      const rawScore = (s.averageScore != null && !isNaN(Number(s.averageScore)))
+        ? Number(s.averageScore)
+        : ((s.avgScore != null && !isNaN(Number(s.avgScore))) ? Number(s.avgScore) : null);
+
+      const avgScoreBadge = (rawScore != null && attemptsCount > 0)
+        ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold ${rawScore >= 80 ? 'bg-emerald-50 text-emerald-800' : rawScore >= 50 ? 'bg-teal-50 text-teal-800' : 'bg-rose-50 text-rose-800'}">${rawScore}%</span>`
+        : `<span class="text-xs text-slate-400 italic">Belum ada skor</span>`;
 
       const lastActiveFormatted = s.lastActive 
         ? new Date(s.lastActive).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -399,13 +407,13 @@ async function renderStudents() {
             ${escapeHtml(s.grade || 'Tingkatan 1')}
           </td>
           <td class="py-4 px-4 text-center font-bold text-xs text-slate-800">
-            ${s.quizzesAttempted}
+            ${attemptsCount > 0 ? `${attemptsCount} percubaan` : '0 percubaan'}
           </td>
           <td class="py-4 px-4 text-center">
             ${avgScoreBadge}
           </td>
           <td class="py-4 px-4 text-center font-semibold text-xs text-slate-600">
-            ${s.notesCompleted} modul
+            ${s.notesCompleted || 0} modul
           </td>
           <td class="py-4 px-4 text-xs text-slate-500">
             ${lastActiveFormatted}
@@ -442,7 +450,7 @@ async function openStudentDetailModal(studentId) {
   document.getElementById('st-detail-avatar').textContent = '...';
   document.getElementById('st-detail-class').textContent = '-';
   document.getElementById('st-detail-quiz-count').textContent = '0';
-  document.getElementById('st-detail-avg-score').textContent = '-';
+  document.getElementById('st-detail-avg-score').textContent = 'Belum ada skor';
   document.getElementById('st-detail-notes-count').textContent = '0';
   document.getElementById('st-detail-quiz-list').innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">Memuatkan rekod...</div>';
   document.getElementById('st-detail-notes-list').innerHTML = '';
@@ -457,16 +465,20 @@ async function openStudentDetailModal(studentId) {
       return;
     }
 
-    const { student, quizAttempts, noteProgress, gameActivity } = detail;
+    const student = detail.student || detail.profile || {};
+    const quizAttempts = detail.quizAttempts || [];
+    const noteProgress = detail.noteProgress || detail.learningProgress || [];
+    const gameActivity = detail.gameActivity || [];
 
     // Header info
-    document.getElementById('st-detail-name').textContent = student.name;
-    document.getElementById('st-detail-email').textContent = student.email;
-    document.getElementById('st-detail-avatar').textContent = (student.name || 'P').charAt(0).toUpperCase();
-    document.getElementById('st-detail-class').textContent = student.grade || 'Tingkatan 1';
-    document.getElementById('st-detail-quiz-count').textContent = quizAttempts.length;
-    document.getElementById('st-detail-avg-score').textContent = student.averageScore != null ? `${student.averageScore}%` : '-';
-    document.getElementById('st-detail-notes-count').textContent = noteProgress.filter(n => n.completed).length;
+    document.getElementById('st-detail-name').textContent = student.name || student.full_name || 'Pelajar';
+    document.getElementById('st-detail-email').textContent = student.email || (student.nickname ? `${student.nickname}@sekolah.edu.my` : '-');
+    document.getElementById('st-detail-avatar').textContent = ((student.name || student.full_name || 'P')).charAt(0).toUpperCase();
+    document.getElementById('st-detail-class').textContent = student.grade || student.class_name || 'Tingkatan 1';
+    document.getElementById('st-detail-quiz-count').textContent = `${quizAttempts.length} percubaan`;
+    const avgScoreVal = student.averageScore != null ? student.averageScore : student.avgScore;
+    document.getElementById('st-detail-avg-score').textContent = (avgScoreVal != null && !isNaN(avgScoreVal) && quizAttempts.length > 0) ? `${avgScoreVal}%` : 'Belum ada skor';
+    document.getElementById('st-detail-notes-count').textContent = `${noteProgress.filter(n => n.completed || n.completion_status === 'completed').length} modul`;
 
     // Quiz Attempts Section
     const quizList = document.getElementById('st-detail-quiz-list');
@@ -1267,18 +1279,50 @@ async function handleUpdateAdminEmail(event) {
   }
 }
 
-function handleAdminLogout() {
+async function handleAdminLogout() {
   const confirmMsg = window.AdminI18n 
     ? window.AdminI18n.t('logoutConfirm') 
     : 'Adakah anda pasti untuk log keluar dari Portal Pentadbir?';
 
-  if (confirm(confirmMsg)) {
-    if (window.Auth && typeof window.Auth.logout === 'function') {
-      window.Auth.logout('../login/code.html');
-    } else {
-      location.replace('../login/code.html');
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  // 1. Sign out from Supabase authoritative session
+  if (window.ARSupabase && typeof window.ARSupabase.signOut === 'function') {
+    try {
+      await window.ARSupabase.signOut();
+    } catch (e) {
+      console.warn('Supabase sign-out warning on admin logout:', e);
     }
   }
+
+  // 2. Clear all admin flags and auth tokens
+  const keysToRemove = [
+    'arselnelAdmin',
+    'arselnel_current_user',
+    'currentUser',
+    'arselnel_auth_token',
+    'arselnel_demo_mode',
+    'arselnel_local_migration_source'
+  ];
+
+  keysToRemove.forEach(k => {
+    try {
+      localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
+    } catch (_) {}
+  });
+
+  // 3. Clear Auth singleton if available
+  if (window.Auth && typeof window.Auth.logout === 'function') {
+    try {
+      window.Auth.logout(null);
+    } catch (_) {}
+  }
+
+  // 4. Redirect cleanly to Admin login page with logged_out parameter
+  window.location.replace('../auth/login.html?role=admin&logged_out=1');
 }
 
 // Expose functions globally for HTML inline handlers

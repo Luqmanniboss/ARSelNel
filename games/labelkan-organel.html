@@ -615,7 +615,7 @@
         localStorage.setItem(subKey, JSON.stringify(subs.slice(-500)));
 
         const statusEl = document.getElementById('save-status-msg');
-        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user.authProvider === 'supabase') {
+        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google')) {
           window.ARSupabase.saveQuizAttempt(submission)
             .then(() => { statusEl.textContent = '✓ Skor 150 pts berjaya disegerakkan ke Supabase!'; })
             .catch(() => { statusEl.textContent = '✓ Skor disimpan secara setempat pada peranti.'; });

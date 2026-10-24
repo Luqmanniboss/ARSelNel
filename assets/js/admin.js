@@ -456,28 +456,6 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       };
     }
 
-    async syncFromSupabase() {
-      if (global.CMSAdapter && typeof global.CMSAdapter.checkConnection === 'function') {
-        const state = await global.CMSAdapter.checkConnection();
-        if (state && state.connected) {
-          try {
-            await Promise.allSettled([
-              global.CMSAdapter.getQuizzes({ status: 'all' }),
-              global.CMSAdapter.getNotes({ status: 'all' }),
-              global.CMSAdapter.getVideos({ status: 'all' }),
-              global.CMSAdapter.getCellQuestOrganelles({ status: 'all' }),
-              global.CMSAdapter.getCellQuestModels({ activeOnly: false }),
-              global.CMSAdapter.getManualSteps({ status: 'all' })
-            ]);
-            return true;
-          } catch (e) {
-            console.warn('Sync from Supabase warning', e);
-          }
-        }
-      }
-      return false;
-    }
-
     getModules() { return this.getCollection(CMS_STORAGE.MODULES, []); }
 
     getModuleById(id) { return this.getModules().find(module => module.id === id); }
@@ -502,16 +480,19 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
 
     // --- Quizzes CRUD ---
     getQuizzes(filterTopic = '', searchQuery = '') {
-      let list = this.getCollection(CMS_STORAGE.QUIZZES, SEED_QUIZZES);
+      let list = this.getCollection(CMS_STORAGE.QUIZZES, null);
+      if (list === null) {
+        list = SEED_QUIZZES.slice();
+      }
       if (filterTopic && filterTopic !== 'all') {
-        list = list.filter(q => q.topic.toLowerCase() === filterTopic.toLowerCase());
+        list = list.filter(q => (q.topic || '').toLowerCase() === filterTopic.toLowerCase());
       }
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         list = list.filter(item => 
-          item.title.toLowerCase().includes(q) || 
-          item.question.toLowerCase().includes(q) ||
-          item.topic.toLowerCase().includes(q)
+          (item.title || '').toLowerCase().includes(q) || 
+          (item.question || '').toLowerCase().includes(q) ||
+          (item.topic || '').toLowerCase().includes(q)
         );
       }
       return list;
@@ -530,13 +511,13 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
           typeof global.CMSAdapter.getQuizzes === 'function' ? global.CMSAdapter.getQuizzes() : Promise.resolve(null),
           typeof global.CMSAdapter.getNotes === 'function' ? global.CMSAdapter.getNotes({ status: 'all' }) : Promise.resolve(null)
         ]);
-        if (Array.isArray(videos) && videos.length > 0) {
+        if (Array.isArray(videos)) {
           this.saveCollection(CMS_STORAGE.VIDEOS, videos);
         }
-        if (Array.isArray(quizzes) && quizzes.length > 0) {
+        if (Array.isArray(quizzes)) {
           this.saveCollection(CMS_STORAGE.QUIZZES, quizzes);
         }
-        if (Array.isArray(notes) && notes.length > 0) {
+        if (Array.isArray(notes)) {
           this.saveCollection(CMS_STORAGE.NOTES, notes);
         }
         return true;
@@ -551,7 +532,7 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       if (global.CMSAdapter && typeof global.CMSAdapter.saveQuiz === 'function') {
         saved = await global.CMSAdapter.saveQuiz(quizData);
       }
-      const list = this.getCollection(CMS_STORAGE.QUIZZES, SEED_QUIZZES);
+      const list = this.getCollection(CMS_STORAGE.QUIZZES, []);
       const targetId = (saved && saved.id) || quizData.id;
       if (targetId) {
         const index = list.findIndex(q => q.id === targetId);
@@ -579,7 +560,7 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       if (global.CMSAdapter && typeof global.CMSAdapter.deleteQuiz === 'function') {
         await global.CMSAdapter.deleteQuiz(id);
       }
-      let list = this.getCollection(CMS_STORAGE.QUIZZES, SEED_QUIZZES);
+      let list = this.getCollection(CMS_STORAGE.QUIZZES, []);
       const target = list.find(q => q.id === id);
       list = list.filter(q => q.id !== id);
       this.saveCollection(CMS_STORAGE.QUIZZES, list);
@@ -589,16 +570,19 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
 
     // --- Notes CRUD ---
     getNotes(searchQuery = '', statusFilter = 'all') {
-      let list = this.getCollection(CMS_STORAGE.NOTES, SEED_NOTES);
+      let list = this.getCollection(CMS_STORAGE.NOTES, null);
+      if (list === null) {
+        list = SEED_NOTES.slice();
+      }
       if (statusFilter !== 'all') {
-        list = list.filter(n => n.status === statusFilter);
+        list = list.filter(n => (n.status || n.publicationStatus || 'published') === statusFilter);
       }
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         list = list.filter(n => 
-          n.title.toLowerCase().includes(q) || 
-          n.topic.toLowerCase().includes(q) ||
-          n.summary.toLowerCase().includes(q)
+          (n.title || '').toLowerCase().includes(q) || 
+          (n.topic || n.chapter || '').toLowerCase().includes(q) ||
+          (n.summary || n.description || '').toLowerCase().includes(q)
         );
       }
       return list;
@@ -628,7 +612,7 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
           console.warn('SmartNotes sync notice:', e);
         }
       }
-      const list = this.getCollection(CMS_STORAGE.NOTES, SEED_NOTES);
+      const list = this.getCollection(CMS_STORAGE.NOTES, []);
       const targetId = (saved && saved.id) || noteData.id;
       if (targetId) {
         const index = list.findIndex(n => n.id === targetId);
@@ -660,7 +644,7 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       if (global.SmartNotes && typeof global.SmartNotes.deleteNote === 'function') {
         try { await global.SmartNotes.deleteNote(id); } catch (_) {}
       }
-      let list = this.getCollection(CMS_STORAGE.NOTES, SEED_NOTES);
+      let list = this.getCollection(CMS_STORAGE.NOTES, []);
       const target = list.find(n => n.id === id);
       list = list.filter(n => n.id !== id);
       this.saveCollection(CMS_STORAGE.NOTES, list);
@@ -669,16 +653,22 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
     }
 
     // --- Videos CRUD ---
-    getVideos(category = 'all', searchQuery = '') {
-      let list = this.getCollection(CMS_STORAGE.VIDEOS, SEED_VIDEOS);
+    getVideos(category = 'all', searchQuery = '', statusFilter = 'all') {
+      let list = this.getCollection(CMS_STORAGE.VIDEOS, null);
+      if (list === null) {
+        list = SEED_VIDEOS.slice();
+      }
       if (category !== 'all') {
-        list = list.filter(v => v.category.toLowerCase() === category.toLowerCase());
+        list = list.filter(v => (v.category || '').toLowerCase() === category.toLowerCase());
+      }
+      if (statusFilter !== 'all') {
+        list = list.filter(v => (v.status || v.publicationStatus || 'published') === statusFilter);
       }
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         list = list.filter(v => 
-          v.title.toLowerCase().includes(q) || 
-          v.description.toLowerCase().includes(q)
+          (v.title || '').toLowerCase().includes(q) || 
+          (v.description || '').toLowerCase().includes(q)
         );
       }
       return list;
@@ -694,7 +684,7 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       if (global.CMSAdapter && typeof global.CMSAdapter.saveVideo === 'function') {
         saved = await global.CMSAdapter.saveVideo(videoData);
       }
-      const list = this.getCollection(CMS_STORAGE.VIDEOS, SEED_VIDEOS);
+      const list = this.getCollection(CMS_STORAGE.VIDEOS, []);
       const targetId = (saved && saved.id) || videoData.id;
       if (targetId) {
         const index = list.findIndex(v => v.id === targetId);
@@ -723,7 +713,7 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
       if (global.CMSAdapter && typeof global.CMSAdapter.deleteVideo === 'function') {
         await global.CMSAdapter.deleteVideo(id);
       }
-      let list = this.getCollection(CMS_STORAGE.VIDEOS, SEED_VIDEOS);
+      let list = this.getCollection(CMS_STORAGE.VIDEOS, []);
       const target = list.find(v => v.id === id);
       list = list.filter(v => v.id !== id);
       this.saveCollection(CMS_STORAGE.VIDEOS, list);

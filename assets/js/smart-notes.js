@@ -915,25 +915,17 @@
       let list = [];
       try {
         const stored = localStorage.getItem(STORAGE_KEYS.NOTES);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          const existingIds = new Set(parsed.map(x => x.id));
-          // Prepend missing seed slides so new activities are always accessible
-          SEED_SLIDES.forEach(seed => {
-            if (!existingIds.has(seed.id)) {
-              parsed.unshift(seed);
-              existingIds.add(seed.id);
-            }
-          });
-          list = parsed;
+        if (stored !== null) {
+          list = JSON.parse(stored) || [];
         } else {
           list = SEED_SLIDES.slice();
+          localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(list));
         }
       } catch (_) {
         list = SEED_SLIDES.slice();
       }
 
-      // If Supabase is connected and online, attempt to fetch remote published notes
+      // If Supabase is connected and online, remote database is authoritative
       try {
         if (global.ARSupabase && typeof global.ARSupabase.getClient === 'function') {
           const client = await global.ARSupabase.getClient();
@@ -943,29 +935,22 @@
               .select('*')
               .order('created_at', { ascending: false });
 
-            if (!error && Array.isArray(data) && data.length > 0) {
-              const remoteMap = new Map();
-              data.forEach(item => {
-                remoteMap.set(item.id, {
-                  id: item.id,
-                  title: item.title,
-                  chapter: item.chapter,
-                  description: item.description,
-                  contentType: item.content_type,
-                  sourceUrl: item.source_url,
-                  storagePath: item.storage_path,
-                  slideCount: item.slide_count,
-                  slides: Array.isArray(item.slide_data) ? item.slide_data : [],
-                  publicationStatus: item.publication_status,
-                  createdAt: item.created_at,
-                  updatedAt: item.updated_at
-                });
-              });
-              // Merge local + remote
-              list.forEach(item => {
-                if (!remoteMap.has(item.id)) remoteMap.set(item.id, item);
-              });
-              list = Array.from(remoteMap.values());
+            if (!error && Array.isArray(data)) {
+              list = data.map(item => ({
+                id: item.id,
+                title: item.title,
+                chapter: item.chapter,
+                description: item.description,
+                contentType: item.content_type,
+                sourceUrl: item.source_url,
+                storagePath: item.storage_path,
+                slideCount: item.slide_count,
+                slides: Array.isArray(item.slide_data) ? item.slide_data : [],
+                publicationStatus: item.publication_status,
+                createdAt: item.created_at,
+                updatedAt: item.updated_at
+              }));
+              localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(list));
             }
           }
         }

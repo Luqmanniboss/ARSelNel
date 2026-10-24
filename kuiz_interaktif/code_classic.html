@@ -540,7 +540,7 @@
             submissions.push(submission);
             localStorage.setItem(submissionsKey, JSON.stringify(submissions.slice(-500)));
           } catch (_) {}
-          if (user.authProvider === 'supabase' && window.ARSupabase) {
+          if (user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google') && window.ARSupabase) {
             ARSupabase.saveQuizAttempt(submission).catch(error => console.warn('Keputusan kuiz kekal setempat sementara penyegerakan dicuba semula.', error));
           }
         }

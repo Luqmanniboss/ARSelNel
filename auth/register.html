@@ -495,11 +495,6 @@
         return;
       }
 
-      let sourceUser = AuthGuard.getUser();
-      if (!sourceUser) {
-        try { sourceUser = JSON.parse(sessionStorage.getItem('arselnel_local_migration_source') || 'null'); } catch (_) {}
-      }
-
       setFormLoading(true);
 
       try {
@@ -527,21 +522,7 @@
           };
           // Persist user session across tab reloads and navigations
           AuthGuard.saveUser(newUser, true);
-
-          // Prompt local progress import if available
-          if (sourceUser && sourceUser.role === 'student' && !sourceUser.isGuest && sourceUser.id !== result.user.id) {
-            let hasLocalLearning = false;
-            try {
-              const record = JSON.parse(localStorage.getItem(`arselnel_learning_progress_${sourceUser.id}`) || '{}');
-              const cell = JSON.parse(localStorage.getItem(`arselnel_cellquest_progress_${sourceUser.id}`) || '{}');
-              hasLocalLearning = !!((record.quizzes && record.quizzes.length) || (record.completedLessons && record.completedLessons.length) || cell.xp);
-            } catch (_) {}
-            if (hasLocalLearning && window.confirm(`Import kemajuan daripada profil setempat “${sourceUser.nickname || sourceUser.name || 'Pelajar'}” ke akaun ${email}? Rekod asal kekal selamat pada peranti ini.`)) {
-              try { await ARSupabase.importLocalLearning(sourceUser.id); }
-              catch (error) { window.alert('Akaun berjaya dibuat, tetapi rekod setempat belum disegerakkan. Salinan asal kekal selamat pada peranti ini.'); }
-            }
-          }
-          sessionStorage.removeItem('arselnel_local_migration_source');
+          try { sessionStorage.removeItem('arselnel_local_migration_source'); } catch (_) {}
           location.assign('../halaman_utama/code.html');
           return;
         }
