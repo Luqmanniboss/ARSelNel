@@ -1771,19 +1771,41 @@
 
     async getStudentDetail(studentId) {
       await this.initPromise;
-      if (!this.supabaseClient || this.connectionStatus !== 'connected') {
-        throw new Error('Tidak dapat menyambung ke pangkalan data Supabase.');
+
+      let prof = {};
+      let attempts = [];
+      let prog = [];
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        const [profileRes, attemptsRes, progressRes] = await Promise.all([
+          this.supabaseClient.from('profiles').select('*').eq('id', studentId).maybeSingle(),
+          this.supabaseClient.from('quiz_attempts').select('*').eq('user_id', studentId).order('submitted_at', { ascending: false }),
+          this.supabaseClient.from('learning_progress').select('*').eq('user_id', studentId).order('updated_at', { ascending: false })
+        ]);
+        prof = profileRes.data || {};
+        attempts = attemptsRes.data || [];
+        prog = progressRes.data || [];
+      } else {
+        // Resilient fallback for offline, demo mode or local testing
+        let registered = [];
+        try { registered = JSON.parse(localStorage.getItem('arselnel_registered_students') || '[]'); } catch (_) {}
+        prof = registered.find(s => s.id === studentId) || { id: studentId, full_name: 'Pelajar', class_name: 'Tingkatan 1' };
+
+        let allSubs = [];
+        try { allSubs = JSON.parse(localStorage.getItem('arselnel_quiz_submissions') || '[]'); } catch (_) {}
+        attempts = allSubs.filter(s => (s.studentId === studentId || s.userId === studentId || s.student_id === studentId || s.user_id === studentId))
+          .map(s => ({
+            id: s.id,
+            user_id: studentId,
+            quiz_id: s.quizId || s.gameId || s.quiz_id,
+            score: s.score,
+            correct_answers: s.correct != null ? s.correct : s.correct_answers,
+            total_questions: s.total != null ? s.total : s.total_questions,
+            duration_seconds: s.duration_seconds || s.durationSeconds || null,
+            submitted_at: s.completedAt || s.submitted_at || new Date().toISOString(),
+            result_data: s
+          }));
       }
-
-      const [profileRes, attemptsRes, progressRes] = await Promise.all([
-        this.supabaseClient.from('profiles').select('*').eq('id', studentId).maybeSingle(),
-        this.supabaseClient.from('quiz_attempts').select('*').eq('user_id', studentId).order('submitted_at', { ascending: false }),
-        this.supabaseClient.from('learning_progress').select('*').eq('user_id', studentId).order('updated_at', { ascending: false })
-      ]);
-
-      const prof = profileRes.data || {};
-      const attempts = attemptsRes.data || [];
-      const prog = progressRes.data || [];
 
       const totalAttempts = attempts.length;
       const avg = totalAttempts > 0 ? Math.round(attempts.reduce((acc, a) => acc + (Number(a.score) || 0), 0) / totalAttempts) : null;
@@ -1799,14 +1821,59 @@
         quizAttemptsCount: totalAttempts
       };
 
-      const formattedAttempts = attempts.map(a => ({
-        id: a.id,
-        title: (a.result_data && a.result_data.title) || a.quiz_id || 'Kuiz Sains',
-        score: a.score,
-        totalQuestions: a.total_questions || 5,
-        correctAnswers: (a.result_data && a.result_data.correct) || Math.round((a.score / 100) * (a.total_questions || 5)),
-        date: a.submitted_at
-      }));
+      // Pecahan prestasi permainan murid (Games Breakdown)
+      const gamesMap = {};
+
+      attempts.sort((a, b) => new Date(b.submitted_at || 0).getTime() - new Date(a.submitted_at || 0).getTime());
+
+      const formattedAttempts = attempts.map(a => {
+        const rd = a.result_data || {};
+        const rawId = a.quiz_id || rd.gameId || rd.quizId || 'kuiz_saintis_muda';
+        const normId = String(rawId).toLowerCase().trim();
+        const canonicalId = (normId === 'maze-chase-sel' || normId === 'maze_chase' || normId === 'klasifikasi-sel') ? 'maze_2d' :
+          (normId === 'misi-makmal-sains' || normId === 'lab_adventure') ? 'misi_makmal' :
+          (normId === 'labelkan-organel') ? 'labelkan_organel' :
+          (normId === 'organisasi-kehidupan') ? 'organisasi_sel' :
+          (normId === 'pengembaraan-sains-2d-sel' || normId === 'struktur-fungsi-organisasi-sel') ? 'kuiz_saintis_muda' : rawId;
+
+        const score = Number(a.score) || 0;
+        const total = Math.max(1, Number(a.total_questions || rd.total || 10));
+        const correct = (a.correct_answers != null) ? Number(a.correct_answers) : ((rd.correct != null) ? Number(rd.correct) : 0);
+        const incorrect = Math.max(0, total - correct);
+        const title = rd.title || rd.game_title || (canonicalId === 'maze_2d' ? 'Maze Chase 2D' : canonicalId === 'misi_makmal' ? 'Misi Makmal Sains' : canonicalId === 'labelkan_organel' ? 'Labelkan Organel Sel' : canonicalId === 'organisasi_sel' ? 'Susun Organisasi Kehidupan' : 'Kuiz Saintis Muda');
+
+        if (!gamesMap[canonicalId]) {
+          gamesMap[canonicalId] = {
+            gameId: canonicalId,
+            gameTitle: title,
+            title: title,
+            attemptsCount: 0,
+            bestScore: 0,
+            latestScore: score,
+            correct: correct,
+            incorrect: incorrect,
+            lastActive: a.submitted_at
+          };
+        }
+
+        const g = gamesMap[canonicalId];
+        g.attemptsCount += 1;
+        if (score > g.bestScore) {
+          g.bestScore = score;
+        }
+
+        return {
+          id: a.id,
+          gameId: canonicalId,
+          title: title,
+          score: score,
+          totalQuestions: total,
+          correctAnswers: correct,
+          incorrectAnswers: incorrect,
+          durationSeconds: a.duration_seconds || rd.durationSeconds || null,
+          date: a.submitted_at
+        };
+      });
 
       const noteProg = prog.filter(p => p.activity_id && p.activity_id.startsWith('note-')).map(p => ({
         id: p.activity_id,
@@ -1825,6 +1892,7 @@
       return {
         student: studentObj,
         profile: prof,
+        gamesBreakdown: Object.values(gamesMap),
         quizAttempts: formattedAttempts,
         noteProgress: noteProg,
         learningProgress: prog,

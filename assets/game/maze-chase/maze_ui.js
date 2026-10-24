@@ -34,6 +34,9 @@
       this.timerInterval = null;
       this.isTimerRunning = false;
 
+      // Penjejakan Snapshot Jawapan Murid (Untuk Semakan Jawapan Saya)
+      this.userAnswers = {};
+
       // Elemen DOM Utama
       this.canvas = document.getElementById('maze-canvas');
       this.hudScore = document.getElementById('maze-hud-score');
@@ -438,6 +441,23 @@
 
       this.engine.pause();
 
+      // Rekod snapshot pilihan jawapan murid
+      const choiceOptions = q.options || [];
+      const correctIndex = Number(q.correct) || 0;
+      this.userAnswers[this.currentQuestionIndex] = {
+        questionIndex: this.currentQuestionIndex + 1,
+        questionId: q.id || `q_${this.currentQuestionIndex + 1}`,
+        questionText: q.prompt || q.question || 'Soalan Maze 2D',
+        options: choiceOptions,
+        selectedChoice: zoneLetter,
+        selectedText: choiceOptions[selectedIndex] || `Zon ${zoneLetter}`,
+        correctChoice: ['A', 'B', 'C', 'D'][correctIndex] || 'A',
+        correctText: choiceOptions[correctIndex] || '',
+        isCorrect: isCorrect,
+        pointsEarned: isCorrect ? (q.points || 100) : 0,
+        explanation: q.explanation || 'Organel sel menjalankan fungsi khusus untuk kehidupan sel.'
+      };
+
       if (isCorrect) {
         Audio.playCorrect();
         this.score += q.points;
@@ -637,20 +657,60 @@
       const user = this.playerProfile;
       const statusEl = document.getElementById('maze-save-status-msg');
 
+      // Jana snapshot lengkap bagi semua soalan
+      const answersList = [];
+      for (let i = 0; i < this.questions.length; i++) {
+        if (this.userAnswers[i]) {
+          answersList.push(this.userAnswers[i]);
+        } else {
+          const q = this.questions[i];
+          const choiceOptions = q.options || [];
+          const correctIdx = Number(q.correct) || 0;
+          answersList.push({
+            questionIndex: i + 1,
+            questionId: q.id || `q_${i + 1}`,
+            questionText: q.prompt || q.question || 'Soalan Maze 2D',
+            options: choiceOptions,
+            selectedChoice: '—',
+            selectedText: 'Belum Dijawab',
+            correctChoice: ['A', 'B', 'C', 'D'][correctIdx] || 'A',
+            correctText: choiceOptions[correctIdx] || '',
+            isCorrect: false,
+            pointsEarned: 0,
+            explanation: q.explanation || 'Organel sel menjalankan fungsi khusus untuk kehidupan sel.'
+          });
+        }
+      }
+
+      const submissionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'maze_' + Date.now();
+
       const submission = {
-        id: crypto.randomUUID ? crypto.randomUUID() : 'maze_' + Date.now(),
-        quizId: 'maze-chase-sel',
+        id: submissionId,
+        quizId: 'maze_2d',
+        gameId: 'maze_2d',
         topic: 'Sel sebagai Unit Asas Hidupan (Sel Haiwan & Tumbuhan)',
-        title: 'Maze Chase: Misi Sel Haiwan & Tumbuhan',
+        title: 'Maze Chase 2D: Misi Sel Haiwan & Tumbuhan',
         studentId: user.id || 'std_anon',
         studentName: user.name || 'Pelajar',
         correct: this.correctAnswersCount,
         total: this.questions.length,
-        score: Math.round((this.correctAnswersCount / this.questions.length) * 100),
+        score: this.score, // Nilai markah sebenar (sehingga 1000 mata!)
         rawPoints: this.score,
         durationSeconds: this.elapsedSeconds,
+        answers: answersList,
         completedAt: new Date().toISOString()
       };
+
+      // Simpan percubaan terkini secara tempatan untuk paparan segera di halaman keputusan
+      try {
+        localStorage.setItem('arselnel_latest_attempt', JSON.stringify(submission));
+      } catch (_) {}
+
+      // Kemas kini link Papan Skor dalam modal tamat permainan supaya membawa ID percubaan
+      const victoryLeaderboardBtn = document.querySelector('#maze-victory-modal a[href*="keputusan_permainan"]');
+      if (victoryLeaderboardBtn) {
+        victoryLeaderboardBtn.href = `../keputusan_permainan/code.html?attempt_id=${submissionId}&game=maze_2d`;
+      }
 
       try {
         const key = `arselnel_learning_progress_${user.id}`;
@@ -664,16 +724,16 @@
         subs.push(submission);
         localStorage.setItem(subKey, JSON.stringify(subs.slice(-500)));
 
-        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google')) {
+        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
           window.ARSupabase.saveQuizAttempt(submission)
             .then(() => {
-              if (statusEl) statusEl.textContent = '✓ Skor 1000 pts berjaya disegerakkan ke Supabase!';
+              if (statusEl) statusEl.textContent = `✓ Markah ${this.score} mata berjaya disegerakkan ke Supabase!`;
             })
             .catch(() => {
-              if (statusEl) statusEl.textContent = '✓ Skor disimpan secara setempat pada peranti.';
+              if (statusEl) statusEl.textContent = `✓ Markah ${this.score} mata disimpan secara setempat pada peranti.`;
             });
         } else {
-          if (statusEl) statusEl.textContent = '✓ Skor disimpan ke rekod pembelajaran anda.';
+          if (statusEl) statusEl.textContent = `✓ Markah ${this.score} mata disimpan ke rekod pembelajaran anda.`;
         }
       } catch (e) {
         if (statusEl) statusEl.textContent = '✓ Skor disimpan.';

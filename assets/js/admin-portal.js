@@ -548,25 +548,55 @@ async function openStudentDetailModal(studentId) {
       `).join('');
     }
 
-    // Game & CellQuest Activity Section
+    // Game & CellQuest Activity Section (Sokongan Pecahan Setiap Permainan)
     const gamesList = document.getElementById('st-detail-games-list');
-    if (!gameActivity || gameActivity.length === 0) {
-      gamesList.innerHTML = `
-        <div class="p-5 bg-slate-50 rounded-2xl text-center border border-slate-100">
-          <p class="text-xs font-semibold text-slate-600">Belum ada rekod pembelajaran.</p>
-          <p class="text-[11px] text-slate-400 mt-0.5">Tiada sesi permainan arked atau aktiviti CellQuest direkodkan.</p>
+    const gamesBreakdown = detail.gamesBreakdown || [];
+
+    if (gamesBreakdown.length > 0) {
+      gamesList.innerHTML = gamesBreakdown.map(g => `
+        <div class="p-3.5 rounded-2xl border border-slate-100 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <h5 class="text-xs font-bold text-slate-900">${escapeHtml(g.gameTitle)}</h5>
+            </div>
+            <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+              <span>${g.attemptsCount} percubaan</span>
+              <span>•</span>
+              <span class="text-emerald-700 font-bold">${g.correct} Betul</span>
+              <span>•</span>
+              <span class="text-rose-600 font-bold">${g.incorrect} Salah</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 self-end sm:self-center">
+            <div class="text-right">
+              <span class="text-[10px] text-slate-400 block font-semibold uppercase">Markah Terbaik</span>
+              <span class="font-headline font-extrabold text-sm text-emerald-700">${Number(g.bestScore).toLocaleString()} mata</span>
+            </div>
+            <div class="text-right border-l border-slate-100 pl-3">
+              <span class="text-[10px] text-slate-400 block font-semibold uppercase">Terkini</span>
+              <span class="font-headline font-bold text-xs text-slate-700">${Number(g.latestScore).toLocaleString()}</span>
+            </div>
+          </div>
         </div>
-      `;
-    } else {
+      `).join('');
+    } else if (gameActivity && gameActivity.length > 0) {
       gamesList.innerHTML = gameActivity.map(g => `
         <div class="p-3 rounded-2xl border border-slate-100 bg-white flex items-center justify-between gap-3">
           <div>
-            <span class="text-xs font-bold text-slate-800 block">${escapeHtml(g.gameName)}</span>
+            <span class="text-xs font-bold text-slate-800 block">${escapeHtml(g.gameName || g.title)}</span>
             <span class="text-[10px] text-slate-400 font-mono">${g.date ? new Date(g.date).toLocaleDateString('ms-MY') : ''}</span>
           </div>
           ${g.score != null ? `<span class="font-headline font-bold text-xs text-primary">${g.score} Markah</span>` : ''}
         </div>
       `).join('');
+    } else {
+      gamesList.innerHTML = `
+        <div class="p-5 bg-slate-50 rounded-2xl text-center border border-slate-100">
+          <p class="text-xs font-semibold text-slate-600">Belum ada rekod permainan.</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Tiada percubaan permainan Maze 2D, Misi Makmal atau Kuiz direkodkan untuk murid ini.</p>
+        </div>
+      `;
     }
 
   } catch (err) {

@@ -124,21 +124,461 @@
     });
   }
 
+  function normalizeGameId(rawId) {
+    if (!rawId) return 'kuiz_saintis_muda';
+    const id = String(rawId).toLowerCase().trim();
+    if (id === 'maze_2d' || id === 'maze-chase-sel' || id === 'maze_chase' || id === 'klasifikasi-sel') return 'maze_2d';
+    if (id === 'misi_makmal' || id === 'misi-makmal-sains' || id === 'lab_adventure' || id === 'lab-adventure') return 'misi_makmal';
+    if (id === 'labelkan_organel' || id === 'labelkan-organel' || id === 'label_organelles') return 'labelkan_organel';
+    if (id === 'organisasi_sel' || id === 'organisasi-kehidupan' || id === 'susun_organisasi') return 'organisasi_sel';
+    if (id === 'kuiz_saintis_muda' || id === 'kuiz-saintis-muda' || id === 'struktur-fungsi-organisasi-sel' || id === 'kuiz_interaktif') return 'kuiz_saintis_muda';
+    return id;
+  }
+
+  const GAME_CATALOG = {
+    'maze_2d': {
+      id: 'maze_2d',
+      title: 'Maze Chase 2D: Misi Sel Haiwan & Tumbuhan',
+      shortTitle: 'Maze 2D',
+      icon: '🎮',
+      route: '../games/klasifikasi-sel.html',
+      maxScore: 1000,
+      hasTimer: true
+    },
+    'misi_makmal': {
+      id: 'misi_makmal',
+      title: 'Misi Makmal Sains',
+      shortTitle: 'Misi Makmal',
+      icon: '🔬',
+      route: '../games/misi-makmal-sains.html',
+      maxScore: 1000,
+      hasTimer: true
+    },
+    'labelkan_organel': {
+      id: 'labelkan_organel',
+      title: 'Labelkan Organel Sel',
+      shortTitle: 'Labelkan Organel',
+      icon: '🏷️',
+      route: '../games/labelkan-organel.html',
+      maxScore: 100,
+      hasTimer: true
+    },
+    'organisasi_sel': {
+      id: 'organisasi_sel',
+      title: 'Susun Organisasi Kehidupan',
+      shortTitle: 'Organisasi Sel',
+      icon: '🧩',
+      route: '../games/organisasi-kehidupan.html',
+      maxScore: 100,
+      hasTimer: true
+    },
+    'kuiz_saintis_muda': {
+      id: 'kuiz_saintis_muda',
+      title: 'Kuiz Interaktif: Struktur & Organisasi Sel',
+      shortTitle: 'Kuiz Saintis Muda',
+      icon: '📝',
+      route: '../kuiz_interaktif/code.html',
+      maxScore: 100,
+      hasTimer: false
+    }
+  };
+
   async function saveQuizAttempt(attempt) {
-    const record = { ...attempt, id: attempt.id || global.crypto.randomUUID() };
+    const rawGameId = attempt.quizId || attempt.gameId || attempt.game_id || attempt.id;
+    const canonicalGameId = normalizeGameId(rawGameId);
+    const attemptId = attempt.id || (global.crypto && global.crypto.randomUUID ? global.crypto.randomUUID() : 'att_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8));
+    
+    // Ensure raw score is preserved without clamping to 100 (Maze 2D can score 1000)
+    let finalScore = 0;
+    if (Number.isFinite(Number(attempt.score))) {
+      finalScore = Math.max(0, Math.round(Number(attempt.score)));
+    } else {
+      const correct = Number(attempt.correct) || 0;
+      const total = Math.max(1, Number(attempt.total) || 1);
+      finalScore = Math.round((correct / total) * 100);
+    }
+
+    const durationSeconds = Number.isFinite(Number(attempt.durationSeconds)) 
+      ? Math.max(0, Math.round(Number(attempt.durationSeconds))) 
+      : (Number.isFinite(Number(attempt.duration)) ? Math.max(0, Math.round(Number(attempt.duration))) : null);
+
+    const record = {
+      ...attempt,
+      id: attemptId,
+      quizId: canonicalGameId,
+      gameId: canonicalGameId,
+      score: finalScore,
+      correct: Number(attempt.correct) || 0,
+      total: Math.max(1, Number(attempt.total) || 1),
+      durationSeconds: durationSeconds,
+      answers: Array.isArray(attempt.answers) ? attempt.answers : [],
+      completedAt: attempt.completedAt || new Date().toISOString()
+    };
+
+    // Save latest attempt cache in localStorage for instant access on results page
+    try {
+      localStorage.setItem('arselnel_latest_attempt', JSON.stringify(record));
+    } catch (_) {}
+
     return withPersistence('quiz', record, async () => {
       const { client, authUser } = await authenticatedClient();
       const row = {
-        user_id: authUser.id, legacy_source_id: record.id,
-        quiz_id: record.quizId || 'struktur-fungsi-organisasi-sel',
-        score: Number.isFinite(Number(record.score)) ? Math.max(0, Math.min(100, Math.round(Number(record.score)))) : Math.round((Number(record.correct) || 0) / Math.max(1, Number(record.total) || 1) * 100),
-        total_questions: Math.max(1, Number(record.total) || 0),
-        result_data: record, submitted_at: record.completedAt || new Date().toISOString()
+        user_id: authUser.id,
+        legacy_source_id: record.id,
+        quiz_id: canonicalGameId,
+        score: finalScore,
+        correct_answers: record.correct,
+        total_questions: record.total,
+        duration_seconds: durationSeconds,
+        result_data: record,
+        submitted_at: record.completedAt
       };
-      const { data, error } = await client.from('quiz_attempts').upsert(row, { onConflict: 'user_id,legacy_source_id' }).select().single();
-      if (error) throw error;
+      
+      const { data, error } = await client
+        .from('quiz_attempts')
+        .upsert(row, { onConflict: 'user_id,legacy_source_id' })
+        .select()
+        .single();
+        
+      if (error) {
+        // Fallback: If duration_seconds column does not exist yet before migration is run, retry without it
+        if (error.message && error.message.includes('duration_seconds')) {
+          delete row.duration_seconds;
+          const { data: retryData, error: retryError } = await client
+            .from('quiz_attempts')
+            .upsert(row, { onConflict: 'user_id,legacy_source_id' })
+            .select()
+            .single();
+          if (retryError) throw retryError;
+          return retryData;
+        }
+        throw error;
+      }
       return data;
     });
+  }
+
+  async function getGameLeaderboard(rawGameId, limit = 50) {
+    const gameId = normalizeGameId(rawGameId);
+    let remoteEntries = [];
+    let isRemoteSuccessful = false;
+
+    try {
+      await ready;
+      if (state.client) {
+        // Try calling the SQL function first
+        const { data, error } = await state.client.rpc('get_game_leaderboard', {
+          p_game_id: gameId,
+          p_limit: limit
+        });
+
+        if (!error && Array.isArray(data)) {
+          remoteEntries = data.map(item => ({
+            rank: Number(item.rank) || 1,
+            userId: item.user_id,
+            playerName: item.player_name || 'Murid ARSelNel',
+            avatar: item.avatar_url || '../assets/home/avatar.svg',
+            className: item.class_name || 'Tingkatan 1',
+            score: Number(item.best_score) || 0,
+            correct: Number(item.correct_answers) || 0,
+            total: Number(item.total_questions) || 0,
+            durationSeconds: item.duration_seconds !== null ? Number(item.duration_seconds) : null,
+            achievedAt: item.achieved_at,
+            totalAttempts: Number(item.total_attempts) || 1
+          }));
+          isRemoteSuccessful = true;
+        } else {
+          // Fallback: Query quiz_attempts directly if RPC is not deployed yet
+          const { data: directData, error: directError } = await state.client
+            .from('quiz_attempts')
+            .select('user_id, score, correct_answers, total_questions, duration_seconds, submitted_at, result_data')
+            .eq('quiz_id', gameId)
+            .order('score', { ascending: false })
+            .limit(100);
+
+          if (!directError && Array.isArray(directData) && directData.length > 0) {
+            // Aggregate best score per user in client
+            const userBestMap = new Map();
+            directData.forEach(row => {
+              const uid = row.user_id;
+              const existing = userBestMap.get(uid);
+              const score = Number(row.score) || 0;
+              const correct = Number(row.correct_answers) || 0;
+              const duration = row.duration_seconds !== null ? Number(row.duration_seconds) : 999999;
+              const time = new Date(row.submitted_at || 0).getTime();
+
+              if (!existing) {
+                userBestMap.set(uid, { ...row, attemptsCount: 1 });
+              } else {
+                existing.attemptsCount = (existing.attemptsCount || 1) + 1;
+                const isBetter = score > existing.score ||
+                  (score === existing.score && correct > (Number(existing.correct_answers) || 0)) ||
+                  (score === existing.score && correct === (Number(existing.correct_answers) || 0) && duration < (existing.duration_seconds !== null ? Number(existing.duration_seconds) : 999999)) ||
+                  (score === existing.score && correct === (Number(existing.correct_answers) || 0) && duration === (existing.duration_seconds !== null ? Number(existing.duration_seconds) : 999999) && time < new Date(existing.submitted_at || 0).getTime());
+                
+                if (isBetter) {
+                  userBestMap.set(uid, { ...row, attemptsCount: existing.attemptsCount });
+                }
+              }
+            });
+
+            // Fetch profiles for users
+            const uids = Array.from(userBestMap.keys());
+            let profileMap = new Map();
+            try {
+              const { data: profs } = await state.client.from('profiles').select('id, full_name, avatar, class_name').in('id', uids);
+              if (Array.isArray(profs)) {
+                profs.forEach(p => profileMap.set(p.id, p));
+              }
+            } catch (_) {}
+
+            const sorted = Array.from(userBestMap.values()).sort((a, b) => {
+              if (b.score !== a.score) return b.score - a.score;
+              const aCorrect = Number(a.correct_answers) || 0;
+              const bCorrect = Number(b.correct_answers) || 0;
+              if (bCorrect !== aCorrect) return bCorrect - aCorrect;
+              const aDur = a.duration_seconds !== null ? Number(a.duration_seconds) : 999999;
+              const bDur = b.duration_seconds !== null ? Number(b.duration_seconds) : 999999;
+              if (aDur !== bDur) return aDur - bDur;
+              return new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime();
+            });
+
+            remoteEntries = sorted.slice(0, limit).map((item, idx) => {
+              const prof = profileMap.get(item.user_id) || {};
+              return {
+                rank: idx + 1,
+                userId: item.user_id,
+                playerName: prof.full_name || 'Murid ARSelNel',
+                avatar: prof.avatar || '../assets/home/avatar.svg',
+                className: prof.class_name || 'Tingkatan 1',
+                score: Number(item.score) || 0,
+                correct: Number(item.correct_answers) || 0,
+                total: Number(item.total_questions) || 0,
+                durationSeconds: item.duration_seconds !== null ? Number(item.duration_seconds) : null,
+                achievedAt: item.submitted_at,
+                totalAttempts: item.attemptsCount || 1
+              };
+            });
+            isRemoteSuccessful = true;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Leaderboard fetch remote notice:', err);
+    }
+
+    // In case user is offline, Supabase is empty, or using demo mode, merge or build with localStorage
+    if (remoteEntries.length === 0) {
+      const allSubmissions = [];
+      try {
+        const subs = JSON.parse(localStorage.getItem('arselnel_quiz_submissions') || '[]');
+        if (Array.isArray(subs)) allSubmissions.push(...subs);
+      } catch (_) {}
+      try {
+        const demoSubs = JSON.parse(localStorage.getItem('arselnel_demo_arselnel_quiz_submissions') || '[]');
+        if (Array.isArray(demoSubs)) allSubmissions.push(...demoSubs);
+      } catch (_) {}
+
+      const localStudentBest = new Map();
+      allSubmissions.forEach(sub => {
+        const subGameId = normalizeGameId(sub.quizId || sub.gameId || sub.quiz_id || sub.topic);
+        if (subGameId !== gameId) return;
+
+        const uid = sub.studentId || sub.userId || sub.student_id || sub.user_id || sub.studentName || 'pelajar';
+        const currentScore = Number(sub.score) || 0;
+        const currentCorrect = Number(sub.correct) || Number(sub.correct_answers) || 0;
+        const currentTotal = Number(sub.total) || Number(sub.total_questions) || 1;
+        const currentDuration = sub.duration_seconds !== undefined && sub.duration_seconds !== null
+          ? Number(sub.duration_seconds)
+          : (sub.durationSeconds !== undefined && sub.durationSeconds !== null ? Number(sub.durationSeconds) : null);
+        const currentAchievedAt = sub.completedAt || sub.submitted_at || new Date().toISOString();
+        const studentName = sub.studentName || sub.student_name || 'Murid ARSelNel';
+
+        if (!localStudentBest.has(uid)) {
+          localStudentBest.set(uid, {
+            userId: uid,
+            playerName: studentName,
+            avatar: sub.avatar || '../assets/home/avatar.svg',
+            className: sub.className || 'Tingkatan 1 Al-Farabi',
+            score: currentScore,
+            correct: currentCorrect,
+            total: currentTotal,
+            durationSeconds: currentDuration,
+            achievedAt: currentAchievedAt,
+            totalAttempts: 1
+          });
+        } else {
+          const prev = localStudentBest.get(uid);
+          prev.totalAttempts = (prev.totalAttempts || 1) + 1;
+          let isBetter = false;
+          if (currentScore > prev.score) isBetter = true;
+          else if (currentScore === prev.score) {
+            if (currentCorrect > (prev.correct || 0)) isBetter = true;
+            else if (currentCorrect === (prev.correct || 0)) {
+              const aDur = currentDuration !== null ? currentDuration : 999999;
+              const bDur = prev.durationSeconds !== null ? prev.durationSeconds : 999999;
+              if (aDur < bDur) isBetter = true;
+              else if (aDur === bDur && new Date(currentAchievedAt).getTime() < new Date(prev.achievedAt).getTime()) isBetter = true;
+            }
+          }
+          if (isBetter) {
+            localStudentBest.set(uid, {
+              ...prev,
+              playerName: studentName || prev.playerName,
+              score: currentScore,
+              correct: currentCorrect,
+              total: currentTotal,
+              durationSeconds: currentDuration,
+              achievedAt: currentAchievedAt
+            });
+          }
+        }
+      });
+
+      if (localStudentBest.size > 0) {
+        remoteEntries = Array.from(localStudentBest.values());
+      }
+    }
+
+    let currentUser = null;
+    try {
+      const authState = JSON.parse(localStorage.getItem('arselnel_auth_session') || '{}');
+      currentUser = authState.user || null;
+    } catch (_) {}
+
+    if (currentUser && currentUser.id) {
+      const progressKey = `arselnel_learning_progress_${currentUser.id}`;
+      let localLearning = { quizzes: [] };
+      try {
+        localLearning = JSON.parse(localStorage.getItem(progressKey) || '{}') || { quizzes: [] };
+      } catch (_) {}
+
+      const myAttemptsForGame = (localLearning.quizzes || []).filter(q => normalizeGameId(q.quizId || q.gameId) === gameId);
+      if (myAttemptsForGame.length > 0) {
+        let bestLocal = null;
+        myAttemptsForGame.forEach(att => {
+          const score = Number(att.score) || 0;
+          if (!bestLocal || score > bestLocal.score) {
+            bestLocal = att;
+          }
+        });
+
+        if (bestLocal) {
+          const existingIdx = remoteEntries.findIndex(e => e.userId === currentUser.id);
+          const localEntry = {
+            userId: currentUser.id,
+            playerName: currentUser.name || currentUser.username || 'Saya',
+            avatar: currentUser.avatar || '../assets/home/avatar.svg',
+            className: currentUser.grade || 'Tingkatan 1 Al-Farabi',
+            score: Number(bestLocal.score) || 0,
+            correct: Number(bestLocal.correct) || 0,
+            total: Number(bestLocal.total) || 1,
+            durationSeconds: bestLocal.durationSeconds || null,
+            achievedAt: bestLocal.completedAt || new Date().toISOString(),
+            totalAttempts: myAttemptsForGame.length
+          };
+
+          if (existingIdx >= 0) {
+            if (localEntry.score > remoteEntries[existingIdx].score) {
+              remoteEntries[existingIdx] = { ...remoteEntries[existingIdx], ...localEntry };
+            }
+          } else if (!isRemoteSuccessful || remoteEntries.length === 0) {
+            remoteEntries.push(localEntry);
+          }
+        }
+      }
+    }
+
+    // Re-sort after potential merges
+    remoteEntries.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if ((b.correct || 0) !== (a.correct || 0)) return (b.correct || 0) - (a.correct || 0);
+      const aDur = a.durationSeconds !== null && a.durationSeconds !== undefined ? a.durationSeconds : 999999;
+      const bDur = b.durationSeconds !== null && b.durationSeconds !== undefined ? b.durationSeconds : 999999;
+      if (aDur !== bDur) return aDur - bDur;
+      return new Date(a.achievedAt || 0).getTime() - new Date(b.achievedAt || 0).getTime();
+    });
+
+    const finalLeaderboard = remoteEntries.map((item, idx) => ({
+      ...item,
+      rank: idx + 1,
+      // Compatibility aliases
+      student_id: item.userId,
+      student_name: item.playerName,
+      best_score: item.score,
+      correct_count: item.correct,
+      best_duration_seconds: item.durationSeconds
+    }));
+
+    let myStanding = null;
+    if (currentUser && currentUser.id) {
+      const found = finalLeaderboard.find(e => e.userId === currentUser.id);
+      if (found) {
+        myStanding = {
+          ...found,
+          totalPlayers: finalLeaderboard.length
+        };
+      }
+    }
+
+    const podium = {
+      first: finalLeaderboard[0] || null,
+      second: finalLeaderboard[1] || null,
+      third: finalLeaderboard[2] || null
+    };
+
+    const remaining = finalLeaderboard.slice(3);
+
+    return {
+      gameId,
+      gameMeta: GAME_CATALOG[gameId] || { id: gameId, title: gameId, shortTitle: gameId, icon: '🏆', maxScore: 100 },
+      leaderboard: finalLeaderboard,
+      podium,
+      remaining,
+      myStanding,
+      totalPlayers: finalLeaderboard.length
+    };
+  }
+
+  async function getAttemptById(attemptId) {
+    if (!attemptId) return null;
+    try {
+      const cached = JSON.parse(localStorage.getItem('arselnel_latest_attempt') || 'null');
+      if (cached && (cached.id === attemptId || cached.legacy_source_id === attemptId)) {
+        return cached;
+      }
+    } catch (_) {}
+
+    try {
+      await ready;
+      if (state.client) {
+        const { data, error } = await state.client
+          .from('quiz_attempts')
+          .select('id, user_id, legacy_source_id, quiz_id, score, correct_answers, total_questions, duration_seconds, result_data, submitted_at')
+          .or(`legacy_source_id.eq.${attemptId},id.eq.${attemptId}`)
+          .maybeSingle();
+
+        if (!error && data) {
+          const res = data.result_data || {};
+          return {
+            ...res,
+            id: data.legacy_source_id || data.id,
+            quizId: data.quiz_id,
+            gameId: normalizeGameId(data.quiz_id),
+            score: Number(data.score) || 0,
+            correct: Number(data.correct_answers) || 0,
+            total: Number(data.total_questions) || 0,
+            durationSeconds: data.duration_seconds,
+            completedAt: data.submitted_at,
+            answers: Array.isArray(res.answers) ? res.answers : []
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('Error fetching attempt by ID:', err);
+    }
+
+    return null;
   }
 
   async function saveProgress(activityId, progressPercent, resultData) {
@@ -530,6 +970,10 @@
     importLocalLearning,
     saveProfile,
     saveQuizAttempt,
+    getGameLeaderboard,
+    getAttemptById,
+    normalizeGameId,
+    GAME_CATALOG,
     saveProgress,
     saveSettings,
     retryPending,

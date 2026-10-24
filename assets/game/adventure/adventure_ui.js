@@ -19,6 +19,7 @@
       this.elapsedSeconds = 0;
       this.timerInterval = null;
       this.pendingConfirmCallback = null;
+      this.userAnswers = [];
 
       this.user = this.getCurrentUser();
 
@@ -607,6 +608,25 @@
       });
 
       // Kemas kini mata & maklum balas
+      const letters = ['A', 'B', 'C', 'D'];
+      const selectedIndex = this.selectedOptionIndex;
+      const correctIndex = Number(q.correct) || 0;
+      const opts = q.options || [];
+
+      this.userAnswers.push({
+        questionIndex: this.userAnswers.length + 1,
+        questionId: q.id || `adv_q_${this.userAnswers.length + 1}`,
+        questionText: q.prompt || q.question || 'Soalan Cabaran Sel',
+        options: opts,
+        selectedChoice: letters[selectedIndex] || 'A',
+        selectedText: opts[selectedIndex] || '',
+        correctChoice: letters[correctIndex] || 'A',
+        correctText: opts[correctIndex] || '',
+        isCorrect: isCorrect,
+        pointsEarned: isCorrect ? 100 : 0,
+        explanation: q.explanation || 'Struktur dan organisasi sel membentuk asas sains biologi.'
+      });
+
       if (isCorrect) {
         this.score += 100;
         this.correctCount++;
@@ -720,22 +740,36 @@
 
       const submission = {
         id: submissionId,
-        quizId: 'pengembaraan-sains-2d-sel',
+        quizId: 'kuiz_saintis_muda',
+        gameId: 'kuiz_saintis_muda',
         topic: 'Struktur, Fungsi dan Organisasi Sel',
-        title: 'Pengembaraan Sains 2D: Sel sebagai Unit Asas Hidupan',
+        title: 'Kuiz Interaktif: Struktur, Fungsi & Organisasi Sel',
         studentId: user.id || 'std_anon',
         studentName: user.nickname || user.name || 'Pelajar Saintis',
         correct: this.correctCount,
         total: 10,
         score: Math.round((this.correctCount / 10) * 100),
         rawPoints: this.score,
+        durationSeconds: this.elapsedSeconds,
         timeSpent: timeSpentStr,
+        answers: this.userAnswers,
         completedAt: new Date().toISOString(),
         isDemo: user.isDemo === true
       };
 
       let localSaved = false;
       let supabaseStatus = 'disimpan setempat';
+
+      // Simpan ke percubaan terkini
+      try {
+        localStorage.setItem('arselnel_latest_attempt', JSON.stringify(submission));
+      } catch (_) {}
+
+      // Kemas kini pautan Papan Skor dalam modal kemenangan
+      const victoryLeaderboardBtn = document.querySelector('#adv-victory-modal a[href*="keputusan_permainan"]');
+      if (victoryLeaderboardBtn) {
+        victoryLeaderboardBtn.href = `../keputusan_permainan/code.html?attempt_id=${submissionId}&game=kuiz_saintis_muda`;
+      }
 
       // 1. Simpan rekod kemajuan pelajar tempatan
       if (user.id) {
@@ -760,7 +794,7 @@
       } catch (_) {}
 
       // 3. Simpan ke Supabase jika disahkan
-      if (user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google') && window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
+      if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
         window.ARSupabase.saveQuizAttempt(submission)
           .then(() => {
             if (this.victoryStorageStatus) {

@@ -378,9 +378,16 @@
           <button onclick="window.location.reload()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-headline font-bold text-sm rounded-xl transition-all shadow-md">
             Main Semula
           </button>
-          <a href="../hab_permainan/code.html" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-headline font-bold text-xs rounded-xl transition-colors">
-            Kembali ke Hab Permainan
-          </a>
+          <div class="grid grid-cols-2 gap-2">
+            <a href="../hab_permainan/code.html" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-headline font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-sm">home</span>
+              <span>Hab Permainan</span>
+            </a>
+            <a id="btn-view-leaderboard" href="../keputusan_permainan/code.html?game=labelkan_organel" class="py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-headline font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1 shadow">
+              <span class="material-symbols-outlined text-sm">leaderboard</span>
+              <span>Papan Skor</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -587,9 +594,28 @@
 
       // Simpan skor ke Supabase & LocalStorage
       const user = (window.AuthGuard && window.AuthGuard.getUser) ? window.AuthGuard.getUser() : { id: 'std_anon', name: 'Pelajar' };
+      const submissionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'lbl_' + Date.now();
+      
+      // Bina snapshot jawapan bagi 10 organel yang dilabel
+      const allOrganelles = [...STAGES.animal.organelles, ...STAGES.plant.organelles];
+      const answersList = allOrganelles.map((org, idx) => ({
+        questionIndex: idx + 1,
+        questionId: `org_${org.id}`,
+        questionText: `Padankan label organel: ${org.name}`,
+        options: ['Nukleus', 'Membran Sel', 'Sitoplasma', 'Mitokondria', 'Dinding Sel', 'Kloroplas', 'Vakuol Besar'],
+        selectedChoice: org.name,
+        selectedText: org.name,
+        correctChoice: org.name,
+        correctText: org.name,
+        isCorrect: true,
+        pointsEarned: 15,
+        explanation: org.desc || 'Organel sel menjalankan fungsi sel hidup.'
+      }));
+
       const submission = {
-        id: crypto.randomUUID ? crypto.randomUUID() : 'lbl_' + Date.now(),
-        quizId: 'labelkan-organel',
+        id: submissionId,
+        quizId: 'labelkan_organel',
+        gameId: 'labelkan_organel',
         topic: 'Struktur Sel Haiwan dan Tumbuhan',
         title: 'Labelkan Organel Sel',
         studentId: user.id || 'std_anon',
@@ -598,11 +624,20 @@
         total: 10,
         score: 100,
         rawPoints: 150,
+        durationSeconds: secondsElapsed,
         timeSpent: `${Math.floor(secondsElapsed / 60)}m ${secondsElapsed % 60}s`,
+        answers: answersList,
         completedAt: new Date().toISOString()
       };
 
       try {
+        localStorage.setItem('arselnel_latest_attempt', JSON.stringify(submission));
+
+        const lbBtn = document.getElementById('btn-view-leaderboard');
+        if (lbBtn) {
+          lbBtn.href = `../keputusan_permainan/code.html?attempt_id=${submissionId}&game=labelkan_organel`;
+        }
+
         const key = `arselnel_learning_progress_${user.id}`;
         let rec = JSON.parse(localStorage.getItem(key) || 'null') || { quizzes: [] };
         if (!rec.quizzes) rec.quizzes = [];
@@ -615,12 +650,12 @@
         localStorage.setItem(subKey, JSON.stringify(subs.slice(-500)));
 
         const statusEl = document.getElementById('save-status-msg');
-        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google')) {
+        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
           window.ARSupabase.saveQuizAttempt(submission)
-            .then(() => { statusEl.textContent = '✓ Skor 150 pts berjaya disegerakkan ke Supabase!'; })
+            .then(() => { statusEl.textContent = '✓ Skor 100% berjaya disegerakkan ke Supabase!'; })
             .catch(() => { statusEl.textContent = '✓ Skor disimpan secara setempat pada peranti.'; });
         } else {
-          statusEl.textContent = '✓ Skor 150 pts berjaya disimpan ke rekod pembelajaran anda.';
+          statusEl.textContent = '✓ Skor 100% berjaya disimpan ke rekod pembelajaran anda.';
         }
       } catch (_) {}
     }

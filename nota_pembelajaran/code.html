@@ -548,8 +548,11 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Anggaran Bilangan Slaid</label>
-          <input type="number" id="slide-count-input" min="1" max="50" value="6" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"/>
+          <input type="hidden" id="slide-count-input" value=""/>
+          <div id="slide-detected-pages-badge" class="hidden text-xs font-semibold text-teal-800 bg-teal-50 px-3 py-2 rounded-xl border border-teal-200/80 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm text-teal-600">auto_stories</span>
+            <span id="slide-detected-pages-text">Bilangan halaman dikesan: -</span>
+          </div>
         </div>
       </div>
 
@@ -707,10 +710,69 @@
       renderInteractiveSlides();
     }
 
+    // Auto-detect Document Page Count (PDF/PPTX)
+    async function detectDocumentPageCount(file) {
+      if (!file) return null;
+      const name = (file.name || '').toLowerCase();
+
+      if (name.endsWith('.pdf')) {
+        try {
+          if (window.pdfjsLib) {
+            const buffer = await file.arrayBuffer();
+            const pdf = await window.pdfjsLib.getDocument({ data: buffer }).promise;
+            if (pdf && pdf.numPages > 0) return pdf.numPages;
+          }
+        } catch (e) {
+          console.warn('PDF.js scan notice:', e);
+        }
+        try {
+          const buffer = await file.arrayBuffer();
+          const text = new TextDecoder('latin1').decode(buffer);
+          const countMatch = text.match(/\/Type\s*\/Pages[^>]*\/Count\s+(\d+)/);
+          if (countMatch && countMatch[1]) {
+            const cnt = parseInt(countMatch[1], 10);
+            if (cnt > 0) return cnt;
+          }
+          const pageMatches = text.match(/\/Type\s*\/Page\b/g);
+          if (pageMatches && pageMatches.length > 0) {
+            return pageMatches.length;
+          }
+        } catch (e) {
+          console.warn('PDF binary scan notice:', e);
+        }
+        return null;
+      }
+
+      if (name.endsWith('.pptx')) {
+        try {
+          const buffer = await file.arrayBuffer();
+          const text = new TextDecoder('latin1').decode(buffer);
+          const slidesMatch = text.match(/<Slides>(\d+)<\/Slides>/i);
+          if (slidesMatch && slidesMatch[1]) {
+            const cnt = parseInt(slidesMatch[1], 10);
+            if (cnt > 0) return cnt;
+          }
+          const slideMatches = text.match(/ppt\/slides\/slide\d+\.xml/gi);
+          if (slideMatches && slideMatches.length > 0) {
+            const uniqueSlides = new Set(slideMatches.map(s => s.toLowerCase()));
+            return uniqueSlides.size;
+          }
+        } catch (e) {
+          console.warn('PPTX scan notice:', e);
+        }
+        return null;
+      }
+
+      return null;
+    }
+
     // Modal controllers
     function openSlideModal() {
       document.getElementById('form-slide').reset();
       document.getElementById('slide-id').value = '';
+      document.getElementById('slide-count-input').value = '';
+      const badge = document.getElementById('slide-detected-pages-badge');
+      if (badge) badge.classList.add('hidden');
       document.getElementById('modal-slide-title').textContent = 'Tambah Nota / Slaid Pengajaran';
       setSlideSourceType('pdf');
       document.getElementById('modal-slide').showModal();
@@ -748,6 +810,34 @@
       }
     }
 
+    // Auto-detect page count on file select
+    document.addEventListener('DOMContentLoaded', () => {
+      const slideFileInput = document.getElementById('slide-file-input');
+      if (slideFileInput) {
+        slideFileInput.addEventListener('change', async (e) => {
+          const file = e.target.files && e.target.files[0];
+          const countInput = document.getElementById('slide-count-input');
+          const badge = document.getElementById('slide-detected-pages-badge');
+          const badgeText = document.getElementById('slide-detected-pages-text');
+          if (file) {
+            const count = await detectDocumentPageCount(file);
+            if (count && count > 0) {
+              if (countInput) countInput.value = count;
+              if (badge && badgeText) {
+                badgeText.textContent = `Bilangan halaman dikesan: ${count} slaid/halaman`;
+                badge.classList.remove('hidden');
+              }
+            } else {
+              if (badge && badgeText) {
+                badgeText.textContent = 'Bilangan halaman: Dikira secara automatik';
+                badge.classList.remove('hidden');
+              }
+            }
+          }
+        });
+      }
+    });
+
     async function handleSaveSlide(e) {
       e.preventDefault();
       const saveBtn = document.getElementById('btn-save-slide');
@@ -761,7 +851,7 @@
         const chapter = document.getElementById('slide-chapter-input').value;
         const desc = document.getElementById('slide-desc-input').value.trim();
         const status = document.getElementById('slide-status-input').value;
-        const slideCount = parseInt(document.getElementById('slide-count-input').value, 10) || 6;
+        const slideCount = parseInt(document.getElementById('slide-count-input').value, 10) || null;
 
         let sourceUrl = '';
         let storagePath = '';
@@ -825,7 +915,15 @@
       document.getElementById('slide-chapter-input').value = note.chapter;
       document.getElementById('slide-desc-input').value = note.description || '';
       document.getElementById('slide-status-input').value = note.publicationStatus || 'published';
-      document.getElementById('slide-count-input').value = note.slideCount || 6;
+      document.getElementById('slide-count-input').value = note.slideCount || '';
+      const badge = document.getElementById('slide-detected-pages-badge');
+      const badgeText = document.getElementById('slide-detected-pages-text');
+      if (note.slideCount && badge && badgeText) {
+        badgeText.textContent = `Bilangan halaman: ${note.slideCount} slaid/halaman`;
+        badge.classList.remove('hidden');
+      } else if (badge) {
+        badge.classList.add('hidden');
+      }
       setSlideSourceType(note.contentType || 'interactive');
       if (note.sourceUrl) document.getElementById('slide-url-input').value = note.sourceUrl;
       document.getElementById('modal-slide-title').textContent = 'Kemas Kini Nota / Slaid';

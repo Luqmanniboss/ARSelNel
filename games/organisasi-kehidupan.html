@@ -228,9 +228,16 @@
           <button onclick="window.location.reload()" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-headline font-bold text-sm rounded-xl transition-all shadow-md">
             Main Semula
           </button>
-          <a href="../hab_permainan/code.html" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-headline font-bold text-xs rounded-xl transition-colors">
-            Kembali ke Hab Permainan
-          </a>
+          <div class="grid grid-cols-2 gap-2">
+            <a href="../hab_permainan/code.html" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-headline font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-sm">home</span>
+              <span>Hab Permainan</span>
+            </a>
+            <a id="btn-org-leaderboard" href="../keputusan_permainan/code.html?game=organisasi_sel" class="py-2.5 bg-purple-800 hover:bg-purple-900 text-white font-headline font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1 shadow">
+              <span class="material-symbols-outlined text-sm">leaderboard</span>
+              <span>Papan Skor</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -505,9 +512,27 @@
 
       // Simpan skor ke Supabase & LocalStorage
       const user = (window.AuthGuard && window.AuthGuard.getUser) ? window.AuthGuard.getUser() : { id: 'std_anon', name: 'Pelajar' };
+      const submissionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'seq_' + Date.now();
+
+      // Bina snapshot jawapan susunan
+      const answersList = ROUNDS.map((rnd, idx) => ({
+        questionIndex: idx + 1,
+        questionId: `rnd_${rnd.id}`,
+        questionText: rnd.title,
+        options: rnd.cards.map(c => `${c.level}: ${c.name}`),
+        selectedChoice: 'Susunan Sempurna (1-5)',
+        selectedText: 'Sel → Tisu → Organ → Sistem → Organisma',
+        correctChoice: 'Susunan Sempurna (1-5)',
+        correctText: 'Sel → Tisu → Organ → Sistem → Organisma',
+        isCorrect: true,
+        pointsEarned: rnd.id === 3 ? 80 : 60,
+        explanation: rnd.explanation
+      }));
+
       const submission = {
-        id: crypto.randomUUID ? crypto.randomUUID() : 'seq_' + Date.now(),
-        quizId: 'organisasi-kehidupan',
+        id: submissionId,
+        quizId: 'organisasi_sel',
+        gameId: 'organisasi_sel',
         topic: 'Tahap Organisasi Sel: Sel ke Organisma',
         title: 'Susun Organisasi Kehidupan',
         studentId: user.id || 'std_anon',
@@ -516,10 +541,19 @@
         total: 3,
         score: 100,
         rawPoints: score,
+        durationSeconds: secondsElapsed,
+        answers: answersList,
         completedAt: new Date().toISOString()
       };
 
       try {
+        localStorage.setItem('arselnel_latest_attempt', JSON.stringify(submission));
+
+        const lbBtn = document.getElementById('btn-org-leaderboard');
+        if (lbBtn) {
+          lbBtn.href = `../keputusan_permainan/code.html?attempt_id=${submissionId}&game=organisasi_sel`;
+        }
+
         const key = `arselnel_learning_progress_${user.id}`;
         let rec = JSON.parse(localStorage.getItem(key) || 'null') || { quizzes: [] };
         if (!rec.quizzes) rec.quizzes = [];
@@ -532,9 +566,9 @@
         localStorage.setItem(subKey, JSON.stringify(subs.slice(-500)));
 
         const statusEl = document.getElementById('save-status-msg');
-        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function' && user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google')) {
+        if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
           window.ARSupabase.saveQuizAttempt(submission)
-            .then(() => { statusEl.textContent = '✓ Skor 200 pts berjaya disegerakkan ke Supabase!'; })
+            .then(() => { statusEl.textContent = '✓ Skor 100% berjaya disegerakkan ke Supabase!'; })
             .catch(() => { statusEl.textContent = '✓ Skor disimpan secara setempat pada peranti.'; });
         } else {
           statusEl.textContent = '✓ Skor disimpan ke rekod pembelajaran anda.';

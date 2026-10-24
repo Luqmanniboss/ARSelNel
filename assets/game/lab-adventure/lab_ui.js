@@ -42,6 +42,7 @@
       this.currentQuestion = null;
       this.selectedOptionIndex = null;
       this.currentItem = null;
+      this.userAnswers = [];
 
       // Elemen DOM
       this.canvas = document.getElementById('lab-canvas');
@@ -348,6 +349,25 @@
 
       // Kemas kini pemarkahan (Hanya sekali bagi setiap item)
       this.answeredCount++;
+
+      // Rakam snapshot jawapan murid bagi semakan jawapan
+      const letters = ['A', 'B', 'C', 'D'];
+      const selectedIdx = this.selectedOptionIndex;
+      const correctIdx = Number(q.correct) || 0;
+      this.userAnswers.push({
+        questionIndex: this.userAnswers.length + 1,
+        questionId: q.id || `lab_q_${this.userAnswers.length + 1}`,
+        questionText: q.prompt || q.question || 'Soalan Misi Makmal',
+        options: q.options || [],
+        selectedChoice: letters[selectedIdx] || 'A',
+        selectedText: (q.options && q.options[selectedIdx]) ? q.options[selectedIdx] : '',
+        correctChoice: letters[correctIdx] || 'A',
+        correctText: (q.options && q.options[correctIdx]) ? q.options[correctIdx] : '',
+        isCorrect: isCorrect,
+        pointsEarned: isCorrect ? (q.points || 95) : 0,
+        explanation: q.explanation || 'Peralatan makmal sains perlu dikendalikan mengikut prosedur keselamatan.'
+      });
+
       if (isCorrect) {
         this.correctAnswersCount++;
         this.score += q.points;
@@ -488,47 +508,69 @@
 
     // 12. Simpan Keputusan ke LocalStorage & Supabase
     async persistResults(statusEl) {
+      const submissionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'lab_' + Date.now();
+      const user = this.playerProfile || {};
+
       const record = {
-        quiz_id: 'misi-makmal-sains',
+        id: submissionId,
+        quiz_id: 'misi_makmal',
+        quizId: 'misi_makmal',
+        gameId: 'misi_makmal',
         game_title: 'Misi Makmal Sains: Operasi Kemas Makmal',
         topic: 'Pengembaraan Makmal: Struktur & Organisasi Sel',
-        score: this.score,
+        title: 'Misi Makmal Sains',
+        studentId: user.id || 'std_anon',
+        studentName: user.name || 'Pelajar',
+        score: this.score, // Nilai sebenar sehingga 1000 mata
         max_score: 1000,
+        correct: this.correctAnswersCount,
         correct_answers: this.correctAnswersCount,
+        total: 10,
         total_questions: 10,
         equipment_collected: this.collectedCount,
         completion_time_seconds: this.elapsedSeconds,
-        completed_at: new Date().toISOString()
+        durationSeconds: this.elapsedSeconds,
+        answers: this.userAnswers,
+        completed_at: new Date().toISOString(),
+        completedAt: new Date().toISOString()
       };
 
       try {
+        // Simpan ke percubaan terkini untuk akses pantas di halaman keputusan
+        localStorage.setItem('arselnel_latest_attempt', JSON.stringify(record));
+
         // Simpan ke LocalStorage khusus permainan makmal
         localStorage.setItem('arselnel_lab_adventure_record', JSON.stringify(record));
+
+        // Simpan ke rekod pembelajaran pelajar
+        if (user.id) {
+          const key = `arselnel_learning_progress_${user.id}`;
+          let hist = JSON.parse(localStorage.getItem(key) || 'null') || { quizzes: [] };
+          if (!Array.isArray(hist.quizzes)) hist.quizzes = [];
+          hist.quizzes.push(record);
+          localStorage.setItem(key, JSON.stringify(hist));
+        }
 
         // Simpan ke rekod sejarah kuiz
         const history = JSON.parse(localStorage.getItem('arselnel_quiz_results') || '[]');
         history.push(record);
         localStorage.setItem('arselnel_quiz_results', JSON.stringify(history));
 
+        // Kemas kini pautan Papan Skor dalam modal kejayaan
+        const victoryLeaderboardBtn = document.querySelector('#lab-victory-modal a[href*="keputusan_permainan"]');
+        if (victoryLeaderboardBtn) {
+          victoryLeaderboardBtn.href = `../keputusan_permainan/code.html?attempt_id=${submissionId}&game=misi_makmal`;
+        }
+
         if (statusEl) {
-          statusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-bold"><span class="material-symbols-outlined text-sm">check</span> Rekod disimpan di storan tempatan!</span>`;
+          statusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-bold"><span class="material-symbols-outlined text-sm">check</span> Markah ${this.score} pts direkodkan secara setempat!</span>`;
         }
 
         // Simpan ke Supabase jika ada integrasi
         if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
-          const res = await window.ARSupabase.saveQuizAttempt({
-            quiz_id: 'misi-makmal-sains',
-            score: this.score,
-            total_questions: 10,
-            correct_count: this.correctAnswersCount,
-            time_spent_seconds: this.elapsedSeconds,
-            metadata: {
-              game_type: '2d_lab_adventure',
-              equipment_collected: this.collectedCount
-            }
-          });
+          const res = await window.ARSupabase.saveQuizAttempt(record);
           if (res && !res.error && statusEl) {
-            statusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-bold"><span class="material-symbols-outlined text-sm">cloud_done</span> Keputusan berjaya diselaraskan ke pelayan sekolah!</span>`;
+            statusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-bold"><span class="material-symbols-outlined text-sm">cloud_done</span> Markah ${this.score} pts diselaraskan ke Supabase!</span>`;
           }
         }
       } catch (err) {

@@ -256,105 +256,69 @@
 
   <!-- Main Content Wrapper -->
   <main class="main-container mt-28 space-y-6">
-<!-- Video Player Section -->
-<!-- Video Player Section -->
-<section id="player-container" class="relative aspect-video w-full bg-black group overflow-hidden shadow-lg lg:rounded-b-3xl">
-<!-- Video Placeholder -->
-<div id="video-placeholder" class="absolute inset-0 w-full h-full bg-center bg-cover" style="background-image: url('https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1200')"></div>
-<!-- Play Overlay -->
-<div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-all cursor-pointer" id="playOverlay">
-<div class="w-16 h-16 md:w-20 md:h-20 bg-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-transform">
-<span class="material-symbols-outlined !text-4xl md:!text-5xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
-</div>
-</div>
-</section>
-<!-- Content Area -->
-<div class="px-margin-mobile mt-stack-lg animate-fade-in">
-<div class="flex flex-col gap-2">
-<div class="flex items-center gap-2">
-<span id="video-category" class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md text-label-md">Biologi Sel</span>
-<span class="text-on-surface-variant font-label-md text-label-md">Bab 2: Sel Sebagai Unit Asas Hidupan</span>
-</div>
-<h2 id="video-title" class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Struktur Sel Haiwan</h2>
-<p id="video-description" class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-Penerangan ringkas tentang organel utama dalam sel haiwan dan fungsinya dalam mengekalkan kehidupan organisma.
-</p>
-</div>
-<!-- Key Learning Points (Bento-ish Grid) -->
-<div class="mt-stack-lg grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3 transition-all hover:shadow-md hover:bg-surface-container">
-<div class="p-2 bg-primary/10 rounded-lg text-primary">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lens</span>
-</div>
-<div>
-<h4 class="font-label-lg text-label-lg text-on-surface">Nukleus</h4>
-<p class="font-label-md text-label-md text-on-surface-variant">Pusat kawalan yang mengandungi maklumat genetik (DNA).</p>
-</div>
-</div>
-<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3 transition-all hover:shadow-md hover:bg-surface-container">
-<div class="p-2 bg-secondary/10 rounded-lg text-secondary">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
-</div>
-<div>
-<h4 class="font-label-lg text-label-lg text-on-surface">Mitokondria</h4>
-<p class="font-label-md text-label-md text-on-surface-variant">Tapak penjanaan tenaga melalui proses respirasi sel.</p>
-</div>
-</div>
-<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3 transition-all hover:shadow-md hover:bg-surface-container">
-<div class="p-2 bg-tertiary/10 rounded-lg text-tertiary">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">layers</span>
-</div>
-<div>
-<h4 class="font-label-lg text-label-lg text-on-surface">Sitoplasma</h4>
-<p class="font-label-md text-label-md text-on-surface-variant">Medium jeli di mana tindak balas kimia berlaku.</p>
-</div>
-</div>
-<div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3 transition-all hover:shadow-md hover:bg-surface-container">
-<div class="p-2 bg-error/10 rounded-lg text-error">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shield</span>
-</div>
-<div>
-<h4 class="font-label-lg text-label-lg text-on-surface">Membran Sel</h4>
-<p class="font-label-md text-label-md text-on-surface-variant">Mengawal pergerakan bahan keluar dan masuk sel.</p>
-</div>
-</div>
-</div>
-<!-- Action Buttons -->
-<div class="mt-10 flex flex-col sm:flex-row gap-4">
-<button onclick="window.location.href='../nota_pembelajaran/code.html'" class="flex-1 h-touch-target-min bg-primary text-on-primary font-label-lg text-label-lg rounded-full flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
-<span class="material-symbols-outlined">menu_book</span>
-                    Baca Nota Berkaitan
-                </button>
-<button onclick="window.location.href='../kuiz_interaktif/code.html'" class="flex-1 h-touch-target-min border-2 border-primary text-primary font-label-lg text-label-lg rounded-full flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all">
-<span class="material-symbols-outlined">quiz</span>
-                    Uji Kefahaman
-                </button>
-</div>
-</div>
-<!-- Related Videos/Up Next Section -->
-<section class="mt-12 px-margin-mobile">
-<h3 class="font-headline-md text-headline-md text-on-surface mb-4">Lagi Untuk Anda</h3>
-<div id="related-videos-container" class="flex flex-col gap-4">
-<div onclick="window.location.href='../pemain_video/code.html'" class="flex gap-4 group cursor-pointer">
-<div class="relative w-32 md:w-48 aspect-video flex-shrink-0 rounded-xl overflow-hidden shadow-sm">
-<div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600')"></div>
-<div class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 rounded">08:15</div>
-</div>
-<div class="flex flex-col justify-center gap-1">
-<h4 class="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors line-clamp-1">Perbezaan Sel Haiwan &amp; Sel Tumbuhan</h4>
-<p class="text-on-surface-variant text-label-md font-label-md">5.2k tontonan • 2 hari lepas</p>
-</div>
-</div>
-</div>
-</section>
-</main>
-<script>
+    <!-- Back to Video Library Button -->
+    <div class="px-margin-mobile">
+      <a href="../perpustakaan_video/code.html" id="btn-back-to-library" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white hover:bg-orange-50 text-slate-700 hover:text-orange-700 font-bold text-xs sm:text-sm border border-slate-200 hover:border-orange-300 shadow-xs transition-all duration-200 group">
+        <span class="material-symbols-outlined text-base group-hover:-translate-x-1 transition-transform">arrow_back</span>
+        <span>Kembali ke Senarai Video</span>
+      </a>
+    </div>
+
+    <!-- Video Player Section -->
+    <section id="player-container" class="relative aspect-video w-full bg-black group overflow-hidden shadow-lg lg:rounded-3xl">
+      <!-- Video Placeholder -->
+      <div id="video-placeholder" class="absolute inset-0 w-full h-full bg-center bg-cover" style="background-image: url('https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1200')"></div>
+      <!-- Play Overlay -->
+      <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-all cursor-pointer" id="playOverlay">
+        <div class="w-16 h-16 md:w-20 md:h-20 bg-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-transform">
+          <span class="material-symbols-outlined !text-4xl md:!text-5xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Area -->
+    <div class="px-margin-mobile mt-stack-lg animate-fade-in">
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span id="video-category" class="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-200/80">Biologi Sel</span>
+          <span class="text-slate-500 text-xs font-semibold">Tingkatan 1 KSSM</span>
+        </div>
+        <h1 id="video-title" class="font-headline text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Struktur Sel Haiwan</h1>
+        <div class="p-5 bg-white rounded-2xl border border-slate-100 shadow-xs">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Penerangan Video</h2>
+          <p id="video-description" class="text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-line break-words">
+            Penerangan ringkas tentang video pembelajaran.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Videos / Up Next Section -->
+    <section class="mt-12 px-margin-mobile pb-12">
+      <div class="mb-5">
+        <h2 class="font-headline text-xl md:text-2xl font-extrabold text-slate-900">Lagi Untuk Anda</h2>
+        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Pilih video pembelajaran Sains Tingkatan 1 seterusnya untuk ditonton</p>
+      </div>
+      <div id="related-videos-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+  </main>
+  <script>
     let activeVideo = null;
+    let cachedVideos = [];
 
     function escapeHtml(str) {
       return String(str || '').replace(/[&<>"']/g, c => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       }[c]));
+    }
+
+    function extractYouTubeId(url) {
+      if (!url || typeof url !== 'string') return null;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
     }
 
     function renderPlayer(video) {
@@ -367,7 +331,7 @@ Penerangan ringkas tentang organel utama dalam sel haiwan dan fungsinya dalam me
       const titleEl = document.getElementById('video-title');
       if (titleEl) titleEl.textContent = video.title;
       const descEl = document.getElementById('video-description');
-      if (descEl) descEl.textContent = video.description || '';
+      if (descEl) descEl.textContent = video.description || 'Tiada penerangan tambahan untuk video ini.';
 
       const container = document.getElementById('player-container');
       if (!container) return;
@@ -400,6 +364,87 @@ Penerangan ringkas tentang organel utama dalam sel haiwan dan fungsinya dalam me
       }
     }
 
+    function selectRelatedVideo(id) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', id);
+      url.searchParams.delete('video');
+      window.history.pushState({}, '', url);
+      
+      const selected = cachedVideos.find(v => v.id === id);
+      if (selected) {
+        renderPlayer(selected);
+        renderRelatedVideos(cachedVideos, selected);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        loadVideoPage();
+      }
+    }
+
+    function renderRelatedVideos(allVideos, currentVideo) {
+      const relContainer = document.getElementById('related-videos-container');
+      if (!relContainer) return;
+
+      const related = allVideos.filter(v => v.id !== currentVideo.id && (v.status === 'published' || v.publicationStatus === 'published' || !v.status));
+
+      if (related.length === 0) {
+        relContainer.innerHTML = `
+          <div class="col-span-full py-8 text-center bg-white rounded-2xl border border-slate-100 p-6">
+            <span class="material-symbols-outlined text-3xl text-slate-300 mb-1">smart_display</span>
+            <p class="text-xs font-semibold text-slate-500">Tiada video cadangan lain pada masa ini.</p>
+          </div>
+        `;
+        return;
+      }
+
+      relContainer.innerHTML = related.map(v => {
+        let thumb = (v.thumbnail || '').trim();
+        const ytId = extractYouTubeId(v.url);
+        if ((!thumb || thumb.includes('images.unsplash.com')) && ytId) {
+          thumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+        }
+        if (!thumb) {
+          thumb = 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600';
+        }
+
+        const durationBadge = (v.duration && v.duration !== '05:00')
+          ? `<span class="absolute bottom-2.5 right-2.5 bg-black/75 text-white text-[11px] font-bold font-mono px-2 py-0.5 rounded-lg backdrop-blur-xs">${escapeHtml(v.duration)}</span>`
+          : '';
+
+        return `
+          <div onclick="selectRelatedVideo('${escapeHtml(v.id)}')" class="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-orange-200/80 hover:border-orange-500 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+            <div>
+              <div class="relative aspect-video w-full bg-slate-900 overflow-hidden">
+                <img src="${escapeHtml(thumb)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${escapeHtml(v.title)}" loading="lazy" />
+                <div class="absolute inset-0 bg-black/20 group-hover:bg-black/35 transition-colors flex items-center justify-center">
+                  <div class="w-12 h-12 bg-white/90 text-orange-600 rounded-full flex items-center justify-center shadow-md group-hover:scale-110 group-active:scale-95 transition-transform">
+                    <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                  </div>
+                </div>
+                ${durationBadge}
+              </div>
+              <div class="p-4">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-[10px] font-bold text-orange-700 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200/60 uppercase tracking-wider">
+                    ${escapeHtml(v.category || 'Biologi Sel')}
+                  </span>
+                </div>
+                <h3 class="font-headline font-bold text-sm text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-snug">
+                  ${escapeHtml(v.title)}
+                </h3>
+              </div>
+            </div>
+            <div class="px-4 pb-3.5 pt-1 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+              <span class="font-medium truncate">${escapeHtml(v.instructor || 'Cikgu Sains ARSelNel')}</span>
+              <span class="text-orange-600 font-bold text-[11px] flex items-center gap-0.5 group-hover:underline shrink-0">
+                <span>Tonton</span>
+                <span class="material-symbols-outlined text-xs">arrow_forward</span>
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     async function loadVideoPage() {
       const params = new URLSearchParams(window.location.search);
       const targetId = params.get('id');
@@ -413,6 +458,8 @@ Penerangan ringkas tentang organel utama dalam sel haiwan dan fungsinya dalam me
           console.warn('CMSAdapter video load notice:', e);
         }
       }
+
+      cachedVideos = allVideos;
 
       let selected = null;
       if (Array.isArray(allVideos) && allVideos.length > 0) {
@@ -429,25 +476,7 @@ Penerangan ringkas tentang organel utama dalam sel haiwan dan fungsinya dalam me
 
       if (selected) {
         renderPlayer(selected);
-
-        // Render related videos
-        const related = allVideos.filter(v => v.id !== selected.id);
-        const relContainer = document.getElementById('related-videos-container');
-        if (relContainer && related.length > 0) {
-          relContainer.innerHTML = related.map(v => `
-            <div onclick="window.location.href='../pemain_video/code.html?id=${encodeURIComponent(v.id)}'" class="flex gap-4 group cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition">
-              <div class="relative w-32 md:w-48 aspect-video flex-shrink-0 rounded-xl overflow-hidden shadow-sm bg-slate-900">
-                <img src="${escapeHtml(v.thumbnail || 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600')}" class="w-full h-full object-cover" alt="" />
-                <div class="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">${escapeHtml(v.duration || '05:00')}</div>
-              </div>
-              <div class="flex flex-col justify-center gap-1">
-                <span class="text-[10px] font-bold text-orange-600 uppercase tracking-wider">${escapeHtml(v.category || 'Biologi Sel')}</span>
-                <h4 class="font-headline font-bold text-sm text-on-surface group-hover:text-primary transition-colors line-clamp-2">${escapeHtml(v.title)}</h4>
-                <p class="text-xs text-slate-400 font-medium">${escapeHtml(v.instructor || 'ARSelNel')}</p>
-              </div>
-            </div>
-          `).join('');
-        }
+        renderRelatedVideos(allVideos, selected);
       }
 
       // Play overlay click fallback
@@ -462,6 +491,10 @@ Penerangan ringkas tentang organel utama dalam sel haiwan dan fungsinya dalam me
         });
       }
     }
+
+    window.addEventListener('popstate', () => {
+      loadVideoPage();
+    });
 
     window.addEventListener('DOMContentLoaded', loadVideoPage);
 </script>

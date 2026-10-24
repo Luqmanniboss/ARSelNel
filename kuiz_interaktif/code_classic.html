@@ -474,7 +474,7 @@
                     'Tahniah! Anda telah menjawab <strong>3 soalan percubaan Mod Tetamu</strong>. Sila log masuk atau daftar akaun percuma untuk menjawab 10 soalan penuh dan menyimpan skor ke Papan Pendahulu!'
                   );
                   setTimeout(() => {
-                    const params = new URLSearchParams({ trial: '3', correct: String(currentScore), total: String(QUIZ_DATA.length), score: String(Math.round((currentScore / QUIZ_DATA.length) * 100)) });
+                    const params = new URLSearchParams({ trial: '3', correct: String(currentScore), total: String(QUIZ_DATA.length), score: String(Math.round((currentScore / QUIZ_DATA.length) * 100)), game: 'kuiz_saintis_muda' });
                     window.location.href = `../keputusan_permainan/code.html?${params.toString()}`;
                   }, 3500);
                   return;
@@ -483,8 +483,9 @@
                 if (currentQIdx < QUIZ_DATA.length) {
                     renderQuestion(currentQIdx);
                 } else {
-                    saveCompletedQuiz();
-                    const params = new URLSearchParams({ correct: String(currentScore), total: String(QUIZ_DATA.length), score: String(Math.round((currentScore / QUIZ_DATA.length) * 100)) });
+                    const sub = saveCompletedQuiz();
+                    const params = new URLSearchParams({ correct: String(currentScore), total: String(QUIZ_DATA.length), score: String(Math.round((currentScore / QUIZ_DATA.length) * 100)), game: 'kuiz_saintis_muda' });
+                    if (sub && sub.id) params.set('attempt_id', sub.id);
                     window.location.href = `../keputusan_permainan/code.html?${params.toString()}`;
                 }
                 return;
@@ -522,6 +523,8 @@
           if (!Array.isArray(record.completedLessons)) record.completedLessons = [];
           const submission = {
             id: crypto.randomUUID(),
+            quizId: 'kuiz_saintis_muda',
+            gameId: 'kuiz_saintis_muda',
             topic: 'Struktur, Fungsi dan Organisasi Sel',
             title: 'Kuiz Struktur, Fungsi dan Organisasi Sel',
             studentId: user.id,
@@ -534,6 +537,7 @@
           };
           record.quizzes.push(submission);
           try { localStorage.setItem(key, JSON.stringify(record)); } catch (_) {}
+          try { localStorage.setItem('arselnel_latest_attempt', JSON.stringify(submission)); } catch (_) {}
           const submissionsKey = user.isDemo ? 'arselnel_demo_arselnel_quiz_submissions' : 'arselnel_quiz_submissions';
           try {
             const submissions = JSON.parse(localStorage.getItem(submissionsKey) || '[]');
@@ -543,6 +547,7 @@
           if (user && !user.isGuest && (user.authProvider === 'supabase' || user.authProvider === 'google') && window.ARSupabase) {
             ARSupabase.saveQuizAttempt(submission).catch(error => console.warn('Keputusan kuiz kekal setempat sementara penyegerakan dicuba semula.', error));
           }
+          return submission;
         }
 
         // Toggle Hamburger Menu for Mobile/Tablet

@@ -602,7 +602,7 @@
                     <span class="material-symbols-outlined text-orange-500 text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
                   </div>
                 </div>
-                <div class="absolute bottom-3 right-3 bg-black/75 text-white px-2 py-0.5 rounded text-xs font-semibold">${escapeHtml(vid.duration || '05:00')}</div>
+                ${(vid.duration && vid.duration !== '05:00') ? `<div class="absolute bottom-3 right-3 bg-black/75 text-white px-2 py-0.5 rounded text-xs font-semibold font-mono">${escapeHtml(vid.duration)}</div>` : ''}
               </div>
               <div class="p-4">
                 <div class="flex justify-between items-start mb-2">
