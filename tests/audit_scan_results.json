@@ -677,5 +677,635 @@
     "keyword": "ON CONFLICT",
     "statement": "on conflict (id) do nothing;",
     "context": ") | on conflict (id) do nothing; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 25,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_admin()",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.is_admin() | returns boolean"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 67,
+    "keyword": "DELETE",
+    "statement": "created_by uuid references auth.users(id) on delete set null,",
+    "context": "publication_status text not null default 'published' check (publication_status in ('draft', 'published', 'archived')), | created_by uuid references auth.users(id) on delete set null, | views integer not null default 0,"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 75,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.learning_notes add column if not exists views integer not null default 0;",
+    "context": "-- Ensure additive columns exist in case table was created by legacy migration | alter table public.learning_notes add column if not exists views integer not null default 0; | alter table public.learning_notes add column if not exists display_order integer not null default 0;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 76,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.learning_notes add column if not exists display_order integer not null default 0;",
+    "context": "alter table public.learning_notes add column if not exists views integer not null default 0; | alter table public.learning_notes add column if not exists display_order integer not null default 0; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 86,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.learning_notes drop constraint learning_notes_publication_status_check;",
+    "context": ") then | alter table public.learning_notes drop constraint learning_notes_publication_status_check; | alter table public.learning_notes add constraint learning_notes_publication_status_check"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 87,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.learning_notes add constraint learning_notes_publication_status_check",
+    "context": "alter table public.learning_notes drop constraint learning_notes_publication_status_check; | alter table public.learning_notes add constraint learning_notes_publication_status_check | check (publication_status in ('draft', 'published', 'archived'));"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 104,
+    "keyword": "DELETE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "note_id text not null, | student_id uuid not null references auth.users(id) on delete cascade, | page_number integer not null check (page_number >= 1),"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 104,
+    "keyword": "CASCADE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "note_id text not null, | student_id uuid not null references auth.users(id) on delete cascade, | page_number integer not null check (page_number >= 1),"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 113,
+    "keyword": "DELETE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | student_id uuid not null references auth.users(id) on delete cascade, | note_id text not null,"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 113,
+    "keyword": "CASCADE",
+    "statement": "student_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | student_id uuid not null references auth.users(id) on delete cascade, | note_id text not null,"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 126,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.learning_notes enable row level security;",
+    "context": "-- ---------------------------------------------------------------------------- | alter table public.learning_notes enable row level security; | alter table public.student_annotations enable row level security;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 127,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.student_annotations enable row level security;",
+    "context": "alter table public.learning_notes enable row level security; | alter table public.student_annotations enable row level security; | alter table public.student_note_progress enable row level security;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 128,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.student_note_progress enable row level security;",
+    "context": "alter table public.student_annotations enable row level security; | alter table public.student_note_progress enable row level security; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 134,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"teachers insert learning notes\" on public.learning_notes;",
+    "context": "-- Remove legacy insecure policies if they exist | drop policy if exists \"teachers insert learning notes\" on public.learning_notes; | drop policy if exists \"teachers update learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 135,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"teachers update learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"teachers insert learning notes\" on public.learning_notes; | drop policy if exists \"teachers update learning notes\" on public.learning_notes; | drop policy if exists \"teachers delete learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 135,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"teachers update learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"teachers insert learning notes\" on public.learning_notes; | drop policy if exists \"teachers update learning notes\" on public.learning_notes; | drop policy if exists \"teachers delete learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 136,
+    "keyword": "DELETE",
+    "statement": "drop policy if exists \"teachers delete learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"teachers update learning notes\" on public.learning_notes; | drop policy if exists \"teachers delete learning notes\" on public.learning_notes; | drop policy if exists \"all users read published notes\" on public.learning_notes;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 136,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"teachers delete learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"teachers update learning notes\" on public.learning_notes; | drop policy if exists \"teachers delete learning notes\" on public.learning_notes; | drop policy if exists \"all users read published notes\" on public.learning_notes;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 137,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"all users read published notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"teachers delete learning notes\" on public.learning_notes; | drop policy if exists \"all users read published notes\" on public.learning_notes; | drop policy if exists \"public read published learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 138,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"public read published learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"all users read published notes\" on public.learning_notes; | drop policy if exists \"public read published learning notes\" on public.learning_notes; | drop policy if exists \"admins manage learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 139,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admins manage learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"public read published learning notes\" on public.learning_notes; | drop policy if exists \"admins manage learning notes\" on public.learning_notes; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 151,
+    "keyword": "UPDATE",
+    "statement": "create policy \"admin update learning notes\" on public.learning_notes",
+    "context": "-- 3. Update: Only verified Admins can update notes | create policy \"admin update learning notes\" on public.learning_notes | for update to authenticated using (public.is_admin()) with check (public.is_admin());"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 152,
+    "keyword": "UPDATE",
+    "statement": "for update to authenticated using (public.is_admin()) with check (public.is_admin());",
+    "context": "create policy \"admin update learning notes\" on public.learning_notes | for update to authenticated using (public.is_admin()) with check (public.is_admin()); | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 155,
+    "keyword": "DELETE",
+    "statement": "create policy \"admin delete learning notes\" on public.learning_notes",
+    "context": "-- 4. Delete: Only verified Admins can delete notes | create policy \"admin delete learning notes\" on public.learning_notes | for delete to authenticated using (public.is_admin());"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 156,
+    "keyword": "DELETE",
+    "statement": "for delete to authenticated using (public.is_admin());",
+    "context": "create policy \"admin delete learning notes\" on public.learning_notes | for delete to authenticated using (public.is_admin()); | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 159,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students read own annotations\" on public.student_annotations;",
+    "context": "-- Student Annotation Policies (Strictly isolated to authenticated student owner) | drop policy if exists \"students read own annotations\" on public.student_annotations; | drop policy if exists \"students write own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 160,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students write own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students read own annotations\" on public.student_annotations; | drop policy if exists \"students write own annotations\" on public.student_annotations; | drop policy if exists \"students insert own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 161,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students insert own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students write own annotations\" on public.student_annotations; | drop policy if exists \"students insert own annotations\" on public.student_annotations; | drop policy if exists \"students update own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 162,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"students update own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students insert own annotations\" on public.student_annotations; | drop policy if exists \"students update own annotations\" on public.student_annotations; | drop policy if exists \"students delete own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 162,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students update own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students insert own annotations\" on public.student_annotations; | drop policy if exists \"students update own annotations\" on public.student_annotations; | drop policy if exists \"students delete own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 163,
+    "keyword": "DELETE",
+    "statement": "drop policy if exists \"students delete own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students update own annotations\" on public.student_annotations; | drop policy if exists \"students delete own annotations\" on public.student_annotations; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 163,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students delete own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students update own annotations\" on public.student_annotations; | drop policy if exists \"students delete own annotations\" on public.student_annotations; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 171,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own annotations\" on public.student_annotations",
+    "context": " | create policy \"students update own annotations\" on public.student_annotations | for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 172,
+    "keyword": "UPDATE",
+    "statement": "for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);",
+    "context": "create policy \"students update own annotations\" on public.student_annotations | for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id); | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 174,
+    "keyword": "DELETE",
+    "statement": "create policy \"students delete own annotations\" on public.student_annotations",
+    "context": " | create policy \"students delete own annotations\" on public.student_annotations | for delete to authenticated using ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 175,
+    "keyword": "DELETE",
+    "statement": "for delete to authenticated using ((select auth.uid()) = student_id);",
+    "context": "create policy \"students delete own annotations\" on public.student_annotations | for delete to authenticated using ((select auth.uid()) = student_id); | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 178,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students read own progress\" on public.student_note_progress;",
+    "context": "-- Student Progress Policies (Strictly isolated to authenticated student owner) | drop policy if exists \"students read own progress\" on public.student_note_progress; | drop policy if exists \"students write own progress\" on public.student_note_progress;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 179,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students write own progress\" on public.student_note_progress;",
+    "context": "drop policy if exists \"students read own progress\" on public.student_note_progress; | drop policy if exists \"students write own progress\" on public.student_note_progress; | drop policy if exists \"students update own progress\" on public.student_note_progress;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 180,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"students update own progress\" on public.student_note_progress;",
+    "context": "drop policy if exists \"students write own progress\" on public.student_note_progress; | drop policy if exists \"students update own progress\" on public.student_note_progress; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 180,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students update own progress\" on public.student_note_progress;",
+    "context": "drop policy if exists \"students write own progress\" on public.student_note_progress; | drop policy if exists \"students update own progress\" on public.student_note_progress; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 188,
+    "keyword": "UPDATE",
+    "statement": "create policy \"students update own progress\" on public.student_note_progress",
+    "context": " | create policy \"students update own progress\" on public.student_note_progress | for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 189,
+    "keyword": "UPDATE",
+    "statement": "for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id);",
+    "context": "create policy \"students update own progress\" on public.student_note_progress | for update to authenticated using ((select auth.uid()) = student_id) with check ((select auth.uid()) = student_id); | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 193,
+    "keyword": "DELETE",
+    "statement": "grant insert, update, delete on public.learning_notes to authenticated;",
+    "context": "grant select on public.learning_notes to anon, authenticated; | grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 193,
+    "keyword": "UPDATE",
+    "statement": "grant insert, update, delete on public.learning_notes to authenticated;",
+    "context": "grant select on public.learning_notes to anon, authenticated; | grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 194,
+    "keyword": "DELETE",
+    "statement": "grant select, insert, update, delete on public.student_annotations to authenticated;",
+    "context": "grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 194,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update, delete on public.student_annotations to authenticated;",
+    "context": "grant insert, update, delete on public.learning_notes to authenticated; | grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 195,
+    "keyword": "UPDATE",
+    "statement": "grant select, insert, update on public.student_note_progress to authenticated;",
+    "context": "grant select, insert, update, delete on public.student_annotations to authenticated; | grant select, insert, update on public.student_note_progress to authenticated; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 221,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (id) do nothing; -- SAFE: Never overwrites existing bucket config",
+    "context": ") | on conflict (id) do nothing; -- SAFE: Never overwrites existing bucket config | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 227,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"authenticated insert educational_media\" on storage.objects;",
+    "context": "-- ---------------------------------------------------------------------------- | drop policy if exists \"authenticated insert educational_media\" on storage.objects; | drop policy if exists \"authenticated update educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 228,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"authenticated update educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"authenticated insert educational_media\" on storage.objects; | drop policy if exists \"authenticated update educational_media\" on storage.objects; | drop policy if exists \"authenticated delete educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 228,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"authenticated update educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"authenticated insert educational_media\" on storage.objects; | drop policy if exists \"authenticated update educational_media\" on storage.objects; | drop policy if exists \"authenticated delete educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 229,
+    "keyword": "DELETE",
+    "statement": "drop policy if exists \"authenticated delete educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"authenticated update educational_media\" on storage.objects; | drop policy if exists \"authenticated delete educational_media\" on storage.objects; | drop policy if exists \"public read educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 229,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"authenticated delete educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"authenticated update educational_media\" on storage.objects; | drop policy if exists \"authenticated delete educational_media\" on storage.objects; | drop policy if exists \"public read educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 230,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"public read educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"authenticated delete educational_media\" on storage.objects; | drop policy if exists \"public read educational_media\" on storage.objects; | drop policy if exists \"admin insert educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 231,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin insert educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"public read educational_media\" on storage.objects; | drop policy if exists \"admin insert educational_media\" on storage.objects; | drop policy if exists \"admin update educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 232,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"admin update educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin insert educational_media\" on storage.objects; | drop policy if exists \"admin update educational_media\" on storage.objects; | drop policy if exists \"admin delete educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 232,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin update educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin insert educational_media\" on storage.objects; | drop policy if exists \"admin update educational_media\" on storage.objects; | drop policy if exists \"admin delete educational_media\" on storage.objects;"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 233,
+    "keyword": "DELETE",
+    "statement": "drop policy if exists \"admin delete educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin update educational_media\" on storage.objects; | drop policy if exists \"admin delete educational_media\" on storage.objects; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 233,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin delete educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin update educational_media\" on storage.objects; | drop policy if exists \"admin delete educational_media\" on storage.objects; | "
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 245,
+    "keyword": "UPDATE",
+    "statement": "create policy \"admin update educational_media\" on storage.objects",
+    "context": "-- 3. Update: Verified Admin only | create policy \"admin update educational_media\" on storage.objects | for update to authenticated"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 246,
+    "keyword": "UPDATE",
+    "statement": "for update to authenticated",
+    "context": "create policy \"admin update educational_media\" on storage.objects | for update to authenticated | using (bucket_id = 'educational_media' and public.is_admin())"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 251,
+    "keyword": "DELETE",
+    "statement": "create policy \"admin delete educational_media\" on storage.objects",
+    "context": "-- 4. Delete: Verified Admin only | create policy \"admin delete educational_media\" on storage.objects | for delete to authenticated"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 252,
+    "keyword": "DELETE",
+    "statement": "for delete to authenticated",
+    "context": "create policy \"admin delete educational_media\" on storage.objects | for delete to authenticated | using (bucket_id = 'educational_media' and public.is_admin());"
+  },
+  {
+    "file": "202610230003_safe_production_migration.sql",
+    "lineNum": 318,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (id) do nothing;",
+    "context": ") | on conflict (id) do nothing; | "
+  },
+  {
+    "file": "202610240001_admin_analytics_and_account_settings.sql",
+    "lineNum": 81,
+    "keyword": "DELETE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | event_type text not null check (event_type in ('quiz_completed', 'note_viewed', 'note_completed', 'video_watched', 'game_completed', 'cellquest_explored', 'ar_scanned')),"
+  },
+  {
+    "file": "202610240001_admin_analytics_and_account_settings.sql",
+    "lineNum": 81,
+    "keyword": "CASCADE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | event_type text not null check (event_type in ('quiz_completed', 'note_viewed', 'note_completed', 'video_watched', 'game_completed', 'cellquest_explored', 'ar_scanned')),"
+  },
+  {
+    "file": "202610240001_admin_analytics_and_account_settings.sql",
+    "lineNum": 103,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.student_learning_events enable row level security;",
+    "context": "-- Enable RLS | alter table public.student_learning_events enable row level security; | "
+  },
+  {
+    "file": "202610240001_admin_analytics_and_account_settings.sql",
+    "lineNum": 145,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (cell_type) do nothing;",
+    "context": ") | on conflict (cell_type) do nothing; | "
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 11,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin insert educational_media\" on storage.objects;",
+    "context": "-- 1. Remove RLS Policies created by 202610230003 | drop policy if exists \"admin insert educational_media\" on storage.objects; | drop policy if exists \"admin update educational_media\" on storage.objects;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 12,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"admin update educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin insert educational_media\" on storage.objects; | drop policy if exists \"admin update educational_media\" on storage.objects; | drop policy if exists \"admin delete educational_media\" on storage.objects;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 12,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin update educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin insert educational_media\" on storage.objects; | drop policy if exists \"admin update educational_media\" on storage.objects; | drop policy if exists \"admin delete educational_media\" on storage.objects;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 13,
+    "keyword": "DELETE",
+    "statement": "drop policy if exists \"admin delete educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin update educational_media\" on storage.objects; | drop policy if exists \"admin delete educational_media\" on storage.objects; | drop policy if exists \"public read educational_media\" on storage.objects;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 13,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin delete educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin update educational_media\" on storage.objects; | drop policy if exists \"admin delete educational_media\" on storage.objects; | drop policy if exists \"public read educational_media\" on storage.objects;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 14,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"public read educational_media\" on storage.objects;",
+    "context": "drop policy if exists \"admin delete educational_media\" on storage.objects; | drop policy if exists \"public read educational_media\" on storage.objects; | "
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 16,
+    "keyword": "DELETE",
+    "statement": "drop policy if exists \"admin delete learning notes\" on public.learning_notes;",
+    "context": " | drop policy if exists \"admin delete learning notes\" on public.learning_notes; | drop policy if exists \"admin update learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 16,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin delete learning notes\" on public.learning_notes;",
+    "context": " | drop policy if exists \"admin delete learning notes\" on public.learning_notes; | drop policy if exists \"admin update learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 17,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"admin update learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"admin delete learning notes\" on public.learning_notes; | drop policy if exists \"admin update learning notes\" on public.learning_notes; | drop policy if exists \"admin insert learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 17,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin update learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"admin delete learning notes\" on public.learning_notes; | drop policy if exists \"admin update learning notes\" on public.learning_notes; | drop policy if exists \"admin insert learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 18,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admin insert learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"admin update learning notes\" on public.learning_notes; | drop policy if exists \"admin insert learning notes\" on public.learning_notes; | drop policy if exists \"public read published learning notes\" on public.learning_notes;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 19,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"public read published learning notes\" on public.learning_notes;",
+    "context": "drop policy if exists \"admin insert learning notes\" on public.learning_notes; | drop policy if exists \"public read published learning notes\" on public.learning_notes; | "
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 21,
+    "keyword": "DELETE",
+    "statement": "drop policy if exists \"students delete own annotations\" on public.student_annotations;",
+    "context": " | drop policy if exists \"students delete own annotations\" on public.student_annotations; | drop policy if exists \"students update own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 21,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students delete own annotations\" on public.student_annotations;",
+    "context": " | drop policy if exists \"students delete own annotations\" on public.student_annotations; | drop policy if exists \"students update own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 22,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"students update own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students delete own annotations\" on public.student_annotations; | drop policy if exists \"students update own annotations\" on public.student_annotations; | drop policy if exists \"students write own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 22,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students update own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students delete own annotations\" on public.student_annotations; | drop policy if exists \"students update own annotations\" on public.student_annotations; | drop policy if exists \"students write own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 23,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students write own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students update own annotations\" on public.student_annotations; | drop policy if exists \"students write own annotations\" on public.student_annotations; | drop policy if exists \"students read own annotations\" on public.student_annotations;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 24,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students read own annotations\" on public.student_annotations;",
+    "context": "drop policy if exists \"students write own annotations\" on public.student_annotations; | drop policy if exists \"students read own annotations\" on public.student_annotations; | "
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 26,
+    "keyword": "UPDATE",
+    "statement": "drop policy if exists \"students update own progress\" on public.student_note_progress;",
+    "context": " | drop policy if exists \"students update own progress\" on public.student_note_progress; | drop policy if exists \"students write own progress\" on public.student_note_progress;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 26,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students update own progress\" on public.student_note_progress;",
+    "context": " | drop policy if exists \"students update own progress\" on public.student_note_progress; | drop policy if exists \"students write own progress\" on public.student_note_progress;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 27,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students write own progress\" on public.student_note_progress;",
+    "context": "drop policy if exists \"students update own progress\" on public.student_note_progress; | drop policy if exists \"students write own progress\" on public.student_note_progress; | drop policy if exists \"students read own progress\" on public.student_note_progress;"
+  },
+  {
+    "file": "rollback_202610230003.sql",
+    "lineNum": 28,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"students read own progress\" on public.student_note_progress;",
+    "context": "drop policy if exists \"students write own progress\" on public.student_note_progress; | drop policy if exists \"students read own progress\" on public.student_note_progress; | "
   }
 ]

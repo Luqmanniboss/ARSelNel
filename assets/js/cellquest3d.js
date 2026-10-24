@@ -126,6 +126,19 @@
     plant: '../models/plantcellnew.glb'
   };
 
+  // Sync published 3D models from Supabase CMS
+  if (window.CMSAdapter && typeof window.CMSAdapter.getCellQuestModels === 'function') {
+    window.CMSAdapter.getCellQuestModels({ activeOnly: true }).then(cmsModels => {
+      if (Array.isArray(cmsModels)) {
+        cmsModels.forEach(m => {
+          if (m.cellType && m.modelUrl) {
+            CELL_MODELS[m.cellType] = m.modelUrl;
+          }
+        });
+      }
+    }).catch(e => console.warn('CellQuest CMS model sync warning', e));
+  }
+
   // Cache Model GLB dalam memori (Muat sekali, guna semula sekerap mungkin)
   const cachedGltfScenes = {
     animal: null,

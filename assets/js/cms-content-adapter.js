@@ -1405,6 +1405,364 @@
       return record;
     }
 
+    // --- CellQuest 3D / AR Models Management ---
+    async getCellQuestModels(filters = {}) {
+      await this.initPromise;
+      let models = [];
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          let query = this.supabaseClient.from('cms_cellquest_models').select('*').order('created_at', { ascending: true });
+          if (filters.cellType && filters.cellType !== 'all') {
+            query = query.eq('cell_type', filters.cellType);
+          }
+          if (filters.activeOnly) {
+            query = query.eq('is_active', true);
+          }
+          const { data, error } = await query;
+          if (!error && Array.isArray(data) && data.length > 0) {
+            models = data.map(r => ({
+              id: r.id,
+              cellType: r.cell_type,
+              name: r.name,
+              modelUrl: r.model_url,
+              format: r.format || 'GLB',
+              meshMappings: r.mesh_mappings || {},
+              isActive: r.is_active !== false,
+              description: r.description || (r.cell_type === 'animal' ? 'Model 3D Sel Haiwan KSSM' : 'Model 3D Sel Tumbuhan KSSM'),
+              arAvailable: r.ar_available !== false,
+              thumbnail: r.thumbnail || (r.cell_type === 'animal' ? '../assets/home/cell_model.svg' : '../assets/home/recommendation_cell.svg'),
+              createdAt: r.created_at
+            }));
+            localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(models));
+            return models;
+          }
+        } catch (e) {
+          console.warn('[CMSAdapter] Remote getCellQuestModels error; using local cache.', e);
+        }
+      }
+
+      try {
+        const cached = localStorage.getItem(STORAGE_KEYS.MODELS);
+        if (cached) models = JSON.parse(cached);
+      } catch (_) {}
+
+      if (!Array.isArray(models) || models.length === 0) {
+        models = (BUNDLED_SEEDS.models || []).map(m => ({
+          ...m,
+          isActive: true,
+          arAvailable: true,
+          description: m.cellType === 'animal' ? 'Model mikroskopik 3D sel haiwan piawai KSSM.' : 'Model mikroskopik 3D sel tumbuhan dengan kloroplas & dinding sel.'
+        }));
+      }
+
+      if (filters.cellType && filters.cellType !== 'all') {
+        models = models.filter(m => m.cellType === filters.cellType);
+      }
+      if (filters.activeOnly) {
+        models = models.filter(m => m.isActive);
+      }
+      return models;
+    }
+
+    async saveCellQuestModel(modelData) {
+      await this.initPromise;
+      const record = {
+        id: modelData.id || `model_${Date.now()}`,
+        cellType: modelData.cellType || 'animal',
+        name: modelData.name || (modelData.cellType === 'animal' ? 'Model Sel Haiwan' : 'Model Sel Tumbuhan'),
+        modelUrl: modelData.modelUrl || (modelData.cellType === 'animal' ? '../models/animal_cell_final.glb' : '../models/plantcellnew.glb'),
+        format: modelData.format || 'GLB',
+        meshMappings: modelData.meshMappings || {},
+        isActive: modelData.isActive !== false,
+        description: modelData.description || '',
+        arAvailable: modelData.arAvailable !== false,
+        thumbnail: modelData.thumbnail || '',
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        const local = await this.getCellQuestModels({});
+        const idx = local.findIndex(x => x.id === record.id || x.cellType === record.cellType);
+        if (idx >= 0) local[idx] = { ...local[idx], ...record };
+        else local.push(record);
+        localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(local));
+      } catch (err) {
+        console.error('[CMSAdapter] Failed to save model locally:', err);
+      }
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { error } = await this.supabaseClient.from('cms_cellquest_models').upsert({
+            id: record.id,
+            cell_type: record.cellType,
+            name: record.name,
+            model_url: record.modelUrl,
+            format: record.format,
+            mesh_mappings: record.meshMappings,
+            is_active: record.isActive,
+            updated_at: record.updatedAt
+          }, { onConflict: 'cell_type' });
+          if (error) console.warn('[CMSAdapter] Remote saveCellQuestModel error:', error);
+        } catch (e) {
+          console.warn('[CMSAdapter] Remote saveCellQuestModel exception:', e);
+        }
+      }
+
+      return record;
+    }
+
+    async deleteCellQuestModel(id) {
+      await this.initPromise;
+      try {
+        const local = await this.getCellQuestModels({});
+        const filtered = local.filter(x => x.id !== id);
+        localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(filtered));
+      } catch (_) {}
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          await this.supabaseClient.from('cms_cellquest_models').delete().eq('id', id);
+        } catch (_) {}
+      }
+      return true;
+    }
+
+    async uploadMediaFile(file, folder = 'models') {
+      await this.initPromise;
+      if (!file) throw new Error('Tiada fail dipilih.');
+      
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      const allowedExts = ['glb', 'gltf', 'png', 'jpg', 'jpeg', 'webp', 'svg', 'mp4', 'webm', 'pdf', 'pptx'];
+      if (!allowedExts.includes(ext)) {
+        throw new Error(`Format fail .${ext} tidak disokong. Format yang dibenarkan: ${allowedExts.join(', ')}`);
+      }
+
+      if (!this.supabaseClient || this.connectionStatus !== 'connected') {
+        throw new Error('Pangkalan data Supabase tidak disambungkan. Tidak dapat memuat naik fail ke pelayan awan.');
+      }
+
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `${folder}/${Date.now()}_${safeName}`;
+
+      const { data, error } = await this.supabaseClient.storage
+        .from('educational_media')
+        .upload(storagePath, file, { cacheControl: '3600', upsert: true });
+
+      if (error) {
+        throw new Error(`Gagal memuat naik ke storan Supabase: ${error.message}`);
+      }
+
+      const { data: pubData } = this.supabaseClient.storage
+        .from('educational_media')
+        .getPublicUrl(storagePath);
+
+      return {
+        path: storagePath,
+        publicUrl: pubData ? pubData.publicUrl : storagePath
+      };
+    }
+
+    // --- Real Database Learning Analytics ---
+    async getRealAnalytics() {
+      await this.initPromise;
+      if (!this.supabaseClient || this.connectionStatus !== 'connected') {
+        throw new Error('Tidak dapat menyambung ke pangkalan data Supabase.');
+      }
+
+      try {
+        const [
+          profilesRes,
+          quizAttemptsRes,
+          quizzesRes,
+          notesRes,
+          videosRes,
+          modelsRes,
+          eventsRes,
+          progressRes
+        ] = await Promise.all([
+          this.supabaseClient.from('profiles').select('id, full_name, class_name, role, created_at').eq('role', 'student'),
+          this.supabaseClient.from('quiz_attempts').select('id, user_id, quiz_id, score, total_questions, submitted_at').order('submitted_at', { ascending: false }),
+          this.supabaseClient.from('cms_quizzes').select('id, topic, publication_status'),
+          this.supabaseClient.from('learning_notes').select('id, title, chapter, views, publication_status'),
+          this.supabaseClient.from('cms_videos').select('id, title, views, publication_status'),
+          this.supabaseClient.from('cms_cellquest_models').select('id, is_active'),
+          this.supabaseClient.from('student_learning_events').select('*').order('created_at', { ascending: false }).limit(30),
+          this.supabaseClient.from('learning_progress').select('id, activity_id, completion_status')
+        ]);
+
+        const students = (profilesRes.data || []).filter(s => {
+          const name = (s.full_name || '').toLowerCase();
+          return !name.includes('demo') && !name.includes('test') && !name.includes('admin');
+        });
+
+        const attempts = quizAttemptsRes.data || [];
+        const totalAttempts = attempts.length;
+        const avgScore = totalAttempts > 0 ? Math.round(attempts.reduce((sum, a) => sum + (Number(a.score) || 0), 0) / totalAttempts) : 0;
+        const passedAttempts = attempts.filter(a => Number(a.score) >= 50).length;
+        const passRate = totalAttempts > 0 ? Math.round((passedAttempts / totalAttempts) * 100) : 0;
+
+        const quizzes = quizzesRes.data || [];
+        const publishedQuizzes = quizzes.filter(q => q.publication_status === 'published');
+
+        const notes = notesRes.data || [];
+        const publishedNotes = notes.filter(n => n.publication_status === 'published');
+        const draftNotes = notes.filter(n => n.publication_status === 'draft');
+        const totalNoteViews = notes.reduce((sum, n) => sum + (Number(n.views) || 0), 0);
+
+        const videos = videosRes.data || [];
+        const publishedVideos = videos.filter(v => v.publication_status === 'published');
+        const totalVideoViews = videos.reduce((sum, v) => sum + (Number(v.views) || 0), 0);
+
+        const models = modelsRes.data || [];
+        const activeModels = models.filter(m => m.is_active !== false);
+
+        const progressList = progressRes.data || [];
+        const completedNotesCount = progressList.filter(p => p.activity_id && p.activity_id.startsWith('note-') && p.completion_status === 'completed').length;
+        const completedGamesCount = progressList.filter(p => p.activity_id && p.activity_id.startsWith('game-') && p.completion_status === 'completed').length;
+
+        // Topic performance aggregation
+        const topicMap = {};
+        attempts.forEach(a => {
+          const topic = a.quiz_id || 'Topik Asas Sel';
+          if (!topicMap[topic]) topicMap[topic] = { totalScore: 0, count: 0 };
+          topicMap[topic].totalScore += Number(a.score) || 0;
+          topicMap[topic].count += 1;
+        });
+
+        const popularTopics = Object.keys(topicMap).map(topic => ({
+          title: topic.replace(/[-_]/g, ' ').toUpperCase(),
+          avgScore: Math.round(topicMap[topic].totalScore / topicMap[topic].count),
+          attempts: topicMap[topic].count
+        }));
+
+        // Activity log from genuine database records
+        const activities = [];
+        if (Array.isArray(eventsRes.data) && eventsRes.data.length > 0) {
+          eventsRes.data.forEach(ev => {
+            activities.push({
+              id: ev.id,
+              type: ev.event_type,
+              text: `${ev.title}`,
+              time: ev.created_at,
+              module: (ev.event_type || '').split('_')[0]
+            });
+          });
+        } else if (attempts.length > 0) {
+          attempts.slice(0, 15).forEach(att => {
+            activities.push({
+              id: att.id,
+              type: 'quiz',
+              text: `Murid menyempurnakan Kuiz Sel dengan skor ${att.score}%`,
+              time: att.submitted_at,
+              module: 'kuiz'
+            });
+          });
+        }
+
+        return {
+          totalStudents: students.length,
+          activeStudents: students.length,
+          totalQuizzes: publishedQuizzes.length,
+          totalQuizAttempts: totalAttempts,
+          avgQuizScore: avgScore,
+          quizPassRate: passRate,
+          totalNotes: notes.length,
+          publishedNotes: publishedNotes.length,
+          draftNotes: draftNotes.length,
+          totalNoteViews,
+          completedNotesCount,
+          completedGamesCount,
+          totalVideos: publishedVideos.length,
+          totalVideoViews,
+          activeModelsCount: activeModels.length || 2,
+          popularTopics,
+          hasSufficientData: totalAttempts > 0,
+          activities,
+          lastUpdated: new Date().toISOString()
+        };
+      } catch (err) {
+        console.error('[CMSAdapter] Real analytics fetch failed:', err);
+        throw err;
+      }
+    }
+
+    // --- Real Student Learning Records ---
+    async getRealStudentRecords(options = {}) {
+      await this.initPromise;
+      if (!this.supabaseClient || this.connectionStatus !== 'connected') {
+        throw new Error('Tidak dapat menyambung ke pangkalan data Supabase.');
+      }
+
+      const [profilesRes, attemptsRes, progressRes] = await Promise.all([
+        this.supabaseClient.from('profiles').select('*').eq('role', 'student'),
+        this.supabaseClient.from('quiz_attempts').select('*').order('submitted_at', { ascending: false }),
+        this.supabaseClient.from('learning_progress').select('*')
+      ]);
+
+      if (profilesRes.error) throw profilesRes.error;
+
+      let students = (profilesRes.data || []).filter(s => {
+        const name = (s.full_name || '').toLowerCase();
+        return !name.includes('demo') && !name.includes('test');
+      }).map(p => {
+        const studentAttempts = (attemptsRes.data || []).filter(a => a.user_id === p.id);
+        const studentProgress = (progressRes.data || []).filter(pr => pr.user_id === p.id);
+
+        const totalAttempts = studentAttempts.length;
+        const avgScore = totalAttempts > 0
+          ? Math.round(studentAttempts.reduce((s, a) => s + (Number(a.score) || 0), 0) / totalAttempts)
+          : 0;
+
+        const completedNotes = studentProgress.filter(pr => pr.activity_id && pr.activity_id.startsWith('note-') && pr.completion_status === 'completed').length;
+        const completedGames = studentProgress.filter(pr => pr.activity_id && pr.activity_id.startsWith('game-') && pr.completion_status === 'completed').length;
+
+        const lastActivityTime = studentAttempts[0] ? studentAttempts[0].submitted_at : p.created_at;
+
+        return {
+          id: p.id,
+          name: p.full_name || 'Pelajar Sains',
+          email: p.nickname ? `${p.nickname}@sekolah.edu.my` : 'pelajar@arselnel.my',
+          grade: p.class_name || 'Tingkatan 1',
+          quizAttemptsCount: totalAttempts,
+          avgScore,
+          notesCompleted: completedNotes,
+          gamesCompleted: completedGames,
+          lastActive: lastActivityTime,
+          status: 'active'
+        };
+      });
+
+      if (options.searchQuery) {
+        const q = options.searchQuery.toLowerCase();
+        students = students.filter(s => s.name.toLowerCase().includes(q) || s.grade.toLowerCase().includes(q));
+      }
+      if (options.classFilter && options.classFilter !== 'all') {
+        students = students.filter(s => s.grade === options.classFilter);
+      }
+
+      return students;
+    }
+
+    async getStudentDetail(studentId) {
+      await this.initPromise;
+      if (!this.supabaseClient || this.connectionStatus !== 'connected') {
+        throw new Error('Tidak dapat menyambung ke pangkalan data Supabase.');
+      }
+
+      const [profileRes, attemptsRes, progressRes] = await Promise.all([
+        this.supabaseClient.from('profiles').select('*').eq('id', studentId).single(),
+        this.supabaseClient.from('quiz_attempts').select('*').eq('user_id', studentId).order('submitted_at', { ascending: false }),
+        this.supabaseClient.from('learning_progress').select('*').eq('user_id', studentId).order('updated_at', { ascending: false })
+      ]);
+
+      return {
+        profile: profileRes.data || null,
+        quizAttempts: attemptsRes.data || [],
+        learningProgress: progressRes.data || []
+      };
+    }
+
     // =========================================================================
     // 6. STUDENT DASHBOARD CMS
     // =========================================================================

@@ -420,31 +420,62 @@ Dalam hidupan kompleks seperti manusia, sel tidak boleh bekerja secara bersendir
     }
 
     // --- Statistics ---
-    getStats() {
-      const students = this.getStudents();
+    async getStats() {
+      if (global.CMSAdapter && typeof global.CMSAdapter.getRealAnalytics === 'function') {
+        try {
+          const realStats = await global.CMSAdapter.getRealAnalytics();
+          return realStats;
+        } catch (err) {
+          console.warn('[AdminCMS] Live analytics query failed or offline; using local counts:', err);
+        }
+      }
+
       const quizzes = this.getQuizzes();
       const notes = this.getNotes();
       const videos = this.getVideos();
-      const arModels = this.getARModels();
-
-      const activeStudents = students.filter(s => s.status === 'active').length;
-      const publishedNotes = notes.filter(n => n.status === 'published').length;
-      const avgScore = students.length > 0 
-        ? Math.round(students.reduce((acc, s) => acc + (s.score || 0), 0) / students.length) 
-        : 0;
+      const publishedNotes = notes.filter(n => n.status === 'published' || n.publicationStatus === 'published').length;
 
       return {
-        totalStudents: students.length,
-        activeStudents,
+        totalStudents: 0,
+        activeStudents: 0,
         totalQuizzes: quizzes.length,
+        totalQuizAttempts: 0,
+        avgQuizScore: 0,
+        quizPassRate: 0,
         totalNotes: notes.length,
         publishedNotes,
         draftNotes: notes.length - publishedNotes,
+        totalNoteViews: notes.reduce((sum, n) => sum + (Number(n.views) || 0), 0),
         totalVideos: videos.length,
-        totalARModels: arModels.length,
-        avgScore,
-        systemHealth: '100% Cemerlang'
+        totalVideoViews: videos.reduce((sum, v) => sum + (Number(v.views) || 0), 0),
+        activeModelsCount: 2,
+        popularTopics: [],
+        hasSufficientData: false,
+        activities: [],
+        lastUpdated: new Date().toISOString()
       };
+    }
+
+    async syncFromSupabase() {
+      if (global.CMSAdapter && typeof global.CMSAdapter.checkConnection === 'function') {
+        const state = await global.CMSAdapter.checkConnection();
+        if (state && state.connected) {
+          try {
+            await Promise.allSettled([
+              global.CMSAdapter.getQuizzes({ status: 'all' }),
+              global.CMSAdapter.getNotes({ status: 'all' }),
+              global.CMSAdapter.getVideos({ status: 'all' }),
+              global.CMSAdapter.getCellQuestOrganelles({ status: 'all' }),
+              global.CMSAdapter.getCellQuestModels({ activeOnly: false }),
+              global.CMSAdapter.getManualSteps({ status: 'all' })
+            ]);
+            return true;
+          } catch (e) {
+            console.warn('Sync from Supabase warning', e);
+          }
+        }
+      }
+      return false;
     }
 
     getModules() { return this.getCollection(CMS_STORAGE.MODULES, []); }

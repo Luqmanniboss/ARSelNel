@@ -82,14 +82,18 @@
     }
   </style>
 
-  <!-- Supabase & Smart Notes Manager -->
+  <!-- Supabase, Auth & CMS Adapter -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-client.js"></script>
-  <script src="../assets/js/cms-content-adapter.js"></script>
-  <script src="../assets/js/smart-notes.js"></script>
-
-  <!-- Route Protection Guard -->
+  <script src="../assets/js/auth-guard.js"></script>
   <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cms-content-adapter.js"></script>
+  <script src="../assets/js/admin-i18n.js"></script>
+  <script src="../assets/js/smart-notes.js"></script>
+  <!-- Three.js 3D Model Rendering Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script>
     // Enforce Admin access on entry
     (function() {
@@ -129,61 +133,51 @@
 
       <!-- Navigation Links -->
       <nav id="sidebar-nav" class="hidden lg:flex flex-col gap-1.5 mt-6">
-        <p class="px-3 pb-2 text-[11px] font-extrabold uppercase tracking-widest text-teal-300/80">Menu Pengurusan CMS</p>
+        <p class="px-3 pb-2 text-[11px] font-extrabold uppercase tracking-widest text-teal-300/80" data-i18n="overview_badge">Menu Pengurusan CMS</p>
         
         <button type="button" onclick="switchView('overview')" class="nav-item active w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="overview">
           <span class="material-symbols-outlined text-lg sm:text-xl">dashboard</span>
-          <span>1. Papan Pemuka</span>
+          <span data-i18n="nav_overview">1. Papan Pemuka</span>
         </button>
 
         <button type="button" onclick="switchView('notes')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="notes">
           <span class="material-symbols-outlined text-lg sm:text-xl">menu_book</span>
-          <span>2. Pengurusan Nota</span>
+          <span data-i18n="nav_notes">2. Pengurusan Nota</span>
         </button>
 
         <button type="button" onclick="switchView('videos')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="videos">
           <span class="material-symbols-outlined text-lg sm:text-xl">video_library</span>
-          <span>3. Pengurusan Video</span>
+          <span data-i18n="nav_videos">3. Pengurusan Video</span>
         </button>
 
         <button type="button" onclick="switchView('quizzes')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="quizzes">
           <span class="material-symbols-outlined text-lg sm:text-xl">quiz</span>
-          <span>4. Pengurusan Kuiz</span>
+          <span data-i18n="nav_quizzes">4. Pengurusan Kuiz</span>
         </button>
 
         <button type="button" onclick="switchView('games')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="games">
           <span class="material-symbols-outlined text-lg sm:text-xl">sports_esports</span>
-          <span>5. Pengurusan Permainan</span>
+          <span data-i18n="nav_games">5. Pengurusan Permainan</span>
         </button>
 
         <button type="button" onclick="switchView('cellquest')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="cellquest">
           <span class="material-symbols-outlined text-lg sm:text-xl">view_in_ar</span>
-          <span>6. Pengurusan CellQuest</span>
-        </button>
-
-        <button type="button" onclick="switchView('dashboard-content')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="dashboard-content">
-          <span class="material-symbols-outlined text-lg sm:text-xl">web</span>
-          <span>7. Dashboard Murid</span>
+          <span data-i18n="nav_cellquest">6. Pengurusan CellQuest & Model 3D/AR</span>
         </button>
 
         <button type="button" onclick="switchView('manual')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="manual">
           <span class="material-symbols-outlined text-lg sm:text-xl">help_center</span>
-          <span>8. Pengurusan Manual</span>
-        </button>
-
-        <button type="button" onclick="switchView('ar-models')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="ar-models">
-          <span class="material-symbols-outlined text-lg sm:text-xl">perm_media</span>
-          <span>9. Pengurusan Media & 3D</span>
+          <span data-i18n="nav_manual">7. Pengurusan Manual</span>
         </button>
 
         <button type="button" onclick="switchView('students')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="students">
           <span class="material-symbols-outlined text-lg sm:text-xl">group</span>
-          <span>10. Rekod Pembelajaran</span>
+          <span data-i18n="nav_students">8. Rekod Pembelajaran</span>
         </button>
 
-        <button type="button" onclick="switchView('settings')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="settings">
-          <span class="material-symbols-outlined text-lg sm:text-xl">settings_suggest</span>
-          <span>11. Tetapan & Supabase</span>
+        <button type="button" onclick="switchView('account')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition text-left" data-view="account">
+          <span class="material-symbols-outlined text-lg sm:text-xl">manage_accounts</span>
+          <span data-i18n="nav_account">9. Tetapan Akaun</span>
         </button>
 
         <p class="px-3 pt-5 pb-2 text-[11px] font-extrabold uppercase tracking-widest text-teal-300/80">Pautan Pantas</p>
@@ -338,13 +332,18 @@
               </p>
             </div>
             <div class="flex items-center gap-3">
-              <button onclick="restoreSeedData()" class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-xs transition backdrop-blur border border-white/20">
-                ↺ Muat Data Contoh
+              <button type="button" onclick="refreshDashboardData()" id="btn-refresh-dashboard" class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-xs transition backdrop-blur border border-white/20 flex items-center gap-1.5 shadow-sm">
+                <span class="material-symbols-outlined text-base">refresh</span>
+                <span data-i18n="btn_refresh_data">Muat Semula Data</span>
               </button>
-              <button onclick="switchView('quizzes')" class="px-5 py-2.5 rounded-xl bg-mint text-teal-950 font-headline font-bold text-xs shadow-md hover:brightness-105 transition">
-                Urus Kuiz &rarr;
+              <button type="button" onclick="switchView('quizzes')" class="px-5 py-2.5 rounded-xl bg-mint text-teal-950 font-headline font-bold text-xs shadow-md hover:brightness-105 transition">
+                <span>Urus Kuiz &rarr;</span>
               </button>
             </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-teal-100/90">
+            <span><span data-i18n="last_updated">Dikemas kini:</span> <strong id="last-refresh-time" class="font-mono">Sebentar tadi</strong></span>
+            <span id="data-source-status" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/10 text-white font-semibold">● Pangkalan Data Supabase</span>
           </div>
         </div>
 
@@ -358,9 +357,9 @@
               </span>
               <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Aktif</span>
             </div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jumlah Pelajar</p>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider" data-i18n="stat_students_title">Jumlah Pelajar</p>
             <h3 id="stat-students" class="font-headline text-2xl font-extrabold text-slate-900 mt-1">0</h3>
-            <span class="text-[11px] text-slate-400">Termasuk 3 kelas utama</span>
+            <span class="text-[11px] text-slate-400" id="stat-students-sub" data-i18n="stat_students_sub">Akaun murid berdaftar</span>
           </div>
 
           <!-- Card 2: Quizzes -->
@@ -371,9 +370,9 @@
               </span>
               <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Tersedia</span>
             </div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Soalan Kuiz</p>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider" data-i18n="stat_quizzes_title">Soalan Kuiz</p>
             <h3 id="stat-quizzes" class="font-headline text-2xl font-extrabold text-slate-900 mt-1">0</h3>
-            <span class="text-[11px] text-slate-400">MCQ, Betul/Salah & Padanan</span>
+            <span class="text-[11px] text-slate-400" id="stat-quizzes-sub" data-i18n="stat_quizzes_sub">Soalan diterbitkan</span>
           </div>
 
           <!-- Card 3: Notes -->
@@ -384,9 +383,9 @@
               </span>
               <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Terbit</span>
             </div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nota KSSM</p>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider" data-i18n="stat_notes_title">Nota KSSM</p>
             <h3 id="stat-notes" class="font-headline text-2xl font-extrabold text-slate-900 mt-1">0</h3>
-            <span class="text-[11px] text-slate-400" id="stat-notes-sub">3 Terbit • 1 Draf</span>
+            <span class="text-[11px] text-slate-400" id="stat-notes-sub">0 Terbit • 0 Draf</span>
           </div>
 
           <!-- Card 4: Videos -->
@@ -397,9 +396,9 @@
               </span>
               <span class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">HD</span>
             </div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Koleksi Video</p>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider" data-i18n="stat_videos_title">Koleksi Video</p>
             <h3 id="stat-videos" class="font-headline text-2xl font-extrabold text-slate-900 mt-1">0</h3>
-            <span class="text-[11px] text-slate-400">Termasuk eksperimen amali</span>
+            <span class="text-[11px] text-slate-400" id="stat-videos-sub" data-i18n="stat_videos_sub">Video amali & penerangan</span>
           </div>
 
           <!-- Card 5: AR Models -->
@@ -410,9 +409,9 @@
               </span>
               <span class="text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">3D AR</span>
             </div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Model AR 3D</p>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider" data-i18n="stat_models_title">Model 3D & AR</p>
             <h3 id="stat-ar" class="font-headline text-2xl font-extrabold text-slate-900 mt-1">0</h3>
-            <span class="text-[11px] text-slate-400">Marker QR aktif</span>
+            <span class="text-[11px] text-slate-400" id="stat-ar-sub" data-i18n="stat_models_sub">Model sel aktif</span>
           </div>
         </div>
 
@@ -420,71 +419,35 @@
         <div class="grid lg:grid-cols-12 gap-6">
           
           <!-- Left: Analytics & Top Modules (7 cols) -->
-          <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-            <div class="flex items-center justify-between mb-5">
-              <div>
-                <h3 class="font-headline font-bold text-base text-slate-900">Prestasi Pembelajaran & Topik Popular</h3>
-                <p class="text-xs text-slate-500">Purata penguasaan konsep sel bagi Tingkatan 1</p>
-              </div>
-              <span class="px-3 py-1 bg-teal-50 text-primary font-bold text-xs rounded-full">Purata Skor: 84%</span>
-            </div>
-
-            <!-- Progress Bars for Science Topics -->
-            <div class="space-y-4">
-              <div>
-                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>1. Struktur & Organel Sel Haiwan (Nukleus & Mitokondria)</span>
-                  <span class="text-primary font-bold">92%</span>
+          <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-5">
+                <div>
+                  <h3 class="font-headline font-bold text-base text-slate-900" data-i18n="performance_title">Prestasi Pembelajaran & Topik Popular</h3>
+                  <p class="text-xs text-slate-500" data-i18n="performance_subtitle">Purata penguasaan konsep sel berdasarkan rekod murid sebenar</p>
                 </div>
-                <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-primary rounded-full transition-all duration-700" style="width: 92%;"></div>
-                </div>
+                <span id="overview-avg-score-badge" class="px-3 py-1 bg-teal-50 text-primary font-bold text-xs rounded-full">Purata Skor: 0%</span>
               </div>
 
-              <div>
-                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>2. Sel Tumbuhan (Kloroplas, Vakuol & Dinding Sel)</span>
-                  <span class="text-emerald-600 font-bold">88%</span>
-                </div>
-                <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-emerald-500 rounded-full transition-all duration-700" style="width: 88%;"></div>
-                </div>
-              </div>
-
-              <div>
-                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>3. Eksplorasi Model 3D & Pengimbas AR Sel</span>
-                  <span class="text-amber-600 font-bold">80%</span>
-                </div>
-                <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-amber-500 rounded-full transition-all duration-700" style="width: 80%;"></div>
-                </div>
-              </div>
-
-              <div>
-                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>4. Hierarki Organisasi Sel & Organisma Multisel</span>
-                  <span class="text-blue-600 font-bold">75%</span>
-                </div>
-                <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-secondary rounded-full transition-all duration-700" style="width: 75%;"></div>
-                </div>
+              <!-- Real Dynamic Progress Bars for Science Topics -->
+              <div id="popular-topics-container" class="space-y-4">
+                <div class="p-8 text-center text-slate-400 text-xs font-semibold" data-i18n="no_data_performance">Belum cukup data untuk analisis.</div>
               </div>
             </div>
 
-            <!-- Quick stats row -->
+            <!-- Quick stats row with genuine database calculations -->
             <div class="mt-6 pt-5 border-t border-slate-100 grid grid-cols-3 gap-3 text-center">
               <div class="p-3 bg-slate-50 rounded-2xl">
-                <span class="text-xs text-slate-400 block">Kadar Lulus Kuiz</span>
-                <strong class="font-headline text-lg font-bold text-slate-800">96.4%</strong>
+                <span class="text-xs text-slate-400 block" data-i18n="pass_rate_label">Kadar Lulus Kuiz</span>
+                <strong id="overview-pass-rate" class="font-headline text-lg font-bold text-slate-800">0%</strong>
               </div>
               <div class="p-3 bg-slate-50 rounded-2xl">
-                <span class="text-xs text-slate-400 block">Imbasan AR Mingguan</span>
-                <strong class="font-headline text-lg font-bold text-primary">955+</strong>
+                <span class="text-xs text-slate-400 block" data-i18n="note_completion_label">Pelajar Selesai Nota</span>
+                <strong id="overview-notes-completed" class="font-headline text-lg font-bold text-emerald-700">0</strong>
               </div>
               <div class="p-3 bg-slate-50 rounded-2xl">
-                <span class="text-xs text-slate-400 block">Pelajar Selesai Nota</span>
-                <strong class="font-headline text-lg font-bold text-emerald-700">88.2%</strong>
+                <span class="text-xs text-slate-400 block" data-i18n="active_games_label">Sesi Permainan Selesai</span>
+                <strong id="overview-games-completed" class="font-headline text-lg font-bold text-primary">0</strong>
               </div>
             </div>
           </div>
@@ -493,17 +456,17 @@
           <div class="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-4">
-                <h3 class="font-headline font-bold text-base text-slate-900">Log Aktiviti Sains Terkini</h3>
-                <span class="text-xs font-bold text-slate-400">Masa Nyata</span>
+                <h3 class="font-headline font-bold text-base text-slate-900" data-i18n="activity_title">Log Aktiviti Sains Terkini</h3>
+                <span class="text-xs font-bold text-slate-400" data-i18n="activity_live_badge">Masa Nyata</span>
               </div>
               <div id="activity-log-container" class="space-y-3.5">
-                <!-- Activity list populated dynamically -->
+                <div class="p-6 text-center text-xs text-slate-400" data-i18n="no_activities">Tiada aktiviti pembelajaran direkodkan lagi.</div>
               </div>
             </div>
 
             <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span class="text-slate-400 font-medium">Auto-simpan dalam pelayar</span>
-              <button onclick="renderActivities()" class="text-primary font-bold hover:underline">
+              <span class="text-slate-400 font-medium">Diselaraskan dengan Supabase</span>
+              <button type="button" onclick="renderActivities()" class="text-primary font-bold hover:underline" data-i18n="btn_refresh_log">
                 Muat Semula Log
               </button>
             </div>
@@ -735,29 +698,7 @@
       </section>
 
       <!-- ======================================================== -->
-      <!-- SECTION 5: PENGURUSAN MODEL AR & SASARAN -->
-      <!-- ======================================================== -->
-      <section id="section-ar-models" class="view-panel hidden space-y-6">
-        <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div>
-            <h3 class="font-headline font-bold text-base text-slate-900">Model 3D & Sasaran Pengimbas AR</h3>
-            <p class="text-xs text-slate-500">Konfigurasi marker fizikal, URL model GLTF/GLB dan fakta sains yang timbul.</p>
-          </div>
-
-          <button type="button" onclick="openARModal()" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs sm:text-sm shadow flex items-center justify-center gap-2">
-            <span class="material-symbols-outlined text-lg">add_to_photos</span>
-            <span>Tambah Model AR Baru</span>
-          </button>
-        </div>
-
-        <!-- AR Model Cards Grid -->
-        <div id="ar-grid-container" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <!-- Dynamically populated -->
-        </div>
-      </section>
-
-      <!-- ======================================================== -->
-      <!-- SECTION 6: PENGURUSAN PELAJAR & REKOD -->
+      <!-- SECTION 8: REKOD PEMBELAJARAN (STUDENT LEARNING RECORDS)  -->
       <!-- ======================================================== -->
       <section id="section-students" class="view-panel hidden space-y-6">
         <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -767,40 +708,45 @@
               <input 
                 type="text" 
                 id="search-student" 
-                placeholder="Cari nama atau e-mel pelajar..." 
+                placeholder="Cari nama atau kelas pelajar..." 
+                data-i18n="search_student_placeholder"
                 oninput="renderStudents()"
                 class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:border-teal-600"
               />
             </div>
             <select id="filter-student-status" onchange="renderStudents()" class="py-2.5 px-3.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:border-teal-600">
-              <option value="all">Semua Status</option>
-              <option value="active">Aktif</option>
-              <option value="inactive">Nyahaktif</option>
+              <option value="all" data-i18n="filter_all_status">Semua Tingkatan / Kelas</option>
+              <option value="Tingkatan 1 Al-Farabi">Tingkatan 1 Al-Farabi</option>
+              <option value="Tingkatan 1 Ibn Sina">Tingkatan 1 Ibn Sina</option>
+              <option value="Tingkatan 1 Al-Biruni">Tingkatan 1 Al-Biruni</option>
             </select>
           </div>
 
-          <button type="button" onclick="openStudentModal()" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs sm:text-sm shadow flex items-center justify-center gap-2">
-            <span class="material-symbols-outlined text-lg">person_add</span>
-            <span>Tambah Rekod Pelajar</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="renderStudents()" class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition">
+              <span class="material-symbols-outlined text-base">refresh</span>
+              <span data-i18n="btn_refresh_data">Muat Semula</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Students Table -->
+        <!-- Real Students Table -->
         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs sm:text-sm">
               <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold text-[11px] border-b border-slate-100">
                 <tr>
-                  <th class="py-4 px-6">Pelajar</th>
-                  <th class="py-4 px-5">Tingkatan / Kelas</th>
-                  <th class="py-4 px-4">Skor Tertinggi</th>
-                  <th class="py-4 px-4">Percubaan Kuiz</th>
-                  <th class="py-4 px-4">Status Akaun</th>
-                  <th class="py-4 px-6 text-right">Tindakan</th>
+                  <th class="py-4 px-6" data-i18n="col_student">Pelajar</th>
+                  <th class="py-4 px-5" data-i18n="col_class">Tingkatan / Kelas</th>
+                  <th class="py-4 px-4" data-i18n="col_quiz_attempts">Percubaan Kuiz</th>
+                  <th class="py-4 px-4" data-i18n="col_avg_score">Purata Skor</th>
+                  <th class="py-4 px-4" data-i18n="col_notes_completed">Nota Selesai</th>
+                  <th class="py-4 px-4" data-i18n="col_last_active">Aktiviti Terakhir</th>
+                  <th class="py-4 px-6 text-right" data-i18n="col_actions">Tindakan</th>
                 </tr>
               </thead>
               <tbody id="student-table-body" class="divide-y divide-slate-100">
-                <!-- Dynamically populated -->
+                <!-- Dynamically populated from Supabase profiles and learning records -->
               </tbody>
             </table>
           </div>
@@ -858,155 +804,162 @@
       </section>
 
       <!-- ======================================================== -->
-      <!-- SECTION 6: PENGURUSAN CELLQUEST 3D & ORGANEL             -->
+      <!-- SECTION 6: PENGURUSAN CELLQUEST & MODEL 3D/AR           -->
       <!-- ======================================================== -->
       <section id="section-cellquest" class="view-panel hidden space-y-7">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
           <div>
-            <h2 class="font-headline text-2xl font-extrabold text-slate-900">Pengurusan CellQuest 3D & Organel</h2>
-            <p class="text-xs text-slate-500">Kemaskini fakta sains, fungsi organel sel, dan semak model 3D Blender GLB.</p>
+            <h2 class="font-headline text-2xl font-extrabold text-slate-900" data-i18n="cq_title">Pengurusan CellQuest & Model 3D/AR</h2>
+            <p class="text-xs text-slate-500" data-i18n="cq_subtitle">Urus model 3D (sel haiwan, sel tumbuhan & organel), maklumat organel KSSM, sasaran AR serta pratonton interaktif 3D.</p>
           </div>
-          <button type="button" onclick="openOrganelleModal()" class="py-2.5 px-4 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md flex items-center gap-2 transition">
-            <span class="material-symbols-outlined text-lg">add_circle</span>
-            <span>Tambah Maklumat Organel</span>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="openCellQuestModelModal()" class="py-2.5 px-4 rounded-xl bg-teal-800 hover:bg-teal-900 text-white font-headline font-bold text-xs shadow-md flex items-center gap-2 transition">
+              <span class="material-symbols-outlined text-lg">add_circle</span>
+              <span data-i18n="btn_add_model">Tambah Model 3D</span>
+            </button>
+            <button type="button" onclick="openOrganelleModal()" class="py-2.5 px-4 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md flex items-center gap-2 transition">
+              <span class="material-symbols-outlined text-lg">add_circle</span>
+              <span data-i18n="btn_add_organelle">Tambah Maklumat Organel</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Interactive Sub-Tabs -->
+        <div class="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit">
+          <button type="button" onclick="switchCellQuestTab('models')" id="cq-tab-models" class="cq-subtab active px-4 py-2 rounded-xl text-xs font-bold transition bg-white text-primary shadow-xs">
+            <span class="material-symbols-outlined text-sm align-middle mr-1">view_in_ar</span>
+            <span data-i18n="tab_models">Model 3D & GLB</span>
+          </button>
+          <button type="button" onclick="switchCellQuestTab('organelles')" id="cq-tab-organelles" class="cq-subtab px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+            <span class="material-symbols-outlined text-sm align-middle mr-1">grain</span>
+            <span data-i18n="tab_organelles">Maklumat Organel KSSM</span>
+          </button>
+          <button type="button" onclick="switchCellQuestTab('preview')" id="cq-tab-preview" class="cq-subtab px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+            <span class="material-symbols-outlined text-sm align-middle mr-1">3d_rotation</span>
+            <span data-i18n="tab_preview">Pratonton Interaktif 3D</span>
+          </button>
+          <button type="button" onclick="switchCellQuestTab('ar')" id="cq-tab-ar" class="cq-subtab px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+            <span class="material-symbols-outlined text-sm align-middle mr-1">ar_on_you</span>
+            <span data-i18n="tab_ar">Tetapan AR (Realiti Terimbuh)</span>
           </button>
         </div>
 
-        <!-- 3D Active Models Info Card -->
-        <div class="grid md:grid-cols-2 gap-4">
-          <div class="p-5 rounded-2xl bg-white border border-teal-100 shadow-xs flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <span class="text-3xl">🐾</span>
-              <div>
-                <strong class="font-headline text-slate-900 block text-sm">Model 3D Sel Haiwan (GLB)</strong>
-                <span class="text-xs text-slate-500 font-mono">models/animal_cell_final.glb</span>
-              </div>
+        <!-- Panel 1: Models & GLB Management -->
+        <div id="cq-panel-models" class="cq-panel space-y-5">
+          <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-xs text-slate-600">
+            <span>Model 3D disegerakkan secara automatik ke modul CellQuest murid melalui Supabase Storage & CMS.</span>
+            <span class="font-bold text-teal-700">Format Disokong: .glb, .gltf</span>
+          </div>
+
+          <div id="cq-models-grid" class="grid sm:grid-cols-2 gap-5">
+            <!-- Dynamically populated model cards -->
+          </div>
+        </div>
+
+        <!-- Panel 2: Organelle Information Management -->
+        <div id="cq-panel-organelles" class="cq-panel hidden space-y-5">
+          <div class="flex items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-500">Jenis Sel:</span>
+              <select id="organelle-cell-filter" onchange="renderOrganelles()" class="rounded-xl border-slate-200 text-xs py-1.5">
+                <option value="all">Semua Organel (12)</option>
+                <option value="animal">Sel Haiwan Sahaja</option>
+                <option value="plant">Sel Tumbuhan Sahaja</option>
+                <option value="both">Kedua-dua Sel</option>
+              </select>
             </div>
-            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-bold">Aktif & Sah</span>
+            <span class="text-xs text-slate-500">Perubahan disimpan terus ke Supabase & paparan CellQuest murid.</span>
           </div>
 
-          <div class="p-5 rounded-2xl bg-white border border-teal-100 shadow-xs flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <span class="text-3xl">🌿</span>
-              <div>
-                <strong class="font-headline text-slate-900 block text-sm">Model 3D Sel Tumbuhan (GLB)</strong>
-                <span class="text-xs text-slate-500 font-mono">models/plantcellnew.glb</span>
-              </div>
+          <div id="organelles-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamically populated organelle cards -->
+          </div>
+        </div>
+
+        <!-- Panel 3: Interactive 3D Model Preview -->
+        <div id="cq-panel-preview" class="cq-panel hidden space-y-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-600">Pilih Model:</span>
+              <select id="preview-model-select" onchange="changePreviewModel(this.value)" class="rounded-xl border-slate-200 text-xs font-bold py-1.5 px-3">
+                <option value="animal">Sel Haiwan KSSM (models/animal_cell_final.glb)</option>
+                <option value="plant">Sel Tumbuhan KSSM (models/plantcellnew.glb)</option>
+              </select>
             </div>
-            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-bold">Aktif & Sah</span>
+            
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="reset3DPreviewCamera()" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center gap-1 shadow-xs">
+                <span class="material-symbols-outlined text-sm">restart_alt</span>
+                <span data-i18n="btn_reset_view">Set Semula Pandangan</span>
+              </button>
+              <button type="button" onclick="toggle3DAutoRotate()" id="btn-toggle-rotate" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center gap-1 shadow-xs">
+                <span class="material-symbols-outlined text-sm">rotate_right</span>
+                <span data-i18n="btn_rotate">Putaran Automatik</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3D Canvas Host Container -->
+          <div class="relative w-full h-[480px] bg-slate-900 rounded-3xl overflow-hidden shadow-inner border border-slate-800">
+            <div id="cq-3d-preview-host" class="w-full h-full"></div>
+
+            <!-- Loading overlay -->
+            <div id="cq-preview-loading" class="absolute inset-0 bg-slate-900/80 backdrop-blur flex flex-col items-center justify-center text-white gap-3 transition-opacity">
+              <div class="w-10 h-10 border-4 border-teal-400 border-t-transparent rounded-full animate-spin"></div>
+              <p class="text-xs font-semibold" data-i18n="model_loading">Sedang memuatkan model 3D...</p>
+            </div>
+
+            <!-- Status HUD Overlay -->
+            <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+              <span id="cq-preview-status-badge" class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-semibold text-emerald-400 pointer-events-auto backdrop-blur">
+                ● Model 3D sedia untuk diterokai
+              </span>
+              <span class="text-[11px] text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-full pointer-events-auto backdrop-blur">
+                Klik & seret untuk putar • Skrol untuk zum
+              </span>
+            </div>
           </div>
         </div>
 
-        <!-- Cell Type Filter -->
-        <div class="flex items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-slate-500">Jenis Sel:</span>
-            <select id="organelle-cell-filter" onchange="renderOrganelles()" class="rounded-xl border-slate-200 text-xs py-1.5">
-              <option value="all">Semua Organel (12)</option>
-              <option value="animal">Sel Haiwan Sahaja</option>
-              <option value="plant">Sel Tumbuhan Sahaja</option>
-              <option value="both">Kedua-dua Sel</option>
-            </select>
-          </div>
-          <span class="text-xs text-slate-500">Perubahan disimpan terus ke Supabase & paparan CellQuest murid.</span>
-        </div>
-
-        <!-- Organelles Grid -->
-        <div id="organelles-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Dynamically populated -->
-        </div>
-      </section>
-
-      <!-- ======================================================== -->
-      <!-- SECTION 7: PENGURUSAN DASHBOARD MURID (HOME CMS)         -->
-      <!-- ======================================================== -->
-      <section id="section-dashboard-content" class="view-panel hidden space-y-7">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
-          <div>
-            <h2 class="font-headline text-2xl font-extrabold text-slate-900">Pengurusan Kandungan Dashboard Murid</h2>
-            <p class="text-xs text-slate-500">Ubah teks sepanduk utama, cadangan pembelajaran, dan penerangan modul di Halaman Utama.</p>
-          </div>
-          <button type="button" onclick="saveDashboardContent()" class="py-2.5 px-4 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md flex items-center gap-2 transition">
-            <span class="material-symbols-outlined text-lg">publish</span>
-            <span>Simpan & Terbitkan Dashboard</span>
-          </button>
-        </div>
-
-        <form id="form-dashboard-cms" onsubmit="event.preventDefault(); saveDashboardContent();" class="space-y-6">
-          <!-- Hero Banner Editor -->
+        <!-- Panel 4: Educational AR Settings -->
+        <div id="cq-panel-ar" class="cq-panel hidden space-y-5">
           <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
             <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <span class="material-symbols-outlined text-primary text-xl">featured_play_list</span>
-              <h3 class="font-headline font-bold text-base text-slate-900">Sepanduk Utama (Hero Section)</h3>
+              <span class="material-symbols-outlined text-amber-600 text-xl">ar_on_you</span>
+              <h3 class="font-headline font-bold text-base text-slate-900">Konfigurasi Pembelajaran Realiti Terimbuh (AR)</h3>
             </div>
 
-            <div class="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Ucapan Mesra</label>
-                <input type="text" id="dash-hero-greeting" class="w-full rounded-xl border-slate-200 text-sm" value="Hai, Saintis Muda!"/>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Pelajar Tingkatan 1 menggunakan kamera telefon pintar atau peranti web untuk mengimbas sasaran AR dan memerhati sel mikroskopik secara interaktif. Pengurusan di bawah mengawal rujukan marker dan maklumat yang dipaparkan kepada pelajar.
+            </p>
+
+            <div class="grid sm:grid-cols-2 gap-4 pt-2">
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Sasaran 1: Sel Haiwan</span>
+                <strong class="block text-sm text-slate-800 mt-1">MARKER-ANIMAL-01</strong>
+                <p class="text-xs text-slate-500 mt-1">Memaparkan nukleus dan mitokondria timbul 3D di atas kad amali.</p>
+                <div class="mt-3 flex items-center justify-between">
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold">AR Aktif</span>
+                  <a href="../pengimbas_ar/code.html" target="_blank" class="text-xs font-bold text-primary hover:underline">Uji Pengimbas &rarr;</a>
+                </div>
               </div>
-              <div>
-                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Lencana Modul</label>
-                <input type="text" id="dash-hero-badge" class="w-full rounded-xl border-slate-200 text-sm" value="Modul 1: Sains Hayat"/>
+
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Sasaran 2: Sel Tumbuhan</span>
+                <strong class="block text-sm text-slate-800 mt-1">MARKER-PLANT-02</strong>
+                <p class="text-xs text-slate-500 mt-1">Memaparkan kloroplas, vakuol pusat dan dinding selulosa tegar.</p>
+                <div class="mt-3 flex items-center justify-between">
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold">AR Aktif</span>
+                  <a href="../pengimbas_ar/code.html" target="_blank" class="text-xs font-bold text-primary hover:underline">Uji Pengimbas &rarr;</a>
+                </div>
               </div>
             </div>
 
-            <div>
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tajuk Utama Sepanduk *</label>
-              <input type="text" id="dash-hero-title" required class="w-full rounded-xl border-slate-200 text-sm font-bold" value="Struktur, Fungsi dan Organisasi Sel"/>
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Penerangan Sepanduk *</label>
-              <textarea id="dash-hero-desc" rows="2" required class="w-full rounded-xl border-slate-200 text-sm">Jom teroka dunia sains melalui eksperimen, video, AR dan permainan interaktif. Pilih aktiviti yang paling menarik untuk anda hari ini!</textarea>
+            <div class="p-4 rounded-2xl bg-teal-50 border border-teal-100 text-xs text-teal-900 leading-relaxed">
+              <strong>Nota Keselamatan & Privasi:</strong> Konfigurasi enjin AR dan kod kebenaran kamera dikawal secara terpusat oleh kod sumber pembangun untuk memastikan pematuhan privasi peranti murid.
             </div>
           </div>
-
-          <!-- Featured Recommendation Editor -->
-          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <span class="material-symbols-outlined text-amber-600 text-xl">star</span>
-              <h3 class="font-headline font-bold text-base text-slate-900">Kad Cadangan Pembelajaran Hari Ini</h3>
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tajuk Cadangan</label>
-              <input type="text" id="dash-rec-title" class="w-full rounded-xl border-slate-200 text-sm font-bold" value="Cadangan Hari Ini: Perbandingan Sel Haiwan & Tumbuhan"/>
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Penerangan Cadangan</label>
-              <textarea id="dash-rec-desc" rows="2" class="w-full rounded-xl border-slate-200 text-sm">Ketahui 3 perbezaan utama antara sel haiwan dan tumbuhan untuk menguasai soalan peperiksaan Sains.</textarea>
-            </div>
-          </div>
-
-          <!-- Module Descriptions -->
-          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <span class="material-symbols-outlined text-secondary text-xl">widgets</span>
-              <h3 class="font-headline font-bold text-base text-slate-900">Penerangan Ringkas Kad Modul</h3>
-            </div>
-
-            <div class="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Modul CellQuest AR</label>
-                <input type="text" id="dash-mod-cellquest" class="w-full rounded-xl border-slate-200 text-sm" value="Terokai model 3D sel mikroskopik dalam Realiti Terimbuh (AR)."/>
-              </div>
-              <div>
-                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Modul Nota Pembelajaran</label>
-                <input type="text" id="dash-mod-notes" class="w-full rounded-xl border-slate-200 text-sm" value="Akses nota ringkas padat berserta infografik visual menarik KSSM."/>
-              </div>
-              <div>
-                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Modul Perpustakaan Video</label>
-                <input type="text" id="dash-mod-videos" class="w-full rounded-xl border-slate-200 text-sm" value="Koleksi video animasi dan demonstrasi amali eksperimen sains."/>
-              </div>
-              <div>
-                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Modul Tanya AI (SelBot)</label>
-                <input type="text" id="dash-mod-selbot" class="w-full rounded-xl border-slate-200 text-sm" value="Tanya soalan sains kepada tutor pintar berkuasa AI 24/7."/>
-              </div>
-            </div>
-          </div>
-        </form>
+        </div>
       </section>
 
       <!-- ======================================================== -->
@@ -1026,77 +979,174 @@
       </section>
 
       <!-- ======================================================== -->
-      <!-- SECTION 11: TETAPAN, DIAGNOSTIK SUPABASE & SANDARAN DATA  -->
+      <!-- SECTION 9: TETAPAN AKAUN PENTADBIR                        -->
       <!-- ======================================================== -->
-      <section id="section-settings" class="view-panel hidden space-y-7">
+      <section id="section-account" class="view-panel hidden space-y-7">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
           <div>
-            <h2 class="font-headline text-2xl font-extrabold text-slate-900">Tetapan Sistem & Diagnostik Supabase</h2>
-            <p class="text-xs text-slate-500">Semakan masa nyata sambungan awan Supabase, integrasi RLS, dan sandaran data.</p>
+            <h2 class="font-headline text-2xl font-extrabold text-slate-900" data-i18n="accountSettingsTitle">Tetapan Akaun Pentadbir</h2>
+            <p class="text-xs text-slate-500" data-i18n="accountSettingsSubtitle">Urus profil guru, keutamaan bahasa antara muka, kata laluan dan keselamatan sesi.</p>
           </div>
-          <button type="button" onclick="runLiveConnectionDiagnostic()" class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-headline font-bold text-xs flex items-center gap-2 transition">
-            <span class="material-symbols-outlined text-lg">sync</span>
-            <span>Uji Semula Sambungan</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800">
+              <span class="w-2 h-2 rounded-full bg-teal-600 mr-1.5 animate-pulse"></span>
+              <span id="account-badge-role">Pentadbir / Guru Sah</span>
+            </span>
+          </div>
         </div>
 
-        <!-- Connection Diagnostic Dashboard -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span id="diag-badge-icon" class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold">✓</span>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <!-- CARD 1: KEUTAMAAN BAHASA -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+            <div class="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+              <span class="w-9 h-9 rounded-xl bg-teal-50 text-primary flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-lg">translate</span>
+              </span>
               <div>
-                <h3 class="font-headline font-bold text-lg text-slate-900">Status Sambungan: <span id="diag-status-label" class="text-emerald-600">Bersambung</span></h3>
-                <p id="diag-status-message" class="text-xs text-slate-500">Pangkalan data bersedia untuk membaca dan menyimpan kandungan CMS.</p>
+                <h3 class="font-headline font-bold text-base text-slate-900" data-i18n="languageCardTitle">Keutamaan Bahasa Antara Muka</h3>
+                <p class="text-xs text-slate-500" data-i18n="languageCardDesc">Pilih bahasa paparan portal pengurusan guru.</p>
               </div>
             </div>
-            <span id="diag-latency" class="px-3 py-1 bg-slate-100 text-slate-700 rounded-full font-mono text-xs font-bold">120ms</span>
+
+            <p class="text-xs text-slate-600">
+              Perubahan bahasa antara muka hanya mempengaruhi Portal Pentadbir ini dan disimpan dalam profil akaun anda. Dashboard murid kekal mengikut tetapan kendiri murid.
+            </p>
+
+            <div class="grid sm:grid-cols-2 gap-3 pt-2">
+              <label id="lang-card-ms" class="flex items-center gap-3 p-4 rounded-2xl border-2 border-primary bg-teal-50/50 cursor-pointer transition">
+                <input type="radio" name="admin_lang_pref" value="ms" checked onchange="handleAdminLanguageChange('ms')" class="text-primary focus:ring-teal-600"/>
+                <div>
+                  <span class="font-headline font-bold text-sm text-slate-900 block">Bahasa Melayu</span>
+                  <span class="text-[11px] text-slate-500 block">Bahasa Rasmi KSSM (Lalai)</span>
+                </div>
+              </label>
+
+              <label id="lang-card-en" class="flex items-center gap-3 p-4 rounded-2xl border-2 border-slate-200 hover:border-slate-300 bg-white cursor-pointer transition">
+                <input type="radio" name="admin_lang_pref" value="en" onchange="handleAdminLanguageChange('en')" class="text-primary focus:ring-teal-600"/>
+                <div>
+                  <span class="font-headline font-bold text-sm text-slate-900 block">English</span>
+                  <span class="text-[11px] text-slate-500 block">English Interface</span>
+                </div>
+              </label>
+            </div>
           </div>
 
-          <div class="grid sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs">
-            <div class="p-4 rounded-2xl bg-slate-50">
-              <span class="text-slate-400 block font-bold uppercase text-[10px]">Akaun Semasa</span>
-              <strong id="diag-user-email" class="text-slate-800 block text-sm mt-0.5 font-mono truncate">admin@arselnel.my</strong>
-              <span id="diag-user-role" class="text-emerald-700 font-bold block mt-1">✓ Peranan: Pentadbir / Guru</span>
+          <!-- CARD 2: PROFIL PENTADBIR -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+            <div class="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+              <span class="w-9 h-9 rounded-xl bg-teal-50 text-primary flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-lg">person</span>
+              </span>
+              <div>
+                <h3 class="font-headline font-bold text-base text-slate-900" data-i18n="profileCardTitle">Profil Guru / Pentadbir</h3>
+                <p class="text-xs text-slate-500" data-i18n="profileCardDesc">Kemaskini maklumat nama paparan akaun anda.</p>
+              </div>
             </div>
 
-            <div class="p-4 rounded-2xl bg-slate-50">
-              <span class="text-slate-400 block font-bold uppercase text-[10px]">Pelayan Supabase</span>
-              <strong id="diag-supabase-url" class="text-slate-800 block text-sm mt-0.5 font-mono truncate">kxjhlbudsiojpvzwqwva...</strong>
-              <span class="text-slate-600 font-semibold block mt-1">HTTPS REST & Auth Active</span>
+            <form id="form-admin-profile" onsubmit="handleSaveAdminProfile(event)" class="space-y-4 pt-1">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1" data-i18n="displayNameLabel">Nama Paparan Guru *</label>
+                <input type="text" id="admin-pref-name" required class="w-full rounded-xl border-slate-200 text-sm font-semibold text-slate-800" placeholder="Cikgu Sains"/>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1" data-i18n="emailLabel">E-mel Semasa</label>
+                <input type="email" id="admin-pref-email-display" readonly class="w-full rounded-xl border-slate-100 bg-slate-50 text-sm text-slate-600 cursor-not-allowed"/>
+                <p class="text-[11px] text-slate-400 mt-1">Untuk menukar e-mel, gunakan borang permohonan e-mel di bawah.</p>
+              </div>
+
+              <div class="flex justify-end pt-2">
+                <button type="submit" id="btn-save-admin-profile" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md transition flex items-center gap-2">
+                  <span class="material-symbols-outlined text-base">save</span>
+                  <span data-i18n="btnSaveProfile">Simpan Maklumat Profil</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- CARD 3: TUKAR KATA LALUAN -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+            <div class="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+              <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-lg">lock_reset</span>
+              </span>
+              <div>
+                <h3 class="font-headline font-bold text-base text-slate-900" data-i18n="passwordCardTitle">Keselamatan Kata Laluan</h3>
+                <p class="text-xs text-slate-500" data-i18n="passwordCardDesc">Tukar kata laluan masuk ke portal pengurusan.</p>
+              </div>
             </div>
 
-            <div class="p-4 rounded-2xl bg-slate-50">
-              <span class="text-slate-400 block font-bold uppercase text-[10px]">Keselamatan Data (RLS)</span>
-              <strong class="text-slate-800 block text-sm mt-0.5">Murid: Baca Sahaja</strong>
-              <span class="text-teal-700 font-bold block mt-1">Guru: Baca & Tulis CMS</span>
+            <form id="form-admin-password" onsubmit="handleUpdateAdminPassword(event)" class="space-y-4 pt-1">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1" data-i18n="newPasswordLabel">Kata Laluan Baharu *</label>
+                <input type="password" id="admin-new-password" required minlength="6" class="w-full rounded-xl border-slate-200 text-sm" placeholder="••••••••"/>
+                <span class="text-[10px] text-slate-400">Sekurang-kurangnya 6 aksara</span>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1" data-i18n="confirmPasswordLabel">Sahkan Kata Laluan Baharu *</label>
+                <input type="password" id="admin-confirm-password" required minlength="6" class="w-full rounded-xl border-slate-200 text-sm" placeholder="••••••••"/>
+              </div>
+
+              <div id="admin-password-feedback" class="hidden text-xs p-3 rounded-xl"></div>
+
+              <div class="flex justify-end pt-2">
+                <button type="submit" id="btn-update-admin-password" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-headline font-bold text-xs shadow-md transition flex items-center gap-2">
+                  <span class="material-symbols-outlined text-base">key</span>
+                  <span data-i18n="btnUpdatePassword">Kemaskini Kata Laluan</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- CARD 4: PERMOHONAN TUKAR E-MEL -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+            <div class="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+              <span class="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-lg">mark_email_read</span>
+              </span>
+              <div>
+                <h3 class="font-headline font-bold text-base text-slate-900" data-i18n="emailCardTitle">Tukar Alamat E-mel</h3>
+                <p class="text-xs text-slate-500" data-i18n="emailCardDesc">Hantar pautan pengesahan ke alamat e-mel baharu.</p>
+              </div>
             </div>
+
+            <form id="form-admin-email" onsubmit="handleUpdateAdminEmail(event)" class="space-y-4 pt-1">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1" data-i18n="newEmailLabel">Alamat E-mel Baharu *</label>
+                <input type="email" id="admin-new-email" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="guru.baru@moe.gov.my"/>
+                <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                  Pautan pengesahan selamat akan dihantar ke alamat e-mel ini melalui perkhidmatan pengesahan Supabase Auth.
+                </p>
+              </div>
+
+              <div id="admin-email-feedback" class="hidden text-xs p-3 rounded-xl"></div>
+
+              <div class="flex justify-end pt-2">
+                <button type="submit" id="btn-update-admin-email" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-headline font-bold text-xs transition flex items-center gap-2">
+                  <span class="material-symbols-outlined text-base">outgoing_mail</span>
+                  <span data-i18n="btnRequestEmail">Hantar Pautan Pengesahan</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
-        <!-- Data Preservation & Backup Manager -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-          <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <span class="material-symbols-outlined text-primary text-xl">backup</span>
-            <h3 class="font-headline font-bold text-base text-slate-900">Polisi Pengekalan Data & Sandaran Keselamatan</h3>
+        <!-- CARD 5: KESELAMATAN SESI & LOG KELUAR -->
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl font-bold">
+              <span class="material-symbols-outlined">shield_person</span>
+            </span>
+            <div>
+              <h4 class="font-headline font-bold text-base text-slate-900" data-i18n="sessionSecurityTitle">Sesi Pentadbir & Keselamatan Akaun</h4>
+              <p class="text-xs text-slate-500" data-i18n="sessionSecuritySubtitle">Sentiasa log keluar apabila menggunakan komputer awam atau makmal sains sekolah.</p>
+            </div>
           </div>
-
-          <p class="text-xs text-slate-600 leading-relaxed">
-            Semua data pendidikan sedia ada (kuiz, nota, soalan maze chase, organel CellQuest, skor dan rekod murid) dilindungi daripada operasi pemadaman destruktif. Anda boleh memuat turun sandaran penuh format JSON pada bila-bila masa.
-          </p>
-
-          <div class="flex flex-wrap items-center gap-3 pt-2">
-            <button type="button" onclick="exportFullCMSBackup()" class="py-2.5 px-4 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs flex items-center gap-2 transition shadow-sm">
-              <span class="material-symbols-outlined text-base">download</span>
-              <span>Muat Turun Sandaran Penuh (cms_backup.json)</span>
-            </button>
-
-            <label class="py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-2 cursor-pointer transition">
-              <span class="material-symbols-outlined text-base text-primary">upload</span>
-              <span>Import Sandaran JSON</span>
-              <input type="file" accept=".json" class="hidden" onchange="importCMSBackupFile(event)"/>
-            </label>
-          </div>
+          <button type="button" onclick="handleAdminLogout()" class="py-2.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-headline font-bold text-xs flex items-center justify-center gap-2 transition shadow-md">
+            <span class="material-symbols-outlined text-base">logout</span>
+            <span data-i18n="btnLogout">Log Keluar Portal</span>
+          </button>
         </div>
       </section>
 
@@ -1510,129 +1560,189 @@
   </dialog>
 
   <!-- ======================================================== -->
-  <!-- MODAL 4: AR MODEL CRUD DIALOG -->
+  <!-- MODAL 4: CELLQUEST 3D & AR MODEL CRUD DIALOG             -->
   <!-- ======================================================== -->
-  <dialog id="modal-ar" class="w-[min(94vw,560px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60">
-    <form id="form-ar" class="p-6 sm:p-8" onsubmit="handleSaveARModel(event)">
+  <dialog id="modal-cellquest-model" class="w-[min(94vw,620px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60">
+    <form id="form-cellquest-model" class="p-6 sm:p-8" onsubmit="handleSaveCellQuestModel(event)">
       <div class="flex items-center justify-between pb-4 border-b border-slate-100">
         <div>
-          <h3 id="modal-ar-title" class="font-headline font-extrabold text-xl text-slate-900">Tambah Model Sasaran AR</h3>
-          <p class="text-xs text-slate-500">Konfigurasi imbasan penanda augmented reality</p>
+          <h3 id="modal-cellquest-model-title" class="font-headline font-extrabold text-xl text-slate-900">Tambah Model 3D CellQuest</h3>
+          <p class="text-xs text-slate-500">Konfigurasi fail GLB/GLTF, jenis sel, dan kebolehgunaan AR</p>
         </div>
-        <button type="button" onclick="document.getElementById('modal-ar').close()" class="text-2xl text-slate-400 hover:text-slate-700">×</button>
+        <button type="button" onclick="document.getElementById('modal-cellquest-model').close()" class="text-2xl text-slate-400 hover:text-slate-700">×</button>
       </div>
 
-      <input type="hidden" id="ar-id" value=""/>
+      <input type="hidden" id="cq-model-id" value=""/>
 
       <div class="space-y-4 my-5 max-h-[68vh] overflow-y-auto px-1 pr-2">
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Nama Model AR 3D *</label>
-          <input type="text" id="ar-name-input" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="Contoh: Model Sel Haiwan 3D"/>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tajuk / Nama Model 3D *</label>
+          <input type="text" id="cq-model-title-input" required class="w-full rounded-xl border-slate-200 text-sm font-semibold" placeholder="Contoh: Model Sel Haiwan Eukaryot 3D"/>
         </div>
 
         <div class="grid sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">ID Marker Sasaran *</label>
-            <input type="text" id="ar-marker-input" required class="w-full rounded-xl border-slate-200 text-sm font-mono uppercase" placeholder="MARKER-ANIMAL-01"/>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Kategori Sel *</label>
+            <select id="cq-model-type-input" required class="w-full rounded-xl border-slate-200 text-sm font-semibold">
+              <option value="animal">Sel Haiwan (Animal Cell)</option>
+              <option value="plant">Sel Tumbuhan (Plant Cell)</option>
+              <option value="organelle">Organel Khusus</option>
+              <option value="other">Model Tambahan</option>
+            </select>
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Format Model 3D</label>
-            <select id="ar-format-input" class="w-full rounded-xl border-slate-200 text-sm">
-              <option value="GLTF / GLB">GLTF / GLB</option>
-              <option value="USDZ (iOS)">USDZ (Apple QuickLook)</option>
-              <option value="SVG / Web3D">SVG / Web3D Interactive</option>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Status Paparan</label>
+            <select id="cq-model-status-input" class="w-full rounded-xl border-slate-200 text-sm font-semibold">
+              <option value="active">Aktif (Live dalam CellQuest)</option>
+              <option value="inactive">Tidak Aktif (Disimpan)</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">URL Fail Model / Aset *</label>
-          <input type="text" id="ar-file-input" required class="w-full rounded-xl border-slate-200 text-sm" value="../assets/home/cell_model.svg"/>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Deskripsi Pendidikan</label>
+          <textarea id="cq-model-desc-input" rows="2" class="w-full rounded-xl border-slate-200 text-sm" placeholder="Penerangan saintifik model sel ini bagi sukatan Tingkatan 1..."></textarea>
+        </div>
+
+        <!-- 3D Model Source -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+          <label class="block text-xs font-bold uppercase text-slate-700">Sumber Fail Model 3D (.glb / .gltf) *</label>
+          
+          <div>
+            <span class="text-[11px] text-slate-500 block mb-1">Pilihan A: Masukkan URL Fail Model 3D (Lokal atau Awan)</span>
+            <input type="text" id="cq-model-url-input" class="w-full rounded-xl border-slate-200 text-xs font-mono" placeholder="models/animal_cell_final.glb atau https://..."/>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200">
+            <span class="text-[11px] text-slate-500 block mb-1">Pilihan B: Muat Naik Fail Model (.glb / .gltf ke Supabase Storage)</span>
+            <input type="file" id="cq-model-file-input" accept=".glb,.gltf" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-50 file:text-primary hover:file:bg-teal-100 cursor-pointer"/>
+            <p id="cq-model-upload-status" class="text-[10px] text-slate-400 mt-1"></p>
+          </div>
+        </div>
+
+        <!-- AR Configuration -->
+        <div class="p-4 rounded-2xl bg-teal-50/40 border border-teal-100 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-slate-800 block">Sokongan Augmented Reality (AR)</span>
+              <span class="text-[11px] text-slate-500 block">Dayakan imbasan kamera AR untuk model ini</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="cq-model-ar-enabled" class="sr-only peer" checked/>
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Kod Penanda AR (Marker Target Code)</label>
+            <input type="text" id="cq-model-marker-input" class="w-full rounded-xl border-slate-200 text-xs font-mono uppercase" placeholder="MARKER-CELL-01"/>
+          </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fakta Sains Dipaparkan (Hotspots) *</label>
-          <textarea id="ar-hotspots-input" rows="3" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="Teks penerangan sains yang dipaparkan apabila model AR dijana oleh kamera..."></textarea>
-        </div>
-
-        <div class="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Warna Aksen Penanda</label>
-            <input type="color" id="ar-color-input" value="#008080" class="w-full h-10 rounded-xl border-slate-200 p-1 cursor-pointer"/>
-          </div>
-          <div>
-            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Status Imbasan</label>
-            <select id="ar-status-input" class="w-full rounded-xl border-slate-200 text-sm">
-              <option value="active">Aktif (Live dalam Pengimbas)</option>
-              <option value="testing">Ujian (Dalam Pembangunan)</option>
-            </select>
-          </div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">URL Imej Thumbnail (Pilihan)</label>
+          <input type="text" id="cq-model-thumb-input" class="w-full rounded-xl border-slate-200 text-sm" placeholder="../assets/home/cell_model.svg"/>
         </div>
       </div>
 
       <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-        <button type="button" onclick="document.getElementById('modal-ar').close()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
-        <button type="submit" class="px-6 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md">Simpan Model AR</button>
+        <button type="button" onclick="document.getElementById('modal-cellquest-model').close()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
+        <button type="submit" id="btn-save-cq-model" class="px-6 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">save</span>
+          <span>Simpan Model 3D</span>
+        </button>
       </div>
     </form>
   </dialog>
 
   <!-- ======================================================== -->
-  <!-- MODAL 5: STUDENT RECORD CRUD DIALOG -->
+  <!-- MODAL 5: REAL STUDENT DETAIL INSPECTOR DIALOG            -->
   <!-- ======================================================== -->
-  <dialog id="modal-student" class="w-[min(94vw,500px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60">
-    <form id="form-student" class="p-6 sm:p-8" onsubmit="handleSaveStudent(event)">
+  <dialog id="modal-student-detail" class="w-[min(94vw,700px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60">
+    <div class="p-6 sm:p-8">
       <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-        <div>
-          <h3 id="modal-student-title" class="font-headline font-extrabold text-xl text-slate-900">Rekod Pelajar</h3>
-          <p class="text-xs text-slate-500">Daftar atau kemaskini profil pelajar sistem</p>
-        </div>
-        <button type="button" onclick="document.getElementById('modal-student').close()" class="text-2xl text-slate-400 hover:text-slate-700">×</button>
-      </div>
-
-      <input type="hidden" id="student-id" value=""/>
-
-      <div class="space-y-4 my-5 max-h-[68vh] overflow-y-auto px-1 pr-2">
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Nama Penuh Pelajar *</label>
-          <input type="text" id="student-name-input" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="Contoh: Aina Sofea binti Ahmad"/>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">E-mel Pelajar *</label>
-          <input type="email" id="student-email-input" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="aina@email.com"/>
-        </div>
-
-        <div class="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tingkatan & Kelas</label>
-            <select id="student-grade-input" class="w-full rounded-xl border-slate-200 text-sm">
-              <option value="Tingkatan 1 Al-Farabi">Tingkatan 1 Al-Farabi</option>
-              <option value="Tingkatan 1 Ibn Sina">Tingkatan 1 Ibn Sina</option>
-              <option value="Tingkatan 1 Al-Biruni">Tingkatan 1 Al-Biruni</option>
-              <option value="Tingkatan 1 Al-Khawarizmi">Tingkatan 1 Al-Khawarizmi</option>
-            </select>
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-lg" id="st-detail-avatar">
+            M
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Status Akaun</label>
-            <select id="student-status-input" class="w-full rounded-xl border-slate-200 text-sm">
-              <option value="active">Aktif</option>
-              <option value="inactive">Nyahaktif</option>
-            </select>
+            <h3 id="st-detail-name" class="font-headline font-extrabold text-xl text-slate-900">Nama Pelajar</h3>
+            <p id="st-detail-email" class="text-xs text-slate-500 font-mono">pelajar@arselnel.my</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modal-student-detail').close()" class="text-2xl text-slate-400 hover:text-slate-700">×</button>
+      </div>
+
+      <div class="my-5 max-h-[70vh] overflow-y-auto px-1 pr-2 space-y-6">
+        <!-- Student Info Strip -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Kelas / Tingkatan</span>
+            <strong id="st-detail-class" class="text-xs text-slate-800 font-semibold mt-0.5 block">Tingkatan 1</strong>
+          </div>
+          <div class="p-3 rounded-2xl bg-teal-50 border border-teal-100">
+            <span class="text-[10px] font-bold uppercase text-teal-600 block">Percubaan Kuiz</span>
+            <strong id="st-detail-quiz-count" class="text-base text-teal-800 font-extrabold mt-0.5 block">0</strong>
+          </div>
+          <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-100">
+            <span class="text-[10px] font-bold uppercase text-emerald-600 block">Purata Skor</span>
+            <strong id="st-detail-avg-score" class="text-base text-emerald-800 font-extrabold mt-0.5 block">-</strong>
+          </div>
+          <div class="p-3 rounded-2xl bg-blue-50 border border-blue-100">
+            <span class="text-[10px] font-bold uppercase text-blue-600 block">Nota Selesai</span>
+            <strong id="st-detail-notes-count" class="text-base text-blue-800 font-extrabold mt-0.5 block">0</strong>
           </div>
         </div>
 
+        <!-- Section: Sejarah Percubaan Kuiz -->
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Skor Kuiz Terkini (%)</label>
-          <input type="number" id="student-score-input" value="80" min="0" max="100" class="w-full rounded-xl border-slate-200 text-sm"/>
+          <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-100">
+            <h4 class="font-headline font-bold text-sm text-slate-900 flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-primary">quiz</span>
+              <span>Rekod Percubaan Kuiz Sebenar</span>
+            </h4>
+            <span id="st-detail-quiz-badge" class="text-[11px] text-slate-400 font-medium">0 rekod</span>
+          </div>
+          <div id="st-detail-quiz-list" class="space-y-2">
+            <!-- Dynamically populated or empty state -->
+          </div>
+        </div>
+
+        <!-- Section: Kemajuan Pembelajaran Nota -->
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-100">
+            <h4 class="font-headline font-bold text-sm text-slate-900 flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-teal-600">menu_book</span>
+              <span>Akses & Pembacaan Nota KSSM</span>
+            </h4>
+            <span id="st-detail-notes-badge" class="text-[11px] text-slate-400 font-medium">0 modul</span>
+          </div>
+          <div id="st-detail-notes-list" class="space-y-2">
+            <!-- Dynamically populated or empty state -->
+          </div>
+        </div>
+
+        <!-- Section: Sesi Permainan Sains & CellQuest -->
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-100">
+            <h4 class="font-headline font-bold text-sm text-slate-900 flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-purple-600">sports_esports</span>
+              <span>Penyertaan Permainan Sains & CellQuest</span>
+            </h4>
+          </div>
+          <div id="st-detail-games-list" class="space-y-2">
+            <!-- Dynamically populated or empty state -->
+          </div>
         </div>
       </div>
 
-      <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-        <button type="button" onclick="document.getElementById('modal-student').close()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
-        <button type="submit" class="px-6 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md">Simpan Pelajar</button>
+      <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+        <span class="text-[11px] text-slate-400">Data masa nyata daripada pangkalan data Supabase</span>
+        <button type="button" onclick="document.getElementById('modal-student-detail').close()" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-headline font-bold text-xs shadow-md">
+          Tutup Rekod Pelajar
+        </button>
       </div>
-    </form>
+    </div>
   </dialog>
 
   <!-- ======================================================== -->
@@ -1845,15 +1955,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-client.js"></script>
   <script src="../assets/js/cms-content-adapter.js"></script>
+  <script src="../assets/js/admin-i18n.js"></script>
   <script src="../assets/js/smart-notes.js"></script>
   <script src="../assets/js/admin.js"></script>
+  <script src="../assets/js/admin-portal.js"></script>
 
   <script>
-    let activeView = 'overview';
-
     window.addEventListener('DOMContentLoaded', async () => {
       initAdminUI();
-      if (localStorage.getItem('arselnel_demo_mode') === 'true') document.getElementById('cms-demo-notice').classList.remove('hidden');
       renderAllViews();
       if (window.AdminCMS && typeof window.AdminCMS.syncFromSupabase === 'function') {
         const synced = await window.AdminCMS.syncFromSupabase();
@@ -1869,17 +1978,6 @@
         document.getElementById('sidebar-admin-name').textContent = user.name;
         document.getElementById('sidebar-admin-initial').textContent = (user.name || 'A').charAt(0).toUpperCase();
         document.getElementById('overview-greeting-name').textContent = user.name.split(' ')[0] || 'Cikgu';
-        if (user.isDemo) {
-          const notice = document.createElement('div');
-          notice.className = 'mx-5 mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900 sm:mx-8';
-          notice.textContent = 'Mod demo setempat: rekod dan suntingan contoh disimpan berasingan pada pelayar ini. Tiada rekod murid sebenar diubah.';
-          document.querySelector('main > .max-w-7xl')?.prepend(notice);
-        } else {
-          const notice = document.createElement('div');
-          notice.className = 'mx-5 mt-5 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900 sm:mx-8';
-          notice.textContent = 'Nota data: rekod permulaan dan analitik berlabel contoh disimpan pada pelayar ini; belum disambungkan kepada pangkalan data sekolah.';
-          document.querySelector('main > .max-w-7xl')?.prepend(notice);
-        }
       }
     }
 
@@ -1889,50 +1987,6 @@
       const dark = document.body.classList.toggle('admin-dark');
       localStorage.setItem(themeKey, dark ? 'dark' : 'light');
       document.getElementById('admin-theme-icon').textContent = dark ? 'light_mode' : 'dark_mode';
-    }
-
-    function switchView(viewName) {
-      activeView = viewName;
-      // Update nav buttons
-      document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.view === viewName);
-      });
-
-      // Update view panels
-      document.querySelectorAll('.view-panel').forEach(panel => {
-        panel.classList.add('hidden');
-      });
-
-      const target = document.getElementById(`section-${viewName}`);
-      if (target) target.classList.remove('hidden');
-
-      // Update titles
-      const titles = {
-        'overview': 'Ringkasan Sistem ARSelNel',
-        'notes': 'Pengurusan Nota Pembelajaran (CMS)',
-        'videos': 'Perpustakaan Video Sains',
-        'quizzes': 'Pengurusan Soalan & Kuiz Sains',
-        'games': 'Pengurusan Bank Soalan Permainan Sains',
-        'cellquest': 'Pengurusan Organel & Model 3D CellQuest',
-        'dashboard-content': 'Pengurusan Kandungan Dashboard Murid',
-        'manual': 'Pengurusan Manual Penggunaan Murid',
-        'ar-models': 'Model 3D & Sasaran Pengimbas AR',
-        'students': 'Pengurusan Akaun & Rekod Pelajar',
-        'settings': 'Tetapan Sistem & Diagnostik Supabase',
-        'modules': 'Pengurusan Modul Pembelajaran'
-      };
-      document.getElementById('view-title').textContent = titles[viewName] || 'Papan Pemuka';
-      document.getElementById('breadcrumb-title').textContent = viewName.toUpperCase();
-
-      if (viewName === 'games') renderGameQuestions();
-      if (viewName === 'cellquest') renderOrganelles();
-      if (viewName === 'dashboard-content') renderDashboardContentForm();
-      if (viewName === 'manual') renderManualSteps();
-      if (viewName === 'settings') runLiveConnectionDiagnostic();
-
-      // Close mobile sidebar if open
-      const nav = document.getElementById('sidebar-nav');
-      if (window.innerWidth < 1024) nav.classList.add('hidden');
     }
 
     function toggleMobileSidebar() {
@@ -1954,124 +2008,22 @@
     });
 
     function handleLogout() {
-      if (confirm('Adakah anda pasti untuk log keluar dari Portal Pentadbir?')) {
-        Auth.logout('../login/code.html');
-      }
+      handleAdminLogout();
     }
 
     function renderAllViews() {
       renderModules();
       renderQuizSubmissions();
-      renderOverviewStats();
-      renderActivities();
+      if (typeof window.renderOverviewStats === 'function') window.renderOverviewStats();
       renderQuizzes();
       renderNotes();
       renderAdminSlides();
       renderVideos();
-      renderARModels();
-      renderStudents();
+      if (typeof window.renderCellQuestModels === 'function') window.renderCellQuestModels();
+      if (typeof window.renderStudents === 'function') window.renderStudents();
       renderGameQuestions();
       renderOrganelles();
-      renderDashboardContentForm();
       renderManualSteps();
-      runLiveConnectionDiagnostic();
-    }
-
-    function renderQuizSubmissions() {
-      const tbody = document.getElementById('quiz-submission-body');
-      const empty = document.getElementById('quiz-submission-empty');
-      if (!tbody || !empty) return;
-      const rows = AdminCMS.getQuizSubmissions().slice().reverse();
-      empty.classList.toggle('hidden', rows.length > 0);
-      tbody.innerHTML = rows.map(item => `<tr class="border-b border-slate-100"><td class="p-2 font-semibold">${escapeHtml(item.studentName || 'Pelajar')}</td><td class="p-2">${escapeHtml(item.title || 'Kuiz Sains')}${item.isDemo ? ' <span class="text-amber-700">(demo)</span>' : ''}</td><td class="p-2 font-bold">${Number(item.score) || 0}%</td><td class="p-2 text-slate-500">${escapeHtml(new Date(item.completedAt).toLocaleString('ms-MY'))}</td></tr>`).join('');
-    }
-
-    function exportQuizSubmissionsCSV() {
-      const rows = AdminCMS.getQuizSubmissions();
-      if (!rows.length) return showToast('Belum ada rekod kuiz untuk dieksport.', 'info');
-      const quote = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
-      const csv = [['Nama Pelajar','ID Pelajar','Kuiz','Markah (%)','Betul','Jumlah','Tarikh','Data demo'], ...rows.map(item => [item.studentName,item.studentId,item.title,item.score,item.correct,item.total,item.completedAt,item.isDemo ? 'Ya' : 'Tidak'])].map(row => row.map(quote).join(',')).join('\r\n');
-      const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
-      const link = document.createElement('a'); link.href = url; link.download = 'rekod-kuiz-arselnel.csv'; link.click(); URL.revokeObjectURL(url);
-      showToast('Laporan CSV dimuat turun.', 'success');
-    }
-
-    function renderModules() {
-      const host = document.getElementById('module-list');
-      if (!host) return;
-      const rows = AdminCMS.getModules();
-      host.innerHTML = rows.length ? rows.map(module => `<article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex flex-wrap items-start justify-between gap-3"><div><span class="text-xs font-bold uppercase text-teal-700">${module.status === 'published' ? 'Diterbitkan' : 'Draf'} · ${escapeHtml(module.chapter || 'Tanpa bab')}</span><h3 class="mt-1 text-lg font-extrabold">${escapeHtml(module.title)}</h3><p class="mt-1 text-sm text-slate-600">${escapeHtml(module.description || '')}</p></div><div class="flex gap-2"><button type="button" class="rounded-lg border px-3 py-2 text-sm font-bold" onclick="editModule('${escapeHtml(module.id)}')">Edit</button><button type="button" class="rounded-lg border border-rose-200 px-3 py-2 text-sm font-bold text-rose-700" onclick="removeModule('${escapeHtml(module.id)}')">Padam</button></div></div></article>`).join('') : '<p class="rounded-2xl bg-white p-6 text-slate-500">Belum ada modul. Gunakan borang di atas untuk bermula.</p>';
-    }
-
-    function saveModuleFromForm(event) {
-      event.preventDefault();
-      const form = event.currentTarget;
-      const module = { id: document.getElementById('module-id').value || undefined, title: document.getElementById('module-title').value, chapter: document.getElementById('module-chapter').value, description: document.getElementById('module-description').value, content: document.getElementById('module-content').value, status: event.submitter && event.submitter.value === 'draft' ? 'draft' : 'published' };
-      const saved = AdminCMS.saveModule(module);
-      if (!saved) return showToast('Sila isi tajuk dan kandungan modul.', 'warning');
-      form.reset(); document.getElementById('module-id').value = '';
-      renderModules();
-      showToast(module.status === 'published' ? 'Modul diterbitkan untuk paparan murid.' : 'Draf modul disimpan.', 'success');
-    }
-
-    function editModule(id) {
-      const module = AdminCMS.getModuleById(id); if (!module) return;
-      document.getElementById('module-id').value = module.id;
-      document.getElementById('module-title').value = module.title || '';
-      document.getElementById('module-chapter').value = module.chapter || '';
-      document.getElementById('module-description').value = module.description || '';
-      document.getElementById('module-content').value = module.content || '';
-      document.getElementById('section-modules').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function removeModule(id) {
-      if (confirm('Padam modul ini daripada storan semasa?')) { AdminCMS.deleteModule(id); renderModules(); showToast('Modul dipadam.', 'success'); }
-    }
-
-    function resetModuleForm() { document.getElementById('module-editor-form').reset(); document.getElementById('module-id').value = ''; }
-
-    // ----------------------------------------------------
-    // Overview Statistics
-    // ----------------------------------------------------
-    function renderOverviewStats() {
-      const stats = AdminCMS.getStats();
-      document.getElementById('stat-students').textContent = stats.totalStudents;
-      document.getElementById('stat-quizzes').textContent = stats.totalQuizzes;
-      document.getElementById('stat-notes').textContent = stats.publishedNotes;
-      document.getElementById('stat-notes-sub').textContent = `${stats.publishedNotes} Terbit • ${stats.draftNotes} Draf`;
-      document.getElementById('stat-videos').textContent = stats.totalVideos;
-      document.getElementById('stat-ar').textContent = stats.totalARModels;
-    }
-
-    function renderActivities() {
-      const activities = AdminCMS.getActivities();
-      const container = document.getElementById('activity-log-container');
-      const typeIcons = {
-        quiz: 'quiz',
-        note: 'menu_book',
-        video: 'play_circle',
-        ar: 'view_in_ar',
-        user: 'person'
-      };
-      const typeColors = {
-        quiz: 'text-blue-600 bg-blue-50',
-        note: 'text-teal-700 bg-teal-50',
-        video: 'text-rose-600 bg-rose-50',
-        ar: 'text-amber-600 bg-amber-50',
-        user: 'text-emerald-600 bg-emerald-50'
-      };
-
-      container.innerHTML = activities.slice(0, 5).map(act => `
-        <div class="flex items-start gap-3 p-2.5 rounded-2xl hover:bg-slate-50 transition">
-          <div class="w-8 h-8 rounded-xl ${typeColors[act.type] || 'text-slate-600 bg-slate-100'} flex items-center justify-center shrink-0 mt-0.5">
-            <span class="material-symbols-outlined text-base">${typeIcons[act.type] || 'info'}</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-xs font-semibold text-slate-800 leading-snug">${escapeHtml(act.text)}</p>
-            <span class="text-[10px] text-slate-400 font-medium">${escapeHtml(act.time)}</span>
-          </div>
-        </div>
-      `).join('');
     }
 
     // ----------------------------------------------------
@@ -2861,216 +2813,9 @@
     }
 
     // ----------------------------------------------------
-    // AR Models Management
+    // CellQuest 3D/AR and Real Student Records are handled
+    // by assets/js/admin-portal.js
     // ----------------------------------------------------
-    function renderARModels() {
-      const models = AdminCMS.getARModels();
-      const container = document.getElementById('ar-grid-container');
-
-      container.innerHTML = models.map(m => `
-        <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${m.targetStatus === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">
-                ${m.targetStatus === 'active' ? '● Sasaran Aktif' : '◐ Ujian'}
-              </span>
-              <span class="text-[11px] font-mono font-bold text-slate-400">${escapeHtml(m.markerId)}</span>
-            </div>
-
-            <div class="flex items-center gap-3 mb-3">
-              <div class="w-12 h-12 rounded-2xl flex items-center justify-center p-2.5 shadow-sm" style="background-color: ${m.color || '#008080'}20; color: ${m.color || '#008080'}">
-                <span class="material-symbols-outlined text-2xl">view_in_ar</span>
-              </div>
-              <div>
-                <h4 class="font-headline font-bold text-slate-900 text-sm leading-snug">${escapeHtml(m.name)}</h4>
-                <span class="text-[11px] text-slate-400 font-semibold">${escapeHtml(m.format || 'GLTF')}</span>
-              </div>
-            </div>
-
-            <div class="p-3 bg-slate-50 rounded-2xl text-xs text-slate-600 mb-3 border border-slate-100">
-              <strong class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Fakta Sains Dipaparkan:</strong>
-              <p class="line-clamp-2 leading-relaxed">${escapeHtml(m.hotspots || '')}</p>
-            </div>
-          </div>
-
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-            <span class="text-[11px] font-bold text-primary">${m.scansCount || 0} Kali Diimbas</span>
-            <div class="space-x-1">
-              <button onclick="editARModel('${m.id}')" class="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-teal-50" title="Edit">
-                <span class="material-symbols-outlined text-base">edit</span>
-              </button>
-              <button onclick="confirmDeleteAR('${m.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50" title="Padam">
-                <span class="material-symbols-outlined text-base">delete</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function openARModal() {
-      document.getElementById('form-ar').reset();
-      document.getElementById('ar-id').value = '';
-      document.getElementById('modal-ar-title').textContent = 'Tambah Model Sasaran AR';
-      document.getElementById('modal-ar').showModal();
-    }
-
-    function editARModel(id) {
-      const m = AdminCMS.getARModelById(id);
-      if (!m) return;
-
-      document.getElementById('ar-id').value = m.id;
-      document.getElementById('ar-name-input').value = m.name;
-      document.getElementById('ar-marker-input').value = m.markerId;
-      document.getElementById('ar-format-input').value = m.format || 'GLTF / GLB';
-      document.getElementById('ar-file-input').value = m.fileUrl || '';
-      document.getElementById('ar-hotspots-input').value = m.hotspots || '';
-      document.getElementById('ar-color-input').value = m.color || '#008080';
-      document.getElementById('ar-status-input').value = m.targetStatus || 'active';
-
-      document.getElementById('modal-ar-title').textContent = 'Kemas Kini Model AR';
-      document.getElementById('modal-ar').showModal();
-    }
-
-    function handleSaveARModel(e) {
-      e.preventDefault();
-      const id = document.getElementById('ar-id').value;
-      const modelData = {
-        id: id || undefined,
-        name: document.getElementById('ar-name-input').value.trim(),
-        markerId: document.getElementById('ar-marker-input').value.trim().toUpperCase(),
-        format: document.getElementById('ar-format-input').value,
-        fileUrl: document.getElementById('ar-file-input').value.trim(),
-        hotspots: document.getElementById('ar-hotspots-input').value.trim(),
-        color: document.getElementById('ar-color-input').value,
-        targetStatus: document.getElementById('ar-status-input').value
-      };
-
-      AdminCMS.saveARModel(modelData);
-      document.getElementById('modal-ar').close();
-      renderARModels();
-      renderOverviewStats();
-      renderActivities();
-      showToast('Model AR berjaya disimpan!', 'success');
-    }
-
-    function confirmDeleteAR(id) {
-      if (confirm('Padam model AR ini?')) {
-        AdminCMS.deleteARModel(id);
-        renderARModels();
-        renderOverviewStats();
-        renderActivities();
-        showToast('Model AR telah dipadam.', 'info');
-      }
-    }
-
-    // ----------------------------------------------------
-    // Students Management
-    // ----------------------------------------------------
-    function renderStudents() {
-      const search = document.getElementById('search-student').value;
-      const status = document.getElementById('filter-student-status').value;
-      const students = AdminCMS.getStudents(search, status);
-      const tbody = document.getElementById('student-table-body');
-
-      tbody.innerHTML = students.map(s => `
-        <tr class="hover:bg-slate-50/70 transition">
-          <td class="py-4 px-6">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-teal-100 text-teal-900 font-bold flex items-center justify-center text-xs">
-                ${(s.name || 'P').charAt(0)}
-              </div>
-              <div>
-                <strong class="font-headline font-bold text-slate-900 block text-sm">${escapeHtml(s.name)}</strong>
-                <span class="text-xs text-slate-400">${escapeHtml(s.email)}</span>
-              </div>
-            </div>
-          </td>
-          <td class="py-4 px-5 font-semibold text-xs text-slate-700">
-            ${escapeHtml(s.grade || 'Tingkatan 1')}
-          </td>
-          <td class="py-4 px-4 font-headline font-extrabold text-sm text-primary">
-            ${s.score || 0}%
-          </td>
-          <td class="py-4 px-4 text-xs font-semibold text-slate-600">
-            ${s.quizzesTaken || 0} kuiz
-          </td>
-          <td class="py-4 px-4">
-            <button onclick="toggleStudentActive('${s.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold ${s.status === 'active' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'} transition">
-              ${s.status === 'active' ? '● Aktif' : '○ Nyahaktif'}
-            </button>
-          </td>
-          <td class="py-4 px-6 text-right space-x-2">
-            <button onclick="editStudent('${s.id}')" class="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-teal-50" title="Edit">
-              <span class="material-symbols-outlined text-base">edit</span>
-            </button>
-            <button onclick="confirmDeleteStudent('${s.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50" title="Padam">
-              <span class="material-symbols-outlined text-base">delete</span>
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function openStudentModal() {
-      document.getElementById('form-student').reset();
-      document.getElementById('student-id').value = '';
-      document.getElementById('modal-student-title').textContent = 'Tambah Rekod Pelajar';
-      document.getElementById('modal-student').showModal();
-    }
-
-    function editStudent(id) {
-      const students = AdminCMS.getStudents();
-      const s = students.find(item => item.id === id);
-      if (!s) return;
-
-      document.getElementById('student-id').value = s.id;
-      document.getElementById('student-name-input').value = s.name;
-      document.getElementById('student-email-input').value = s.email;
-      document.getElementById('student-grade-input').value = s.grade || 'Tingkatan 1 Al-Farabi';
-      document.getElementById('student-status-input').value = s.status || 'active';
-      document.getElementById('student-score-input').value = s.score || 0;
-
-      document.getElementById('modal-student-title').textContent = 'Kemas Kini Pelajar';
-      document.getElementById('modal-student').showModal();
-    }
-
-    function handleSaveStudent(e) {
-      e.preventDefault();
-      const id = document.getElementById('student-id').value;
-      const studentData = {
-        id: id || undefined,
-        name: document.getElementById('student-name-input').value.trim(),
-        email: document.getElementById('student-email-input').value.trim(),
-        grade: document.getElementById('student-grade-input').value,
-        status: document.getElementById('student-status-input').value,
-        score: parseInt(document.getElementById('student-score-input').value, 10) || 0
-      };
-
-      AdminCMS.saveStudent(studentData);
-      document.getElementById('modal-student').close();
-      renderStudents();
-      renderOverviewStats();
-      renderActivities();
-      showToast('Rekod pelajar berjaya disimpan!', 'success');
-    }
-
-    function toggleStudentActive(id) {
-      const newStatus = AdminCMS.toggleStudentStatus(id);
-      renderStudents();
-      renderOverviewStats();
-      showToast(`Status pelajar ditukar kepada ${newStatus}.`, 'info');
-    }
-
-    function confirmDeleteStudent(id) {
-      if (confirm('Padam rekod pelajar ini?')) {
-        AdminCMS.deleteStudent(id);
-        renderStudents();
-        renderOverviewStats();
-        renderActivities();
-        showToast('Rekod pelajar telah dipadam.', 'info');
-      }
-    }
 
     // ----------------------------------------------------
     // Utilities: Export & Seed Restore
