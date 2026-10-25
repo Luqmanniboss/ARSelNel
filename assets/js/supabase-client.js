@@ -100,13 +100,13 @@
 
   async function authenticatedClient() {
     await ready;
-    if (!state.client) throw new Error(state.error ? friendlyError(state.error) : 'Supabase belum dikonfigurasi. Salin .env.example kepada .env dan mulakan semula pelayan.');
+    if (!state.client) throw new Error(state.error ? friendlyError(state.error) : 'Supabase belum dikonfigurasi. Sila periksa capaian internet atau fail konfigurasi.');
     const { data, error } = await state.client.auth.getUser();
     if (error) throw error;
     if (!data.user) throw new Error('Sesi akaun tidak sah. Sila log masuk semula.');
     const appUser = global.AuthGuard && global.AuthGuard.getUser ? global.AuthGuard.getUser() : null;
-    if (!appUser || (appUser.authProvider !== 'supabase' && appUser.authProvider !== 'google') || appUser.id !== data.user.id) {
-      throw new Error('Sesi akaun aplikasi dan Supabase tidak sepadan. Log keluar dan log masuk semula sebelum penyegerakan.');
+    if (!appUser || (appUser.authProvider !== 'supabase' && appUser.authProvider !== 'google') || (appUser.id && data.user.id && appUser.id !== data.user.id)) {
+      throw new Error('Sesi akaun aplikasi dan Supabase tidak sepadan. Sila log keluar dan log masuk semula.');
     }
     return { client: state.client, authUser: data.user };
   }
@@ -131,8 +131,17 @@
     if (id === 'misi_makmal' || id === 'misi-makmal-sains' || id === 'lab_adventure' || id === 'lab-adventure') return 'misi_makmal';
     if (id === 'labelkan_organel' || id === 'labelkan-organel' || id === 'label_organelles') return 'labelkan_organel';
     if (id === 'organisasi_sel' || id === 'organisasi-kehidupan' || id === 'susun_organisasi') return 'organisasi_sel';
-    if (id === 'kuiz_saintis_muda' || id === 'kuiz-saintis-muda' || id === 'struktur-fungsi-organisasi-sel' || id === 'kuiz_interaktif') return 'kuiz_saintis_muda';
+    if (id === 'kuiz_saintis_muda' || id === 'kuiz-saintis-muda' || id === 'struktur-fungsi-organisasi-sel' || id === 'kuiz_interaktif' || id === 'pengembaraan-sains-2d-sel') return 'kuiz_saintis_muda';
     return id;
+  }
+
+  function getGameAlias(gameId) {
+    if (gameId === 'maze_2d') return 'klasifikasi-sel';
+    if (gameId === 'misi_makmal') return 'misi-makmal-sains';
+    if (gameId === 'labelkan_organel') return 'labelkan-organel';
+    if (gameId === 'organisasi_sel') return 'organisasi-kehidupan';
+    if (gameId === 'kuiz_saintis_muda') return 'struktur-fungsi-organisasi-sel';
+    return gameId;
   }
 
   const GAME_CATALOG = {
@@ -147,7 +156,7 @@
     },
     'misi_makmal': {
       id: 'misi_makmal',
-      title: 'Misi Makmal Sains',
+      title: 'Misi Makmal Sains: Operasi Kemas Makmal',
       shortTitle: 'Misi Makmal',
       icon: '🔬',
       route: '../games/misi-makmal-sains.html',
@@ -188,41 +197,56 @@
     const canonicalGameId = normalizeGameId(rawGameId);
     const attemptId = attempt.id || (global.crypto && global.crypto.randomUUID ? global.crypto.randomUUID() : 'att_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8));
     
-    // Ensure raw score is preserved without clamping to 100 (Maze 2D can score 1000)
+    // Pastikan markah penuh (tiada had 100 mata jika permainan berskala sehingga 1000 mata)
     let finalScore = 0;
     if (Number.isFinite(Number(attempt.score))) {
       finalScore = Math.max(0, Math.round(Number(attempt.score)));
     } else {
-      const correct = Number(attempt.correct) || 0;
-      const total = Math.max(1, Number(attempt.total) || 1);
+      const correct = Number(attempt.correct) || Number(attempt.correct_answers) || 0;
+      const total = Math.max(1, Number(attempt.total) || Number(attempt.total_questions) || 1);
       finalScore = Math.round((correct / total) * 100);
     }
 
     const durationSeconds = Number.isFinite(Number(attempt.durationSeconds)) 
       ? Math.max(0, Math.round(Number(attempt.durationSeconds))) 
-      : (Number.isFinite(Number(attempt.duration)) ? Math.max(0, Math.round(Number(attempt.duration))) : null);
+      : (Number.isFinite(Number(attempt.duration)) 
+          ? Math.max(0, Math.round(Number(attempt.duration))) 
+          : (Number.isFinite(Number(attempt.completion_time_seconds)) ? Math.max(0, Math.round(Number(attempt.completion_time_seconds))) : null));
 
     const record = {
       ...attempt,
       id: attemptId,
       quizId: canonicalGameId,
+      quiz_id: canonicalGameId,
       gameId: canonicalGameId,
+      game_id: canonicalGameId,
       score: finalScore,
-      correct: Number(attempt.correct) || 0,
-      total: Math.max(1, Number(attempt.total) || 1),
+      correct: Number(attempt.correct) || Number(attempt.correct_answers) || 0,
+      correct_answers: Number(attempt.correct) || Number(attempt.correct_answers) || 0,
+      total: Math.max(1, Number(attempt.total) || Number(attempt.total_questions) || 1),
+      total_questions: Math.max(1, Number(attempt.total) || Number(attempt.total_questions) || 1),
       durationSeconds: durationSeconds,
+      duration_seconds: durationSeconds,
       answers: Array.isArray(attempt.answers) ? attempt.answers : [],
-      completedAt: attempt.completedAt || new Date().toISOString()
+      completedAt: attempt.completedAt || attempt.completed_at || new Date().toISOString()
     };
 
-    // Save latest attempt cache in localStorage for instant access on results page
+    // 1. Simpan salinan setempat serta-merta ke pelbagai kunci cache untuk ketahanan luar talian
     try {
       localStorage.setItem('arselnel_latest_attempt', JSON.stringify(record));
+      
+      const subs = JSON.parse(localStorage.getItem('arselnel_quiz_submissions') || '[]');
+      const existIdx = subs.findIndex(s => s.id === record.id);
+      if (existIdx >= 0) subs[existIdx] = record;
+      else subs.push(record);
+      localStorage.setItem('arselnel_quiz_submissions', JSON.stringify(subs));
     } catch (_) {}
 
+    // 2. Simpan ke Supabase dengan sokongan fallback skema yang berdaya tahan
     return withPersistence('quiz', record, async () => {
       const { client, authUser } = await authenticatedClient();
-      const row = {
+      
+      let row = {
         user_id: authUser.id,
         legacy_source_id: record.id,
         quiz_id: canonicalGameId,
@@ -234,39 +258,58 @@
         submitted_at: record.completedAt
       };
       
-      const { data, error } = await client
+      let { data, error } = await client
         .from('quiz_attempts')
         .upsert(row, { onConflict: 'user_id,legacy_source_id' })
         .select()
         .single();
         
+      // Fallback 1: Jika lajur correct_answers belum wujud dalam skema DB sebelum migrasi dijalankan
+      if (error && error.message && error.message.includes('correct_answers')) {
+        delete row.correct_answers;
+        const retry1 = await client
+          .from('quiz_attempts')
+          .upsert(row, { onConflict: 'user_id,legacy_source_id' })
+          .select()
+          .single();
+        data = retry1.data;
+        error = retry1.error;
+      }
+
+      // Fallback 2: Jika lajur duration_seconds belum wujud dalam skema DB sebelum migrasi dijalankan
+      if (error && error.message && error.message.includes('duration_seconds')) {
+        delete row.duration_seconds;
+        const retry2 = await client
+          .from('quiz_attempts')
+          .upsert(row, { onConflict: 'user_id,legacy_source_id' })
+          .select()
+          .single();
+        data = retry2.data;
+        error = retry2.error;
+      }
+
       if (error) {
-        // Fallback: If duration_seconds column does not exist yet before migration is run, retry without it
-        if (error.message && error.message.includes('duration_seconds')) {
-          delete row.duration_seconds;
-          const { data: retryData, error: retryError } = await client
-            .from('quiz_attempts')
-            .upsert(row, { onConflict: 'user_id,legacy_source_id' })
-            .select()
-            .single();
-          if (retryError) throw retryError;
-          return retryData;
+        if (error.message && error.message.includes('quiz_attempts_score_check')) {
+          throw new Error('Kekangan pangkalan data terhad kepada 100 mata. Sila jalankan migrasi 202610250001_game_leaderboards_and_answer_snapshots.sql di Supabase SQL Editor.');
         }
         throw error;
       }
-      return data;
+
+      return { success: true, remote: true, data };
     });
   }
 
   async function getGameLeaderboard(rawGameId, limit = 50) {
     const gameId = normalizeGameId(rawGameId);
+    const aliasGameId = getGameAlias(gameId);
     let remoteEntries = [];
     let isRemoteSuccessful = false;
+    let rpcErrorMessage = null;
 
     try {
       await ready;
       if (state.client) {
-        // Try calling the SQL function first
+        // A. Cuba panggil fungsi SQL RPC get_game_leaderboard terlebih dahulu
         const { data, error } = await state.client.rpc('get_game_leaderboard', {
           p_game_id: gameId,
           p_limit: limit
@@ -277,56 +320,78 @@
             rank: Number(item.rank) || 1,
             userId: item.user_id,
             playerName: item.player_name || 'Murid ARSelNel',
-            avatar: item.avatar_url || '../assets/home/avatar.svg',
-            className: item.class_name || 'Tingkatan 1',
+            avatar: item.avatar_url || item.avatar || '../assets/home/avatar.svg',
+            className: item.class_name || 'Tingkatan 1 Al-Farabi',
             score: Number(item.best_score) || 0,
             correct: Number(item.correct_answers) || 0,
             total: Number(item.total_questions) || 0,
-            durationSeconds: item.duration_seconds !== null ? Number(item.duration_seconds) : null,
+            durationSeconds: item.duration_seconds !== null && item.duration_seconds !== undefined ? Number(item.duration_seconds) : null,
             achievedAt: item.achieved_at,
             totalAttempts: Number(item.total_attempts) || 1
           }));
           isRemoteSuccessful = true;
         } else {
-          // Fallback: Query quiz_attempts directly if RPC is not deployed yet
+          if (error) {
+            rpcErrorMessage = error.message;
+            console.warn('Leaderboard RPC get_game_leaderboard notice:', error.message);
+          }
+
+          // B. Fallback Berdaya Tahan: Kueri quiz_attempts secara terus dengan select('*')
+          // Menggunakan select('*') mengelakkan ralat 400 jika lajur tertentu belum wujud
           const { data: directData, error: directError } = await state.client
             .from('quiz_attempts')
-            .select('user_id, score, correct_answers, total_questions, duration_seconds, submitted_at, result_data')
-            .eq('quiz_id', gameId)
+            .select('*')
+            .or(`quiz_id.eq.${gameId},quiz_id.eq.${aliasGameId}`)
             .order('score', { ascending: false })
-            .limit(100);
+            .limit(150);
 
           if (!directError && Array.isArray(directData) && directData.length > 0) {
-            // Aggregate best score per user in client
+            // Agregasi rekod terbaik bagi setiap murid di sebelah klien
             const userBestMap = new Map();
             directData.forEach(row => {
               const uid = row.user_id;
               const existing = userBestMap.get(uid);
               const score = Number(row.score) || 0;
-              const correct = Number(row.correct_answers) || 0;
-              const duration = row.duration_seconds !== null ? Number(row.duration_seconds) : 999999;
+              const correct = (row.correct_answers !== undefined && row.correct_answers !== null)
+                ? Number(row.correct_answers)
+                : (row.result_data ? Number(row.result_data.correct || row.result_data.correct_answers || 0) : 0);
+              const total = (row.total_questions !== undefined && row.total_questions !== null)
+                ? Number(row.total_questions)
+                : (row.result_data ? Number(row.result_data.total || row.result_data.total_questions || 10) : 10);
+              const duration = (row.duration_seconds !== undefined && row.duration_seconds !== null)
+                ? Number(row.duration_seconds)
+                : (row.result_data ? (Number(row.result_data.durationSeconds || row.result_data.duration_seconds || row.result_data.completion_time_seconds) || null) : null);
               const time = new Date(row.submitted_at || 0).getTime();
 
+              const currentObj = {
+                user_id: uid,
+                score,
+                correct_answers: correct,
+                total_questions: total,
+                duration_seconds: duration,
+                submitted_at: row.submitted_at
+              };
+
               if (!existing) {
-                userBestMap.set(uid, { ...row, attemptsCount: 1 });
+                userBestMap.set(uid, { ...currentObj, attemptsCount: 1 });
               } else {
                 existing.attemptsCount = (existing.attemptsCount || 1) + 1;
                 const isBetter = score > existing.score ||
                   (score === existing.score && correct > (Number(existing.correct_answers) || 0)) ||
-                  (score === existing.score && correct === (Number(existing.correct_answers) || 0) && duration < (existing.duration_seconds !== null ? Number(existing.duration_seconds) : 999999)) ||
-                  (score === existing.score && correct === (Number(existing.correct_answers) || 0) && duration === (existing.duration_seconds !== null ? Number(existing.duration_seconds) : 999999) && time < new Date(existing.submitted_at || 0).getTime());
+                  (score === existing.score && correct === (Number(existing.correct_answers) || 0) && (duration !== null && (existing.duration_seconds === null || duration < existing.duration_seconds))) ||
+                  (score === existing.score && correct === (Number(existing.correct_answers) || 0) && duration === existing.duration_seconds && time < new Date(existing.submitted_at || 0).getTime());
                 
                 if (isBetter) {
-                  userBestMap.set(uid, { ...row, attemptsCount: existing.attemptsCount });
+                  userBestMap.set(uid, { ...currentObj, attemptsCount: existing.attemptsCount });
                 }
               }
             });
 
-            // Fetch profiles for users
+            // Ambil profil pelajar daripada jadual profiles
             const uids = Array.from(userBestMap.keys());
             let profileMap = new Map();
             try {
-              const { data: profs } = await state.client.from('profiles').select('id, full_name, avatar, class_name').in('id', uids);
+              const { data: profs } = await state.client.from('profiles').select('id, full_name, nickname, avatar, class_name').in('id', uids);
               if (Array.isArray(profs)) {
                 profs.forEach(p => profileMap.set(p.id, p));
               }
@@ -340,20 +405,21 @@
               const aDur = a.duration_seconds !== null ? Number(a.duration_seconds) : 999999;
               const bDur = b.duration_seconds !== null ? Number(b.duration_seconds) : 999999;
               if (aDur !== bDur) return aDur - bDur;
-              return new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime();
+              return new Date(a.submitted_at || 0).getTime() - new Date(b.submitted_at || 0).getTime();
             });
 
             remoteEntries = sorted.slice(0, limit).map((item, idx) => {
               const prof = profileMap.get(item.user_id) || {};
+              const name = prof.full_name || prof.nickname || 'Murid ARSelNel';
               return {
                 rank: idx + 1,
                 userId: item.user_id,
-                playerName: prof.full_name || 'Murid ARSelNel',
+                playerName: name,
                 avatar: prof.avatar || '../assets/home/avatar.svg',
-                className: prof.class_name || 'Tingkatan 1',
+                className: prof.class_name || 'Tingkatan 1 Al-Farabi',
                 score: Number(item.score) || 0,
                 correct: Number(item.correct_answers) || 0,
-                total: Number(item.total_questions) || 0,
+                total: Number(item.total_questions) || 10,
                 durationSeconds: item.duration_seconds !== null ? Number(item.duration_seconds) : null,
                 achievedAt: item.submitted_at,
                 totalAttempts: item.attemptsCount || 1
@@ -367,7 +433,7 @@
       console.warn('Leaderboard fetch remote notice:', err);
     }
 
-    // In case user is offline, Supabase is empty, or using demo mode, merge or build with localStorage
+    // C. Jika pangkalan data belum mempunyai rekod atau mod luar talian, gabungkan dengan storan tempatan
     if (remoteEntries.length === 0) {
       const allSubmissions = [];
       try {
@@ -375,31 +441,43 @@
         if (Array.isArray(subs)) allSubmissions.push(...subs);
       } catch (_) {}
       try {
-        const demoSubs = JSON.parse(localStorage.getItem('arselnel_demo_arselnel_quiz_submissions') || '[]');
-        if (Array.isArray(demoSubs)) allSubmissions.push(...demoSubs);
+        const results = JSON.parse(localStorage.getItem('arselnel_quiz_results') || '[]');
+        if (Array.isArray(results)) allSubmissions.push(...results);
       } catch (_) {}
+      try {
+        const latest = JSON.parse(localStorage.getItem('arselnel_latest_attempt') || 'null');
+        if (latest) allSubmissions.push(latest);
+      } catch (_) {}
+      if (gameId === 'misi_makmal') {
+        try {
+          const labRec = JSON.parse(localStorage.getItem('arselnel_lab_adventure_record') || 'null');
+          if (labRec) allSubmissions.push(labRec);
+        } catch (_) {}
+      }
 
       const localStudentBest = new Map();
       allSubmissions.forEach(sub => {
-        const subGameId = normalizeGameId(sub.quizId || sub.gameId || sub.quiz_id || sub.topic);
+        const subGameId = normalizeGameId(sub.quizId || sub.quiz_id || sub.gameId || sub.game_id || sub.topic);
         if (subGameId !== gameId) return;
 
-        const uid = sub.studentId || sub.userId || sub.student_id || sub.user_id || sub.studentName || 'pelajar';
+        const uid = sub.studentId || sub.userId || sub.student_id || sub.user_id || sub.studentName || 'pelajar_setempat';
         const currentScore = Number(sub.score) || 0;
         const currentCorrect = Number(sub.correct) || Number(sub.correct_answers) || 0;
-        const currentTotal = Number(sub.total) || Number(sub.total_questions) || 1;
-        const currentDuration = sub.duration_seconds !== undefined && sub.duration_seconds !== null
+        const currentTotal = Number(sub.total) || Number(sub.total_questions) || 10;
+        const currentDuration = (sub.duration_seconds !== undefined && sub.duration_seconds !== null)
           ? Number(sub.duration_seconds)
-          : (sub.durationSeconds !== undefined && sub.durationSeconds !== null ? Number(sub.durationSeconds) : null);
-        const currentAchievedAt = sub.completedAt || sub.submitted_at || new Date().toISOString();
-        const studentName = sub.studentName || sub.student_name || 'Murid ARSelNel';
+          : ((sub.durationSeconds !== undefined && sub.durationSeconds !== null) 
+              ? Number(sub.durationSeconds) 
+              : (Number(sub.completion_time_seconds) || null));
+        const currentAchievedAt = sub.completedAt || sub.completed_at || sub.submitted_at || new Date().toISOString();
+        const studentName = sub.studentName || sub.student_name || sub.name || 'Murid ARSelNel';
 
         if (!localStudentBest.has(uid)) {
           localStudentBest.set(uid, {
             userId: uid,
             playerName: studentName,
             avatar: sub.avatar || '../assets/home/avatar.svg',
-            className: sub.className || 'Tingkatan 1 Al-Farabi',
+            className: sub.className || sub.class_name || 'Tingkatan 1 Al-Farabi',
             score: currentScore,
             correct: currentCorrect,
             total: currentTotal,
@@ -440,12 +518,22 @@
       }
     }
 
+    // Dapatkan maklumat pengguna semasa daripada sesi aktif
     let currentUser = null;
     try {
-      const authState = JSON.parse(localStorage.getItem('arselnel_auth_session') || '{}');
-      currentUser = authState.user || null;
+      if (global.AuthGuard && typeof global.AuthGuard.getUser === 'function') {
+        currentUser = global.AuthGuard.getUser();
+      }
+      if (!currentUser) {
+        currentUser = JSON.parse(localStorage.getItem('arselnel_current_user') || 'null');
+      }
+      if (!currentUser) {
+        const authState = JSON.parse(localStorage.getItem('arselnel_auth_session') || '{}');
+        currentUser = authState.user || null;
+      }
     } catch (_) {}
 
+    // Semak rekod kemajuan peribadi murid semasa
     if (currentUser && currentUser.id) {
       const progressKey = `arselnel_learning_progress_${currentUser.id}`;
       let localLearning = { quizzes: [] };
@@ -453,7 +541,7 @@
         localLearning = JSON.parse(localStorage.getItem(progressKey) || '{}') || { quizzes: [] };
       } catch (_) {}
 
-      const myAttemptsForGame = (localLearning.quizzes || []).filter(q => normalizeGameId(q.quizId || q.gameId) === gameId);
+      const myAttemptsForGame = (localLearning.quizzes || []).filter(q => normalizeGameId(q.quizId || q.quiz_id || q.gameId) === gameId);
       if (myAttemptsForGame.length > 0) {
         let bestLocal = null;
         myAttemptsForGame.forEach(att => {
@@ -469,12 +557,12 @@
             userId: currentUser.id,
             playerName: currentUser.name || currentUser.username || 'Saya',
             avatar: currentUser.avatar || '../assets/home/avatar.svg',
-            className: currentUser.grade || 'Tingkatan 1 Al-Farabi',
+            className: currentUser.grade || currentUser.class_name || 'Tingkatan 1 Al-Farabi',
             score: Number(bestLocal.score) || 0,
-            correct: Number(bestLocal.correct) || 0,
-            total: Number(bestLocal.total) || 1,
-            durationSeconds: bestLocal.durationSeconds || null,
-            achievedAt: bestLocal.completedAt || new Date().toISOString(),
+            correct: Number(bestLocal.correct || bestLocal.correct_answers) || 0,
+            total: Number(bestLocal.total || bestLocal.total_questions) || 10,
+            durationSeconds: bestLocal.durationSeconds || bestLocal.duration_seconds || null,
+            achievedAt: bestLocal.completedAt || bestLocal.submitted_at || new Date().toISOString(),
             totalAttempts: myAttemptsForGame.length
           };
 
@@ -489,7 +577,7 @@
       }
     }
 
-    // Re-sort after potential merges
+    // Susun semula ranking (Skor tertinggi -> Betul terbanyak -> Masa tersingkat -> Tarikh terawal)
     remoteEntries.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       if ((b.correct || 0) !== (a.correct || 0)) return (b.correct || 0) - (a.correct || 0);
@@ -502,7 +590,6 @@
     const finalLeaderboard = remoteEntries.map((item, idx) => ({
       ...item,
       rank: idx + 1,
-      // Compatibility aliases
       student_id: item.userId,
       student_name: item.playerName,
       best_score: item.score,
@@ -531,12 +618,13 @@
 
     return {
       gameId,
-      gameMeta: GAME_CATALOG[gameId] || { id: gameId, title: gameId, shortTitle: gameId, icon: '🏆', maxScore: 100 },
+      gameMeta: GAME_CATALOG[gameId] || { id: gameId, title: gameId, shortTitle: gameId, icon: '🏆', maxScore: 1000 },
       leaderboard: finalLeaderboard,
       podium,
       remaining,
       myStanding,
-      totalPlayers: finalLeaderboard.length
+      totalPlayers: finalLeaderboard.length,
+      isRemoteSuccessful
     };
   }
 

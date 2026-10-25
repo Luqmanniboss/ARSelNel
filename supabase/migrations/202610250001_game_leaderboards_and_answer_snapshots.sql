@@ -1,21 +1,45 @@
 -- ==============================================================================
 -- MIGRATION: 202610250001_game_leaderboards_and_answer_snapshots.sql
 -- Description:
--- 1. Mengubah kekangan markah quiz_attempts (score check) supaya menyokong markah melebihi 100 mata (contoh: Maze 2D 1000 mata) tanpa had 100.
--- 2. Memastikan indeks prestasi untuk leaderboard berasaskan (quiz_id, score DESC, submitted_at ASC).
--- 3. Menyediakan fungsi pangkalan data get_game_leaderboard() untuk agregasi markah terbaik setiap murid mengikut permainan secara adil dan selamat tanpa mendedahkan data peribadi/jawapan murid lain.
+-- 1. Mengubah kekangan markah quiz_attempts (score check) supaya menyokong markah 
+--    melebihi 100 mata (contoh: Maze 2D & Misi Makmal 1000 mata) tanpa had 100.
+-- 2. Menambah lajur correct_answers dan duration_seconds jika belum wujud.
+-- 3. Memastikan indeks prestasi untuk carian pantas leaderboard.
+-- 4. Menyediakan fungsi pangkalan data get_game_leaderboard() (SECURITY DEFINER)
+--    yang serasi dengan skema profil sebenar (p.avatar) dan menyokong pemetaan alias
+--    permainan dua hala.
 -- ==============================================================================
 
--- 1. Tanggalkan kekangan lama 0..100 jika wujud dan gantikan dengan score >= 0
-ALTER TABLE public.quiz_attempts DROP CONSTRAINT IF EXISTS quiz_attempts_score_check;
+-- 1. Tanggalkan kekangan lama 0..100 secara selamat dan gantikan dengan score >= 0
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN (
+    SELECT conname 
+    FROM pg_constraint 
+    WHERE conrelid = 'public.quiz_attempts'::regclass 
+      AND contype = 'c' 
+      AND pg_get_constraintdef(oid) LIKE '%score%'
+  ) LOOP
+    EXECUTE 'ALTER TABLE public.quiz_attempts DROP CONSTRAINT IF EXISTS ' || quote_ident(r.conname);
+  END LOOP;
+END $$;
+
 ALTER TABLE public.quiz_attempts ADD CONSTRAINT quiz_attempts_score_check CHECK (score >= 0);
 
--- 2. Pastikan indeks wujud untuk carian pantas leaderboard mengikut quiz_id
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_leaderboard 
-ON public.quiz_attempts (quiz_id, score DESC, submitted_at ASC);
-
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user_quiz 
-ON public.quiz_attempts (user_id, quiz_id, submitted_at DESC);
+-- 2. Tambah lajur correct_answers jika belum wujud
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' 
+      AND table_name = 'quiz_attempts' 
+      AND column_name = 'correct_answers'
+  ) THEN
+    ALTER TABLE public.quiz_attempts ADD COLUMN correct_answers INTEGER DEFAULT 0;
+  END IF;
+END $$;
 
 -- 3. Tambah lajur tempoh (duration_seconds) jika belum wujud untuk metrik masa yang adil
 DO $$
@@ -23,14 +47,21 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' 
-    AND table_name = 'quiz_attempts' 
-    AND column_name = 'duration_seconds'
+      AND table_name = 'quiz_attempts' 
+      AND column_name = 'duration_seconds'
   ) THEN
     ALTER TABLE public.quiz_attempts ADD COLUMN duration_seconds INTEGER DEFAULT NULL;
   END IF;
 END $$;
 
--- 4. Fungsi Leaderboard Berasingan Mengikut Permainan (Security Definer)
+-- 4. Pastikan indeks wujud untuk carian pantas leaderboard mengikut quiz_id
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_leaderboard 
+ON public.quiz_attempts (quiz_id, score DESC, submitted_at ASC);
+
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user_quiz 
+ON public.quiz_attempts (user_id, quiz_id, submitted_at DESC);
+
+-- 5. Fungsi Leaderboard Berasingan Mengikut Permainan (Security Definer)
 -- Mengembalikan markah terbaik (MAX) setiap murid berserta susunan tie-breaker yang sah:
 -- 1. Markah tertinggi
 -- 2. Jawapan betul terbanyak
@@ -59,56 +90,78 @@ SET search_path = public
 AS $$
 BEGIN
   RETURN QUERY
-  WITH best_attempts AS (
+  WITH filtered_attempts AS (
     SELECT 
       qa.user_id,
-      qa.score,
-      qa.correct_answers,
-      qa.total_questions,
-      qa.duration_seconds,
-      qa.submitted_at,
-      COUNT(*) OVER (PARTITION BY qa.user_id) AS user_attempt_count,
-      ROW_NUMBER() OVER (
-        PARTITION BY qa.user_id 
-        ORDER BY 
-          qa.score DESC, 
-          COALESCE(qa.correct_answers, 0) DESC, 
-          COALESCE(qa.duration_seconds, 999999) ASC, 
-          qa.submitted_at ASC
-      ) AS rank_in_user
+      qa.score::INTEGER AS score,
+      COALESCE(
+        qa.correct_answers,
+        (qa.result_data->>'correct')::INTEGER,
+        (qa.result_data->>'correct_answers')::INTEGER,
+        0
+      ) AS correct_answers,
+      COALESCE(
+        qa.total_questions,
+        (qa.result_data->>'total')::INTEGER,
+        (qa.result_data->>'total_questions')::INTEGER,
+        10
+      ) AS total_questions,
+      COALESCE(
+        qa.duration_seconds,
+        (qa.result_data->>'durationSeconds')::INTEGER,
+        (qa.result_data->>'duration_seconds')::INTEGER,
+        (qa.result_data->>'completion_time_seconds')::INTEGER
+      ) AS duration_seconds,
+      qa.submitted_at
     FROM public.quiz_attempts qa
     WHERE qa.quiz_id = p_game_id 
-       OR qa.quiz_id = CASE 
-            WHEN p_game_id = 'maze_2d' THEN 'klasifikasi-sel'
-            WHEN p_game_id = 'misi_makmal' THEN 'misi-makmal-sains'
-            WHEN p_game_id = 'labelkan_organel' THEN 'labelkan-organel'
-            WHEN p_game_id = 'organisasi_sel' THEN 'organisasi-kehidupan'
-            WHEN p_game_id = 'kuiz_saintis_muda' THEN 'struktur-fungsi-organisasi-sel'
-            ELSE p_game_id
-          END
+       OR (p_game_id = 'maze_2d' AND qa.quiz_id IN ('maze_2d', 'klasifikasi-sel', 'maze-chase-sel', 'maze_chase'))
+       OR (p_game_id = 'misi_makmal' AND qa.quiz_id IN ('misi_makmal', 'misi-makmal-sains', 'lab_adventure', 'lab-adventure'))
+       OR (p_game_id = 'labelkan_organel' AND qa.quiz_id IN ('labelkan_organel', 'labelkan-organel', 'label_organelles'))
+       OR (p_game_id = 'organisasi_sel' AND qa.quiz_id IN ('organisasi_sel', 'organisasi-kehidupan', 'susun_organisasi'))
+       OR (p_game_id = 'kuiz_saintis_muda' AND qa.quiz_id IN ('kuiz_saintis_muda', 'kuiz-saintis-muda', 'struktur-fungsi-organisasi-sel', 'kuiz_interaktif', 'pengembaraan-sains-2d-sel'))
+  ),
+  ranked_attempts AS (
+    SELECT 
+      fa.user_id,
+      fa.score,
+      fa.correct_answers,
+      fa.total_questions,
+      fa.duration_seconds,
+      fa.submitted_at,
+      COUNT(*) OVER (PARTITION BY fa.user_id) AS user_attempt_count,
+      ROW_NUMBER() OVER (
+        PARTITION BY fa.user_id 
+        ORDER BY 
+          fa.score DESC, 
+          fa.correct_answers DESC, 
+          COALESCE(fa.duration_seconds, 999999) ASC, 
+          fa.submitted_at ASC
+      ) AS rank_in_user
+    FROM filtered_attempts fa
   ),
   aggregated_ranks AS (
     SELECT
-      ba.user_id,
-      COALESCE(p.full_name, 'Murid ARSelNel') AS player_name,
-      p.avatar_url,
-      p.class_name,
-      ba.score::INTEGER AS best_score,
-      ba.correct_answers::INTEGER,
-      ba.total_questions::INTEGER,
-      ba.duration_seconds::INTEGER,
-      ba.submitted_at AS achieved_at,
-      ba.user_attempt_count AS total_attempts,
+      ra.user_id,
+      COALESCE(NULLIF(p.full_name, ''), NULLIF(p.nickname, ''), 'Murid ARSelNel') AS player_name,
+      COALESCE(p.avatar, '../assets/home/avatar.svg') AS avatar_url,
+      COALESCE(p.class_name, 'Tingkatan 1 Al-Farabi') AS class_name,
+      ra.score AS best_score,
+      ra.correct_answers,
+      ra.total_questions,
+      ra.duration_seconds,
+      ra.submitted_at AS achieved_at,
+      ra.user_attempt_count AS total_attempts,
       DENSE_RANK() OVER (
         ORDER BY 
-          ba.score DESC, 
-          COALESCE(ba.correct_answers, 0) DESC, 
-          COALESCE(ba.duration_seconds, 999999) ASC, 
-          ba.submitted_at ASC
+          ra.score DESC, 
+          ra.correct_answers DESC, 
+          COALESCE(ra.duration_seconds, 999999) ASC, 
+          ra.submitted_at ASC
       ) AS calc_rank
-    FROM best_attempts ba
-    LEFT JOIN public.profiles p ON p.id = ba.user_id
-    WHERE ba.rank_in_user = 1
+    FROM ranked_attempts ra
+    LEFT JOIN public.profiles p ON p.id = ra.user_id
+    WHERE ra.rank_in_user = 1
   )
   SELECT 
     ar.calc_rank AS rank,

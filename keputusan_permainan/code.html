@@ -437,13 +437,55 @@
         </div>
       </div>
 
+      <!-- Loading State -->
+      <div id="leaderboard-loading-state" class="hidden bg-white rounded-3xl p-10 text-center border border-slate-200/80 shadow-md">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-50 text-teal-700 mb-3 animate-spin">
+          <span class="material-symbols-outlined text-3xl">progress_activity</span>
+        </div>
+        <h4 class="font-headline font-bold text-slate-800 text-base">Memuatkan Papan Skor...</h4>
+        <p class="text-xs text-slate-500 mt-1">Mengambil rekod markah terkini dari pelayan awan Supabase.</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="leaderboard-error-state" class="hidden bg-white rounded-3xl p-8 text-center border border-rose-200 shadow-md">
+        <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 text-3xl flex items-center justify-center mx-auto mb-3">
+          ⚠️
+        </div>
+        <h4 class="font-headline font-bold text-slate-900 text-base" id="lb-error-title">Gagal Memuatkan Papan Skor</h4>
+        <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-md mx-auto" id="lb-error-desc">
+          Sambungan pangkalan data tidak berjaya atau pelayan tidak dapat dicapai buat sementara waktu.
+        </p>
+        <button onclick="loadLeaderboard(activeLeaderboardGame)" class="mt-4 px-5 py-2.5 bg-brand-700 hover:bg-brand-800 text-white rounded-xl font-headline font-bold text-xs transition inline-flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+          <span>Cuba Semula</span>
+        </button>
+      </div>
+
+      <!-- Zero State (Jika Tiada Pemain Sama Sekali) -->
+      <div id="leaderboard-zero-state" class="hidden bg-white rounded-3xl p-8 sm:p-12 text-center border border-slate-200 shadow-md">
+        <div class="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 text-4xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+          🏆
+        </div>
+        <h4 class="font-headline font-extrabold text-slate-900 text-lg sm:text-xl" id="zero-state-title">
+          Belum Ada Rekod Pemain
+        </h4>
+        <p class="text-xs sm:text-sm text-slate-600 mt-1.5 max-w-md mx-auto leading-relaxed" id="zero-state-desc">
+          Papan skor untuk cabaran ini masih kosong. Jadilah pemain pertama mencatatkan rekod di podium kejuaraan!
+        </p>
+        <button onclick="playActiveLeaderboardGame()" class="mt-5 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-2xl font-headline font-bold text-sm transition shadow-md hover:shadow-lg inline-flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">play_arrow</span>
+          <span id="zero-state-btn-text">Main Sekarang & Cipta Rekod</span>
+        </button>
+      </div>
+
       <!-- PODIUM TOP 3 (1st Center Elevated, 2nd Left, 3rd Right) -->
-      <div class="pt-2">
-        <h3 class="font-headline text-center font-extrabold text-slate-800 text-lg mb-6">
-          🥇 Zon Juara: Top 3 Pemain Terbaik
+      <div id="podium-section" class="pt-2">
+        <h3 class="font-headline text-center font-extrabold text-slate-800 text-lg mb-6 flex items-center justify-center gap-2">
+          <span>🥇</span>
+          <span id="podium-heading-text">Zon Juara: Pemain Terbaik</span>
         </h3>
 
-        <div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto items-end pt-8" id="podium-container">
+        <div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto items-end pt-8 transition-all" id="podium-container">
           
           <!-- Tempat Ke-2 (Kiri) -->
           <div id="podium-second" class="podium-2 flex flex-col items-center">
@@ -460,7 +502,7 @@
               </div>
               <div>
                 <span class="text-[10px] text-slate-500 font-semibold block">Skor</span>
-                <span id="podium-2-score" class="font-headline text-xs sm:text-base font-extrabold text-slate-700">0</span>
+                <span id="podium-2-score" class="font-headline text-xs sm:text-base font-extrabold text-slate-700">0 pts</span>
               </div>
             </div>
           </div>
@@ -503,7 +545,7 @@
               </div>
               <div>
                 <span class="text-[10px] text-slate-500 font-semibold block">Skor</span>
-                <span id="podium-3-score" class="font-headline text-xs sm:text-base font-extrabold text-amber-800">0</span>
+                <span id="podium-3-score" class="font-headline text-xs sm:text-base font-extrabold text-amber-800">0 pts</span>
               </div>
             </div>
           </div>
@@ -512,7 +554,7 @@
       </div>
 
       <!-- Senarai Ranking Seterusnya (#4 ke atas) -->
-      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-md">
+      <div id="leaderboard-table-container" class="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-md">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
           <h4 class="font-headline font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
             <span class="material-symbols-outlined text-brand-700 text-lg">format_list_numbered</span>
@@ -538,12 +580,8 @@
           </table>
         </div>
 
-        <div id="leaderboard-empty-state" class="hidden text-center py-10">
-          <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mx-auto mb-2">
-            🏆
-          </div>
-          <p class="font-headline font-bold text-slate-700 text-sm">Belum ada pemain lain dalam papan skor ini.</p>
-          <p class="text-xs text-slate-500 mt-0.5">Jadilah yang pertama bermain dan cipta rekod terhebat!</p>
+        <div id="leaderboard-empty-state" class="hidden text-center py-8">
+          <p class="font-headline font-bold text-slate-600 text-xs sm:text-sm">Semua pemain kini berada di Zon Juara.</p>
         </div>
       </div>
 
@@ -626,7 +664,10 @@
       const urlParams = new URLSearchParams(window.location.search);
       const attemptId = urlParams.get('attempt_id') || urlParams.get('id');
       const gameParam = urlParams.get('game') || urlParams.get('quiz_id') || urlParams.get('quiz');
-      const requestedTab = urlParams.get('tab') || (urlParams.has('leaderboard') ? 'leaderboard' : 'results');
+      const viewParam = urlParams.get('view');
+      const requestedTab = (viewParam === 'leaderboard' || viewParam === 'review' || viewParam === 'results')
+        ? viewParam
+        : (urlParams.get('tab') || (urlParams.has('leaderboard') ? 'leaderboard' : 'results'));
 
       if (gameParam) {
         activeLeaderboardGame = normalizeGameKey(gameParam);
@@ -635,7 +676,9 @@
       // Ambil percubaan aktif
       currentAttempt = await resolveAttemptData(attemptId, gameParam, urlParams);
 
-      if (currentAttempt) {
+      if (gameParam) {
+        activeLeaderboardGame = normalizeGameKey(gameParam);
+      } else if (currentAttempt) {
         activeLeaderboardGame = normalizeGameKey(currentAttempt.gameId || currentAttempt.quizId);
       }
 
@@ -1010,28 +1053,63 @@
         return;
       }
 
-      const res = await window.ARSupabase.getGameLeaderboard(gameKey, 50);
-      renderLeaderboardView(res);
+      const loadingEl = document.getElementById('leaderboard-loading-state');
+      const errorEl = document.getElementById('leaderboard-error-state');
+      const zeroEl = document.getElementById('leaderboard-zero-state');
+      const podiumSec = document.getElementById('podium-section');
+      const tableCont = document.getElementById('leaderboard-table-container');
+
+      if (loadingEl) loadingEl.classList.remove('hidden');
+      if (errorEl) errorEl.classList.add('hidden');
+      if (zeroEl) zeroEl.classList.add('hidden');
+      if (podiumSec) podiumSec.classList.add('hidden');
+      if (tableCont) tableCont.classList.add('hidden');
+
+      try {
+        const res = await window.ARSupabase.getGameLeaderboard(gameKey, 50);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        renderLeaderboardView(res);
+      } catch (err) {
+        console.error('Ralat memuatkan papan skor:', err);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (errorEl) {
+          errorEl.classList.remove('hidden');
+          const desc = document.getElementById('lb-error-desc');
+          if (desc) {
+            desc.textContent = (err && err.message) 
+              ? err.message 
+              : 'Sambungan ke pangkalan data Supabase belum berjaya. Sila periksa capaian rangkaian anda.';
+          }
+        }
+      }
     }
 
     function renderLeaderboardView(res) {
-      const podium = res.podium;
+      if (!res) return;
+
+      const podium = res.podium || {};
       const remaining = res.remaining || [];
       const standing = res.myStanding;
-      const totalPlayers = res.totalPlayers || 0;
+      const totalPlayers = Number(res.totalPlayers) || 0;
+      const gMeta = GAME_META[activeLeaderboardGame] || GAME_META['maze_2d'];
 
-      // 1. Render Podium Top 3
-      updatePodiumSlot(1, podium.first);
-      updatePodiumSlot(2, podium.second);
-      updatePodiumSlot(3, podium.third);
+      const loadingEl = document.getElementById('leaderboard-loading-state');
+      const errorEl = document.getElementById('leaderboard-error-state');
+      const zeroEl = document.getElementById('leaderboard-zero-state');
+      const podiumSec = document.getElementById('podium-section');
+      const podiumCont = document.getElementById('podium-container');
+      const tableCont = document.getElementById('leaderboard-table-container');
 
-      // 2. Render Kedudukan Saya
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (errorEl) errorEl.classList.add('hidden');
+
+      // 1. Render Kad Kedudukan Saya
       const rankText = document.getElementById('my-standing-rank-text');
       const ratioText = document.getElementById('my-standing-ratio-text');
       const scoreText = document.getElementById('my-standing-score-text');
       const resRankBadge = document.getElementById('res-standing-rank');
 
-      if (standing) {
+      if (standing && standing.rank) {
         if (rankText) rankText.textContent = `#${standing.rank}`;
         if (ratioText) ratioText.textContent = `daripada ${totalPlayers} pemain`;
         if (scoreText) scoreText.textContent = `${standing.score.toLocaleString()} mata`;
@@ -1040,24 +1118,88 @@
         }
       } else {
         if (rankText) rankText.textContent = 'Belum Ada Rekod';
-        if (ratioText) ratioText.textContent = 'Main permainan ini untuk cipta rekod pertama!';
+        if (ratioText) ratioText.textContent = totalPlayers > 0 ? `daripada ${totalPlayers} pemain berdaftar` : 'Jadilah pemain pertama mencatat markah!';
         if (scoreText) scoreText.textContent = '—';
         if (resRankBadge && activeLeaderboardGame === (currentAttempt ? currentAttempt.gameId : 'maze_2d')) {
           resRankBadge.textContent = '#—';
         }
       }
 
-      // 3. Render Senarai Peringkat Seterusnya (#4 ke atas)
+      // 2. Keadaan Jika TIADA Pemain Langsung (Empty State)
+      if (totalPlayers === 0) {
+        if (podiumSec) podiumSec.classList.add('hidden');
+        if (tableCont) tableCont.classList.add('hidden');
+        if (zeroEl) {
+          zeroEl.classList.remove('hidden');
+          const zTitle = document.getElementById('zero-state-title');
+          const zDesc = document.getElementById('zero-state-desc');
+          const zBtn = document.getElementById('zero-state-btn-text');
+          if (zTitle) zTitle.textContent = `Belum Ada Rekod Pemain (${gMeta.shortTitle})`;
+          if (zDesc) zDesc.textContent = `Papan skor untuk ${gMeta.title} masih kosong. Jadilah saintis pertama mencatatkan markah di podium kejuaraan!`;
+          if (zBtn) zBtn.textContent = `Main ${gMeta.shortTitle} Sekarang & Cipta Rekod`;
+        }
+        return;
+      }
+
+      // 3. Ada Pemain -> Aktifkan Podium Mengikut Bilangan Sebenar
+      if (zeroEl) zeroEl.classList.add('hidden');
+      if (podiumSec) podiumSec.classList.remove('hidden');
+
+      const elFirst = document.getElementById('podium-first');
+      const elSecond = document.getElementById('podium-second');
+      const elThird = document.getElementById('podium-third');
+      const headingText = document.getElementById('podium-heading-text');
+
+      if (totalPlayers === 1) {
+        // Hanya 1 pemain: paparkan 1 juara tunggal di tengah
+        if (headingText) headingText.textContent = `Juara Tunggal: ${gMeta.shortTitle}`;
+        if (podiumCont) {
+          podiumCont.className = 'flex justify-center max-w-sm mx-auto pt-6 transition-all';
+        }
+        if (elFirst) elFirst.classList.remove('hidden');
+        if (elSecond) elSecond.classList.add('hidden');
+        if (elThird) elThird.classList.add('hidden');
+        updatePodiumSlot(1, podium.first);
+      } else if (totalPlayers === 2) {
+        // 2 pemain: paparkan tempat pertama & kedua
+        if (headingText) headingText.textContent = `Dua Teratas: ${gMeta.shortTitle}`;
+        if (podiumCont) {
+          podiumCont.className = 'grid grid-cols-2 gap-3 sm:gap-6 max-w-lg mx-auto items-end pt-8 transition-all';
+        }
+        if (elFirst) elFirst.classList.remove('hidden');
+        if (elSecond) elSecond.classList.remove('hidden');
+        if (elThird) elThird.classList.add('hidden');
+        updatePodiumSlot(1, podium.first);
+        updatePodiumSlot(2, podium.second);
+      } else {
+        // 3 atau lebih pemain: paparkan podium lengkap 3 tempat
+        if (headingText) headingText.textContent = `Zon Juara: Top 3 Pemain Terbaik (${gMeta.shortTitle})`;
+        if (podiumCont) {
+          podiumCont.className = 'grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto items-end pt-8 transition-all';
+        }
+        if (elFirst) elFirst.classList.remove('hidden');
+        if (elSecond) elSecond.classList.remove('hidden');
+        if (elThird) elThird.classList.remove('hidden');
+        updatePodiumSlot(1, podium.first);
+        updatePodiumSlot(2, podium.second);
+        updatePodiumSlot(3, podium.third);
+      }
+
+      // 4. Render Senarai Pemain Seterusnya (#4 ke atas)
       const tbody = document.getElementById('leaderboard-table-body');
       const emptyState = document.getElementById('leaderboard-empty-state');
-      if (!tbody) return;
+      const countBadge = document.getElementById('remaining-count-badge');
 
-      tbody.innerHTML = '';
+      if (tableCont) tableCont.classList.remove('hidden');
+      if (tbody) tbody.innerHTML = '';
 
       if (remaining.length === 0) {
         if (emptyState) emptyState.classList.remove('hidden');
+        if (countBadge) countBadge.textContent = `${totalPlayers} pemain tersenarai`;
       } else {
         if (emptyState) emptyState.classList.add('hidden');
+        if (countBadge) countBadge.textContent = `Menunjukkan ${totalPlayers} pemain`;
+
         remaining.forEach(item => {
           const row = document.createElement('tr');
           row.className = 'hover:bg-slate-50/80 transition-colors';
@@ -1081,12 +1223,12 @@
                 <img src="${item.avatar || '../assets/home/avatar.svg'}" class="w-8 h-8 rounded-xl object-cover bg-slate-100" alt="${item.playerName}"/>
                 <div>
                   <span class="font-headline font-bold text-slate-800 block">${item.playerName}</span>
-                  <span class="text-[10px] text-slate-400 block">${item.className || 'Tingkatan 1'}</span>
+                  <span class="text-[10px] text-slate-400 block">${item.className || 'Tingkatan 1 Al-Farabi'}</span>
                 </div>
               </div>
             </td>
-            <td class="py-3 px-3 text-right font-headline font-extrabold text-emerald-700">${item.score.toLocaleString()}</td>
-            <td class="py-3 px-3 text-center font-bold text-slate-600">${item.correct || '—'}</td>
+            <td class="py-3 px-3 text-right font-headline font-extrabold text-emerald-700">${item.score.toLocaleString()} pts</td>
+            <td class="py-3 px-3 text-center font-bold text-slate-600">${item.correct !== undefined ? item.correct : '—'}</td>
             <td class="py-3 px-3 text-right text-slate-400 font-medium">${timeStr}</td>
           `;
 
@@ -1102,15 +1244,15 @@
       const avatarEl = document.getElementById(`podium-${rankNumber}-avatar`);
 
       if (!player) {
-        if (nameEl) nameEl.textContent = 'Kosong';
-        if (classEl) classEl.textContent = 'Belum Ada';
+        if (nameEl) nameEl.textContent = '—';
+        if (classEl) classEl.textContent = '';
         if (scoreEl) scoreEl.textContent = '—';
         if (avatarEl) avatarEl.src = '../assets/home/avatar.svg';
         return;
       }
 
       if (nameEl) nameEl.textContent = player.playerName;
-      if (classEl) classEl.textContent = player.className || 'Tingkatan 1';
+      if (classEl) classEl.textContent = player.className || 'Tingkatan 1 Al-Farabi';
       if (scoreEl) scoreEl.textContent = `${player.score.toLocaleString()} pts`;
       if (avatarEl) avatarEl.src = player.avatar || '../assets/home/avatar.svg';
     }

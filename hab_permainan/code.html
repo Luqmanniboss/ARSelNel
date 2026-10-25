@@ -319,9 +319,25 @@
 
     <!-- D. Pilih Permainan Kuiz -->
     <section class="mt-8 space-y-4">
-      <div>
-        <h3 class="font-headline text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight">Pilih Permainan Kuiz</h3>
-        <p class="font-body text-xs sm:text-sm text-slate-500 mt-1">Pilih cabaran interaktif mengikut topik sains untuk menguji pemahaman anda.</p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-900 text-[11px] font-headline font-bold uppercase tracking-wider border border-teal-300">
+              <span class="material-symbols-outlined text-xs">sports_esports</span>
+              Koleksi Permainan
+            </span>
+            <span class="text-xs text-slate-400 font-medium hidden sm:inline">• Tingkatan 1</span>
+          </div>
+          <h3 class="font-headline text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-0.5">Pilih Permainan Kuiz</h3>
+          <p class="font-body text-xs sm:text-sm text-slate-500 mt-0.5">Pilih cabaran interaktif mengikut topik sains untuk menguji pemahaman anda.</p>
+        </div>
+        <div class="shrink-0">
+          <a href="../keputusan_permainan/code.html?view=leaderboard" id="btn-main-leaderboard" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl font-headline font-extrabold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 via-teal-700 to-teal-800 text-white shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-emerald-400/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 group">
+            <span class="text-base group-hover:rotate-12 transition-transform duration-200">🏆</span>
+            <span class="tracking-wide">Papan Skor</span>
+            <span class="material-symbols-outlined text-sm opacity-80 group-hover:translate-x-1 transition-transform duration-200">arrow_forward</span>
+          </a>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
