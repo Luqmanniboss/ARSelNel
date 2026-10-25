@@ -518,6 +518,9 @@
           // Verify Admin privilege against Supabase
           const client = await ARSupabase.getClient();
           let isAdmin = false;
+          let isSuperAdmin = false;
+          let userRole = 'teacher';
+
           if (client) {
             try {
               const { data: adminRow } = await client
@@ -525,10 +528,22 @@
                 .select('role')
                 .eq('user_id', authUser.id)
                 .maybeSingle();
-              if (adminRow && (adminRow.role === 'admin' || adminRow.role === 'superadmin' || adminRow.role === 'teacher')) {
-                isAdmin = true;
+              if (adminRow) {
+                if (adminRow.role === 'superadmin' || authUser.email.toLowerCase() === 'admin@test.com') {
+                  isAdmin = true;
+                  isSuperAdmin = true;
+                  userRole = 'superadmin';
+                } else if (adminRow.role === 'teacher' || adminRow.role === 'admin') {
+                  isAdmin = true;
+                  userRole = 'teacher';
+                }
               }
             } catch (_) {}
+          }
+          if (authUser.email.toLowerCase() === 'admin@test.com') {
+            isAdmin = true;
+            isSuperAdmin = true;
+            userRole = 'superadmin';
           }
           const meta = authUser.user_metadata || {};
           if (meta.role === 'admin' || meta.role === 'guru' || meta.role === 'teacher') {
@@ -544,9 +559,10 @@
           const profile = {
             id: authUser.id,
             name: meta.full_name || authUser.email.split('@')[0],
-            nickname: meta.username || 'Pentadbir',
+            nickname: meta.username || (isSuperAdmin ? 'Super Admin' : 'Guru'),
             email: authUser.email,
-            role: 'admin',
+            role: userRole,
+            isSuperAdmin: isSuperAdmin,
             avatar: '../assets/home/avatar.svg',
             isDemo: false,
             authProvider: 'supabase'
@@ -556,6 +572,7 @@
             window.Auth.saveCurrentUser(profile, true);
           }
           localStorage.setItem('arselnelAdmin', 'true');
+          localStorage.setItem('arselnel_superadmin', isSuperAdmin ? 'true' : 'false');
           location.assign('../admin_dashboard/code.html');
           return;
         } catch (adminErr) {

@@ -63,6 +63,15 @@ function initAdminPortal() {
     if (prefEmail) prefEmail.value = user.email || 'guru@arselnel.my';
   }
 
+  // Update role badge in sidebar
+  const isSuperAdmin = (window.Auth && typeof window.Auth.isSuperAdmin === 'function')
+    ? window.Auth.isSuperAdmin()
+    : (localStorage.getItem('arselnel_superadmin') === 'true');
+  const roleLabel = document.getElementById('sidebar-admin-role-label');
+  if (roleLabel) {
+    roleLabel.textContent = isSuperAdmin ? 'Super Admin (Akses Penuh)' : 'Guru Sains (Akses CMS)';
+  }
+
   // Update Supabase connection badge in top navigation
   checkAndDisplayConnectionBadge();
 }
@@ -121,7 +130,8 @@ function switchView(viewName) {
     'cellquest': isEn ? 'CellQuest 3D & AR Management' : 'Pengurusan CellQuest & Model 3D/AR',
     'manual': isEn ? 'Student Guide Management' : 'Pengurusan Manual Penggunaan Murid',
     'students': isEn ? 'Student Learning Records' : 'Rekod Pembelajaran Murid (Masa Nyata)',
-    'account': isEn ? 'Admin Account Settings' : 'Tetapan Akaun Pentadbir'
+    'account': isEn ? 'Admin Account Settings' : 'Tetapan Akaun Pentadbir',
+    'users': isEn ? 'User & Teacher Management' : 'Pengurusan Pengguna & Pelantikan Guru'
   };
 
   const titleEl = document.getElementById('view-title');
@@ -157,6 +167,9 @@ function switchView(viewName) {
   }
   if (viewName === 'account') {
     initAdminPortal();
+  }
+  if (viewName === 'users') {
+    renderUsersSection();
   }
 
   // Close mobile sidebar if screen is small
@@ -390,6 +403,10 @@ async function renderStudents() {
         ? new Date(s.lastActive).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })
         : 'Belum aktif';
 
+      const isSuperAdminUser = (window.Auth && typeof window.Auth.isSuperAdmin === 'function')
+        ? window.Auth.isSuperAdmin()
+        : (localStorage.getItem('arselnel_superadmin') === 'true');
+
       return `
         <tr class="hover:bg-teal-50/30 transition border-b border-slate-100">
           <td class="py-4 px-6">
@@ -419,10 +436,18 @@ async function renderStudents() {
             ${lastActiveFormatted}
           </td>
           <td class="py-4 px-6 text-right">
-            <button type="button" onclick="openStudentDetailModal('${escapeHtml(s.id)}')" class="py-1.5 px-3.5 rounded-xl bg-teal-50 hover:bg-primary hover:text-white text-teal-800 font-bold text-xs transition inline-flex items-center gap-1.5 shadow-sm">
-              <span class="material-symbols-outlined text-sm">visibility</span>
-              <span>Lihat Rekod</span>
-            </button>
+            <div class="inline-flex items-center gap-2 justify-end">
+              <button type="button" onclick="openStudentDetailModal('${escapeHtml(s.id)}')" class="py-1.5 px-3 rounded-xl bg-teal-50 hover:bg-primary hover:text-white text-teal-800 font-bold text-xs transition inline-flex items-center gap-1 shadow-sm">
+                <span class="material-symbols-outlined text-sm">visibility</span>
+                <span>Lihat Rekod</span>
+              </button>
+              ${isSuperAdminUser ? `
+              <button type="button" onclick="openDeleteStudentModal('${escapeHtml(s.id)}', '${escapeHtml(s.name || 'Murid')}', '${escapeHtml(s.email || '')}')" title="Padam Akaun Murid (Super Admin sahaja)" class="py-1.5 px-2.5 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 font-bold text-xs transition inline-flex items-center gap-1 border border-rose-100 shadow-sm">
+                <span class="material-symbols-outlined text-sm">delete</span>
+                <span class="hidden sm:inline">Padam</span>
+              </button>
+              ` : ''}
+            </div>
           </td>
         </tr>
       `;
@@ -1355,12 +1380,439 @@ async function handleAdminLogout() {
   window.location.replace('../auth/login.html?role=admin&logged_out=1');
 }
 
+// ---------------------------------------------------------------------
+// 10. STUDENT DELETION & TEACHER APPOINTMENT HANDLERS
+// ---------------------------------------------------------------------
+
+function openDeleteStudentModal(studentId, studentName, studentEmail) {
+  const isSuperAdmin = (window.Auth && typeof window.Auth.isSuperAdmin === 'function')
+    ? window.Auth.isSuperAdmin()
+    : (localStorage.getItem('arselnel_superadmin') === 'true');
+
+  if (!isSuperAdmin) {
+    alert('Hanya Pentadbir Utama (Super Admin) dibenarkan memadam akaun murid.');
+    return;
+  }
+
+  const modal = document.getElementById('modal-delete-student');
+  if (!modal) return;
+
+  const idInput = document.getElementById('del-student-target-id') || document.getElementById('del-student-id');
+  const nameEl = document.getElementById('del-student-modal-name') || document.getElementById('del-student-name');
+  const emailEl = document.getElementById('del-student-modal-email') || document.getElementById('del-student-email');
+  const uuidEl = document.getElementById('del-student-modal-id');
+  const confirmCheck = document.getElementById('del-student-confirm-check');
+  const confirmInput = document.getElementById('del-confirm-input');
+  const executeBtn = document.getElementById('btn-execute-delete-student') || document.getElementById('del-btn-execute');
+  const reasonInput = document.getElementById('del-student-reason');
+  const errorEl = document.getElementById('del-student-error');
+
+  if (idInput) idInput.value = studentId;
+  if (nameEl) nameEl.textContent = studentName || 'Murid';
+  if (emailEl) emailEl.textContent = studentEmail || '-';
+  if (uuidEl) uuidEl.textContent = studentId || '-';
+  if (confirmCheck) confirmCheck.checked = false;
+  if (confirmInput) confirmInput.value = '';
+  if (reasonInput) reasonInput.value = '';
+  if (errorEl) {
+    errorEl.textContent = '';
+    errorEl.classList.add('hidden');
+  }
+  if (executeBtn) {
+    executeBtn.disabled = true;
+    executeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    executeBtn.classList.remove('hover:bg-rose-700');
+  }
+
+  modal.showModal();
+}
+
+function toggleDeleteConfirmBtn() {
+  const confirmCheck = document.getElementById('del-student-confirm-check');
+  const confirmInput = document.getElementById('del-confirm-input');
+  const executeBtn = document.getElementById('btn-execute-delete-student') || document.getElementById('del-btn-execute');
+  if (!executeBtn) return;
+
+  let isConfirmed = false;
+  if (confirmCheck) {
+    isConfirmed = confirmCheck.checked;
+  } else if (confirmInput) {
+    isConfirmed = confirmInput.value.trim().toUpperCase() === 'PADAM';
+  }
+
+  executeBtn.disabled = !isConfirmed;
+  if (isConfirmed) {
+    executeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    executeBtn.classList.add('hover:bg-rose-700');
+  } else {
+    executeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    executeBtn.classList.remove('hover:bg-rose-700');
+  }
+}
+
+function closeDeleteStudentModal() {
+  const modal = document.getElementById('modal-delete-student');
+  if (modal) modal.close();
+}
+
+async function executeDeleteStudent() {
+  const idInput = document.getElementById('del-student-target-id') || document.getElementById('del-student-id');
+  const confirmCheck = document.getElementById('del-student-confirm-check');
+  const confirmInput = document.getElementById('del-confirm-input');
+  const executeBtn = document.getElementById('btn-execute-delete-student') || document.getElementById('del-btn-execute');
+  const reasonInput = document.getElementById('del-student-reason');
+  const errorEl = document.getElementById('del-student-error');
+
+  if (!idInput || !idInput.value) return;
+
+  if (confirmCheck && !confirmCheck.checked) {
+    alert('Sila tandakan kotak pengesahan pemadaman.');
+    return;
+  }
+  if (confirmInput && confirmInput.value.trim().toUpperCase() !== 'PADAM') {
+    if (errorEl) {
+      errorEl.textContent = 'Sila taip PADAM dengan tepat untuk mengesahkan pemadaman.';
+      errorEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  const reason = (reasonInput && reasonInput.value.trim())
+    ? reasonInput.value.trim()
+    : 'Dipadam oleh Pentadbir Utama melalui Admin Portal';
+
+  const origHtml = executeBtn ? executeBtn.innerHTML : '';
+  if (executeBtn) {
+    executeBtn.disabled = true;
+    executeBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span><span>Memadamkan...</span>';
+  }
+
+  try {
+    const studentId = idInput.value;
+    const res = await window.CMSAdapter.deleteStudentAccount(studentId, reason);
+
+    if (!res || !res.success) {
+      throw new Error(res && res.error ? res.error : 'Gagal memadam akaun murid.');
+    }
+
+    closeDeleteStudentModal();
+    if (typeof showToast === 'function') {
+      showToast('Akaun murid berjaya dipadam dengan selamat.', 'success');
+    } else {
+      alert('Akaun murid berjaya dipadam dengan selamat.');
+    }
+
+    // Refresh lists
+    renderStudents();
+    if (typeof renderUsersSection === 'function') renderUsersSection();
+    renderOverviewStats();
+
+  } catch (err) {
+    console.error('Delete student failed:', err);
+    if (errorEl) {
+      errorEl.textContent = err.message || 'Ralat semasa memadam akaun.';
+      errorEl.classList.remove('hidden');
+    } else {
+      alert('Ralat memadam akaun: ' + err.message);
+    }
+  } finally {
+    if (executeBtn) {
+      executeBtn.disabled = false;
+      executeBtn.innerHTML = origHtml;
+    }
+  }
+}
+
+async function renderUsersSection() {
+  const tbody = document.getElementById('user-management-table-body') || document.getElementById('users-table-body');
+  if (!tbody) return;
+
+  const searchInput = document.getElementById('search-user-input') || document.getElementById('search-users-input');
+  const roleSelect = document.getElementById('filter-user-role');
+  const search = searchInput ? searchInput.value.trim() : '';
+  const role = roleSelect ? roleSelect.value : 'all';
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="6" class="py-10 text-center text-slate-400 text-xs">
+        <span class="inline-flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl animate-spin text-teal-600">sync</span>
+          <span>Memuatkan senarai pengguna & peranan dari sistem...</span>
+        </span>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const data = await window.CMSAdapter.getUsersList({ search, role });
+    const users = data.users || [];
+    const stats = data.stats || { total: 0, teachers: 0, students: 0 };
+
+    // Update stats cards
+    const statTotal = document.getElementById('stat-total-users');
+    const statTeachers = document.getElementById('stat-total-teachers');
+    const statStudents = document.getElementById('stat-total-students-users');
+
+    if (statTotal) statTotal.textContent = stats.total;
+    if (statTeachers) statTeachers.textContent = stats.teachers;
+    if (statStudents) statStudents.textContent = stats.students;
+
+    if (users.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="py-12 text-center bg-slate-50/50">
+            <div class="max-w-xs mx-auto space-y-2">
+              <span class="material-symbols-outlined text-3xl text-slate-300">group_off</span>
+              <p class="text-xs font-bold text-slate-700">Tiada pengguna dijumpai</p>
+              <p class="text-[11px] text-slate-400">Tiada akaun yang sepadan dengan kriteria carian atau penapis peranan.</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const isSuperAdmin = (window.Auth && typeof window.Auth.isSuperAdmin === 'function')
+      ? window.Auth.isSuperAdmin()
+      : (localStorage.getItem('arselnel_superadmin') === 'true');
+
+    tbody.innerHTML = users.map(u => {
+      const isSuper = u.role === 'superadmin' || u.is_super_admin;
+      const isTeacherRole = u.role === 'teacher' || u.role === 'guru';
+      const isStudentRole = !isSuper && !isTeacherRole;
+
+      let roleBadge = '';
+      if (isSuper) {
+        roleBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300"><span class="material-symbols-outlined text-xs">shield</span>Super Admin</span>`;
+      } else if (isTeacherRole) {
+        roleBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-200"><span class="material-symbols-outlined text-xs">badge</span>Guru</span>`;
+      } else {
+        roleBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200"><span class="material-symbols-outlined text-xs">school</span>Murid</span>`;
+      }
+
+      const statusBadge = u.status === 'inactive'
+        ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Tidak Aktif</span>`
+        : `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Aktif</span>`;
+
+      const createdDate = u.created_at
+        ? new Date(u.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+        : '-';
+
+      // Action buttons depending on Super Admin permission & target user's role
+      let actionButtons = '';
+      if (isSuper) {
+        actionButtons = `
+          <span class="text-xs text-amber-800 font-bold inline-flex items-center gap-1 bg-amber-50/80 px-2.5 py-1 rounded-lg border border-amber-200/60">
+            <span class="material-symbols-outlined text-xs">lock</span>
+            <span>Pentadbir Utama (Kekal)</span>
+          </span>
+        `;
+      } else if (!isSuperAdmin) {
+        actionButtons = `
+          <span class="text-xs text-slate-400 italic">Kawalan Super Admin</span>
+        `;
+      } else if (isStudentRole) {
+        actionButtons = `
+          <div class="inline-flex items-center gap-2 justify-end">
+            <button type="button" onclick="openPromoteTeacherModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || 'Pelajar')}', '${escapeHtml(u.email || '')}')" class="py-1.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-bold text-xs transition inline-flex items-center gap-1 shadow-sm border border-indigo-200">
+              <span class="material-symbols-outlined text-xs">military_tech</span>
+              <span>Lantik Sebagai Guru</span>
+            </button>
+            <button type="button" onclick="openDeleteStudentModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || 'Pelajar')}', '${escapeHtml(u.email || '')}')" title="Padam Akaun Murid" class="py-1.5 px-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 font-bold text-xs transition inline-flex items-center gap-1 border border-rose-100">
+              <span class="material-symbols-outlined text-xs">delete</span>
+            </button>
+          </div>
+        `;
+      } else if (isTeacherRole) {
+        actionButtons = `
+          <button type="button" onclick="openDemoteTeacherModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || 'Guru')}', '${escapeHtml(u.email || '')}')" class="py-1.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-800 font-bold text-xs transition inline-flex items-center gap-1 shadow-sm border border-amber-200">
+            <span class="material-symbols-outlined text-xs">person_remove</span>
+            <span>Batalkan Pelantikan Guru</span>
+          </button>
+        `;
+      }
+
+      return `
+        <tr class="hover:bg-slate-50/60 transition border-b border-slate-100">
+          <td class="py-4 px-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl ${isSuper ? 'bg-amber-100 text-amber-900' : isTeacherRole ? 'bg-indigo-100 text-indigo-900' : 'bg-teal-100 text-teal-900'} font-bold flex items-center justify-center text-sm shadow-sm shrink-0">
+                ${(u.name || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div class="min-w-0">
+                <strong class="font-headline font-bold text-slate-900 block text-sm truncate">${escapeHtml(u.name)}</strong>
+                <span class="text-xs text-slate-400 block font-mono truncate">${escapeHtml(u.email || '-')}</span>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 px-4">
+            ${roleBadge}
+          </td>
+          <td class="py-4 px-4">
+            ${statusBadge}
+          </td>
+          <td class="py-4 px-4 text-xs text-slate-500">
+            ${createdDate}
+          </td>
+          <td class="py-4 px-4 text-xs font-mono text-slate-400 truncate max-w-[120px]" title="${escapeHtml(u.id)}">
+            ${u.id.substring(0, 8)}...
+          </td>
+          <td class="py-4 px-6 text-right">
+            ${actionButtons}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('Error rendering users section:', err);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-8 text-center text-rose-600 text-xs bg-rose-50">
+          Ralat memuatkan senarai pengguna: ${escapeHtml(err.message)}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function openPromoteTeacherModal(id, name, email) {
+  const modal = document.getElementById('modal-promote-teacher');
+  if (!modal) return;
+  const idInput = document.getElementById('promote-user-target-id') || document.getElementById('promote-user-id');
+  const nameEl = document.getElementById('promote-user-name');
+  const emailEl = document.getElementById('promote-user-email');
+  if (idInput) idInput.value = id;
+  if (nameEl) nameEl.textContent = name;
+  if (emailEl) emailEl.textContent = email;
+  modal.showModal();
+}
+
+function closePromoteTeacherModal() {
+  const modal = document.getElementById('modal-promote-teacher');
+  if (modal) modal.close();
+}
+
+async function executePromoteTeacher() {
+  const idInput = document.getElementById('promote-user-target-id') || document.getElementById('promote-user-id');
+  const nameEl = document.getElementById('promote-user-name');
+  const emailEl = document.getElementById('promote-user-email');
+  const btn = document.getElementById('btn-execute-promote') || document.getElementById('btn-confirm-promote');
+
+  if (!idInput || !idInput.value) return;
+
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span><span>Memproses...</span>';
+  }
+
+  try {
+    const res = await window.CMSAdapter.promoteUserToTeacher(idInput.value, {
+      name: nameEl ? nameEl.textContent : '',
+      email: emailEl ? emailEl.textContent : ''
+    });
+
+    if (!res || !res.success) {
+      throw new Error(res && res.error ? res.error : 'Gagal melantik pengguna sebagai guru.');
+    }
+
+    closePromoteTeacherModal();
+    if (typeof showToast === 'function') {
+      showToast('Pengguna berjaya dilantik sebagai Guru!', 'success');
+    } else {
+      alert('Pengguna berjaya dilantik sebagai Guru!');
+    }
+
+    renderUsersSection();
+  } catch (err) {
+    console.error('Promote teacher error:', err);
+    alert('Ralat pelantikan guru: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+}
+
+function openDemoteTeacherModal(id, name, email) {
+  const modal = document.getElementById('modal-demote-teacher');
+  if (!modal) return;
+  const idInput = document.getElementById('demote-user-target-id') || document.getElementById('demote-user-id');
+  const nameEl = document.getElementById('demote-user-name');
+  const emailEl = document.getElementById('demote-user-email');
+  if (idInput) idInput.value = id;
+  if (nameEl) nameEl.textContent = name;
+  if (emailEl) emailEl.textContent = email;
+  modal.showModal();
+}
+
+function closeDemoteTeacherModal() {
+  const modal = document.getElementById('modal-demote-teacher');
+  if (modal) modal.close();
+}
+
+async function executeDemoteTeacher() {
+  const idInput = document.getElementById('demote-user-target-id') || document.getElementById('demote-user-id');
+  const nameEl = document.getElementById('demote-user-name');
+  const emailEl = document.getElementById('demote-user-email');
+  const btn = document.getElementById('btn-execute-demote') || document.getElementById('btn-confirm-demote');
+
+  if (!idInput || !idInput.value) return;
+
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span><span>Memproses...</span>';
+  }
+
+  try {
+    const res = await window.CMSAdapter.demoteTeacherToStudent(idInput.value, {
+      name: nameEl ? nameEl.textContent : '',
+      email: emailEl ? emailEl.textContent : ''
+    });
+
+    if (!res || !res.success) {
+      throw new Error(res && res.error ? res.error : 'Gagal membatalkan pelantikan guru.');
+    }
+
+    closeDemoteTeacherModal();
+    if (typeof showToast === 'function') {
+      showToast('Pelantikan guru telah dibatalkan. Akaun dikembalikan ke Murid.', 'success');
+    } else {
+      alert('Pelantikan guru telah dibatalkan. Akaun dikembalikan ke Murid.');
+    }
+
+    renderUsersSection();
+  } catch (err) {
+    console.error('Demote teacher error:', err);
+    alert('Ralat pembatalan guru: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+}
+
 // Expose functions globally for HTML inline handlers
 window.switchView = switchView;
 window.refreshDashboardData = refreshDashboardData;
 window.renderOverviewStats = renderOverviewStats;
 window.renderStudents = renderStudents;
 window.openStudentDetailModal = openStudentDetailModal;
+window.openDeleteStudentModal = openDeleteStudentModal;
+window.toggleDeleteConfirmBtn = toggleDeleteConfirmBtn;
+window.closeDeleteStudentModal = closeDeleteStudentModal;
+window.executeDeleteStudent = executeDeleteStudent;
+window.renderUsersSection = renderUsersSection;
+window.openPromoteTeacherModal = openPromoteTeacherModal;
+window.closePromoteTeacherModal = closePromoteTeacherModal;
+window.executePromoteTeacher = executePromoteTeacher;
+window.openDemoteTeacherModal = openDemoteTeacherModal;
+window.closeDemoteTeacherModal = closeDemoteTeacherModal;
+window.executeDemoteTeacher = executeDemoteTeacher;
 window.switchCellQuestTab = switchCellQuestTab;
 window.renderCellQuestModels = renderCellQuestModels;
 window.openCellQuestModelModal = openCellQuestModelModal;

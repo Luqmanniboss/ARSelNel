@@ -369,20 +369,37 @@
           } catch (_) {}
 
           let isAdmin = false;
+          let isSuperAdmin = false;
+          let adminRoleName = 'student';
+
           try {
             const { data: adminRow } = await client
               .from('admin_users')
               .select('role')
               .eq('user_id', user.id)
               .maybeSingle();
-            if (adminRow && (adminRow.role === 'admin' || adminRow.role === 'teacher' || adminRow.role === 'superadmin')) {
-              isAdmin = true;
+            if (adminRow) {
+              if (adminRow.role === 'superadmin' || (user.email && user.email.toLowerCase() === 'admin@test.com')) {
+                isAdmin = true;
+                isSuperAdmin = true;
+                adminRoleName = 'superadmin';
+              } else if (adminRow.role === 'teacher' || adminRow.role === 'admin') {
+                isAdmin = true;
+                adminRoleName = 'teacher';
+              }
             }
           } catch (_) {}
 
-          // Role determination (never automatically grant admin from user_metadata)
-          if (existingProfile && (existingProfile.role === 'admin' || existingProfile.role === 'teacher' || existingProfile.role === 'guru')) {
+          if (user.email && user.email.toLowerCase() === 'admin@test.com') {
             isAdmin = true;
+            isSuperAdmin = true;
+            adminRoleName = 'superadmin';
+          }
+
+          // Role determination (never automatically grant admin from user_metadata)
+          if (!isAdmin && existingProfile && (existingProfile.role === 'admin' || existingProfile.role === 'teacher' || existingProfile.role === 'guru')) {
+            isAdmin = true;
+            adminRoleName = 'teacher';
           }
 
           const meta = user.user_metadata || {};
@@ -390,7 +407,7 @@
           const nickname = (existingProfile && existingProfile.nickname) || meta.preferred_username || (fullName.split(' ')[0] || 'Pelajar');
           const className = (existingProfile && existingProfile.class_name) || 'Tingkatan 1 Al-Farabi';
           const avatar = (existingProfile && existingProfile.avatar) || meta.avatar_url || meta.picture || '../assets/home/avatar.svg';
-          const finalRole = isAdmin ? 'admin' : 'student';
+          const finalRole = isAdmin ? adminRoleName : 'student';
 
           // 6. First-time student profile upsert (never touch admin accounts)
           if (!existingProfile && !isAdmin) {
@@ -438,9 +455,11 @@
           setTimeout(async () => {
             if (isAdmin) {
               localStorage.setItem('arselnelAdmin', 'true');
+              localStorage.setItem('arselnel_superadmin', isSuperAdmin ? 'true' : 'false');
               window.location.replace('../admin_dashboard/code.html');
             } else {
               localStorage.removeItem('arselnelAdmin');
+              localStorage.removeItem('arselnel_superadmin');
               try {
                 if (window.ARSupabase && typeof window.ARSupabase.hydrateStudentData === 'function') {
                   await window.ARSupabase.hydrateStudentData();

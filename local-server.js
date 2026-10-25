@@ -140,6 +140,15 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (pathname.startsWith('/api/admin/users')) {
+      try {
+        const adminUsersHandler = require('./api/admin/users.js');
+        return adminUsersHandler(req, res);
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: 'Admin API handler error: ' + err.message });
+      }
+    }
+
     if ((pathname === '/api/auth/login' || pathname === '/api/auth/register' || pathname === '/api/stats') && req.method !== 'OPTIONS') {
       return sendJSON(res, 501, { success: false, message: 'API pengesahan dan analitik sekolah belum dikonfigurasi. Gunakan mod demo setempat.' });
     }

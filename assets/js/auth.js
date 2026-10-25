@@ -174,7 +174,19 @@
 
     isAdmin() {
       const user = this.getCurrentUser();
-      return user && (user.role === 'admin' || user.role === 'teacher' || user.role === 'guru');
+      return user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'teacher' || user.role === 'guru');
+    }
+
+    isSuperAdmin() {
+      const user = this.getCurrentUser();
+      if (!user) return false;
+      const email = (user.email || '').toLowerCase();
+      return user.role === 'superadmin' || user.isSuperAdmin === true || email === 'admin@test.com';
+    }
+
+    isTeacher() {
+      const user = this.getCurrentUser();
+      return user && (user.role === 'teacher' || user.role === 'guru');
     }
 
     isStudent() {

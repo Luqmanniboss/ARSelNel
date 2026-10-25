@@ -1155,6 +1155,342 @@
     "context": ") | on conflict (cell_type) do nothing; | "
   },
   {
+    "file": "202610240002_fix_admin_student_sync_and_rls.sql",
+    "lineNum": 16,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_admin()",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.is_admin() | returns boolean"
+  },
+  {
+    "file": "202610240002_fix_admin_student_sync_and_rls.sql",
+    "lineNum": 59,
+    "keyword": "UPDATE",
+    "statement": "on conflict (user_id) do update set role = excluded.role;",
+    "context": "where role in ('admin', 'guru', 'teacher') | on conflict (user_id) do update set role = excluded.role; | end if;"
+  },
+  {
+    "file": "202610240002_fix_admin_student_sync_and_rls.sql",
+    "lineNum": 59,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (user_id) do update set role = excluded.role;",
+    "context": "where role in ('admin', 'guru', 'teacher') | on conflict (user_id) do update set role = excluded.role; | end if;"
+  },
+  {
+    "file": "202610240002_fix_admin_student_sync_and_rls.sql",
+    "lineNum": 69,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admins read all profiles\" on public.profiles;",
+    "context": "do $$ begin | drop policy if exists \"admins read all profiles\" on public.profiles; | create policy \"admins read all profiles\" on public.profiles"
+  },
+  {
+    "file": "202610240002_fix_admin_student_sync_and_rls.sql",
+    "lineNum": 78,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admins read all quiz attempts\" on public.quiz_attempts;",
+    "context": "if exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'quiz_attempts') then | drop policy if exists \"admins read all quiz attempts\" on public.quiz_attempts; | create policy \"admins read all quiz attempts\" on public.quiz_attempts"
+  },
+  {
+    "file": "202610240002_fix_admin_student_sync_and_rls.sql",
+    "lineNum": 88,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admins read all learning progress\" on public.learning_progress;",
+    "context": "if exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'learning_progress') then | drop policy if exists \"admins read all learning progress\" on public.learning_progress; | create policy \"admins read all learning progress\" on public.learning_progress"
+  },
+  {
+    "file": "202610240002_fix_admin_student_sync_and_rls.sql",
+    "lineNum": 98,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admins read all student note progress\" on public.student_note_progress;",
+    "context": "if exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'student_note_progress') then | drop policy if exists \"admins read all student note progress\" on public.student_note_progress; | create policy \"admins read all student note progress\" on public.student_note_progress"
+  },
+  {
+    "file": "202610250001_game_leaderboards_and_answer_snapshots.sql",
+    "lineNum": 25,
+    "keyword": "ALTER TABLE",
+    "statement": "EXECUTE 'ALTER TABLE public.quiz_attempts DROP CONSTRAINT IF EXISTS ' || quote_ident(r.conname);",
+    "context": ") LOOP | EXECUTE 'ALTER TABLE public.quiz_attempts DROP CONSTRAINT IF EXISTS ' || quote_ident(r.conname); | END LOOP;"
+  },
+  {
+    "file": "202610250001_game_leaderboards_and_answer_snapshots.sql",
+    "lineNum": 29,
+    "keyword": "ALTER TABLE",
+    "statement": "ALTER TABLE public.quiz_attempts ADD CONSTRAINT quiz_attempts_score_check CHECK (score >= 0);",
+    "context": " | ALTER TABLE public.quiz_attempts ADD CONSTRAINT quiz_attempts_score_check CHECK (score >= 0); | "
+  },
+  {
+    "file": "202610250001_game_leaderboards_and_answer_snapshots.sql",
+    "lineNum": 40,
+    "keyword": "ALTER TABLE",
+    "statement": "ALTER TABLE public.quiz_attempts ADD COLUMN correct_answers INTEGER DEFAULT 0;",
+    "context": ") THEN | ALTER TABLE public.quiz_attempts ADD COLUMN correct_answers INTEGER DEFAULT 0; | END IF;"
+  },
+  {
+    "file": "202610250001_game_leaderboards_and_answer_snapshots.sql",
+    "lineNum": 53,
+    "keyword": "ALTER TABLE",
+    "statement": "ALTER TABLE public.quiz_attempts ADD COLUMN duration_seconds INTEGER DEFAULT NULL;",
+    "context": ") THEN | ALTER TABLE public.quiz_attempts ADD COLUMN duration_seconds INTEGER DEFAULT NULL; | END IF;"
+  },
+  {
+    "file": "202610250001_game_leaderboards_and_answer_snapshots.sql",
+    "lineNum": 70,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "CREATE OR REPLACE FUNCTION public.get_game_leaderboard(",
+    "context": "-- 4. Tarikh capai terawal | CREATE OR REPLACE FUNCTION public.get_game_leaderboard( | p_game_id TEXT,"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 17,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.profiles add column if not exists email text;",
+    "context": "-- A. Add email and status columns to public.profiles if they do not exist | alter table public.profiles add column if not exists email text; | alter table public.profiles add column if not exists status text default 'active';"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 18,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.profiles add column if not exists status text default 'active';",
+    "context": "alter table public.profiles add column if not exists email text; | alter table public.profiles add column if not exists status text default 'active'; | "
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 22,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.profiles drop constraint if exists profiles_role_check;",
+    "context": "do $$ begin | alter table public.profiles drop constraint if exists profiles_role_check; | alter table public.profiles add constraint profiles_role_check"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 23,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.profiles add constraint profiles_role_check",
+    "context": "alter table public.profiles drop constraint if exists profiles_role_check; | alter table public.profiles add constraint profiles_role_check | check (role in ('student', 'teacher', 'guru', 'admin', 'superadmin'));"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 31,
+    "keyword": "UPDATE",
+    "statement": "update public.profiles p",
+    "context": "do $$ begin | update public.profiles p | set email = u.email"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 44,
+    "keyword": "DELETE",
+    "statement": "actor_id uuid references auth.users(id) on delete set null,",
+    "context": "id uuid primary key default gen_random_uuid(), | actor_id uuid references auth.users(id) on delete set null, | actor_email text not null,"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 57,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.admin_audit_logs enable row level security;",
+    "context": "-- Enable RLS on audit logs: Only verified Admins can read | alter table public.admin_audit_logs enable row level security; | "
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 60,
+    "keyword": "DROP POLICY",
+    "statement": "drop policy if exists \"admins read audit logs\" on public.admin_audit_logs;",
+    "context": "do $$ begin | drop policy if exists \"admins read audit logs\" on public.admin_audit_logs; | create policy \"admins read audit logs\" on public.admin_audit_logs"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 85,
+    "keyword": "UPDATE",
+    "statement": "on conflict (user_id) do update set",
+    "context": "values (v_admin_uid, 'admin@test.com', 'superadmin', now()) | on conflict (user_id) do update set | email = 'admin@test.com',"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 85,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (user_id) do update set",
+    "context": "values (v_admin_uid, 'admin@test.com', 'superadmin', now()) | on conflict (user_id) do update set | email = 'admin@test.com',"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 92,
+    "keyword": "UPDATE",
+    "statement": "on conflict (id) do update set",
+    "context": "values (v_admin_uid, 'Pentadbir Utama ARSelNel', 'admin', 'admin@test.com', 'active', now()) | on conflict (id) do update set | role = 'admin',"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 92,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (id) do update set",
+    "context": "values (v_admin_uid, 'Pentadbir Utama ARSelNel', 'admin', 'admin@test.com', 'active', now()) | on conflict (id) do update set | role = 'admin',"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 105,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_super_admin()",
+    "context": "-- Check if current authenticated user is Super Admin | create or replace function public.is_super_admin() | returns boolean"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 126,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_admin()",
+    "context": "-- Enhanced is_admin() covering both Super Admin and Teacher/Guru | create or replace function public.is_admin() | returns boolean"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 170,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.get_student_learning_records()",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.get_student_learning_records() | returns table ("
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 243,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.get_all_users_for_admin()",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.get_all_users_for_admin() | returns table ("
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 295,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.promote_user_to_teacher(",
+    "context": "-- A. Promote a user to Teacher role | create or replace function public.promote_user_to_teacher( | p_target_user_id uuid"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 336,
+    "keyword": "UPDATE",
+    "statement": "on conflict (user_id) do update set",
+    "context": "values (p_target_user_id, coalesce(v_target_email, 'guru@arselnel.my'), 'teacher', now()) | on conflict (user_id) do update set | role = 'teacher',"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 336,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (user_id) do update set",
+    "context": "values (p_target_user_id, coalesce(v_target_email, 'guru@arselnel.my'), 'teacher', now()) | on conflict (user_id) do update set | role = 'teacher',"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 341,
+    "keyword": "UPDATE",
+    "statement": "update public.profiles",
+    "context": "-- 5. Update profiles table role = 'teacher' | update public.profiles | set role = 'teacher', updated_at = now()"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 371,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.demote_teacher_to_student(",
+    "context": "-- B. Demote Teacher back to Student role | create or replace function public.demote_teacher_to_student( | p_target_user_id uuid"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 411,
+    "keyword": "DELETE",
+    "statement": "delete from public.admin_users where user_id = p_target_user_id;",
+    "context": "-- 4. Remove from admin_users | delete from public.admin_users where user_id = p_target_user_id; | "
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 414,
+    "keyword": "UPDATE",
+    "statement": "update public.profiles",
+    "context": "-- 5. Update profiles role back to student | update public.profiles | set role = 'student', updated_at = now()"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 449,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.delete_student_account(",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.delete_student_account( | p_target_user_id uuid,"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 510,
+    "keyword": "DELETE",
+    "statement": "delete from public.learning_progress where user_id = p_target_user_id;",
+    "context": "-- 6. Safely remove student learning records (cascade-safe, leaves other users intact) | delete from public.learning_progress where user_id = p_target_user_id; | delete from public.quiz_attempts where user_id = p_target_user_id;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 511,
+    "keyword": "DELETE",
+    "statement": "delete from public.quiz_attempts where user_id = p_target_user_id;",
+    "context": "delete from public.learning_progress where user_id = p_target_user_id; | delete from public.quiz_attempts where user_id = p_target_user_id; | delete from public.activity_results where user_id = p_target_user_id;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 512,
+    "keyword": "DELETE",
+    "statement": "delete from public.activity_results where user_id = p_target_user_id;",
+    "context": "delete from public.quiz_attempts where user_id = p_target_user_id; | delete from public.activity_results where user_id = p_target_user_id; | delete from public.student_learning_events where user_id = p_target_user_id;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 513,
+    "keyword": "DELETE",
+    "statement": "delete from public.student_learning_events where user_id = p_target_user_id;",
+    "context": "delete from public.activity_results where user_id = p_target_user_id; | delete from public.student_learning_events where user_id = p_target_user_id; | delete from public.user_settings where user_id = p_target_user_id;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 514,
+    "keyword": "DELETE",
+    "statement": "delete from public.user_settings where user_id = p_target_user_id;",
+    "context": "delete from public.student_learning_events where user_id = p_target_user_id; | delete from public.user_settings where user_id = p_target_user_id; | delete from public.student_annotations where user_id = p_target_user_id;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 515,
+    "keyword": "DELETE",
+    "statement": "delete from public.student_annotations where user_id = p_target_user_id;",
+    "context": "delete from public.user_settings where user_id = p_target_user_id; | delete from public.student_annotations where user_id = p_target_user_id; | delete from public.student_note_progress where student_id = p_target_user_id;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 516,
+    "keyword": "DELETE",
+    "statement": "delete from public.student_note_progress where student_id = p_target_user_id;",
+    "context": "delete from public.student_annotations where user_id = p_target_user_id; | delete from public.student_note_progress where student_id = p_target_user_id; | delete from public.profiles where id = p_target_user_id;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 517,
+    "keyword": "DELETE",
+    "statement": "delete from public.profiles where id = p_target_user_id;",
+    "context": "delete from public.student_note_progress where student_id = p_target_user_id; | delete from public.profiles where id = p_target_user_id; | "
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 520,
+    "keyword": "DELETE",
+    "statement": "delete from auth.users where id = p_target_user_id;",
+    "context": "-- 7. Remove from auth.users | delete from auth.users where id = p_target_user_id; | "
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 536,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.handle_new_student_profile()",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.handle_new_student_profile() | returns trigger"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 553,
+    "keyword": "UPDATE",
+    "statement": "on conflict (id) do update set",
+    "context": ") | on conflict (id) do update set | email = coalesce(excluded.email, public.profiles.email),"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 553,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (id) do update set",
+    "context": ") | on conflict (id) do update set | email = coalesce(excluded.email, public.profiles.email),"
+  },
+  {
     "file": "rollback_202610230003.sql",
     "lineNum": 11,
     "keyword": "DROP POLICY",

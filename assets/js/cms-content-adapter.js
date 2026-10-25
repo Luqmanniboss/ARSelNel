@@ -1768,28 +1768,68 @@
       }
     }
 
-    // --- Real Student Learning Records ---
+    // --- Real Student Learning Records (Deduplicated & High Integrity) ---
     async getRealStudentRecords(options = {}) {
       await this.initPromise;
       if (!this.supabaseClient || this.connectionStatus !== 'connected') {
         throw new Error('Tidak dapat menyambung ke pangkalan data Supabase.');
       }
 
-      const [profilesRes, attemptsRes, progressRes] = await Promise.all([
-        this.supabaseClient.from('profiles').select('*').eq('role', 'student'),
+      // 1. Primary Method: Call secure RPC function get_student_learning_records
+      try {
+        const { data: rpcRecords, error: rpcErr } = await this.supabaseClient.rpc('get_student_learning_records');
+        if (!rpcErr && Array.isArray(rpcRecords)) {
+          let students = rpcRecords.map(r => ({
+            id: r.id,
+            name: r.full_name || 'Pelajar Sains',
+            email: r.email || 'pelajar@arselnel.my',
+            grade: r.class_name || 'Tingkatan 1',
+            quizzesAttempted: Number(r.quiz_attempts_count || 0),
+            quizAttemptsCount: Number(r.quiz_attempts_count || 0),
+            averageScore: r.average_score != null ? Math.round(Number(r.average_score)) : null,
+            avgScore: r.average_score != null ? Math.round(Number(r.average_score)) : null,
+            notesCompleted: Number(r.completed_notes_count || 0),
+            gamesCompleted: Number(r.completed_games_count || 0),
+            lastActive: r.last_active || r.created_at,
+            status: r.status || 'active'
+          }));
+
+          if (options.searchQuery || options.search) {
+            const q = (options.searchQuery || options.search || '').toLowerCase();
+            students = students.filter(s => s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.grade.toLowerCase().includes(q));
+          }
+          if (options.classFilter && options.classFilter !== 'all') {
+            students = students.filter(s => s.grade === options.classFilter);
+          }
+          return students;
+        }
+      } catch (rpcEx) {
+        console.warn('[CMSAdapter] RPC get_student_learning_records fallback to query:', rpcEx);
+      }
+
+      // 2. Resilient Fallback: Direct table queries with strict user_id deduplication
+      const [profilesRes, attemptsRes, progressRes, adminUsersRes] = await Promise.all([
+        this.supabaseClient.from('profiles').select('*'),
         this.supabaseClient.from('quiz_attempts').select('*').order('submitted_at', { ascending: false }),
-        this.supabaseClient.from('learning_progress').select('*')
+        this.supabaseClient.from('learning_progress').select('*'),
+        this.supabaseClient.from('admin_users').select('user_id, role')
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
 
-      let students = (profilesRes.data || []).filter(s => {
-        if (!s) return false;
-        const role = s.role || 'student';
-        if (role !== 'student') return false;
-        const name = (s.full_name || '').toLowerCase();
-        return !name.startsWith('demo_');
-      }).map(p => {
+      const adminUserIds = new Set((adminUsersRes.data || []).map(a => a.user_id));
+      const seenIds = new Set();
+      let students = [];
+
+      for (const p of (profilesRes.data || [])) {
+        if (!p || !p.id || seenIds.has(p.id)) continue;
+        const role = p.role || 'student';
+        if (role !== 'student' || adminUserIds.has(p.id)) continue;
+        const name = (p.full_name || '').toLowerCase();
+        if (name.startsWith('demo_')) continue;
+
+        seenIds.add(p.id);
+
         const studentAttempts = (attemptsRes.data || []).filter(a => a.user_id === p.id);
         const studentProgress = (progressRes.data || []).filter(pr => pr.user_id === p.id);
 
@@ -1803,10 +1843,10 @@
 
         const lastActivityTime = studentAttempts[0] ? studentAttempts[0].submitted_at : p.created_at;
 
-        return {
+        students.push({
           id: p.id,
           name: p.full_name || 'Pelajar Sains',
-          email: p.nickname ? `${p.nickname}@sekolah.edu.my` : (p.email || 'pelajar@arselnel.my'),
+          email: p.email || (p.nickname ? `${p.nickname}@sekolah.edu.my` : 'pelajar@arselnel.my'),
           grade: p.class_name || 'Tingkatan 1',
           quizzesAttempted: totalAttempts,
           quizAttemptsCount: totalAttempts,
@@ -1815,13 +1855,13 @@
           notesCompleted: completedNotes,
           gamesCompleted: completedGames,
           lastActive: lastActivityTime,
-          status: 'active'
-        };
-      });
+          status: p.status || 'active'
+        });
+      }
 
       if (options.searchQuery || options.search) {
         const q = (options.searchQuery || options.search || '').toLowerCase();
-        students = students.filter(s => s.name.toLowerCase().includes(q) || s.grade.toLowerCase().includes(q));
+        students = students.filter(s => s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.grade.toLowerCase().includes(q));
       }
       if (options.classFilter && options.classFilter !== 'all') {
         students = students.filter(s => s.grade === options.classFilter);
@@ -1959,6 +1999,200 @@
         learningProgress: prog,
         gameActivity: gameAct
       };
+    }
+
+    // =========================================================================
+    // 5B. USER & TEACHER MANAGEMENT (SUPER ADMIN CONTROL)
+    // =========================================================================
+    async getUsersList(options = {}) {
+      await this.initPromise;
+
+      // 1. Try serverless API endpoint first if available
+      try {
+        const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
+        const headers = { 'Content-Type': 'application/json' };
+        if (session && session.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+        const apiRes = await fetch('/api/admin/users', { headers });
+        if (apiRes.ok) {
+          const json = await apiRes.json();
+          if (json.success && Array.isArray(json.users)) {
+            let list = json.users;
+            if (options.search) {
+              const q = options.search.toLowerCase();
+              list = list.filter(u => (u.full_name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
+            }
+            if (options.roleFilter && options.roleFilter !== 'all') {
+              list = list.filter(u => u.role === options.roleFilter);
+            }
+            return { users: list, isSuperAdmin: json.isSuperAdmin };
+          }
+        }
+      } catch (_) {}
+
+      // 2. Direct Supabase RPC or Tables fallback
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { data: rpcUsers, error: rpcErr } = await this.supabaseClient.rpc('get_all_users_for_admin');
+          if (!rpcErr && Array.isArray(rpcUsers)) {
+            let list = rpcUsers;
+            if (options.search) {
+              const q = options.search.toLowerCase();
+              list = list.filter(u => (u.full_name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
+            }
+            if (options.roleFilter && options.roleFilter !== 'all') {
+              list = list.filter(u => u.role === options.roleFilter);
+            }
+            return { users: list, isSuperAdmin: true };
+          }
+        } catch (_) {}
+
+        // Fallback to querying profiles & admin_users
+        const [profilesRes, adminRes] = await Promise.all([
+          this.supabaseClient.from('profiles').select('*'),
+          this.supabaseClient.from('admin_users').select('*')
+        ]);
+
+        const adminMap = new Map();
+        (adminRes.data || []).forEach(a => adminMap.set(a.user_id, a.role));
+
+        let list = (profilesRes.data || []).map(p => {
+          const adminRole = adminMap.get(p.id);
+          const email = (p.email || '').toLowerCase();
+          const isSuper = adminRole === 'superadmin' || email === 'admin@test.com';
+          const role = isSuper ? 'superadmin' : (adminRole === 'teacher' || p.role === 'teacher' || p.role === 'admin' ? 'teacher' : 'student');
+
+          return {
+            id: p.id,
+            full_name: p.full_name || 'Pengguna',
+            email: p.email || (p.nickname ? `${p.nickname}@sekolah.edu.my` : 'pelajar@arselnel.my'),
+            class_name: p.class_name || 'Tingkatan 1',
+            role: role,
+            status: p.status || 'active',
+            is_superadmin: isSuper,
+            created_at: p.created_at
+          };
+        });
+
+        if (options.search) {
+          const q = options.search.toLowerCase();
+          list = list.filter(u => (u.full_name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
+        }
+        if (options.roleFilter && options.roleFilter !== 'all') {
+          list = list.filter(u => u.role === options.roleFilter);
+        }
+        return { users: list, isSuperAdmin: true };
+      }
+
+      // Offline mock/demo fallback
+      return { users: [], isSuperAdmin: false };
+    }
+
+    async promoteUserToTeacher(userId, details = {}) {
+      await this.initPromise;
+
+      // 1. Try serverless backend endpoint
+      try {
+        const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
+        const res = await fetch('/api/admin/users/promote', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session && session.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+          },
+          body: JSON.stringify({ userId, ...details })
+        });
+        const json = await res.json();
+        if (res.ok && json.success) return json;
+        if (!res.ok && json.error) throw new Error(json.error);
+      } catch (apiErr) {
+        if (!apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('404')) {
+          throw apiErr;
+        }
+      }
+
+      // 2. Direct Supabase RPC
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        const { data, error } = await this.supabaseClient.rpc('promote_user_to_teacher', {
+          p_target_user_id: userId
+        });
+        if (error) throw error;
+        return data;
+      }
+
+      throw new Error('Tidak dapat menghubungi perkhidmatan pangkalan data.');
+    }
+
+    async demoteTeacherToStudent(userId, details = {}) {
+      await this.initPromise;
+
+      // 1. Try serverless backend endpoint
+      try {
+        const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
+        const res = await fetch('/api/admin/users/demote', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session && session.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+          },
+          body: JSON.stringify({ userId, ...details })
+        });
+        const json = await res.json();
+        if (res.ok && json.success) return json;
+        if (!res.ok && json.error) throw new Error(json.error);
+      } catch (apiErr) {
+        if (!apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('404')) {
+          throw apiErr;
+        }
+      }
+
+      // 2. Direct Supabase RPC
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        const { data, error } = await this.supabaseClient.rpc('demote_teacher_to_student', {
+          p_target_user_id: userId
+        });
+        if (error) throw error;
+        return data;
+      }
+
+      throw new Error('Tidak dapat menghubungi perkhidmatan pangkalan data.');
+    }
+
+    async deleteStudentAccount(userId, reason = 'Dipadam oleh Pentadbir Utama') {
+      await this.initPromise;
+
+      // 1. Try serverless backend endpoint
+      try {
+        const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
+        const res = await fetch('/api/admin/users/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session && session.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+          },
+          body: JSON.stringify({ userId, reason })
+        });
+        const json = await res.json();
+        if (res.ok && json.success) return json;
+        if (!res.ok && json.error) throw new Error(json.error);
+      } catch (apiErr) {
+        if (!apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('404')) {
+          throw apiErr;
+        }
+      }
+
+      // 2. Direct Supabase RPC
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        const { data, error } = await this.supabaseClient.rpc('delete_student_account', {
+          p_target_user_id: userId,
+          p_reason: reason
+        });
+        if (error) throw error;
+        return data;
+      }
+
+      throw new Error('Tidak dapat menghubungi perkhidmatan pangkalan data.');
     }
 
     // =========================================================================
