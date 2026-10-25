@@ -140,9 +140,16 @@ async function handleAdminUsersRequest(req, res) {
       });
 
       if (rpcRes.status === 200 && Array.isArray(rpcRes.data)) {
+        const users = rpcRes.data;
+        const stats = {
+          total: users.length,
+          teachers: users.filter(u => (u.role === 'teacher' || u.role === 'guru') && u.status !== 'inactive').length,
+          students: users.filter(u => u.role === 'student' && u.status !== 'inactive').length
+        };
         return sendJSON(res, 200, {
           success: true,
-          users: rpcRes.data,
+          users: users,
+          stats: stats,
           currentUserRole: caller.role,
           isSuperAdmin: caller.isSuperAdmin
         });
@@ -177,9 +184,16 @@ async function handleAdminUsersRequest(req, res) {
         };
       });
 
+      const stats = {
+        total: users.length,
+        teachers: users.filter(u => (u.role === 'teacher' || u.role === 'guru') && u.status !== 'inactive').length,
+        students: users.filter(u => u.role === 'student' && u.status !== 'inactive').length
+      };
+
       return sendJSON(res, 200, {
         success: true,
         users,
+        stats,
         currentUserRole: caller.role,
         isSuperAdmin: caller.isSuperAdmin
       });

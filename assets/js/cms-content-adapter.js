@@ -2007,6 +2007,58 @@
     async getUsersList(options = {}) {
       await this.initPromise;
 
+      const searchFilter = (options.search || '').trim().toLowerCase();
+      const roleFilter = options.role || options.roleFilter || 'all';
+
+      // Helper to compute stats and apply search/role filtering
+      const processUsers = (rawUsers, isSuperAdmin = false, serverStats = null) => {
+        const normalized = (rawUsers || []).map(u => {
+          const email = (u.email || '').toLowerCase();
+          const isSuper = u.is_superadmin === true || u.is_super_admin === true || u.role === 'superadmin' || email === 'admin@test.com';
+          const role = isSuper ? 'superadmin' : (u.role === 'teacher' || u.role === 'guru' || u.role === 'admin' ? 'teacher' : 'student');
+          const name = u.full_name || u.name || 'Pengguna';
+
+          return {
+            id: u.id,
+            name: name,
+            full_name: name,
+            email: u.email || (u.nickname ? `${u.nickname}@sekolah.edu.my` : '-'),
+            class_name: u.class_name || u.grade || 'Tingkatan 1',
+            role: role,
+            status: u.status || 'active',
+            is_superadmin: isSuper,
+            created_at: u.created_at
+          };
+        });
+
+        // Compute genuine statistics from unfiltered set
+        const computedStats = serverStats || {
+          total: normalized.length,
+          teachers: normalized.filter(u => (u.role === 'teacher' || u.role === 'guru') && u.status !== 'inactive').length,
+          students: normalized.filter(u => u.role === 'student' && u.status !== 'inactive').length,
+          inactive: normalized.filter(u => u.status === 'inactive').length
+        };
+
+        // Filter for UI display
+        let filtered = normalized;
+        if (searchFilter) {
+          filtered = filtered.filter(u => 
+            (u.name || '').toLowerCase().includes(searchFilter) || 
+            (u.email || '').toLowerCase().includes(searchFilter)
+          );
+        }
+        if (roleFilter && roleFilter !== 'all') {
+          filtered = filtered.filter(u => u.role === roleFilter);
+        }
+
+        return {
+          users: filtered,
+          allUsers: normalized,
+          stats: computedStats,
+          isSuperAdmin: isSuperAdmin
+        };
+      };
+
       // 1. Try serverless API endpoint first if available
       try {
         const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
@@ -2018,15 +2070,7 @@
         if (apiRes.ok) {
           const json = await apiRes.json();
           if (json.success && Array.isArray(json.users)) {
-            let list = json.users;
-            if (options.search) {
-              const q = options.search.toLowerCase();
-              list = list.filter(u => (u.full_name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
-            }
-            if (options.roleFilter && options.roleFilter !== 'all') {
-              list = list.filter(u => u.role === options.roleFilter);
-            }
-            return { users: list, isSuperAdmin: json.isSuperAdmin };
+            return processUsers(json.users, json.isSuperAdmin, json.stats);
           }
         }
       } catch (_) {}
@@ -2036,57 +2080,51 @@
         try {
           const { data: rpcUsers, error: rpcErr } = await this.supabaseClient.rpc('get_all_users_for_admin');
           if (!rpcErr && Array.isArray(rpcUsers)) {
-            let list = rpcUsers;
-            if (options.search) {
-              const q = options.search.toLowerCase();
-              list = list.filter(u => (u.full_name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
-            }
-            if (options.roleFilter && options.roleFilter !== 'all') {
-              list = list.filter(u => u.role === options.roleFilter);
-            }
-            return { users: list, isSuperAdmin: true };
+            return processUsers(rpcUsers, true);
           }
         } catch (_) {}
 
         // Fallback to querying profiles & admin_users
-        const [profilesRes, adminRes] = await Promise.all([
-          this.supabaseClient.from('profiles').select('*'),
-          this.supabaseClient.from('admin_users').select('*')
-        ]);
+        try {
+          const [profilesRes, adminRes] = await Promise.all([
+            this.supabaseClient.from('profiles').select('*'),
+            this.supabaseClient.from('admin_users').select('*')
+          ]);
 
-        const adminMap = new Map();
-        (adminRes.data || []).forEach(a => adminMap.set(a.user_id, a.role));
+          const adminMap = new Map();
+          (adminRes.data || []).forEach(a => adminMap.set(a.user_id, a.role));
 
-        let list = (profilesRes.data || []).map(p => {
-          const adminRole = adminMap.get(p.id);
-          const email = (p.email || '').toLowerCase();
-          const isSuper = adminRole === 'superadmin' || email === 'admin@test.com';
-          const role = isSuper ? 'superadmin' : (adminRole === 'teacher' || p.role === 'teacher' || p.role === 'admin' ? 'teacher' : 'student');
+          const rawList = (profilesRes.data || []).map(p => {
+            const adminRole = adminMap.get(p.id);
+            const email = (p.email || '').toLowerCase();
+            const isSuper = adminRole === 'superadmin' || email === 'admin@test.com';
+            const role = isSuper ? 'superadmin' : (adminRole === 'teacher' || p.role === 'teacher' || p.role === 'admin' ? 'teacher' : 'student');
 
-          return {
-            id: p.id,
-            full_name: p.full_name || 'Pengguna',
-            email: p.email || (p.nickname ? `${p.nickname}@sekolah.edu.my` : 'pelajar@arselnel.my'),
-            class_name: p.class_name || 'Tingkatan 1',
-            role: role,
-            status: p.status || 'active',
-            is_superadmin: isSuper,
-            created_at: p.created_at
-          };
-        });
+            return {
+              id: p.id,
+              full_name: p.full_name || 'Pengguna',
+              email: p.email || (p.nickname ? `${p.nickname}@sekolah.edu.my` : '-'),
+              class_name: p.class_name || 'Tingkatan 1',
+              role: role,
+              status: p.status || 'active',
+              is_superadmin: isSuper,
+              created_at: p.created_at
+            };
+          });
 
-        if (options.search) {
-          const q = options.search.toLowerCase();
-          list = list.filter(u => (u.full_name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
+          return processUsers(rawList, true);
+        } catch (dbErr) {
+          console.warn('Fallback users query error:', dbErr);
         }
-        if (options.roleFilter && options.roleFilter !== 'all') {
-          list = list.filter(u => u.role === options.roleFilter);
-        }
-        return { users: list, isSuperAdmin: true };
       }
 
       // Offline mock/demo fallback
-      return { users: [], isSuperAdmin: false };
+      return {
+        users: [],
+        allUsers: [],
+        stats: { total: 0, teachers: 0, students: 0 },
+        isSuperAdmin: false
+      };
     }
 
     async promoteUserToTeacher(userId, details = {}) {

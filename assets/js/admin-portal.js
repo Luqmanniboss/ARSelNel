@@ -74,6 +74,9 @@ function initAdminPortal() {
 
   // Update Supabase connection badge in top navigation
   checkAndDisplayConnectionBadge();
+
+  // Initialize modal safeguards (backdrop, escape, focus, scroll)
+  setupModalSafeguards();
 }
 
 async function checkAndDisplayConnectionBadge() {
@@ -1381,144 +1384,194 @@ async function handleAdminLogout() {
 }
 
 // ---------------------------------------------------------------------
-// 10. STUDENT DELETION & TEACHER APPOINTMENT HANDLERS
+// 10. STUDENT DELETION & TEACHER APPOINTMENT HANDLERS (HARDENED)
 // ---------------------------------------------------------------------
 
+let isDeleteInProgress = false;
+
+function setupModalSafeguards() {
+  const modals = [
+    { id: 'modal-delete-student', closeFn: closeDeleteStudentModal },
+    { id: 'modal-promote-teacher', closeFn: closePromoteTeacherModal },
+    { id: 'modal-demote-teacher', closeFn: closeDemoteTeacherModal }
+  ];
+
+  modals.forEach(({ id, closeFn }) => {
+    const el = document.getElementById(id);
+    if (el && !el.dataset.safeguardsAttached) {
+      el.dataset.safeguardsAttached = 'true';
+
+      // Native Escape key handler
+      el.addEventListener('cancel', (e) => {
+        if (isDeleteInProgress) {
+          e.preventDefault();
+        } else {
+          closeFn();
+        }
+      });
+
+      // Backdrop click handler
+      el.addEventListener('click', (e) => {
+        if (isDeleteInProgress) return;
+        const rect = el.getBoundingClientRect();
+        const isInDialog = (
+          rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+          rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+        );
+        if (!isInDialog) {
+          closeFn();
+        }
+      });
+    }
+  });
+}
+
 function openDeleteStudentModal(studentId, studentName, studentEmail) {
+  if (isDeleteInProgress) return;
+
   const isSuperAdmin = (window.Auth && typeof window.Auth.isSuperAdmin === 'function')
     ? window.Auth.isSuperAdmin()
     : (localStorage.getItem('arselnel_superadmin') === 'true');
 
   if (!isSuperAdmin) {
-    alert('Hanya Pentadbir Utama (Super Admin) dibenarkan memadam akaun murid.');
+    if (typeof showToast === 'function') {
+      showToast('Hanya Pentadbir Utama (Super Admin) dibenarkan memadam akaun murid.', 'error');
+    } else {
+      alert('Hanya Pentadbir Utama (Super Admin) dibenarkan memadam akaun murid.');
+    }
     return;
   }
 
   const modal = document.getElementById('modal-delete-student');
-  if (!modal) return;
+  if (!modal) {
+    console.error('modal-delete-student tidak dijumpai dalam DOM');
+    return;
+  }
+
+  setupModalSafeguards();
 
   const idInput = document.getElementById('del-student-target-id') || document.getElementById('del-student-id');
   const nameEl = document.getElementById('del-student-modal-name') || document.getElementById('del-student-name');
   const emailEl = document.getElementById('del-student-modal-email') || document.getElementById('del-student-email');
   const uuidEl = document.getElementById('del-student-modal-id');
-  const confirmCheck = document.getElementById('del-student-confirm-check');
-  const confirmInput = document.getElementById('del-confirm-input');
-  const executeBtn = document.getElementById('btn-execute-delete-student') || document.getElementById('del-btn-execute');
   const reasonInput = document.getElementById('del-student-reason');
+  const executeBtn = document.getElementById('btn-execute-delete-student') || document.getElementById('del-btn-execute');
+  const btnText = document.getElementById('btn-delete-student-text');
   const errorEl = document.getElementById('del-student-error');
 
   if (idInput) idInput.value = studentId;
   if (nameEl) nameEl.textContent = studentName || 'Murid';
   if (emailEl) emailEl.textContent = studentEmail || '-';
   if (uuidEl) uuidEl.textContent = studentId || '-';
-  if (confirmCheck) confirmCheck.checked = false;
-  if (confirmInput) confirmInput.value = '';
   if (reasonInput) reasonInput.value = '';
   if (errorEl) {
     errorEl.textContent = '';
     errorEl.classList.add('hidden');
   }
   if (executeBtn) {
-    executeBtn.disabled = true;
-    executeBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    executeBtn.classList.remove('hover:bg-rose-700');
+    executeBtn.disabled = false;
+    executeBtn.classList.remove('opacity-50', 'opacity-75', 'cursor-not-allowed');
+  }
+  if (btnText) {
+    btnText.textContent = 'Padam Akaun';
   }
 
-  modal.showModal();
-}
-
-function toggleDeleteConfirmBtn() {
-  const confirmCheck = document.getElementById('del-student-confirm-check');
-  const confirmInput = document.getElementById('del-confirm-input');
-  const executeBtn = document.getElementById('btn-execute-delete-student') || document.getElementById('del-btn-execute');
-  if (!executeBtn) return;
-
-  let isConfirmed = false;
-  if (confirmCheck) {
-    isConfirmed = confirmCheck.checked;
-  } else if (confirmInput) {
-    isConfirmed = confirmInput.value.trim().toUpperCase() === 'PADAM';
-  }
-
-  executeBtn.disabled = !isConfirmed;
-  if (isConfirmed) {
-    executeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    executeBtn.classList.add('hover:bg-rose-700');
-  } else {
-    executeBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    executeBtn.classList.remove('hover:bg-rose-700');
+  try {
+    if (!modal.open) {
+      modal.showModal();
+    }
+  } catch (err) {
+    console.error('Error showing modal-delete-student:', err);
   }
 }
 
 function closeDeleteStudentModal() {
+  if (isDeleteInProgress) return;
   const modal = document.getElementById('modal-delete-student');
-  if (modal) modal.close();
+  if (modal && modal.open && typeof modal.close === 'function') {
+    modal.close();
+  }
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 }
 
 async function executeDeleteStudent() {
+  if (isDeleteInProgress) return;
+
   const idInput = document.getElementById('del-student-target-id') || document.getElementById('del-student-id');
-  const confirmCheck = document.getElementById('del-student-confirm-check');
-  const confirmInput = document.getElementById('del-confirm-input');
-  const executeBtn = document.getElementById('btn-execute-delete-student') || document.getElementById('del-btn-execute');
   const reasonInput = document.getElementById('del-student-reason');
+  const executeBtn = document.getElementById('btn-execute-delete-student') || document.getElementById('del-btn-execute');
+  const btnText = document.getElementById('btn-delete-student-text');
   const errorEl = document.getElementById('del-student-error');
 
-  if (!idInput || !idInput.value) return;
-
-  if (confirmCheck && !confirmCheck.checked) {
-    alert('Sila tandakan kotak pengesahan pemadaman.');
-    return;
-  }
-  if (confirmInput && confirmInput.value.trim().toUpperCase() !== 'PADAM') {
+  if (!idInput || !idInput.value) {
     if (errorEl) {
-      errorEl.textContent = 'Sila taip PADAM dengan tepat untuk mengesahkan pemadaman.';
+      errorEl.textContent = 'Ralat: ID murid tidak sah.';
       errorEl.classList.remove('hidden');
     }
     return;
   }
 
+  const studentId = idInput.value;
   const reason = (reasonInput && reasonInput.value.trim())
     ? reasonInput.value.trim()
     : 'Dipadam oleh Pentadbir Utama melalui Admin Portal';
 
-  const origHtml = executeBtn ? executeBtn.innerHTML : '';
+  isDeleteInProgress = true;
   if (executeBtn) {
     executeBtn.disabled = true;
-    executeBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span><span>Memadamkan...</span>';
+    executeBtn.classList.add('opacity-75', 'cursor-not-allowed');
+  }
+  if (btnText) {
+    btnText.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-sm animate-spin">sync</span><span>Memadamkan...</span></span>';
+  }
+  if (errorEl) {
+    errorEl.textContent = '';
+    errorEl.classList.add('hidden');
   }
 
   try {
-    const studentId = idInput.value;
     const res = await window.CMSAdapter.deleteStudentAccount(studentId, reason);
 
     if (!res || !res.success) {
-      throw new Error(res && res.error ? res.error : 'Gagal memadam akaun murid.');
+      throw new Error(res && res.error ? res.error : 'Gagal memadam akaun murid dari pangkalan data.');
     }
 
+    isDeleteInProgress = false;
     closeDeleteStudentModal();
+
     if (typeof showToast === 'function') {
-      showToast('Akaun murid berjaya dipadam dengan selamat.', 'success');
+      showToast('Akaun murid dan semua rekod pembelajaran telah dipadam dengan selamat.', 'success');
     } else {
-      alert('Akaun murid berjaya dipadam dengan selamat.');
+      alert('Akaun murid dan rekod pembelajaran berjaya dipadam.');
     }
 
-    // Refresh lists
-    renderStudents();
-    if (typeof renderUsersSection === 'function') renderUsersSection();
-    renderOverviewStats();
+    // Dynamic Refresh across views and stats
+    if (typeof renderStudents === 'function') {
+      await renderStudents();
+    }
+    if (typeof renderUsersSection === 'function') {
+      await renderUsersSection();
+    }
+    if (typeof renderOverviewStats === 'function') {
+      await renderOverviewStats();
+    }
 
   } catch (err) {
     console.error('Delete student failed:', err);
+    isDeleteInProgress = false;
+    if (executeBtn) {
+      executeBtn.disabled = false;
+      executeBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+    if (btnText) {
+      btnText.textContent = 'Padam Akaun';
+    }
     if (errorEl) {
-      errorEl.textContent = err.message || 'Ralat semasa memadam akaun.';
+      errorEl.textContent = err.message || 'Ralat semasa memadam akaun murid.';
       errorEl.classList.remove('hidden');
     } else {
       alert('Ralat memadam akaun: ' + err.message);
-    }
-  } finally {
-    if (executeBtn) {
-      executeBtn.disabled = false;
-      executeBtn.innerHTML = origHtml;
     }
   }
 }
@@ -1532,6 +1585,16 @@ async function renderUsersSection() {
   const search = searchInput ? searchInput.value.trim() : '';
   const role = roleSelect ? roleSelect.value : 'all';
 
+  // 1. Immediately show loading skeletons in stat cards (NEVER show raw 0 during fetch)
+  const statTotal = document.getElementById('stat-total-users');
+  const statTeachers = document.getElementById('stat-total-teachers');
+  const statStudents = document.getElementById('stat-total-students-users');
+
+  if (statTotal) statTotal.innerHTML = '<span class="inline-block w-10 h-7 bg-slate-100 animate-pulse rounded-lg"></span>';
+  if (statTeachers) statTeachers.innerHTML = '<span class="inline-block w-10 h-7 bg-blue-50 animate-pulse rounded-lg"></span>';
+  if (statStudents) statStudents.innerHTML = '<span class="inline-block w-10 h-7 bg-slate-100 animate-pulse rounded-lg"></span>';
+
+  // 2. Loading state for table
   tbody.innerHTML = `
     <tr>
       <td colspan="6" class="py-10 text-center text-slate-400 text-xs">
@@ -1546,16 +1609,18 @@ async function renderUsersSection() {
   try {
     const data = await window.CMSAdapter.getUsersList({ search, role });
     const users = data.users || [];
-    const stats = data.stats || { total: 0, teachers: 0, students: 0 };
+    const allUsers = data.allUsers || users;
 
-    // Update stats cards
-    const statTotal = document.getElementById('stat-total-users');
-    const statTeachers = document.getElementById('stat-total-teachers');
-    const statStudents = document.getElementById('stat-total-students-users');
+    // 3. Genuine real-time statistics calculation over all accounts
+    const stats = data.stats || {
+      total: allUsers.length,
+      teachers: allUsers.filter(u => (u.role === 'teacher' || u.role === 'guru') && u.status !== 'inactive').length,
+      students: allUsers.filter(u => (u.role === 'student' || u.role === 'murid') && u.status !== 'inactive').length
+    };
 
-    if (statTotal) statTotal.textContent = stats.total;
-    if (statTeachers) statTeachers.textContent = stats.teachers;
-    if (statStudents) statStudents.textContent = stats.students;
+    if (statTotal) statTotal.textContent = String(stats.total);
+    if (statTeachers) statTeachers.textContent = String(stats.teachers);
+    if (statStudents) statStudents.textContent = String(stats.students);
 
     if (users.length === 0) {
       tbody.innerHTML = `
@@ -1577,7 +1642,7 @@ async function renderUsersSection() {
       : (localStorage.getItem('arselnel_superadmin') === 'true');
 
     tbody.innerHTML = users.map(u => {
-      const isSuper = u.role === 'superadmin' || u.is_super_admin;
+      const isSuper = u.role === 'superadmin' || u.is_superadmin === true || u.is_super_admin === true;
       const isTeacherRole = u.role === 'teacher' || u.role === 'guru';
       const isStudentRole = !isSuper && !isTeacherRole;
 
@@ -1614,18 +1679,18 @@ async function renderUsersSection() {
       } else if (isStudentRole) {
         actionButtons = `
           <div class="inline-flex items-center gap-2 justify-end">
-            <button type="button" onclick="openPromoteTeacherModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || 'Pelajar')}', '${escapeHtml(u.email || '')}')" class="py-1.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-bold text-xs transition inline-flex items-center gap-1 shadow-sm border border-indigo-200">
+            <button type="button" onclick="openPromoteTeacherModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || u.full_name || 'Pelajar')}', '${escapeHtml(u.email || '')}')" class="py-1.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-bold text-xs transition inline-flex items-center gap-1 shadow-sm border border-indigo-200">
               <span class="material-symbols-outlined text-xs">military_tech</span>
               <span>Lantik Sebagai Guru</span>
             </button>
-            <button type="button" onclick="openDeleteStudentModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || 'Pelajar')}', '${escapeHtml(u.email || '')}')" title="Padam Akaun Murid" class="py-1.5 px-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 font-bold text-xs transition inline-flex items-center gap-1 border border-rose-100">
+            <button type="button" onclick="openDeleteStudentModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || u.full_name || 'Pelajar')}', '${escapeHtml(u.email || '')}')" title="Padam Akaun Murid" class="py-1.5 px-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 font-bold text-xs transition inline-flex items-center gap-1 border border-rose-100">
               <span class="material-symbols-outlined text-xs">delete</span>
             </button>
           </div>
         `;
       } else if (isTeacherRole) {
         actionButtons = `
-          <button type="button" onclick="openDemoteTeacherModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || 'Guru')}', '${escapeHtml(u.email || '')}')" class="py-1.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-800 font-bold text-xs transition inline-flex items-center gap-1 shadow-sm border border-amber-200">
+          <button type="button" onclick="openDemoteTeacherModal('${escapeHtml(u.id)}', '${escapeHtml(u.name || u.full_name || 'Guru')}', '${escapeHtml(u.email || '')}')" class="py-1.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-800 font-bold text-xs transition inline-flex items-center gap-1 shadow-sm border border-amber-200">
             <span class="material-symbols-outlined text-xs">person_remove</span>
             <span>Batalkan Pelantikan Guru</span>
           </button>
@@ -1637,13 +1702,16 @@ async function renderUsersSection() {
           <td class="py-4 px-6">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-2xl ${isSuper ? 'bg-amber-100 text-amber-900' : isTeacherRole ? 'bg-indigo-100 text-indigo-900' : 'bg-teal-100 text-teal-900'} font-bold flex items-center justify-center text-sm shadow-sm shrink-0">
-                ${(u.name || 'U').charAt(0).toUpperCase()}
+                ${(u.name || u.full_name || 'U').charAt(0).toUpperCase()}
               </div>
               <div class="min-w-0">
-                <strong class="font-headline font-bold text-slate-900 block text-sm truncate">${escapeHtml(u.name)}</strong>
+                <strong class="font-headline font-bold text-slate-900 block text-sm truncate">${escapeHtml(u.name || u.full_name)}</strong>
                 <span class="text-xs text-slate-400 block font-mono truncate">${escapeHtml(u.email || '-')}</span>
               </div>
             </div>
+          </td>
+          <td class="py-4 px-4 font-semibold text-xs text-slate-700">
+            ${escapeHtml(u.class_name || 'Tingkatan 1')}
           </td>
           <td class="py-4 px-4">
             ${roleBadge}
@@ -1654,9 +1722,6 @@ async function renderUsersSection() {
           <td class="py-4 px-4 text-xs text-slate-500">
             ${createdDate}
           </td>
-          <td class="py-4 px-4 text-xs font-mono text-slate-400 truncate max-w-[120px]" title="${escapeHtml(u.id)}">
-            ${u.id.substring(0, 8)}...
-          </td>
           <td class="py-4 px-6 text-right">
             ${actionButtons}
           </td>
@@ -1666,10 +1731,21 @@ async function renderUsersSection() {
 
   } catch (err) {
     console.error('Error rendering users section:', err);
+    if (statTotal) statTotal.innerHTML = '<span class="text-xs font-bold text-rose-500">Ralat</span>';
+    if (statTeachers) statTeachers.innerHTML = '<span class="text-xs font-bold text-rose-500">Ralat</span>';
+    if (statStudents) statStudents.innerHTML = '<span class="text-xs font-bold text-rose-500">Ralat</span>';
+
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="py-8 text-center text-rose-600 text-xs bg-rose-50">
-          Ralat memuatkan senarai pengguna: ${escapeHtml(err.message)}
+        <td colspan="6" class="py-10 text-center bg-rose-50/50">
+          <div class="max-w-xs mx-auto space-y-2">
+            <span class="material-symbols-outlined text-3xl text-rose-400">error</span>
+            <p class="text-xs font-bold text-rose-700">Gagal memuatkan senarai pengguna & statistik</p>
+            <p class="text-[11px] text-rose-500">${escapeHtml(err.message || 'Sila semak sambungan rangkaian.')}</p>
+            <button type="button" onclick="renderUsersSection()" class="mt-2 px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition">
+              Cuba Lagi
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -1679,18 +1755,29 @@ async function renderUsersSection() {
 function openPromoteTeacherModal(id, name, email) {
   const modal = document.getElementById('modal-promote-teacher');
   if (!modal) return;
+  setupModalSafeguards();
+
   const idInput = document.getElementById('promote-user-target-id') || document.getElementById('promote-user-id');
   const nameEl = document.getElementById('promote-user-name');
   const emailEl = document.getElementById('promote-user-email');
   if (idInput) idInput.value = id;
   if (nameEl) nameEl.textContent = name;
   if (emailEl) emailEl.textContent = email;
-  modal.showModal();
+
+  try {
+    if (!modal.open) modal.showModal();
+  } catch (err) {
+    console.error('Error showing modal-promote-teacher:', err);
+  }
 }
 
 function closePromoteTeacherModal() {
   const modal = document.getElementById('modal-promote-teacher');
-  if (modal) modal.close();
+  if (modal && modal.open && typeof modal.close === 'function') {
+    modal.close();
+  }
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 }
 
 async function executePromoteTeacher() {
@@ -1719,12 +1806,16 @@ async function executePromoteTeacher() {
 
     closePromoteTeacherModal();
     if (typeof showToast === 'function') {
-      showToast('Pengguna berjaya dilantik sebagai Guru!', 'success');
+      showToast('Pengguna berjaya dilantik sebagai Guru Sains!', 'success');
     } else {
-      alert('Pengguna berjaya dilantik sebagai Guru!');
+      alert('Pengguna berjaya dilantik sebagai Guru Sains!');
     }
 
-    renderUsersSection();
+    // Dynamic stats and table refresh
+    await renderUsersSection();
+    if (typeof renderOverviewStats === 'function') {
+      await renderOverviewStats();
+    }
   } catch (err) {
     console.error('Promote teacher error:', err);
     alert('Ralat pelantikan guru: ' + err.message);
@@ -1739,18 +1830,29 @@ async function executePromoteTeacher() {
 function openDemoteTeacherModal(id, name, email) {
   const modal = document.getElementById('modal-demote-teacher');
   if (!modal) return;
+  setupModalSafeguards();
+
   const idInput = document.getElementById('demote-user-target-id') || document.getElementById('demote-user-id');
   const nameEl = document.getElementById('demote-user-name');
   const emailEl = document.getElementById('demote-user-email');
   if (idInput) idInput.value = id;
   if (nameEl) nameEl.textContent = name;
   if (emailEl) emailEl.textContent = email;
-  modal.showModal();
+
+  try {
+    if (!modal.open) modal.showModal();
+  } catch (err) {
+    console.error('Error showing modal-demote-teacher:', err);
+  }
 }
 
 function closeDemoteTeacherModal() {
   const modal = document.getElementById('modal-demote-teacher');
-  if (modal) modal.close();
+  if (modal && modal.open && typeof modal.close === 'function') {
+    modal.close();
+  }
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 }
 
 async function executeDemoteTeacher() {
@@ -1784,7 +1886,11 @@ async function executeDemoteTeacher() {
       alert('Pelantikan guru telah dibatalkan. Akaun dikembalikan ke Murid.');
     }
 
-    renderUsersSection();
+    // Dynamic stats and table refresh
+    await renderUsersSection();
+    if (typeof renderOverviewStats === 'function') {
+      await renderOverviewStats();
+    }
   } catch (err) {
     console.error('Demote teacher error:', err);
     alert('Ralat pembatalan guru: ' + err.message);
