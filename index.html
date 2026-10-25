@@ -3,24 +3,30 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="refresh" content="0; url=splash_screen/code.html"/>
   <title>ARSelNel - Sistem Pembelajaran Sains Interaktif</title>
   <link rel="icon" type="image/svg+xml" href="assets/home/logo.svg"/>
   <script>
-    // Redirect immediately to splash screen while preserving any query parameters
-    location.replace('splash_screen/code.html' + location.search + location.hash);
+    (function () {
+      try {
+        const rawUser = localStorage.getItem('arselnel_current_user') || sessionStorage.getItem('arselnel_current_user');
+        if (rawUser) {
+          const user = JSON.parse(rawUser);
+          if (user && user.id && user.role) {
+            const isStaff = user.role === 'admin' || user.role === 'superadmin' || user.role === 'teacher' || user.role === 'guru';
+            location.replace(isStaff ? 'admin_dashboard/code.html' : 'halaman_utama/code.html');
+            return;
+          }
+        }
+      } catch (_) {}
+      location.replace('auth/login.html' + location.search + location.hash);
+    })();
   </script>
 </head>
-<body style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #004d4d; color: #ffffff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; padding: 20px; box-sizing: border-box;">
-  <div style="max-width: 480px;">
-    <div style="width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; font-size: 32px;">
-      🔬
-    </div>
-    <h1 style="font-size: 26px; font-weight: 800; margin: 0 0 10px; letter-spacing: -0.5px;">ARSelNel</h1>
-    <p style="font-size: 15px; opacity: 0.88; line-height: 1.6; margin: 0 0 24px;">Memuatkan persekitaran pembelajaran sains interaktif AR & 3D...</p>
-    <a href="splash_screen/code.html" style="display: inline-block; background: #006565; color: #e3fffe; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; font-size: 14px; border: 1px solid rgba(255,255,255,0.2);">
-      Teruskan ke ARSelNel &rarr;
-    </a>
+<body style="font-family: system-ui, -apple-system, sans-serif; background: #004d4d; color: #ffffff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+  <div style="text-align: center;">
+    <div style="width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #28D9E8; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;"></div>
+    <p style="font-size: 14px; opacity: 0.9; margin: 0;">Menghubungkan ke ARSelNel...</p>
   </div>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 </body>
 </html>

@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Daftar Akaun Pelajar | ARSelNel Sains Interaktif</title>
+  <title>Pendaftaran Pelajar | ARSelNel Sains Interaktif</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/home/logo.svg"/>
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -21,20 +22,20 @@
       theme: {
         extend: {
           colors: {
-            primary: "#006565",
+            'arsel-dark': "#004d4d",
+            'arsel-teal': "#006B68",
+            'arsel-turquoise': "#00BFA6",
+            'arsel-cyan': "#28D9E8",
+            'arsel-pastel': "#E8FFF5",
+            'arsel-mint': "#91f8b8",
+            primary: "#006B68",
             'primary-dark': "#004d4d",
-            'primary-light': "#76d6d5",
-            'primary-container': "#008080",
-            mint: "#91f8b8",
-            secondary: "#1960a3",
-            'secondary-light': "#7db6ff",
-            accent: "#f59e0b",
-            navy: "#0f172a",
-            background: "#f6f9fc"
+            'primary-light': "#28D9E8",
+            'primary-container': "#008080"
           },
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
-            headline: ['Plus Jakarta Sans', 'sans-serif'],
+            headline: ['Plus Jakarta Sans', 'sans-serif']
           }
         }
       }
@@ -42,337 +43,1115 @@
   </script>
 
   <style>
+    :root {
+      --arsel-dark: #004d4d;
+      --arsel-teal: #006B68;
+      --arsel-turquoise: #00BFA6;
+      --arsel-cyan: #28D9E8;
+      --arsel-pastel: #E8FFF5;
+      --arsel-mint: #91f8b8;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #f6f9fc;
+      background: radial-gradient(circle at 50% 15%, #004d4d 0%, #003333 55%, #002222 100%);
+      color: #1e293b;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
+
     .font-headline {
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
+
     .material-symbols-outlined {
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       display: inline-block;
       vertical-align: middle;
     }
-    @keyframes float-slow {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(2deg); }
+
+    /* Ambient Science Particles & DNA */
+    @keyframes dna-spin {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(180deg); }
+      100% { transform: translateY(0) rotate(360deg); }
     }
-    .animate-float-slow {
-      animation: float-slow 5s ease-in-out infinite;
+    @keyframes float-cell {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(12px, -20px) scale(1.05); }
+    }
+    @keyframes bubble-rise {
+      0% { transform: translateY(100vh) scale(0.6); opacity: 0; }
+      20% { opacity: 0.6; }
+      80% { opacity: 0.6; }
+      100% { transform: translateY(-10vh) scale(1.1); opacity: 0; }
+    }
+
+    .anim-dna { animation: dna-spin 22s linear infinite; }
+    .anim-cell { animation: float-cell 8s ease-in-out infinite; }
+
+    /* ========================================================
+       SLIDING DUAL-PANEL ARCHITECTURE (TIKTOK CONCEPT 2)
+       ======================================================== */
+    .auth-main-card {
+      position: relative;
+      width: 100%;
+      max-width: 1020px;
+      min-height: 640px;
+      background: #ffffff;
+      border-radius: 36px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 191, 166, 0.15);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* The Sliding Welcome Overlay */
+    .sliding-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      z-index: 20;
+      background: linear-gradient(135deg, #004d4d 0%, #006B68 50%, #00877a 100%);
+      color: #ffffff;
+      transition: transform 0.75s cubic-bezier(0.65, 0, 0.35, 1), border-radius 0.75s ease;
+      overflow: hidden;
+      border-radius: 0 100px 100px 0;
+    }
+
+    /* In Register Mode: Slide overlay to the right */
+    .auth-main-card.is-register .sliding-overlay {
+      transform: translateX(100%);
+      border-radius: 100px 0 0 100px;
+      background: linear-gradient(135deg, #003d3d 0%, #005a57 50%, #007a70 100%);
+    }
+
+    /* Forms Box Setup */
+    .form-box {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 48px;
+      transition: transform 0.75s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.5s ease;
+      overflow-y: auto;
+    }
+
+    /* Login Form sits on the RIGHT side */
+    .form-box-login {
+      right: 0;
+      z-index: 10;
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .auth-main-card.is-register .form-box-login {
+      opacity: 0;
+      transform: translateX(50px);
+      pointer-events: none;
+    }
+
+    /* Register Form sits on the LEFT side */
+    .form-box-register {
+      left: 0;
+      z-index: 10;
+      opacity: 0;
+      transform: translateX(-50px);
+      pointer-events: none;
+    }
+    .auth-main-card.is-register .form-box-register {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    /* ========================================================
+       DEDICATED SCIENTIST CHARACTER LAYOUT (ZERO TEXT OVERLAP)
+       ======================================================== */
+    .scientist-dedicated-zone {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      margin-top: auto;
+      padding-top: 8px;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    /* Scientist Container - In its own dedicated space */
+    .scientist-puppet {
+      position: relative;
+      width: 165px;
+      height: 225px;
+      max-width: 100%;
+      transition: transform 0.75s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    /* Entrance Walk & Pull Animation */
+    @keyframes char-walk-in {
+      0% { transform: translateX(-40px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes card-pull-spring {
+      0% { transform: translateX(120px); }
+      60% { transform: translateX(-10px); }
+      80% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+
+    /* Character Bobbing & Breathing */
+    @keyframes char-idle-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes char-blink {
+      0%, 96%, 100% { transform: scaleY(1); }
+      98% { transform: scaleY(0.1); }
+    }
+
+    .char-bob { animation: char-idle-bob 3.6s ease-in-out infinite; }
+    .char-eyelid { transform-origin: center; animation: char-blink 4s infinite; }
+
+    /* Bubble animation inside beaker */
+    @keyframes bubble-rise {
+      0% { transform: translateY(0); opacity: 0; }
+      40% { opacity: 0.9; }
+      100% { transform: translateY(-7px); opacity: 0; }
+    }
+    .bubble-anim-1 { animation: bubble-rise 1.8s ease-in-out infinite; }
+    .bubble-anim-2 { animation: bubble-rise 2.2s ease-in-out infinite 0.6s; }
+    .bubble-anim-3 { animation: bubble-rise 1.5s ease-in-out infinite 1.1s; }
+
+    /* Closed Eyes & Hands Cover States */
+    #char-closed-eyes {
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    #char-hands-cover {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(22px);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #hand-left-cover, #hand-right-cover {
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #char-arm-normal {
+      transition: opacity 0.25s ease;
+    }
+
+    /* Interactive Reaction States */
+    .scientist-puppet.watch-input #char-head {
+      transform: rotate(4deg) translate(2px, 1px);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .scientist-puppet.watch-input #char-pupils {
+      transform: translate(3px, 1px);
+      transition: transform 0.25s ease;
+    }
+
+    /* 1. HIDE EYES (Focus Password: Fully covers eyes + happy closed eyelids) */
+    .scientist-puppet.hide-eyes #char-pupils {
+      opacity: 0 !important;
+      transition: opacity 0.2s ease;
+    }
+    .scientist-puppet.hide-eyes #char-closed-eyes {
+      opacity: 1 !important;
+      transition: opacity 0.2s ease;
+    }
+    .scientist-puppet.hide-eyes #char-hands-cover {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+    }
+    .scientist-puppet.hide-eyes #hand-left-cover,
+    .scientist-puppet.hide-eyes #hand-right-cover {
+      transform: translate(0, 0);
+    }
+    .scientist-puppet.hide-eyes #char-head {
+      transform: rotate(-3deg) translateY(1px);
+      transition: transform 0.3s ease;
+    }
+    .scientist-puppet.hide-eyes #char-arm-normal {
+      opacity: 0 !important;
+    }
+
+    /* 2. PEEK PASSWORD (When Show Password eye button is clicked) */
+    .scientist-puppet.peek-password #char-arm-normal {
+      opacity: 0 !important;
+    }
+    .scientist-puppet.peek-password #char-hands-cover {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+    }
+    .scientist-puppet.peek-password #hand-left-cover {
+      transform: translate(0, 0);
+    }
+    .scientist-puppet.peek-password #hand-right-cover {
+      transform: translate(14px, -6px) rotate(16deg);
+    }
+    .scientist-puppet.peek-password #closed-eye-left {
+      opacity: 1 !important;
+    }
+    .scientist-puppet.peek-password #closed-eye-right {
+      opacity: 0 !important;
+    }
+    .scientist-puppet.peek-password #pupil-left {
+      opacity: 0 !important;
+    }
+    .scientist-puppet.peek-password #pupil-right {
+      opacity: 1 !important;
+      transform: translate(3px, 1px);
+    }
+
+    @keyframes char-victory-hop {
+      0%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-16px) rotate(-2deg); }
+      60% { transform: translateY(-8px) rotate(2deg); }
+    }
+    .scientist-puppet {
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    .scientist-puppet.cheer {
+      animation: char-victory-hop 0.65s ease-in-out 3;
+    }
+
+    /* ========================================================
+       RICH SCIENCE EXPERIMENT ANIMATIONS (ATMOSPHERIC & ALIVE)
+       ======================================================== */
+    /* 1. Orbiting Atoms & Electron Rings */
+    @keyframes orbit-cw {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes orbit-ccw {
+      0% { transform: rotate(360deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .anim-orbit-1 {
+      transform-origin: 100px 145px;
+      animation: orbit-cw 14s linear infinite;
+    }
+    .anim-orbit-2 {
+      transform-origin: 100px 145px;
+      animation: orbit-ccw 18s linear infinite;
+    }
+
+    /* 2. Stage Energy Ripple Rings */
+    @keyframes stage-ripple {
+      0% { transform: scale(0.92); opacity: 0.65; }
+      50% { transform: scale(1.15); opacity: 0.25; }
+      100% { transform: scale(1.32); opacity: 0; }
+    }
+    .stage-ripple-ring {
+      transform-origin: 100px 254px;
+      animation: stage-ripple 3.2s ease-out infinite;
+    }
+    .stage-ripple-ring-2 {
+      transform-origin: 100px 254px;
+      animation: stage-ripple 3.2s ease-out infinite 1.6s;
+    }
+
+    /* 5. Science Sparkle Stars */
+    @keyframes sparkle-twinkle {
+      0%, 100% { transform: scale(0.6) rotate(0deg); opacity: 0.3; }
+      50% { transform: scale(1.2) rotate(45deg); opacity: 0.95; }
+    }
+    .sparkle-star-1 { transform-origin: 42px 120px; animation: sparkle-twinkle 2.8s ease-in-out infinite; }
+    .sparkle-star-2 { transform-origin: 166px 126px; animation: sparkle-twinkle 3.2s ease-in-out infinite 1.2s; }
+    .sparkle-star-3 { transform-origin: 92px 46px; animation: sparkle-twinkle 2.5s ease-in-out infinite 0.5s; }
+
+    /* 6. Floating Bioluminescent Ambient Spores/Orbs in Green Panel */
+    @keyframes bio-drift {
+      0% { transform: translateY(0) translateX(0); opacity: 0.2; }
+      50% { transform: translateY(-30px) translateX(12px); opacity: 0.75; }
+      100% { transform: translateY(-60px) translateX(-6px); opacity: 0; }
+    }
+    .bio-spore {
+      position: absolute;
+      border-radius: 9999px;
+      pointer-events: none;
+      filter: blur(0.5px);
+      box-shadow: 0 0 10px currentColor;
+    }
+    .bio-spore-1 { top: 22%; left: 14%; width: 6px; height: 6px; color: #28D9E8; background: #28D9E8; animation: bio-drift 7s ease-in-out infinite; }
+    .bio-spore-2 { top: 48%; right: 12%; width: 7px; height: 7px; color: #91f8b8; background: #91f8b8; animation: bio-drift 8.5s ease-in-out infinite 2s; }
+    .bio-spore-3 { top: 72%; left: 22%; width: 5px; height: 5px; color: #00BFA6; background: #00BFA6; animation: bio-drift 6.2s ease-in-out infinite 3.5s; }
+    .bio-spore-4 { top: 82%; right: 28%; width: 6px; height: 6px; color: #28D9E8; background: #28D9E8; animation: bio-drift 7.8s ease-in-out infinite 1.2s; }
+    .bio-spore-5 { top: 16%; right: 35%; width: 5px; height: 5px; color: #e0f2fe; background: #e0f2fe; animation: bio-drift 9s ease-in-out infinite 4s; }
+
+    /* 7. Hover Interactive Delight */
+    .scientist-puppet:hover #char-head {
+      transform: rotate(2deg) scale(1.02);
+      transition: transform 0.3s ease;
+    }
+    .scientist-puppet:hover #flask-group {
+      filter: drop-shadow(0 0 8px #28D9E8);
+      transition: filter 0.3s ease;
+    }
+
+    /* Speech Bubble */
+    .speech-bubble {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: #ffffff;
+      color: #004d4d;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 1.5px solid #00BFA6;
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px 5px 0;
+      border-style: solid;
+      border-color: #ffffff transparent;
+      display: block;
+      width: 0;
+    }
+    .speech-bubble.active {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    /* Responsive Adaptation */
+    @media (max-width: 1023px) {
+      .auth-main-card {
+        min-height: auto;
+        border-radius: 28px;
+        margin: 12px auto;
+        max-width: 520px;
+      }
+      .sliding-overlay {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        padding: 24px 20px !important;
+        border-radius: 28px 28px 40px 40px !important;
+        transform: none !important;
+      }
+      .scientist-dedicated-zone {
+        min-height: 140px;
+        max-height: 180px;
+        margin-top: 10px;
+      }
+      .scientist-puppet {
+        width: 130px;
+        height: 175px;
+      }
+      .speech-bubble {
+        display: none !important;
+      }
+      .form-box {
+        position: relative;
+        width: 100%;
+        height: auto;
+        padding: 28px 20px;
+        transform: none !important;
+      }
+      .form-box-login {
+        display: none;
+      }
+      .auth-main-card.is-register .form-box-login {
+        display: none;
+      }
+      .form-box-register {
+        display: flex;
+        opacity: 1 !important;
+        transform: none !important;
+        pointer-events: auto !important;
+      }
+      .auth-main-card.is-register .form-box-register {
+        display: flex;
+        opacity: 1 !important;
+        transform: none !important;
+        pointer-events: auto !important;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .scientist-puppet {
+        width: 115px;
+        height: 155px;
+      }
+      .auth-main-card {
+        margin: 8px 4px;
+        border-radius: 22px;
+      }
+      .sliding-overlay {
+        padding: 18px 16px !important;
+      }
+      .form-box {
+        padding: 22px 16px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .auth-main-card,
+      .sliding-overlay,
+      .form-box,
+      .scientist-puppet,
+      .anim-dna,
+      .anim-cell {
+        animation: none !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
-<body class="min-h-screen text-slate-800 antialiased relative">
+<body class="flex items-center justify-center p-4 lg:p-8 relative selection:bg-arsel-turquoise selection:text-white">
 
-  <!-- Ambient glow orbs -->
+  <!-- Ambient Science Background Canvas / Floating Motifs -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
     <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-teal-400/20 blur-3xl"></div>
-    <div class="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-blue-400/20 blur-3xl"></div>
+    <div class="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-cyan-400/20 blur-3xl"></div>
+    <div class="absolute -bottom-32 left-1/3 w-96 h-96 rounded-full bg-emerald-400/15 blur-3xl"></div>
+
+    <!-- Floating DNA Helix -->
+    <div class="absolute top-12 left-10 opacity-20 anim-dna hidden md:block">
+      <svg width="64" height="120" viewBox="0 0 64 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 10C24 30 40 30 52 50C64 70 48 70 36 90C24 110 40 110 52 110" stroke="#28D9E8" stroke-width="3" stroke-linecap="round"/>
+        <path d="M52 10C40 30 24 30 12 50C0 70 16 70 28 90C40 110 24 110 12 110" stroke="#00BFA6" stroke-width="3" stroke-linecap="round"/>
+        <line x1="16" y1="20" x2="48" y2="20" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 3"/>
+        <line x1="28" y1="50" x2="36" y2="50" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 3"/>
+        <line x1="16" y1="80" x2="48" y2="80" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 3"/>
+      </svg>
+    </div>
+
+    <!-- Floating Cell Organelle -->
+    <div class="absolute bottom-16 right-12 opacity-25 anim-cell hidden md:block">
+      <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="45" cy="45" rx="38" ry="26" fill="#00BFA6" fill-opacity="0.3" stroke="#28D9E8" stroke-width="2"/>
+        <ellipse cx="36" cy="42" rx="10" ry="4" fill="#91f8b8"/>
+        <ellipse cx="54" cy="48" rx="12" ry="5" fill="#91f8b8"/>
+      </svg>
+    </div>
   </div>
 
-  <main class="min-h-screen grid lg:grid-cols-12">
+  <!-- Pull-In Animation Wrapper -->
+  <div id="auth-pull-wrapper" class="w-full flex justify-center">
+    
+    <!-- MAIN CARD CONTAINER (Dual Panel, default is-register) -->
+    <main class="auth-main-card is-register relative" id="auth-main-card">
 
-    <!-- Left Hero Column -->
-    <section class="relative hidden lg:flex lg:col-span-5 flex-col justify-between overflow-hidden bg-gradient-to-br from-[#004d4d] via-[#006565] to-[#0a7e80] p-12 text-white shadow-2xl">
-      <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full border-[32px] border-white/5 pointer-events-none"></div>
-
-      <!-- Brand -->
-      <a href="../halaman_utama/code.html" class="inline-flex items-center gap-3">
-        <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center p-2 shadow-inner">
-          <img src="../assets/home/logo.svg" class="w-full h-full object-contain" alt="Logo"/>
-        </div>
-        <div>
-          <span class="font-headline text-2xl font-extrabold tracking-tight block leading-none">ARSelNel</span>
-          <span class="text-[11px] font-semibold text-teal-200 tracking-wider uppercase">Pendaftaran Pelajar Percuma</span>
-        </div>
-      </a>
-
-      <!-- Mascot & Message -->
-      <div class="my-auto py-8">
-        <div class="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur border border-white/20 p-4 shadow-xl flex items-center justify-center mb-6 animate-float-slow">
-          <img src="../assets/home/robot_mascot.svg" alt="Mascot" class="w-full h-full object-contain" />
+      <!-- ======================================================== -->
+      <!-- SLIDING WELCOME OVERLAY PANEL (Concept 2)                 -->
+      <!-- Dedicated Flexbox Grid: Top Bar, Text Area, Scientist    -->
+      <!-- ======================================================== -->
+      <aside class="sliding-overlay p-6 sm:p-8 lg:p-9 flex flex-col justify-between relative overflow-hidden" id="sliding-overlay">
+        
+        <!-- Ambient Motifs inside Overlay -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-15">
+          <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full border-[28px] border-white/20"></div>
+          <div class="absolute -left-12 -bottom-12 w-64 h-64 rounded-full bg-teal-300/30 blur-2xl"></div>
         </div>
 
-        <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-teal-100 backdrop-blur mb-4 border border-white/10">
-          <span class="w-2 h-2 rounded-full bg-mint animate-pulse"></span>
-          Akses Lengkap KSSM
-        </span>
+        <!-- Ambient Bioluminescent Science Spores (Fills empty space with life) -->
+        <div class="bio-spore bio-spore-1"></div>
+        <div class="bio-spore bio-spore-2"></div>
+        <div class="bio-spore bio-spore-3"></div>
+        <div class="bio-spore bio-spore-4"></div>
+        <div class="bio-spore bio-spore-5"></div>
 
-        <h1 class="font-headline text-4xl xl:text-5xl font-extrabold leading-tight text-white">
-          Sertai Ribuan Saintis Muda Hari Ini.
-        </h1>
-
-        <p class="mt-4 text-base leading-relaxed text-teal-50 opacity-90 max-w-md">
-          Daftar akaun percuma untuk membuka semua topik nota biologi, menjawab kuiz penuh, menyimpan kedudukan skor, dan meneroka mikroskop AR.
-        </p>
-
-        <div class="mt-8 p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur text-xs text-teal-50 space-y-2">
-          <p class="font-bold text-mint text-sm">Kenapa Mendaftar?</p>
-          <p>✓ Tiada sekatan soalan kuiz (Mod Tetamu hanya 3 soalan).</p>
-          <p>✓ Akses 6 topik nota sains KSSM lengkap berserta infografik.</p>
-          <p>✓ Sembang sains bersama SelBot AI tanpa had pertanyaan.</p>
-        </div>
-      </div>
-
-      <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-teal-200">
-        <span>© 2026 ARSelNel Sains Interaktif</span>
-        <a href="login.html" class="hover:text-white underline">Log Masuk &rarr;</a>
-      </div>
-    </section>
-
-    <!-- Right Register Form Column -->
-    <section class="lg:col-span-7 flex flex-col justify-center items-center px-4 py-8 sm:px-8 md:px-14 lg:px-16 overflow-y-auto">
-      <div class="w-full max-w-lg mx-auto py-6">
-
-        <!-- Mobile header -->
-        <div class="flex items-center justify-between mb-8 lg:hidden">
-          <a href="../halaman_utama/code.html" class="flex items-center gap-2.5">
-            <img src="../assets/home/logo.svg" class="w-9 h-9" alt="ARSelNel"/>
-            <span class="font-headline text-xl font-extrabold text-primary">ARSelNel</span>
+        <!-- 1. Top Header / Brand (Fixed Top, Zero Overlap) -->
+        <div class="relative z-10 flex items-center justify-between pb-2 shrink-0">
+          <a href="../halaman_utama/code.html" class="inline-flex items-center gap-2.5 group">
+            <div class="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center p-2 shadow-inner group-hover:bg-white/20 transition">
+              <img src="../assets/home/logo.svg" class="w-full h-full object-contain" alt="Logo ARSelNel"/>
+            </div>
+            <div>
+              <span class="font-headline text-xl font-extrabold tracking-tight block leading-none text-white">ARSelNel</span>
+              <span class="text-[9.5px] font-bold text-teal-200 tracking-wider uppercase">Sains Tingkatan 1 KSSM</span>
+            </div>
           </a>
-          <a href="login.html" class="text-xs font-bold text-slate-600 hover:text-primary">
-            Log Masuk &rarr;
-          </a>
-        </div>
-
-        <div class="mb-6">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-800 text-xs font-bold mb-2.5">
-            <span class="material-symbols-outlined text-base">person_add</span>
-            Daftar Akaun Baru
+          <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[10.5px] font-semibold text-teal-100">
+            <span class="w-1.5 h-1.5 rounded-full bg-arsel-cyan animate-pulse"></span>
+            AR & 3D Eksplorasi
           </span>
-          <h2 class="font-headline text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Cipta Profil Saintis Anda
+        </div>
+
+        <!-- 2. Middle Content Zone: Dedicated Text Area (Never Overlapped by Cartoon) -->
+        <div class="relative z-10 my-auto py-2 shrink-0">
+          <!-- Text for LOGIN MODE -->
+          <div id="welcome-text-login" class="space-y-2.5 hidden transition-opacity duration-300">
+            <span class="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-bold text-arsel-mint">
+              👋 Selamat Datang Kembali!
+            </span>
+            <h1 class="font-headline text-2xl lg:text-3xl font-extrabold text-white leading-tight">
+              Terokai Sains Sel Interaktif.
+            </h1>
+            <p class="text-xs text-teal-100/90 leading-relaxed max-w-sm">
+              Sambung pengembaraan pembelajaran anda, catat markah kuiz terbaik, dan hayati struktur sel secara realiti terimbuh.
+            </p>
+            <div class="pt-1.5">
+              <button type="button" id="btn-switch-to-register" onclick="toggleAuthMode('register')" class="px-5 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 text-white font-headline font-bold text-xs border border-white/30 backdrop-blur transition shadow-md inline-flex items-center gap-2">
+                <span>Belum Ada Akaun? Daftar Sekarang</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Text for REGISTER MODE (Default for register.html) -->
+          <div id="welcome-text-register" class="space-y-2.5 transition-opacity duration-300">
+            <span class="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-bold text-arsel-cyan">
+              🔬 Pendaftaran Pelajar Percuma
+            </span>
+            <h1 class="font-headline text-2xl lg:text-3xl font-extrabold text-white leading-tight">
+              Sertai Ribuan Saintis Muda!
+            </h1>
+            <p class="text-xs text-teal-100/90 leading-relaxed max-w-sm">
+              Daftar akaun percuma untuk membuka kuiz penuh, menyimpan rekod pembelajaran, dan berinteraksi bersama SelBot AI.
+            </p>
+            <div class="pt-1.5">
+              <button type="button" id="btn-switch-to-login" onclick="toggleAuthMode('login')" class="px-5 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 text-white font-headline font-bold text-xs border border-white/30 backdrop-blur transition shadow-md inline-flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Sudah Ada Akaun? Log Masuk</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Bottom: Dedicated Character Stage Area (Sits strictly BELOW the text zone) -->
+        <div id="character-stage" class="scientist-dedicated-zone">
+          <div class="scientist-puppet char-bob" id="scientist-char" aria-hidden="true">
+            
+            <!-- Speech Bubble -->
+            <div class="speech-bubble hidden sm:block" id="char-speech">
+              <span>Hai! Tuliskan nama anda ya!</span>
+            </div>
+
+            <!-- Vector Character SVG: Rich Animated Science Lab Environment -->
+            <svg viewBox="0 0 200 270" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Natural Light Peach Skin Gradient (NO bright yellow) -->
+                <linearGradient id="g-skin" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#fff1e6"/>
+                  <stop offset="65%" stop-color="#fde2d0"/>
+                  <stop offset="100%" stop-color="#fbcbb5"/>
+                </linearGradient>
+
+                <!-- Dark Hair Gradient (Soft Black / Dark Brown) -->
+                <linearGradient id="g-hair" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#3b2d28"/>
+                  <stop offset="70%" stop-color="#221815"/>
+                  <stop offset="100%" stop-color="#140d0b"/>
+                </linearGradient>
+
+                <!-- Lab Coat Gradient -->
+                <linearGradient id="g-coat" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#ffffff"/>
+                  <stop offset="100%" stop-color="#e2e8f0"/>
+                </linearGradient>
+
+                <!-- Science Flask Bioluminescent Liquid Gradient -->
+                <linearGradient id="g-flask" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#28D9E8"/>
+                  <stop offset="100%" stop-color="#00BFA6"/>
+                </linearGradient>
+
+                <filter id="shadow-char" x="-10%" y="-10%" width="120%" height="120%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity="0.22" flood-color="#002222"/>
+                </filter>
+              </defs>
+
+              <!-- ============================================== -->
+              <!-- ATMOSPHERIC SCIENCE ANIMATIONS (RICH ELEMENTS) -->
+              <!-- ============================================== -->
+
+              <!-- 1. Stage Energy Ripple Rings (Expanding Science Glow) -->
+              <ellipse class="stage-ripple-ring" cx="100" cy="254" rx="44" ry="8" stroke="#28D9E8" stroke-width="1.4" fill="none"/>
+              <ellipse class="stage-ripple-ring-2" cx="100" cy="254" rx="44" ry="8" stroke="#91f8b8" stroke-width="1.1" fill="none"/>
+
+              <!-- 2. Orbiting Atoms & Electron Rings Around Scientist -->
+              <g class="anim-orbit-1" opacity="0.45">
+                <ellipse cx="100" cy="145" rx="66" ry="24" stroke="#28D9E8" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
+                <circle cx="166" cy="145" r="2.5" fill="#28D9E8"/>
+                <circle cx="166" cy="145" r="4.5" fill="#28D9E8" opacity="0.3"/>
+              </g>
+              <g class="anim-orbit-2" opacity="0.4">
+                <ellipse cx="100" cy="145" rx="24" ry="66" stroke="#91f8b8" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+                <circle cx="100" cy="211" r="2.2" fill="#91f8b8"/>
+                <circle cx="100" cy="211" r="4" fill="#91f8b8" opacity="0.3"/>
+              </g>
+
+
+
+              <!-- 5. Science Sparkle Twinkle Stars -->
+              <path class="sparkle-star-1" d="M42 120 Q42 124 38 124 Q42 124 42 128 Q42 124 46 124 Q42 124 42 120 Z" fill="#28D9E8"/>
+              <path class="sparkle-star-2" d="M166 126 Q166 130 162 130 Q166 130 166 134 Q166 130 170 130 Q166 130 166 126 Z" fill="#91f8b8"/>
+              <path class="sparkle-star-3" d="M92 46 Q92 49 89 49 Q92 49 92 52 Q92 49 95 49 Q92 49 92 46 Z" fill="#ffffff" opacity="0.8"/>
+
+              <!-- Pedestal Shadow & Lab Ring -->
+              <ellipse cx="100" cy="254" rx="55" ry="10" fill="#002b2b" opacity="0.35"/>
+              <ellipse cx="100" cy="254" rx="42" ry="7" stroke="#28D9E8" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6"/>
+
+              <!-- LEGS & PANTS (Dark Navy Slacks) -->
+              <g id="char-legs">
+                <rect x="80" y="184" width="14" height="52" rx="7" fill="#1e293b"/>
+                <rect x="106" y="184" width="14" height="52" rx="7" fill="#1e293b"/>
+                <!-- Shoes -->
+                <ellipse cx="85" cy="238" rx="12" ry="6" fill="#0f172a"/>
+                <ellipse cx="115" cy="238" rx="12" ry="6" fill="#0f172a"/>
+              </g>
+
+              <!-- BODY & LAB COAT -->
+              <g id="char-body" filter="url(#shadow-char)">
+                <!-- Inner Teal Shirt -->
+                <rect x="84" y="118" width="32" height="60" rx="5" fill="#006B68"/>
+                <polygon points="100,118 92,138 108,138" fill="#28D9E8"/>
+
+                <!-- Lab Coat Body -->
+                <path d="M70 118 C70 118, 66 172, 64 200 C82 204, 118 204, 136 200 C134 172, 130 118, 130 118 Z" fill="url(#g-coat)" stroke="#cbd5e1" stroke-width="1.4"/>
+                
+                <!-- Coat Lapels -->
+                <path d="M82 118 L94 150 L78 152 Z" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+                <path d="M118 118 L106 150 L122 152 Z" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+                
+                <!-- Pocket & Pen -->
+                <rect x="112" y="154" width="14" height="16" rx="3" fill="#e2e8f0"/>
+                <line x1="116" y1="149" x2="116" y2="155" stroke="#28D9E8" stroke-width="2.2" stroke-linecap="round"/>
+                <line x1="121" y1="151" x2="121" y2="155" stroke="#00BFA6" stroke-width="1.8" stroke-linecap="round"/>
+                
+                <!-- Science Badge -->
+                <circle cx="82" cy="160" r="5" fill="#00BFA6"/>
+                <text x="82" y="162" font-size="6" text-anchor="middle" fill="#ffffff" font-weight="bold">🔬</text>
+              </g>
+
+              <!-- NORMAL ARMS & BEAUTIFULLY ANCHORED BEAKER (No flying/cut-off flask) -->
+              <g id="char-arm-normal">
+                <!-- Left Arm (Resting friendly at side) -->
+                <path d="M68 124 C58 138, 60 158, 74 168" stroke="url(#g-coat)" stroke-width="12" stroke-linecap="round"/>
+                <circle cx="76" cy="170" r="6" fill="url(#g-skin)"/>
+                
+                <!-- Complete Science Beaker / Erlenmeyer Flask Anchored at Hand -->
+                <g id="flask-group">
+                  <!-- Beaker Glass Body -->
+                  <path d="M123 152 L129 152 L129 159 L142 178 C144 182, 141 185, 137 185 L115 185 C111 185, 108 182, 110 178 L123 159 Z" fill="rgba(255, 255, 255, 0.55)" stroke="#cbd5e1" stroke-width="1.3" stroke-linejoin="round"/>
+                  
+                  <!-- Bioluminescent Chemical Liquid -->
+                  <path d="M116 172 L136 172 L140 180 C141 183, 139 184, 136 184 L116 184 C113 184, 111 183, 112 180 Z" fill="url(#g-flask)"/>
+                  
+                  <!-- Graduation / Measurement Lines -->
+                  <line x1="123" y1="174" x2="127" y2="174" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>
+                  <line x1="121" y1="178" x2="126" y2="178" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>
+
+                  <!-- Glass Shine Reflection -->
+                  <path d="M124 154 L126 154 L134 176 L131 176 Z" fill="#ffffff" opacity="0.6"/>
+
+                  <!-- Animated Micro Bubbles Inside Flask -->
+                  <circle class="bubble-anim-1" cx="123" cy="178" r="1.5" fill="#ffffff" opacity="0.85"/>
+                  <circle class="bubble-anim-2" cx="130" cy="177" r="1.2" fill="#ffffff" opacity="0.85"/>
+                  <circle class="bubble-anim-3" cx="126" cy="175" r="1" fill="#28D9E8" opacity="0.9"/>
+
+                  <!-- Tiny Science Sparkle at Rim -->
+                  <circle cx="126" cy="150" r="1.5" fill="#28D9E8" opacity="0.85"/>
+                </g>
+
+                <!-- Right Arm holding the beaker's neck -->
+                <path d="M132 124 C140 136, 138 150, 126 154" stroke="url(#g-coat)" stroke-width="12" stroke-linecap="round"/>
+                <ellipse cx="126" cy="154" rx="5.5" ry="4.5" fill="url(#g-skin)"/>
+              </g>
+
+              <!-- HEAD & FACE (Light Peach Natural Skin + Dark Brown Hair) -->
+              <g id="char-head" filter="url(#shadow-char)" style="transform-origin: 100px 105px;">
+                <!-- Dark Brown Stylish Hair -->
+                <path d="M64 78 C58 58, 76 42, 90 45 C95 35, 112 34, 118 44 C130 38, 144 50, 138 68 C146 76, 142 92, 134 96 C136 104, 128 112, 120 108 C116 114, 80 114, 76 106 C66 108, 58 96, 62 86 Z" fill="url(#g-hair)"/>
+
+                <!-- Face (Fair Peach Skin Tone) -->
+                <ellipse cx="100" cy="80" rx="27" ry="24" fill="url(#g-skin)"/>
+
+                <!-- Rosy Cheeks -->
+                <circle cx="82" cy="87" r="4.5" fill="#fb7185" opacity="0.22"/>
+                <circle cx="118" cy="87" r="4.5" fill="#fb7185" opacity="0.22"/>
+
+                <!-- Cheerful Smile -->
+                <path d="M94 88 Q100 94 106 88" stroke="#831843" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+                <!-- Cute Scientist Glasses (Dark Teal Wire Frame) -->
+                <rect x="72" y="66" width="56" height="21" rx="9" fill="#004d4d" stroke="#00BFA6" stroke-width="1.8"/>
+                <line x1="96" y1="76" x2="104" y2="76" stroke="#00BFA6" stroke-width="1.8"/>
+                <line x1="67" y1="74" x2="72" y2="74" stroke="#00BFA6" stroke-width="2"/>
+                <line x1="128" y1="74" x2="133" y2="74" stroke="#00BFA6" stroke-width="2"/>
+
+                <!-- Goggles Lenses -->
+                <rect x="75" y="68" width="21" height="16" rx="6" fill="#e0f7fa" opacity="0.92"/>
+                <rect x="104" y="68" width="21" height="16" rx="6" fill="#e0f7fa" opacity="0.92"/>
+
+                <!-- EYES & PUPILS (Track Input & Blink) -->
+                <g id="char-eyes" class="char-eyelid">
+                  <g id="char-pupils">
+                    <circle id="pupil-left" cx="85.5" cy="76" r="4" fill="#1e293b"/>
+                    <circle cx="84" cy="74.5" r="1.3" fill="#ffffff"/>
+                    <circle cx="86.5" cy="77" r="0.8" fill="#ffffff"/>
+                    
+                    <circle id="pupil-right" cx="114.5" cy="76" r="4" fill="#1e293b"/>
+                    <circle cx="113" cy="74.5" r="1.3" fill="#ffffff"/>
+                    <circle cx="115.5" cy="77" r="0.8" fill="#ffffff"/>
+                  </g>
+
+                  <!-- Cute Closed Happy Eyelids (Shown on hide-eyes / peek-password) -->
+                  <g id="char-closed-eyes">
+                    <path id="closed-eye-left" d="M78 76 Q85.5 82 93 76" stroke="#004d4d" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                    <path id="closed-eye-right" d="M107 76 Q114.5 82 122 76" stroke="#004d4d" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                  </g>
+                </g>
+
+                <!-- Glasses Glare Streaks -->
+                <path d="M77 70 L87 70 L80 82 L75 82 Z" fill="#ffffff" opacity="0.4"/>
+                <path d="M106 70 L116 70 L109 82 L104 82 Z" fill="#ffffff" opacity="0.4"/>
+              </g>
+
+              <!-- PEEK / COVER EYES HANDS (Layered OVER head & glasses for true eye-covering) -->
+              <g id="char-hands-cover">
+                <!-- Left Hand Covering Left Eye -->
+                <g id="hand-left-cover">
+                  <path d="M64 125 C62 96, 72 76, 85 75" stroke="url(#g-coat)" stroke-width="13" stroke-linecap="round"/>
+                  <circle cx="85.5" cy="75" r="8.5" fill="url(#g-skin)"/>
+                  <!-- Cute fingers -->
+                  <ellipse cx="85.5" cy="70" rx="5.5" ry="3" fill="url(#g-skin)"/>
+                  <ellipse cx="80" cy="75" rx="3" ry="4.5" fill="url(#g-skin)"/>
+                </g>
+                
+                <!-- Right Hand Covering Right Eye (Peeks on peek-password) -->
+                <g id="hand-right-cover" style="transform-origin: 136px 125px;">
+                  <path d="M136 125 C138 96, 128 76, 115 75" stroke="url(#g-coat)" stroke-width="13" stroke-linecap="round"/>
+                  <circle cx="114.5" cy="75" r="8.5" fill="url(#g-skin)"/>
+                  <!-- Cute fingers -->
+                  <ellipse cx="114.5" cy="70" rx="5.5" ry="3" fill="url(#g-skin)"/>
+                  <ellipse cx="120" cy="75" rx="3" ry="4.5" fill="url(#g-skin)"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- ======================================================== -->
+      <!-- RIGHT FORM BOX: LOGIN FORM                               -->
+      <!-- ======================================================== -->
+      <section class="form-box form-box-login" id="login-box" aria-labelledby="login-title">
+        <div class="mb-5">
+          <div class="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/80 mb-3 shadow-inner">
+            <button type="button" id="tab-student" onclick="setRole('student')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm bg-white text-primary">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-base">school</span>
+                <span>Murid</span>
+              </span>
+            </button>
+            <button type="button" id="tab-admin" onclick="setRole('admin')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-500 hover:text-slate-800">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-base">shield_person</span>
+                <span>Guru / Pentadbir</span>
+              </span>
+            </button>
+          </div>
+
+          <h2 id="login-title" class="font-headline text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Log Masuk ARSelNel
           </h2>
-          <p class="mt-1 text-sm text-slate-500">
-            Lengkapkan maklumat ringkas di bawah untuk memulakan sesi pembelajaran.
+          <p id="login-sub" class="text-xs text-slate-500 mt-1">
+            Masukkan akaun anda untuk meneruskan pembelajaran.
           </p>
         </div>
 
-        <!-- Form Card -->
-        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-xl shadow-teal-950/5">
-
-          <!-- Google OAuth Sign-In Button -->
-          <button 
-            type="button" 
-            id="google-register-btn"
-            onclick="handleGoogleAuth()"
-            class="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-headline font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-3 active:scale-98 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-            </svg>
-            <span id="google-btn-text">Teruskan dengan Google</span>
-          </button>
-
-          <!-- Divider -->
-          <div class="relative flex items-center justify-center my-5">
-            <div class="border-t border-slate-200 w-full"></div>
-            <span class="bg-white px-3 text-xs font-bold text-slate-400 uppercase tracking-wider">atau daftar dengan e-mel</span>
-          </div>
-
-          <form id="register-form" class="space-y-4" onsubmit="handleRegister(event)">
-            <!-- Honeypot Bot Protection -->
-            <input type="text" id="reg-hp" name="student_website" class="hidden" tabindex="-1" autocomplete="off" />
-            
-            <!-- Full Name -->
-            <div>
-              <label for="reg-name" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                Nama Penuh Pelajar <span class="text-rose-500">*</span>
-              </label>
-              <div class="relative">
-                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">badge</span>
-                <input 
-                  type="text" 
-                  id="reg-name" 
-                  required 
-                  placeholder="Contoh: Muhammad Harith bin Zulkifli"
-                  class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
-                />
-              </div>
-            </div>
-
-            <!-- Email & Username -->
-            <div class="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label for="reg-email" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  E-mel Pelajar <span class="text-rose-500">*</span>
-                </label>
-                <div class="relative">
-                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">mail</span>
-                  <input 
-                    type="email" 
-                    id="reg-email" 
-                    required 
-                    placeholder="nama@email.com"
-                    class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label for="reg-username" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Nama Pengguna (Username)
-                </label>
-                <div class="relative">
-                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">alternate_email</span>
-                  <input 
-                    type="text" 
-                    id="reg-username" 
-                    placeholder="harithz"
-                    class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Form / Grade Dropdown (Form 1 - Form 5) -->
-            <div>
-              <label for="reg-grade" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                Tingkatan (KSSM) <span class="text-rose-500">*</span>
-              </label>
-              <div class="relative">
-                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">school</span>
-                <select id="reg-grade" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition">
-                  <option value="Tingkatan 1 Al-Farabi">Tingkatan 1 (Bab 2: Sel Sebagai Unit Asas)</option>
-                  <option value="Tingkatan 2">Tingkatan 2</option>
-                  <option value="Tingkatan 3">Tingkatan 3</option>
-                  <option value="Tingkatan 4 Biologi">Tingkatan 4 (Biologi SPM)</option>
-                  <option value="Tingkatan 5 Biologi">Tingkatan 5 (Biologi SPM)</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Password & Confirm Password -->
-            <div class="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label for="reg-pass" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Kata Laluan <span class="text-rose-500">*</span>
-                </label>
-                <div class="relative">
-                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">lock</span>
-                  <input 
-                    type="password" 
-                    id="reg-pass" 
-                    required 
-                    minlength="6"
-                    placeholder="Min. 6 aksara"
-                    class="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
-                  />
-                  <button 
-                    type="button" 
-                    id="toggle-reg-pass"
-                    onclick="togglePasswordVisibility('reg-pass', 'reg-pass-icon', this)"
-                    aria-label="Tunjukkan kata laluan"
-                    aria-pressed="false"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
-                  >
-                    <span id="reg-pass-icon" class="material-symbols-outlined text-xl">visibility</span>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label for="reg-pass-confirm" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Sahkan Kata Laluan <span class="text-rose-500">*</span>
-                </label>
-                <div class="relative">
-                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">lock_reset</span>
-                  <input 
-                    type="password" 
-                    id="reg-pass-confirm" 
-                    required 
-                    minlength="6"
-                    placeholder="Ulang kata laluan"
-                    class="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-200 text-slate-800 text-sm font-medium focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 transition"
-                  />
-                  <button 
-                    type="button" 
-                    id="toggle-reg-pass-confirm"
-                    onclick="togglePasswordVisibility('reg-pass-confirm', 'reg-pass-confirm-icon', this)"
-                    aria-label="Tunjukkan pengesahan kata laluan"
-                    aria-pressed="false"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
-                  >
-                    <span id="reg-pass-confirm-icon" class="material-symbols-outlined text-xl">visibility</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Error message alert -->
-            <div id="error-alert" class="hidden p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-start gap-2.5">
-              <span class="material-symbols-outlined text-lg shrink-0 text-rose-600">error</span>
-              <span id="error-text" class="leading-relaxed">Sila lengkapkan maklumat.</span>
-            </div>
-
-            <!-- Success message alert -->
-            <div id="success-alert" class="hidden p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-start gap-2.5">
-              <span class="material-symbols-outlined text-lg shrink-0 text-emerald-600">check_circle</span>
-              <span id="success-text" class="leading-relaxed">Pendaftaran berjaya!</span>
-            </div>
-
-            <!-- Submit button -->
-            <button 
-              type="submit" 
-              id="reg-submit-btn"
-              class="w-full py-3.5 px-6 rounded-2xl bg-[#006565] hover:bg-teal-800 text-white font-headline font-bold text-sm shadow-lg shadow-teal-950/15 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <span id="reg-submit-spinner" class="hidden animate-spin material-symbols-outlined text-lg">progress_activity</span>
-              <span id="reg-submit-text">Daftar Akaun & Teruskan</span>
-              <span id="reg-submit-icon" class="material-symbols-outlined text-lg">check_circle</span>
-            </button>
-          </form>
-
-          <!-- Back to login link -->
-          <div class="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
-            <span>Sudah mempunyai akaun pelajar atau guru?</span>
-            <a href="login.html" class="font-bold text-primary hover:text-teal-800 ml-1 underline underline-offset-2">
-              Log Masuk di Sini &rarr;
-            </a>
-          </div>
-
+        <div id="error-alert" class="hidden mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5 shadow-sm">
+          <span class="material-symbols-outlined text-rose-600 text-base shrink-0 mt-0.5">error</span>
+          <span id="error-text" class="leading-relaxed">Ralat log masuk.</span>
+        </div>
+        <div id="success-alert" class="hidden mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5 shadow-sm">
+          <span class="material-symbols-outlined text-emerald-600 text-base shrink-0 mt-0.5">check_circle</span>
+          <span id="success-text" class="leading-relaxed">Berjaya!</span>
         </div>
 
-      </div>
-    </section>
+        <form onsubmit="handleLogin(event)" class="space-y-4" id="form-login">
+          <div>
+            <label id="lbl-id" for="login-id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Alamat E-mel
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">mail</span>
+              </div>
+              <input type="email" id="login-id" required autocomplete="email" placeholder="nama@gmail.com" class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs text-slate-800 focus:border-arsel-turquoise focus:ring-2 focus:ring-arsel-turquoise/20 transition outline-none"/>
+            </div>
+          </div>
 
-  </main>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="login-pass" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Kata Laluan
+              </label>
+              <a href="#" onclick="showForgotPasswordPrompt(); return false;" class="text-[11px] font-semibold text-primary hover:text-teal-700 transition">
+                Lupa Kata Laluan?
+              </a>
+            </div>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">lock</span>
+              </div>
+              <input type="password" id="login-pass" required autocomplete="current-password" placeholder="••••••••" class="w-full pl-10 pr-11 py-2.5 rounded-2xl border border-slate-200 text-xs text-slate-800 focus:border-arsel-turquoise focus:ring-2 focus:ring-arsel-turquoise/20 transition outline-none"/>
+              <button type="button" id="toggle-login-pass" onclick="togglePasswordVisibility('login-pass', 'pass-eye-icon', this)" aria-label="Tunjukkan kata laluan" aria-pressed="false" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition">
+                <span id="pass-eye-icon" class="material-symbols-outlined text-lg">visibility</span>
+              </button>
+            </div>
+          </div>
 
-  <!-- Load Auth Logic -->
-  <script src="../assets/js/auth.js"></script>
-  <script src="../assets/js/auth-guard.js"></script>
+          <div class="pt-1">
+            <button type="submit" id="login-submit-btn" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-arsel-teal to-arsel-turquoise hover:opacity-95 active:scale-[0.99] text-white font-headline font-bold text-xs shadow-lg shadow-teal-900/15 transition flex items-center justify-center gap-2">
+              <span id="login-submit-spinner" class="hidden material-symbols-outlined text-base animate-spin">sync</span>
+              <span id="login-submit-icon" class="material-symbols-outlined text-base">login</span>
+              <span id="login-submit-text">Log Masuk Sekarang</span>
+            </button>
+          </div>
+
+          <div class="relative flex items-center justify-center my-3">
+            <div class="border-t border-slate-200 w-full"></div>
+            <span class="bg-white px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Atau</span>
+          </div>
+
+          <div id="google-login-container">
+            <button type="button" id="google-login-btn" onclick="handleGoogleLogin()" class="w-full py-2.5 px-4 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs shadow-sm transition flex items-center justify-center gap-2.5">
+              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span id="google-login-text">Teruskan dengan Google</span>
+            </button>
+          </div>
+
+          <div class="pt-2 text-center space-y-1.5">
+            <button type="button" onclick="loginAsGuest()" class="text-xs text-slate-500 hover:text-primary transition font-medium">
+              Eksplorasi Pantas? <strong class="text-primary underline">Masuk sebagai Tetamu</strong>
+            </button>
+            <div class="lg:hidden pt-2">
+              <button type="button" onclick="toggleAuthMode('register')" class="text-xs text-teal-700 font-bold underline">
+                Belum ada akaun? Daftar Akaun Baharu &rarr;
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- LEFT FORM BOX: REGISTER FORM                             -->
+      <!-- ======================================================== -->
+      <section class="form-box form-box-register" id="register-box" aria-labelledby="reg-title">
+        <div class="mb-4">
+          <span class="inline-block px-3 py-0.5 rounded-full bg-teal-50 text-[11px] font-bold text-teal-700 border border-teal-200 mb-1">
+            ✨ Akaun Pelajar Percuma
+          </span>
+          <h2 id="reg-title" class="font-headline text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Sertai Pengembaraan Sains!
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Daftar akaun untuk mula meneroka dunia sel bersama ARSelNel.
+          </p>
+        </div>
+
+        <div id="reg-error-alert" class="hidden mb-3 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5 shadow-sm">
+          <span class="material-symbols-outlined text-rose-600 text-base shrink-0 mt-0.5">error</span>
+          <span id="reg-error-text" class="leading-relaxed">Ralat pendaftaran.</span>
+        </div>
+        <div id="reg-success-alert" class="hidden mb-3 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5 shadow-sm">
+          <span class="material-symbols-outlined text-emerald-600 text-base shrink-0 mt-0.5">check_circle</span>
+          <span id="reg-success-text" class="leading-relaxed">Pendaftaran berjaya!</span>
+        </div>
+
+        <form onsubmit="handleRegister(event)" class="space-y-3" id="form-register">
+          <input type="text" id="reg-hp" class="hidden" tabindex="-1" autocomplete="off"/>
+
+          <div>
+            <label for="reg-name" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Nama Penuh Pelajar *
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">badge</span>
+              </div>
+              <input type="text" id="reg-name" required placeholder="Ahmad Harith bin Roslan" class="w-full pl-10 pr-4 py-2 rounded-2xl border border-slate-200 text-xs text-slate-800 focus:border-arsel-turquoise focus:ring-2 focus:ring-arsel-turquoise/20 transition outline-none"/>
+            </div>
+          </div>
+
+          <div>
+            <label for="reg-email" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Alamat E-mel Pelajar *
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">mail</span>
+              </div>
+              <input type="email" id="reg-email" required placeholder="harith@gmail.com" class="w-full pl-10 pr-4 py-2 rounded-2xl border border-slate-200 text-xs text-slate-800 focus:border-arsel-turquoise focus:ring-2 focus:ring-arsel-turquoise/20 transition outline-none"/>
+            </div>
+          </div>
+
+          <div>
+            <label for="reg-grade" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Tingkatan & Kelas
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">school</span>
+              </div>
+              <select id="reg-grade" class="w-full pl-10 pr-4 py-2 rounded-2xl border border-slate-200 text-xs text-slate-800 focus:border-arsel-turquoise focus:ring-2 focus:ring-arsel-turquoise/20 transition outline-none bg-white">
+                <option value="Tingkatan 1 Al-Farabi">Tingkatan 1 Al-Farabi</option>
+                <option value="Tingkatan 1 Ibn Sina">Tingkatan 1 Ibn Sina</option>
+                <option value="Tingkatan 1 Al-Biruni">Tingkatan 1 Al-Biruni</option>
+                <option value="Tingkatan 1 Al-Khawarizmi">Tingkatan 1 Al-Khawarizmi</option>
+                <option value="Tingkatan 1 Terbuka">Tingkatan 1 Terbuka</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="reg-pass" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Kata Laluan (Min. 6 Aksara) *
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">lock</span>
+              </div>
+              <input type="password" id="reg-pass" required placeholder="••••••••" oninput="updatePasswordStrength(this.value)" class="w-full pl-10 pr-11 py-2 rounded-2xl border border-slate-200 text-xs text-slate-800 focus:border-arsel-turquoise focus:ring-2 focus:ring-arsel-turquoise/20 transition outline-none"/>
+              <button type="button" id="toggle-reg-pass" onclick="togglePasswordVisibility('reg-pass', 'reg-pass-icon', this)" aria-label="Tunjukkan kata laluan" aria-pressed="false" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition">
+                <span id="reg-pass-icon" class="material-symbols-outlined text-lg">visibility</span>
+              </button>
+            </div>
+            <div class="mt-1.5 flex items-center gap-2">
+              <div class="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                <div id="pass-strength-bar" class="h-full w-0 bg-rose-500 transition-all duration-300"></div>
+              </div>
+              <span id="pass-strength-label" class="text-[10px] font-semibold text-slate-400">Lemah</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="reg-pass-confirm" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Sahkan Kata Laluan *
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">lock_reset</span>
+              </div>
+              <input type="password" id="reg-pass-confirm" required placeholder="••••••••" class="w-full pl-10 pr-11 py-2 rounded-2xl border border-slate-200 text-xs text-slate-800 focus:border-arsel-turquoise focus:ring-2 focus:ring-arsel-turquoise/20 transition outline-none"/>
+              <button type="button" id="toggle-reg-pass-confirm" onclick="togglePasswordVisibility('reg-pass-confirm', 'reg-pass-confirm-icon', this)" aria-label="Tunjukkan kata laluan" aria-pressed="false" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition">
+                <span id="reg-pass-confirm-icon" class="material-symbols-outlined text-lg">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-1">
+            <button type="submit" id="reg-submit-btn" class="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-arsel-teal to-arsel-turquoise hover:opacity-95 active:scale-[0.99] text-white font-headline font-bold text-xs shadow-lg shadow-teal-900/15 transition flex items-center justify-center gap-2">
+              <span id="reg-submit-spinner" class="hidden material-symbols-outlined text-base animate-spin">sync</span>
+              <span id="reg-submit-icon" class="material-symbols-outlined text-base">person_add</span>
+              <span id="reg-submit-text">Daftar Akaun Pelajar</span>
+            </button>
+          </div>
+
+          <div class="pt-1">
+            <button type="button" id="google-register-btn" onclick="handleGoogleAuth()" class="w-full py-2 px-4 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs shadow-sm transition flex items-center justify-center gap-2">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span id="google-btn-text">Teruskan dengan Google</span>
+            </button>
+          </div>
+
+          <div class="lg:hidden text-center pt-2">
+            <button type="button" onclick="toggleAuthMode('login')" class="text-xs text-teal-700 font-bold underline">
+              Sudah ada akaun? Log Masuk di sini &rarr;
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Supabase Library & Custom Auth Modules -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/auth.js"></script>
 
   <script>
+    let currentAuthMode = 'register'; // Default to register for register.html
+    let currentRole = 'student';
     let lastSubmitTime = 0;
+    let isGoogleAuthBusy = false;
 
-    function hideError() {
-      document.getElementById('error-alert').classList.add('hidden');
+    const SPEECH_MESSAGES = {
+      default: "Hai! Jom terokai sains sel!",
+      email: "Masukkan e-mel sekolah anda ya!",
+      name: "Tuliskan nama penuh rasmi anda!",
+      password: "Rahsia! Saya tak intai kata laluan awak!",
+      peek: "Wah, semak betul-betul ya!",
+      submitting: "Menyemak formula pangkalan data...",
+      success: "Tahniah! Akses makmal sains dibuka!",
+      error: "Oops, semak semula maklumat tadi!"
+    };
+
+    function setScientistReaction(state, messageKey = null) {
+      const puppet = document.getElementById('scientist-char');
+      const speech = document.getElementById('char-speech');
+      if (!puppet) return;
+
+      puppet.classList.remove('watch-input', 'hide-eyes', 'peek-password', 'cheer');
+      if (state) puppet.classList.add(state);
+
+      if (speech && messageKey && SPEECH_MESSAGES[messageKey]) {
+        speech.textContent = SPEECH_MESSAGES[messageKey];
+        speech.classList.add('active');
+        clearTimeout(speech._timer);
+        speech._timer = setTimeout(() => {
+          speech.classList.remove('active');
+        }, 3200);
+      }
     }
 
-    function showError(msg) {
-      hideSuccess();
-      document.getElementById('error-text').textContent = msg;
-      document.getElementById('error-alert').classList.remove('hidden');
-    }
+    function toggleAuthMode(mode) {
+      currentAuthMode = mode;
+      const card = document.getElementById('auth-main-card');
+      const textLogin = document.getElementById('welcome-text-login');
+      const textRegister = document.getElementById('welcome-text-register');
 
-    function hideSuccess() {
-      const el = document.getElementById('success-alert');
-      if (el) el.classList.add('hidden');
-    }
+      hideAlerts();
 
-    function showSuccess(msg) {
-      hideError();
-      const el = document.getElementById('success-alert');
-      const txt = document.getElementById('success-text');
-      if (el && txt) {
-        txt.textContent = msg;
-        el.classList.remove('hidden');
+      if (mode === 'register') {
+        card.classList.add('is-register');
+        if (textLogin) textLogin.classList.add('hidden');
+        if (textRegister) textRegister.classList.remove('hidden');
+        setScientistReaction(null, 'name');
+      } else {
+        card.classList.remove('is-register');
+        if (textRegister) textRegister.classList.add('hidden');
+        if (textLogin) textLogin.classList.remove('hidden');
+        setScientistReaction(null, 'email');
       }
     }
 
@@ -387,45 +1166,192 @@
         btn.setAttribute('aria-label', isPassword ? 'Sembunyikan kata laluan' : 'Tunjukkan kata laluan');
         btn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
       }
-    }
-
-    function isValidEmail(email) {
-      // Standard RFC 5322 compatible regex
-      const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
-      return re.test(email);
-    }
-
-    function setFormLoading(isLoading) {
-      const submitBtn = document.getElementById('reg-submit-btn');
-      const submitSpinner = document.getElementById('reg-submit-spinner');
-      const submitText = document.getElementById('reg-submit-text');
-      const submitIcon = document.getElementById('reg-submit-icon');
-      const googleBtn = document.getElementById('google-register-btn');
-
-      if (submitBtn) submitBtn.disabled = isLoading;
-      if (googleBtn) googleBtn.disabled = isLoading;
-
-      if (isLoading) {
-        if (submitSpinner) submitSpinner.classList.remove('hidden');
-        if (submitIcon) submitIcon.classList.add('hidden');
-        if (submitText) submitText.textContent = 'Sedang Mendaftar Akaun...';
+      if (isPassword) {
+        setScientistReaction('peek-password', 'peek');
       } else {
-        if (submitSpinner) submitSpinner.classList.add('hidden');
-        if (submitIcon) submitIcon.classList.remove('hidden');
-        if (submitText) submitText.textContent = 'Daftar Akaun & Teruskan';
+        setScientistReaction('hide-eyes', 'password');
       }
     }
 
-    let isGoogleAuthBusy = false;
-    async function handleGoogleAuth() {
-      if (isGoogleAuthBusy) return;
-      hideError();
-      hideSuccess();
+    function updatePasswordStrength(val) {
+      const bar = document.getElementById('pass-strength-bar');
+      const lbl = document.getElementById('pass-strength-label');
+      if (!bar || !lbl) return;
+
+      if (!val || val.length === 0) {
+        bar.style.width = '0%';
+        bar.className = 'h-full bg-slate-200 transition-all duration-300';
+        lbl.textContent = 'Lemah';
+        lbl.className = 'text-[10px] font-semibold text-slate-400';
+        return;
+      }
+
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (val.length >= 8) score++;
+      if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      if (score <= 1) {
+        bar.style.width = '33%';
+        bar.className = 'h-full bg-rose-500 transition-all duration-300';
+        lbl.textContent = 'Lemah';
+        lbl.className = 'text-[10px] font-semibold text-rose-500';
+      } else if (score <= 3) {
+        bar.style.width = '66%';
+        bar.className = 'h-full bg-amber-500 transition-all duration-300';
+        lbl.textContent = 'Sederhana';
+        lbl.className = 'text-[10px] font-semibold text-amber-600';
+      } else {
+        bar.style.width = '100%';
+        bar.className = 'h-full bg-emerald-500 transition-all duration-300';
+        lbl.textContent = 'Kuat';
+        lbl.className = 'text-[10px] font-semibold text-emerald-600';
+      }
+    }
+
+    function setRole(role) {
+      currentRole = role;
+      const tabStudent = document.getElementById('tab-student');
+      const tabAdmin = document.getElementById('tab-admin');
+      const lblId = document.getElementById('lbl-id');
+      const inputId = document.getElementById('login-id');
+      const googleContainer = document.getElementById('google-login-container');
+      const title = document.getElementById('login-title');
+      const sub = document.getElementById('login-sub');
+
+      hideAlerts();
+
+      if (role === 'admin') {
+        tabAdmin.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm bg-white text-primary';
+        tabStudent.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-500 hover:text-slate-800';
+        lblId.textContent = 'E-mel Rasmi Pentadbir / Guru';
+        inputId.placeholder = 'admin@arselnel.my';
+        if (googleContainer) googleContainer.classList.add('hidden');
+        title.textContent = 'Portal Pentadbir & Guru 🧪';
+        sub.textContent = 'Log masuk akaun pentadbir atau guru untuk mengakses panel kawalan CMS.';
+        if (typeof setScientistReaction === 'function') setScientistReaction(null, 'teacher');
+      } else {
+        tabStudent.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm bg-white text-primary';
+        tabAdmin.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-500 hover:text-slate-800';
+        lblId.textContent = 'Alamat E-mel Pelajar';
+        inputId.placeholder = 'pelajar@gmail.com';
+        if (googleContainer) googleContainer.classList.remove('hidden');
+        title.textContent = 'Log Masuk ARSelNel 🔬';
+        sub.textContent = 'Masukkan akaun anda untuk meneruskan pembelajaran.';
+        if (typeof setScientistReaction === 'function') setScientistReaction(null, 'student');
+      }
+    }
+
+    function hideAlerts() {
+      const err = document.getElementById('error-alert');
+      const succ = document.getElementById('success-alert');
+      const regErr = document.getElementById('reg-error-alert');
+      const regSucc = document.getElementById('reg-success-alert');
+      if (err) err.classList.add('hidden');
+      if (succ) succ.classList.add('hidden');
+      if (regErr) regErr.classList.add('hidden');
+      if (regSucc) regSucc.classList.add('hidden');
+    }
+
+    function showLoginError(msg) {
+      hideAlerts();
+      const el = document.getElementById('error-alert');
+      const txt = document.getElementById('error-text');
+      if (el && txt) {
+        txt.textContent = msg;
+        el.classList.remove('hidden');
+      }
+      setScientistReaction(null, 'error');
+    }
+
+    function showLoginSuccess(msg) {
+      hideAlerts();
+      const el = document.getElementById('success-alert');
+      const txt = document.getElementById('success-text');
+      if (el && txt) {
+        txt.textContent = msg;
+        el.classList.remove('hidden');
+      }
+      setScientistReaction('cheer', 'success');
+    }
+
+    function showRegisterError(msg) {
+      hideAlerts();
+      const el = document.getElementById('reg-error-alert');
+      const txt = document.getElementById('reg-error-text');
+      if (el && txt) {
+        txt.textContent = msg;
+        el.classList.remove('hidden');
+      }
+      setScientistReaction(null, 'error');
+    }
+
+    function showRegisterSuccess(msg) {
+      hideAlerts();
+      const el = document.getElementById('reg-success-alert');
+      const txt = document.getElementById('reg-success-text');
+      if (el && txt) {
+        txt.textContent = msg;
+        el.classList.remove('hidden');
+      }
+      setScientistReaction('cheer', 'success');
+    }
+
+    function setLoginLoading(isLoading) {
+      const btn = document.getElementById('login-submit-btn');
+      const spinner = document.getElementById('login-submit-spinner');
+      const icon = document.getElementById('login-submit-icon');
+      const text = document.getElementById('login-submit-text');
+      const googleBtn = document.getElementById('google-login-btn');
+
+      if (btn) btn.disabled = isLoading;
+      if (googleBtn) googleBtn.disabled = isLoading;
+
+      if (isLoading) {
+        if (spinner) spinner.classList.remove('hidden');
+        if (icon) icon.classList.add('hidden');
+        if (text) text.textContent = 'Sedang Mengesahkan...';
+        setScientistReaction(null, 'submitting');
+      } else {
+        if (spinner) spinner.classList.add('hidden');
+        if (icon) icon.classList.remove('hidden');
+        if (text) text.textContent = 'Log Masuk Sekarang';
+      }
+    }
+
+    function setRegisterLoading(isLoading) {
+      const btn = document.getElementById('reg-submit-btn');
+      const spinner = document.getElementById('reg-submit-spinner');
+      const icon = document.getElementById('reg-submit-icon');
+      const text = document.getElementById('reg-submit-text');
       const googleBtn = document.getElementById('google-register-btn');
-      const googleText = document.getElementById('google-btn-text');
+
+      if (btn) btn.disabled = isLoading;
+      if (googleBtn) googleBtn.disabled = isLoading;
+
+      if (isLoading) {
+        if (spinner) spinner.classList.remove('hidden');
+        if (icon) icon.classList.add('hidden');
+        if (text) text.textContent = 'Sedang Mendaftar Akaun...';
+        setScientistReaction(null, 'submitting');
+      } else {
+        if (spinner) spinner.classList.add('hidden');
+        if (icon) icon.classList.remove('hidden');
+        if (text) text.textContent = 'Daftar Akaun Pelajar';
+      }
+    }
+
+    async function handleGoogleLogin() {
+      if (isGoogleAuthBusy) return;
+      hideAlerts();
+      const googleBtn = document.getElementById('google-login-btn');
+      const googleText = document.getElementById('google-login-text');
       isGoogleAuthBusy = true;
       if (googleBtn) googleBtn.disabled = true;
       if (googleText) googleText.textContent = 'Menghubungkan ke Google...';
+      setScientistReaction(null, 'submitting');
 
       try {
         const canonicalCallback = (window.ARSupabase && typeof window.ARSupabase.getOAuthRedirectUrl === 'function')
@@ -436,75 +1362,208 @@
         isGoogleAuthBusy = false;
         if (googleBtn) googleBtn.disabled = false;
         if (googleText) googleText.textContent = 'Teruskan dengan Google';
-        showError(`Log masuk Google gagal: ${ARSupabase.friendlyError(err)}`);
+        showLoginError(`Log masuk Google tidak berjaya: ${ARSupabase.friendlyError(err)}`);
       }
     }
 
-    // Auto-detect if OAuth redirected back to register page
-    window.addEventListener('DOMContentLoaded', async () => {
+    async function handleGoogleAuth() {
+      if (isGoogleAuthBusy) return;
+      hideAlerts();
+      const googleBtn = document.getElementById('google-register-btn');
+      const googleText = document.getElementById('google-btn-text');
+      isGoogleAuthBusy = true;
+      if (googleBtn) googleBtn.disabled = true;
+      if (googleText) googleText.textContent = 'Menghubungkan ke Google...';
+      setScientistReaction(null, 'submitting');
+
       try {
-        const oauthResult = await ARSupabase.handleOAuthCallback();
-        if (oauthResult && oauthResult.appUser) {
-          AuthGuard.saveUser(oauthResult.appUser, true);
-          if (oauthResult.isAdmin) {
-            localStorage.setItem('arselnelAdmin', 'true');
-            window.location.assign('../admin_dashboard/code.html');
-          } else {
-            window.location.assign('../halaman_utama/code.html');
-          }
-        }
-      } catch (e) {
-        showError(`Pengesahan Google tidak berjaya: ${ARSupabase.friendlyError(e)}`);
+        const canonicalCallback = (window.ARSupabase && typeof window.ARSupabase.getOAuthRedirectUrl === 'function')
+          ? window.ARSupabase.getOAuthRedirectUrl()
+          : `${window.location.origin}/auth/callback.html`;
+        await ARSupabase.signInWithGoogle(canonicalCallback);
+      } catch (err) {
+        isGoogleAuthBusy = false;
+        if (googleBtn) googleBtn.disabled = false;
+        if (googleText) googleText.textContent = 'Teruskan dengan Google';
+        showRegisterError(`Log masuk Google gagal: ${ARSupabase.friendlyError(err)}`);
       }
-    });
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      hideAlerts();
+
+      const identifier = document.getElementById('login-id').value.trim();
+      const password = document.getElementById('login-pass').value;
+
+      setLoginLoading(true);
+
+      if (currentRole === 'admin') {
+        try {
+          const { user: authUser } = await ARSupabase.signIn(identifier.toLowerCase(), password);
+          const client = await ARSupabase.getClient();
+          let isAdmin = false;
+          let isSuperAdmin = false;
+          let userRole = 'teacher';
+
+          if (client) {
+            try {
+              const { data: adminRow } = await client
+                .from('admin_users')
+                .select('role')
+                .eq('user_id', authUser.id)
+                .maybeSingle();
+              if (adminRow) {
+                if (adminRow.role === 'superadmin' || authUser.email.toLowerCase() === 'admin@test.com') {
+                  isAdmin = true;
+                  isSuperAdmin = true;
+                  userRole = 'superadmin';
+                } else if (adminRow.role === 'teacher' || adminRow.role === 'admin') {
+                  isAdmin = true;
+                  userRole = 'teacher';
+                }
+              }
+            } catch (_) {}
+          }
+
+          if (authUser.email.toLowerCase() === 'admin@test.com') {
+            isAdmin = true;
+            isSuperAdmin = true;
+            userRole = 'superadmin';
+          }
+          const meta = authUser.user_metadata || {};
+          if (meta.role === 'admin' || meta.role === 'guru' || meta.role === 'teacher') {
+            isAdmin = true;
+          }
+
+          if (!isAdmin) {
+            showLoginError('Akaun ini tidak mempunyai akses Guru/Pentadbir. Hanya akaun yang didaftarkan dalam senarai pentadbir dibenarkan.');
+            setLoginLoading(false);
+            return;
+          }
+
+          const profile = {
+            id: authUser.id,
+            name: meta.full_name || authUser.email.split('@')[0],
+            nickname: meta.username || (isSuperAdmin ? 'Super Admin' : 'Guru'),
+            email: authUser.email,
+            role: userRole,
+            isSuperAdmin: isSuperAdmin,
+            avatar: '../assets/home/avatar.svg',
+            isDemo: false,
+            authProvider: 'supabase'
+          };
+          AuthGuard.saveUser(profile, true);
+          if (window.Auth && typeof window.Auth.saveCurrentUser === 'function') {
+            window.Auth.saveCurrentUser(profile, true);
+          }
+          localStorage.setItem('arselnelAdmin', 'true');
+          localStorage.setItem('arselnel_superadmin', isSuperAdmin ? 'true' : 'false');
+          showLoginSuccess('Log masuk pentadbir berjaya! Mengalihkan ke Dashboard CMS...');
+          setTimeout(() => location.assign('../admin_dashboard/code.html'), 500);
+          return;
+        } catch (adminErr) {
+          showLoginError(`Log masuk pentadbir tidak berjaya: ${ARSupabase.friendlyError(adminErr)}`);
+          setLoginLoading(false);
+          return;
+        }
+      }
+
+      try {
+        const { user: authUser } = await ARSupabase.signIn(identifier.toLowerCase(), password);
+        const metadata = authUser.user_metadata || {};
+        const profile = {
+          id: authUser.id,
+          name: metadata.full_name || authUser.email.split('@')[0],
+          nickname: metadata.username || '',
+          email: authUser.email,
+          username: metadata.username || authUser.email.split('@')[0],
+          role: 'student',
+          grade: metadata.class_name || 'Tingkatan 1 Al-Farabi',
+          avatar: '../assets/home/avatar.svg',
+          isDemo: false,
+          authProvider: 'supabase'
+        };
+        AuthGuard.saveUser(profile, true);
+
+        try {
+          const savedProfile = await ARSupabase.getProfile();
+          if (savedProfile) {
+            profile.name = savedProfile.full_name || profile.name;
+            profile.nickname = savedProfile.nickname || profile.nickname;
+            profile.grade = savedProfile.class_name || profile.grade;
+            profile.avatar = savedProfile.avatar || profile.avatar;
+            AuthGuard.saveUser(profile, true);
+          }
+        } catch (_) {}
+
+        try { await ARSupabase.hydrateStudentData(); } catch (_) {}
+        try { sessionStorage.removeItem('arselnel_local_migration_source'); } catch (_) {}
+
+        showLoginSuccess('Log masuk berjaya! Selamat datang kembali ke ARSelNel.');
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        setTimeout(() => {
+          if (redirect) {
+            let target;
+            try { target = new URL(redirect, location.href); } catch (_) {}
+            if (target && target.origin === location.origin) location.assign(target.href);
+            else location.assign('../halaman_utama/code.html');
+          } else {
+            location.assign('../halaman_utama/code.html');
+          }
+        }, 500);
+      } catch (error) {
+        showLoginError(ARSupabase.friendlyError(error));
+        setLoginLoading(false);
+      }
+    }
 
     async function handleRegister(e) {
       e.preventDefault();
-      hideError();
-      hideSuccess();
+      hideAlerts();
 
-      // Bot protection honeypot
       const hp = document.getElementById('reg-hp');
       if (hp && hp.value) return;
 
-      // Rate limit protection (minimum 2.5s between clicks)
       const now = Date.now();
       if (now - lastSubmitTime < 2500) {
-        showError('Sila tunggu sebentar sebelum menghantar borang semula.');
+        showRegisterError('Sila tunggu sebentar sebelum menghantar borang semula.');
         return;
       }
       lastSubmitTime = now;
 
       const name = document.getElementById('reg-name').value.trim();
       const email = document.getElementById('reg-email').value.trim().toLowerCase();
-      const username = document.getElementById('reg-username').value.trim().toLowerCase() || email.split('@')[0];
       const grade = document.getElementById('reg-grade').value;
       const pass = document.getElementById('reg-pass').value;
       const passConfirm = document.getElementById('reg-pass-confirm').value;
 
       if (!name || name.length < 2) {
-        showError('Sila masukkan nama penuh pelajar yang sah (sekurang-kurangnya 2 aksara).');
+        showRegisterError('Sila masukkan nama penuh pelajar yang sah (sekurang-kurangnya 2 aksara).');
         return;
       }
 
-      if (!email || !isValidEmail(email)) {
-        showError('Format e-mel tidak sah. Sila masukkan alamat e-mel yang betul (contoh: nama@gmail.com, nama@outlook.com atau e-mel sekolah/institusi).');
+      const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+      if (!email || !emailRegex.test(email)) {
+        showRegisterError('Format e-mel tidak sah. Sila masukkan alamat e-mel yang betul (contoh: nama@gmail.com, nama@outlook.com atau e-mel sekolah/institusi).');
         return;
       }
 
       if (pass.length < 6) {
-        showError('Kata laluan mestilah sekurang-kurangnya 6 aksara demi keselamatan akaun anda.');
+        showRegisterError('Kata laluan mestilah sekurang-kurangnya 6 aksara demi keselamatan akaun anda.');
         return;
       }
 
       if (pass !== passConfirm) {
-        showError('Kata laluan dan sahkan kata laluan tidak sepadan. Sila pastikan kedua-duanya sama.');
+        showRegisterError('Kata laluan dan sahkan kata laluan tidak sepadan. Sila pastikan kedua-duanya sama.');
         return;
       }
 
-      setFormLoading(true);
+      setRegisterLoading(true);
 
       try {
+        const username = email.split('@')[0];
         const result = await ARSupabase.signUp({
           email,
           password: pass,
@@ -513,7 +1572,6 @@
           className: grade
         });
 
-        // Flow when email confirmation is disabled: immediate authenticated session
         if (result.session && result.user) {
           const newUser = {
             id: result.user.id,
@@ -527,27 +1585,114 @@
             avatar: '../assets/home/avatar.svg',
             authProvider: 'supabase'
           };
-          // Persist user session across tab reloads and navigations
           AuthGuard.saveUser(newUser, true);
           try { sessionStorage.removeItem('arselnel_local_migration_source'); } catch (_) {}
-          location.assign('../halaman_utama/code.html');
+          showRegisterSuccess('Akaun berjaya didaftarkan! Mengalihkan ke Halaman Utama...');
+          setTimeout(() => location.assign('../halaman_utama/code.html'), 600);
           return;
         }
 
-        // If email confirmation is still required by the project configuration:
         if (result.user && !result.session) {
-          showSuccess(`Akaun anda telah berjaya dicipta! Sila semak peti masuk e-mel (${email}) dan klik pautan pengesahan untuk mengaktifkan akaun sebelum log masuk.`);
-          setFormLoading(false);
+          showRegisterSuccess(`Akaun anda telah berjaya dicipta! Sila semak e-mel (${email}) dan klik pautan pengesahan untuk mengaktifkan akaun sebelum log masuk.`);
+          setRegisterLoading(false);
           return;
         }
 
-        showError('Pendaftaran tidak dapat diselesaikan. Sila semak maklumat anda dan cuba lagi.');
-        setFormLoading(false);
+        showRegisterError('Pendaftaran tidak dapat diselesaikan. Sila semak maklumat anda dan cuba lagi.');
+        setRegisterLoading(false);
       } catch (error) {
-        showError(ARSupabase.friendlyError(error));
-        setFormLoading(false);
+        showRegisterError(ARSupabase.friendlyError(error));
+        setRegisterLoading(false);
       }
     }
+
+    function loginAsGuest() {
+      AuthGuard.setGuestSession();
+      window.location.href = '../halaman_utama/code.html';
+    }
+
+    function showForgotPasswordPrompt() {
+      const email = prompt('Sila masukkan alamat e-mel akaun anda untuk menerima pautan penetapan semula kata laluan:');
+      if (!email) return;
+      if (window.ARSupabase && typeof window.ARSupabase.resetPasswordForEmail === 'function') {
+        window.ARSupabase.resetPasswordForEmail(email.trim().toLowerCase())
+          .then(() => alert('Pautan penetapan semula kata laluan telah dihantar ke e-mel anda. Sila periksa peti masuk atau folder spam.'))
+          .catch(err => alert('Ralat: ' + (window.ARSupabase ? window.ARSupabase.friendlyError(err) : err.message)));
+      } else {
+        alert('Fungsi tetapan semula kata laluan memerlukan sambungan pelayan aktif.');
+      }
+    }
+
+    function initCharacterInteractions() {
+      const emailInputs = [document.getElementById('login-id'), document.getElementById('reg-email')];
+      const nameInput = document.getElementById('reg-name');
+      const passInputs = [document.getElementById('login-pass'), document.getElementById('reg-pass'), document.getElementById('reg-pass-confirm')];
+
+      emailInputs.forEach(input => {
+        if (!input) return;
+        input.addEventListener('focus', () => setScientistReaction('watch-input', 'email'));
+        input.addEventListener('blur', () => setScientistReaction(null));
+      });
+
+      if (nameInput) {
+        nameInput.addEventListener('focus', () => setScientistReaction('watch-input', 'name'));
+        nameInput.addEventListener('blur', () => setScientistReaction(null));
+      }
+
+      passInputs.forEach(input => {
+        if (!input) return;
+        input.addEventListener('focus', () => setScientistReaction('hide-eyes', 'password'));
+        input.addEventListener('blur', () => setScientistReaction(null));
+      });
+    }
+
+    function triggerEntranceAnimation() {
+      const card = document.getElementById('auth-main-card');
+      const puppet = document.getElementById('scientist-char');
+      
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced || window.innerWidth < 1024) return;
+
+      card.style.animation = 'card-pull-spring 0.95s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+      if (puppet) {
+        puppet.style.animation = 'char-walk-in 0.95s cubic-bezier(0.25, 1, 0.5, 1) forwards, char-idle-bob 3.6s ease-in-out infinite 0.95s';
+      }
+
+      setTimeout(() => {
+        setScientistReaction(null, 'name');
+      }, 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      initCharacterInteractions();
+      triggerEntranceAnimation();
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('mode') === 'login') {
+        toggleAuthMode('login');
+      }
+
+      const isOAuthRedirect = window.location.search.includes('code=') ||
+                              window.location.hash.includes('access_token=') ||
+                              window.location.search.includes('oauth=google');
+      if (isOAuthRedirect) {
+        try {
+          const oauthResult = await ARSupabase.handleOAuthCallback();
+          if (oauthResult && oauthResult.appUser) {
+            showRegisterSuccess('Log masuk Google berjaya! Mengalihkan ke papan pemuka...');
+            AuthGuard.saveUser(oauthResult.appUser, true);
+            if (oauthResult.isAdmin) {
+              localStorage.setItem('arselnelAdmin', 'true');
+              window.location.assign('../admin_dashboard/code.html');
+            } else {
+              window.location.assign('../halaman_utama/code.html');
+            }
+          }
+        } catch (oauthErr) {
+          showRegisterError(`Pengesahan Google gagal: ${ARSupabase.friendlyError(oauthErr)}`);
+        }
+      }
+    });
   </script>
 </body>
 </html>

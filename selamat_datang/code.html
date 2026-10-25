@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 
 <html class="light" lang="ms"><head>
+<script>
+  (function () {
+    try {
+      const rawUser = localStorage.getItem('arselnel_current_user') || sessionStorage.getItem('arselnel_current_user');
+      if (rawUser) {
+        const user = JSON.parse(rawUser);
+        if (user && user.id && user.role) {
+          const isStaff = user.role === 'admin' || user.role === 'superadmin' || user.role === 'teacher' || user.role === 'guru';
+          location.replace(isStaff ? '../admin_dashboard/code.html' : '../halaman_utama/code.html');
+          return;
+        }
+      }
+    } catch (_) {}
+    location.replace('../auth/login.html' + location.search + location.hash);
+  })();
+</script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>ARSelNel - Onboarding</title>

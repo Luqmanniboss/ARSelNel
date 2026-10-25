@@ -43,7 +43,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/", "destination": "/splash_screen/code.html" },
+    { "source": "/", "destination": "/auth/login.html" },
     { "source": "/login", "destination": "/auth/login.html" },
     { "source": "/register", "destination": "/auth/register.html" },
     { "source": "/auth/callback", "destination": "/auth/callback.html" },

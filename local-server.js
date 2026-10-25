@@ -163,7 +163,7 @@ const server = http.createServer(async (req, res) => {
   }
   // Route rewrites mapping (mirroring vercel.json)
   const ROUTE_ALIASES = {
-    '/': 'splash_screen/code.html',
+    '/': 'auth/login.html',
     '/login': 'auth/login.html',
     '/register': 'auth/register.html',
     '/auth/callback': 'auth/callback.html',
