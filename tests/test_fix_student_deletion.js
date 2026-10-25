@@ -95,7 +95,7 @@ const adapterPath = path.join(__dirname, '..', 'assets', 'js', 'cms-content-adap
 const adapterCode = fs.readFileSync(adapterPath, 'utf8');
 
 runTest('3.1 deleteStudentAccount delegates to backend and falls back to RPC', () => {
-  assert(adapterCode.includes('/api/admin/users/delete'), 'Must call serverless endpoint first');
+  assert(adapterCode.includes('/api/admin/users'), 'Must call serverless endpoint first');
   assert(adapterCode.includes("rpc('delete_student_account'"), 'Must call RPC delete_student_account');
 });
 

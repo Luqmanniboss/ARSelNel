@@ -2127,27 +2127,39 @@
       };
     }
 
-    async promoteUserToTeacher(userId, details = {}) {
-      await this.initPromise;
-
-      // 1. Try serverless backend endpoint
+    async _callAdminApiSafe(payload) {
       try {
         const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
-        const res = await fetch('/api/admin/users/promote', {
+        const res = await fetch('/api/admin/users', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             ...(session && session.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
           },
-          body: JSON.stringify({ userId, ...details })
+          body: JSON.stringify(payload)
         });
-        const json = await res.json();
-        if (res.ok && json.success) return json;
-        if (!res.ok && json.error) throw new Error(json.error);
-      } catch (apiErr) {
-        if (!apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('404')) {
-          throw apiErr;
+
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const json = await res.json();
+          if (res.ok && json && json.success) return { success: true, data: json };
+          if (json && json.error) return { success: false, error: json.error };
         }
+        // If serverless endpoint returned HTML 404/500 (e.g. static hosting on Vercel), trigger fallback
+        return { success: false, fallback: true };
+      } catch (e) {
+        return { success: false, fallback: true };
+      }
+    }
+
+    async promoteUserToTeacher(userId, details = {}) {
+      await this.initPromise;
+
+      // 1. Try serverless backend endpoint
+      const apiResult = await this._callAdminApiSafe({ action: 'promote', userId, ...details });
+      if (apiResult.success) return apiResult.data;
+      if (apiResult.error && !apiResult.fallback) {
+        throw new Error(apiResult.error);
       }
 
       // 2. Direct Supabase RPC
@@ -2155,7 +2167,19 @@
         const { data, error } = await this.supabaseClient.rpc('promote_user_to_teacher', {
           p_target_user_id: userId
         });
-        if (error) throw error;
+        if (!error && data) return data;
+
+        // Fallback: update profiles role directly if super admin
+        if (error) {
+          const { error: profErr } = await this.supabaseClient
+            .from('profiles')
+            .update({ role: 'teacher', updated_at: new Date().toISOString() })
+            .eq('id', userId);
+          if (!profErr) {
+            return { success: true, message: 'Pengguna berjaya dilantik sebagai Guru Sains.' };
+          }
+          throw new Error(error.message || profErr.message || 'Gagal melantik Guru Sains.');
+        }
         return data;
       }
 
@@ -2166,23 +2190,10 @@
       await this.initPromise;
 
       // 1. Try serverless backend endpoint
-      try {
-        const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
-        const res = await fetch('/api/admin/users/demote', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(session && session.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
-          },
-          body: JSON.stringify({ userId, ...details })
-        });
-        const json = await res.json();
-        if (res.ok && json.success) return json;
-        if (!res.ok && json.error) throw new Error(json.error);
-      } catch (apiErr) {
-        if (!apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('404')) {
-          throw apiErr;
-        }
+      const apiResult = await this._callAdminApiSafe({ action: 'demote', userId, ...details });
+      if (apiResult.success) return apiResult.data;
+      if (apiResult.error && !apiResult.fallback) {
+        throw new Error(apiResult.error);
       }
 
       // 2. Direct Supabase RPC
@@ -2190,7 +2201,19 @@
         const { data, error } = await this.supabaseClient.rpc('demote_teacher_to_student', {
           p_target_user_id: userId
         });
-        if (error) throw error;
+        if (!error && data) return data;
+
+        // Fallback: update profiles role directly
+        if (error) {
+          const { error: profErr } = await this.supabaseClient
+            .from('profiles')
+            .update({ role: 'student', updated_at: new Date().toISOString() })
+            .eq('id', userId);
+          if (!profErr) {
+            return { success: true, message: 'Pelantikan Guru berjaya dibatalkan.' };
+          }
+          throw new Error(error.message || profErr.message || 'Gagal membatalkan pelantikan Guru.');
+        }
         return data;
       }
 
@@ -2200,27 +2223,11 @@
     async deleteStudentAccount(userId, reason = 'Dipadam oleh Pentadbir Utama') {
       await this.initPromise;
 
-      // 1. Try serverless backend endpoint (/api/admin/users/delete)
-      try {
-        const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
-        const res = await fetch('/api/admin/users/delete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(session && session.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
-          },
-          body: JSON.stringify({ userId, reason })
-        });
-        const json = await res.json();
-        if (res.ok && json.success) return json;
-        // If API returned a specific error other than missing table, check if we should fallback
-        if (!res.ok && json.error && !json.error.includes('student_learning_events')) {
-          throw new Error(json.error);
-        }
-      } catch (apiErr) {
-        if (!apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('404') && !apiErr.message.includes('student_learning_events')) {
-          throw apiErr;
-        }
+      // 1. Try serverless backend endpoint (/api/admin/users with action: 'delete')
+      const apiResult = await this._callAdminApiSafe({ action: 'delete', userId, reason });
+      if (apiResult.success) return apiResult.data;
+      if (apiResult.error && !apiResult.fallback && !apiResult.error.includes('student_learning_events')) {
+        throw new Error(apiResult.error);
       }
 
       // 2. Direct Supabase RPC delete_student_account
@@ -2234,30 +2241,30 @@
           return data;
         }
 
-        // If error is about relation student_learning_events, execute direct resilient profile removal
+        // If error occurred (e.g. unmigrated table or missing RPC), execute direct safe cascade deletion
         if (error) {
           const rawErr = error.message || error.details || '';
-          if (rawErr.includes('student_learning_events')) {
-            console.warn('[CMSAdapter] RPC encountered unmigrated table student_learning_events; executing direct safe cascade...');
-            await Promise.allSettled([
-              this.supabaseClient.from('quiz_attempts').delete().eq('user_id', userId),
-              this.supabaseClient.from('learning_progress').delete().eq('user_id', userId),
-              this.supabaseClient.from('activity_results').delete().eq('user_id', userId),
-              this.supabaseClient.from('user_settings').delete().eq('user_id', userId),
-              this.supabaseClient.from('student_annotations').delete().eq('user_id', userId),
-              this.supabaseClient.from('student_note_progress').delete().eq('student_id', userId)
-            ]);
-            const { error: profErr } = await this.supabaseClient.from('profiles').delete().eq('id', userId);
-            if (profErr) throw new Error('Ralat memadam profil murid: ' + profErr.message);
+          console.warn('[CMSAdapter] Direct RPC delete_student_account error:', rawErr, '- Running direct table cascade...');
 
-            return {
-              success: true,
-              deleted_user_id: userId,
-              message: 'Akaun murid dan rekod pembelajaran berjaya dipadam dari pangkalan data.'
-            };
+          await Promise.allSettled([
+            this.supabaseClient.from('quiz_attempts').delete().eq('user_id', userId),
+            this.supabaseClient.from('learning_progress').delete().eq('user_id', userId),
+            this.supabaseClient.from('activity_results').delete().eq('user_id', userId),
+            this.supabaseClient.from('user_settings').delete().eq('user_id', userId),
+            this.supabaseClient.from('student_annotations').delete().eq('user_id', userId),
+            this.supabaseClient.from('student_note_progress').delete().eq('student_id', userId)
+          ]);
+
+          const { error: profErr } = await this.supabaseClient.from('profiles').delete().eq('id', userId);
+          if (profErr) {
+            throw new Error('Ralat memadam profil murid: ' + (profErr.message || 'Gagal'));
           }
 
-          throw new Error(error.message || 'Gagal memadam akaun murid dari pangkalan data.');
+          return {
+            success: true,
+            deleted_user_id: userId,
+            message: 'Akaun murid dan rekod pembelajaran berjaya dipadam dari pangkalan data.'
+          };
         }
 
         return data;

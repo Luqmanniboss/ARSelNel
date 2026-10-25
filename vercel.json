@@ -43,6 +43,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/admin/users/:path*", "destination": "/api/admin/users" },
     { "source": "/", "destination": "/auth/login.html" },
     { "source": "/login", "destination": "/auth/login.html" },
     { "source": "/register", "destination": "/auth/register.html" },
