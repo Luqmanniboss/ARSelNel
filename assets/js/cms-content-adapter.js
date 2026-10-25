@@ -2223,54 +2223,32 @@
     async deleteStudentAccount(userId, reason = 'Dipadam oleh Pentadbir Utama') {
       await this.initPromise;
 
-      // 1. Try serverless backend endpoint (/api/admin/users with action: 'delete')
-      const apiResult = await this._callAdminApiSafe({ action: 'delete', userId, reason });
-      if (apiResult.success) return apiResult.data;
-      if (apiResult.error && !apiResult.fallback && !apiResult.error.includes('student_learning_events')) {
-        throw new Error(apiResult.error);
+      if (!this.supabaseClient || this.connectionStatus !== 'connected') {
+        throw new Error('Tidak dapat menyambung ke pangkalan data Supabase.');
       }
 
-      // 2. Direct Supabase RPC delete_student_account
-      if (this.supabaseClient && this.connectionStatus === 'connected') {
-        const { data, error } = await this.supabaseClient.rpc('delete_student_account', {
-          p_target_user_id: userId,
-          p_reason: reason
-        });
+      // 1. Direct Supabase RPC delete_student_account (Primary, Atomic & Secure)
+      const { data, error } = await this.supabaseClient.rpc('delete_student_account', {
+        p_target_user_id: userId,
+        p_reason: reason
+      });
 
-        if (!error && data && data.success) {
-          return data;
-        }
-
-        // If error occurred (e.g. unmigrated table or missing RPC), execute direct safe cascade deletion
-        if (error) {
-          const rawErr = error.message || error.details || '';
-          console.warn('[CMSAdapter] Direct RPC delete_student_account error:', rawErr, '- Running direct table cascade...');
-
-          await Promise.allSettled([
-            this.supabaseClient.from('quiz_attempts').delete().eq('user_id', userId),
-            this.supabaseClient.from('learning_progress').delete().eq('user_id', userId),
-            this.supabaseClient.from('activity_results').delete().eq('user_id', userId),
-            this.supabaseClient.from('user_settings').delete().eq('user_id', userId),
-            this.supabaseClient.from('student_annotations').delete().eq('user_id', userId),
-            this.supabaseClient.from('student_note_progress').delete().eq('student_id', userId)
-          ]);
-
-          const { error: profErr } = await this.supabaseClient.from('profiles').delete().eq('id', userId);
-          if (profErr) {
-            throw new Error('Ralat memadam profil murid: ' + (profErr.message || 'Gagal'));
-          }
-
-          return {
-            success: true,
-            deleted_user_id: userId,
-            message: 'Akaun murid dan rekod pembelajaran berjaya dipadam dari pangkalan data.'
-          };
-        }
-
+      if (!error && data && data.success) {
         return data;
       }
 
-      throw new Error('Tidak dapat menghubungi perkhidmatan pangkalan data.');
+      // If RPC returned an error, report the real message to the user (Never disguise failure as success)
+      if (error) {
+        console.error('[CMSAdapter] RPC delete_student_account failed:', error);
+        const errorMsg = error.message || error.details || error.hint || 'Ralat tidak diketahui semasa memadam akaun murid.';
+        throw new Error(errorMsg);
+      }
+
+      if (data && !data.success) {
+        throw new Error(data.message || data.error || 'Operasi pemadaman akaun murid gagal.');
+      }
+
+      return data || { success: true };
     }
 
     // =========================================================================

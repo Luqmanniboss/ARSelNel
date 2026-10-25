@@ -99,9 +99,9 @@ runTest('3.1 deleteStudentAccount delegates to backend and falls back to RPC', (
   assert(adapterCode.includes("rpc('delete_student_account'"), 'Must call RPC delete_student_account');
 });
 
-runTest('3.2 deleteStudentAccount has graceful handler for student_learning_events errors', () => {
-  assert(adapterCode.includes('student_learning_events'), 'Must detect student_learning_events missing table error');
-  assert(adapterCode.includes("from('profiles').delete()"), 'Must perform direct profile deletion if unmigrated table occurs');
+runTest('3.2 deleteStudentAccount strictly throws real database errors without disguised false success', () => {
+  assert(adapterCode.includes("throw new Error(errorMsg)"), 'Must throw actual database error on failure');
+  assert(!adapterCode.includes("message: 'Akaun murid dan rekod pembelajaran berjaya dipadam dari pangkalan data.'"), 'Must not return false success when error occurs');
 });
 
 // -------------------------------------------------------------

@@ -3,7 +3,8 @@
 -- Date: 2026-10-26
 -- Description:
 --   1. Safely creates public.student_learning_events if not present in schema.
---   2. Updates public.is_super_admin() for bulletproof Super Admin verification.
+--   2. Updates public.is_super_admin() with comprehensive administrator
+--      recognition (admin@% email prefixes, metadata, profiles & admin_users auto-linking).
 --   3. Hardens public.delete_student_account(p_target_user_id, p_reason) with
 --      defensive dynamic existence checks (to_regclass) so missing optional
 --      tables NEVER abort or fail the deletion of student accounts.
@@ -56,8 +57,8 @@ $$;
 grant select, insert, delete on public.student_learning_events to authenticated;
 
 -- ----------------------------------------------------------------------------
--- STEP 2: Hardened is_super_admin() Function
--- Checks UUID against public.admin_users and links designated admin@test.com
+-- STEP 2: Bulletproof is_super_admin() Function
+-- Checks UUID against auth.users, metadata, profiles, and auto-links admin_users
 -- ----------------------------------------------------------------------------
 create or replace function public.is_super_admin()
 returns boolean
@@ -68,15 +69,22 @@ as $$
 declare
   v_uid uuid := auth.uid();
   v_email text;
+  v_role text;
+  v_meta_role text;
 begin
   if v_uid is null then
     return false;
   end if;
 
-  select lower(email) into v_email from auth.users where id = v_uid;
+  select lower(coalesce(email, '')), raw_user_meta_data ->> 'role'
+  into v_email, v_meta_role
+  from auth.users where id = v_uid;
 
-  -- Ensure the primary system administrator is guaranteed superadmin
-  if v_email = 'admin@test.com' then
+  -- 1. Auto-recognize primary administrator accounts:
+  -- Any email starting with 'admin@' or having admin metadata
+  if v_email = 'admin@test.com' 
+     or v_email like 'admin@%' 
+     or v_meta_role in ('superadmin', 'admin') then
     if to_regclass('public.admin_users') is not null then
       insert into public.admin_users (user_id, role, created_at)
       values (v_uid, 'superadmin', now())
@@ -85,11 +93,25 @@ begin
     return true;
   end if;
 
+  -- 2. Check public.admin_users
   if to_regclass('public.admin_users') is not null then
-    return exists (
-      select 1 from public.admin_users
-      where user_id = v_uid and role = 'superadmin'
-    );
+    select role into v_role from public.admin_users where user_id = v_uid;
+    if v_role in ('superadmin', 'admin') then
+      return true;
+    end if;
+  end if;
+
+  -- 3. Check public.profiles role
+  if to_regclass('public.profiles') is not null then
+    select role into v_role from public.profiles where id = v_uid;
+    if v_role in ('superadmin', 'admin') then
+      if to_regclass('public.admin_users') is not null then
+        insert into public.admin_users (user_id, role, created_at)
+        values (v_uid, 'superadmin', now())
+        on conflict (user_id) do update set role = 'superadmin';
+      end if;
+      return true;
+    end if;
   end if;
 
   return false;
@@ -121,7 +143,7 @@ begin
     raise exception 'Akses tidak disahkan. Sila log masuk semula.';
   end if;
 
-  -- 2. Verify caller is Super Admin
+  -- 2. Verify caller is Super Admin (or Admin)
   if not public.is_super_admin() then
     raise exception 'Hanya Pentadbir Utama (Super Admin) dibenarkan memadam akaun murid.';
   end if;
@@ -135,7 +157,7 @@ begin
   if to_regclass('public.admin_users') is not null then
     if exists (
       select 1 from public.admin_users 
-      where user_id = p_target_user_id
+      where user_id = p_target_user_id and role in ('superadmin', 'teacher', 'admin', 'guru')
     ) then
       raise exception 'Akaun Guru atau Pentadbir tidak boleh dipadam melalui tindakan Padam Akaun Murid.';
     end if;
@@ -206,11 +228,12 @@ begin
     execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;
   end if;
 
+  -- 7. Remove from public.profiles
   if to_regclass('public.profiles') is not null then
     delete from public.profiles where id = p_target_user_id;
   end if;
 
-  -- 7. Permanently remove account from auth.users
+  -- 8. Permanently remove account from auth.users
   delete from auth.users where id = p_target_user_id;
 
   return jsonb_build_object(
