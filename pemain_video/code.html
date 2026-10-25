@@ -265,30 +265,43 @@
     </div>
 
     <!-- Video Player Section -->
-    <section id="player-container" class="relative aspect-video w-full bg-black group overflow-hidden shadow-lg lg:rounded-3xl">
-      <!-- Video Placeholder -->
-      <div id="video-placeholder" class="absolute inset-0 w-full h-full bg-center bg-cover" style="background-image: url('https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1200')"></div>
-      <!-- Play Overlay -->
-      <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-all cursor-pointer" id="playOverlay">
-        <div class="w-16 h-16 md:w-20 md:h-20 bg-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-transform">
-          <span class="material-symbols-outlined !text-4xl md:!text-5xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+    <section id="player-container" class="relative aspect-video w-full bg-slate-950 group overflow-hidden shadow-lg lg:rounded-3xl flex items-center justify-center border border-slate-800">
+      <!-- Loading Skeleton for Video Player -->
+      <div id="player-loading-skeleton" class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white animate-pulse">
+        <div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-orange-500/20 border border-orange-400/30 flex items-center justify-center text-orange-400 mb-3 shadow-lg">
+          <span class="material-symbols-outlined !text-4xl animate-spin" style="animation-duration: 2s;">progress_activity</span>
         </div>
+        <span class="text-xs sm:text-sm font-headline font-bold text-orange-200 tracking-wide">Memuatkan Pemain Video Sains...</span>
+        <span class="text-[11px] text-slate-400 mt-1">Mengambil strim video daripada pelayan</span>
       </div>
     </section>
 
     <!-- Content Area -->
-    <div class="px-margin-mobile mt-stack-lg animate-fade-in">
-      <div class="flex flex-col gap-3">
+    <div id="video-content-section" class="px-margin-mobile mt-stack-lg animate-fade-in">
+      <!-- Loading Skeleton for Video Info -->
+      <div id="video-info-skeleton" class="flex flex-col gap-3 animate-pulse">
+        <div class="flex items-center gap-2">
+          <div class="h-6 w-24 bg-orange-100/80 rounded-full"></div>
+          <div class="h-4 w-28 bg-slate-200 rounded"></div>
+        </div>
+        <div class="h-8 w-3/4 sm:w-1/2 bg-slate-200 rounded-lg"></div>
+        <div class="p-5 bg-white rounded-2xl border border-slate-100 space-y-2">
+          <div class="h-3 w-28 bg-slate-200 rounded"></div>
+          <div class="h-4 w-full bg-slate-100 rounded"></div>
+          <div class="h-4 w-4/5 bg-slate-100 rounded"></div>
+        </div>
+      </div>
+
+      <!-- Real Video Meta Container (Injected dynamically) -->
+      <div id="video-info-real" class="hidden flex-col gap-3">
         <div class="flex items-center gap-2 flex-wrap">
           <span id="video-category" class="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-200/80">Biologi Sel</span>
           <span class="text-slate-500 text-xs font-semibold">Tingkatan 1 KSSM</span>
         </div>
-        <h1 id="video-title" class="font-headline text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Struktur Sel Haiwan</h1>
+        <h1 id="video-title" class="font-headline text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight"></h1>
         <div class="p-5 bg-white rounded-2xl border border-slate-100 shadow-xs">
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Penerangan Video</h2>
-          <p id="video-description" class="text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-line break-words">
-            Penerangan ringkas tentang video pembelajaran.
-          </p>
+          <p id="video-description" class="text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-line break-words"></p>
         </div>
       </div>
     </div>
@@ -300,13 +313,35 @@
         <p class="text-xs md:text-sm text-slate-500 mt-0.5">Pilih video pembelajaran Sains Tingkatan 1 seterusnya untuk ditonton</p>
       </div>
       <div id="related-videos-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <!-- Rendered dynamically -->
+        <!-- Skeleton for related videos -->
+        <div class="bg-white rounded-2xl overflow-hidden border border-orange-100/90 animate-pulse">
+          <div class="aspect-video w-full bg-slate-200"></div>
+          <div class="p-4 space-y-2">
+            <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+          </div>
+        </div>
+        <div class="hidden sm:block bg-white rounded-2xl overflow-hidden border border-orange-100/90 animate-pulse">
+          <div class="aspect-video w-full bg-slate-200"></div>
+          <div class="p-4 space-y-2">
+            <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+          </div>
+        </div>
+        <div class="hidden lg:block bg-white rounded-2xl overflow-hidden border border-orange-100/90 animate-pulse">
+          <div class="aspect-video w-full bg-slate-200"></div>
+          <div class="p-4 space-y-2">
+            <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
   <script>
     let activeVideo = null;
     let cachedVideos = [];
+    let currentLoadRequestId = 0;
 
     function escapeHtml(str) {
       return String(str || '').replace(/[&<>"']/g, c => ({
@@ -321,17 +356,60 @@
       return (match && match[2].length === 11) ? match[2] : null;
     }
 
+    function showLoadingSkeleton() {
+      const container = document.getElementById('player-container');
+      if (container) {
+        container.innerHTML = `
+          <div id="player-loading-skeleton" class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white animate-pulse">
+            <div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-orange-500/20 border border-orange-400/30 flex items-center justify-center text-orange-400 mb-3 shadow-lg">
+              <span class="material-symbols-outlined !text-4xl animate-spin" style="animation-duration: 2s;">progress_activity</span>
+            </div>
+            <span class="text-xs sm:text-sm font-headline font-bold text-orange-200 tracking-wide">Memuatkan Pemain Video Sains...</span>
+            <span class="text-[11px] text-slate-400 mt-1">Mengambil strim video daripada pelayan</span>
+          </div>
+        `;
+      }
+
+      const infoSkeleton = document.getElementById('video-info-skeleton');
+      const infoReal = document.getElementById('video-info-real');
+      if (infoSkeleton) infoSkeleton.classList.remove('hidden');
+      if (infoReal) {
+        infoReal.classList.add('hidden');
+        infoReal.classList.remove('flex');
+      }
+
+      const relContainer = document.getElementById('related-videos-container');
+      if (relContainer) {
+        relContainer.innerHTML = `
+          <div class="bg-white rounded-2xl overflow-hidden border border-orange-100/90 animate-pulse">
+            <div class="aspect-video w-full bg-slate-200"></div>
+            <div class="p-4 space-y-2">
+              <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+              <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+            </div>
+          </div>
+          <div class="hidden sm:block bg-white rounded-2xl overflow-hidden border border-orange-100/90 animate-pulse">
+            <div class="aspect-video w-full bg-slate-200"></div>
+            <div class="p-4 space-y-2">
+              <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+              <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+            </div>
+          </div>
+          <div class="hidden lg:block bg-white rounded-2xl overflow-hidden border border-orange-100/90 animate-pulse">
+            <div class="aspect-video w-full bg-slate-200"></div>
+            <div class="p-4 space-y-2">
+              <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+              <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     function renderPlayer(video) {
       if (!video) return;
       activeVideo = video;
       document.title = `${video.title} - Video Pembelajaran | ARSelNel`;
-      
-      const catEl = document.getElementById('video-category');
-      if (catEl) catEl.textContent = video.category || 'Biologi Sel';
-      const titleEl = document.getElementById('video-title');
-      if (titleEl) titleEl.textContent = video.title;
-      const descEl = document.getElementById('video-description');
-      if (descEl) descEl.textContent = video.description || 'Tiada penerangan tambahan untuk video ini.';
 
       const container = document.getElementById('player-container');
       if (!container) return;
@@ -361,7 +439,58 @@
             Pelayar anda tidak menyokong tag video HTML5.
           </video>
         `;
+      } else {
+        container.innerHTML = `
+          <div class="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-300 p-6 text-center">
+            <span class="material-symbols-outlined text-4xl text-amber-400 mb-2">videocam_off</span>
+            <p class="font-bold text-sm">Pautan video tidak sah atau sedang diselenggara.</p>
+          </div>
+        `;
       }
+    }
+
+    function renderVideoMeta(video) {
+      const infoSkeleton = document.getElementById('video-info-skeleton');
+      const infoReal = document.getElementById('video-info-real');
+      
+      const catEl = document.getElementById('video-category');
+      if (catEl) catEl.textContent = video.category || 'Biologi Sel';
+      
+      const titleEl = document.getElementById('video-title');
+      if (titleEl) titleEl.textContent = video.title;
+      
+      const descEl = document.getElementById('video-description');
+      if (descEl) descEl.textContent = video.description || 'Tiada penerangan tambahan untuk video ini.';
+
+      if (infoSkeleton) infoSkeleton.classList.add('hidden');
+      if (infoReal) {
+        infoReal.classList.remove('hidden');
+        infoReal.classList.add('flex');
+      }
+    }
+
+    function renderLockedPlayer(video) {
+      const container = document.getElementById('player-container');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center text-white p-6 text-center">
+          <div class="w-16 h-16 rounded-3xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 mb-3 shadow-xl">
+            <span class="material-symbols-outlined text-3xl font-bold">lock</span>
+          </div>
+          <h2 class="font-headline font-bold text-lg text-white mb-1">Akses Video Terhad untuk Tetamu</h2>
+          <p class="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed mb-4">
+            Video ini dikhaskan untuk pelajar berdaftar. Sila log masuk atau cipta akaun percuma untuk menonton semua siri video pembelajaran sains!
+          </p>
+          <div class="flex gap-3">
+            <a href="../auth/login.html" class="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all">
+              Log Masuk / Daftar
+            </a>
+            <a href="../perpustakaan_video/code.html" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all">
+              Kembali ke Senarai
+            </a>
+          </div>
+        </div>
+      `;
     }
 
     function selectRelatedVideo(id) {
@@ -369,15 +498,9 @@
       url.searchParams.set('id', id);
       url.searchParams.delete('video');
       window.history.pushState({}, '', url);
-      
-      const selected = cachedVideos.find(v => v.id === id);
-      if (selected) {
-        renderPlayer(selected);
-        renderRelatedVideos(cachedVideos, selected);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        loadVideoPage();
-      }
+
+      loadVideoPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function renderRelatedVideos(allVideos, currentVideo) {
@@ -396,7 +519,9 @@
         return;
       }
 
-      relContainer.innerHTML = related.map(v => {
+      const isGuestUser = window.AuthGuard && window.AuthGuard.isGuest();
+
+      relContainer.innerHTML = related.map((v) => {
         let thumb = (v.thumbnail || '').trim();
         const ytId = extractYouTubeId(v.url);
         if ((!thumb || thumb.includes('images.unsplash.com')) && ytId) {
@@ -406,12 +531,24 @@
           thumb = 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600';
         }
 
+        const videoIndex = allVideos.findIndex(item => item.id === v.id);
+        const isLocked = isGuestUser && (videoIndex > 0);
+
         const durationBadge = (v.duration && v.duration !== '05:00')
           ? `<span class="absolute bottom-2.5 right-2.5 bg-black/75 text-white text-[11px] font-bold font-mono px-2 py-0.5 rounded-lg backdrop-blur-xs">${escapeHtml(v.duration)}</span>`
           : '';
 
+        const lockBadge = isLocked ? `
+          <div class="absolute inset-0 bg-slate-950/65 backdrop-blur-[1px] flex items-center justify-center text-amber-300">
+            <div class="flex items-center gap-1 bg-black/60 px-2.5 py-1 rounded-full border border-amber-400/30 text-[10px] font-bold">
+              <span class="material-symbols-outlined text-xs">lock</span>
+              <span>Khas Pelajar</span>
+            </div>
+          </div>
+        ` : '';
+
         return `
-          <div onclick="selectRelatedVideo('${escapeHtml(v.id)}')" class="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-orange-200/80 hover:border-orange-500 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+          <div onclick="handleRelatedClick('${escapeHtml(v.id)}', '${escapeHtml(v.title)}', ${isLocked})" class="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-orange-200/80 hover:border-orange-500 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
             <div>
               <div class="relative aspect-video w-full bg-slate-900 overflow-hidden">
                 <img src="${escapeHtml(thumb)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${escapeHtml(v.title)}" loading="lazy" />
@@ -421,6 +558,7 @@
                   </div>
                 </div>
                 ${durationBadge}
+                ${lockBadge}
               </div>
               <div class="p-4">
                 <div class="flex items-center gap-2 mb-2">
@@ -445,50 +583,92 @@
       }).join('');
     }
 
+    function handleRelatedClick(videoId, videoTitle, isLocked) {
+      if (isLocked && window.AuthGuard && window.AuthGuard.isGuest()) {
+        window.AuthGuard.showGuestLimitModal(
+          `Video: ${videoTitle}`,
+          'Sebagai pengguna <strong>Mod Tetamu</strong>, anda hanya dibenarkan menonton 1 video pengenalan. Sila daftar akaun percuma untuk membuka semua video dan animasi 3D pembelajaran sains!'
+        );
+        return;
+      }
+      selectRelatedVideo(videoId);
+    }
+
     async function loadVideoPage() {
+      const thisRequestId = ++currentLoadRequestId;
+      showLoadingSkeleton();
+
       const params = new URLSearchParams(window.location.search);
       const targetId = params.get('id');
       const targetIndex = parseInt(params.get('video') || '1', 10);
 
-      let allVideos = [];
-      if (window.CMSAdapter) {
-        try {
-          allVideos = await window.CMSAdapter.getVideos({ status: 'published' });
-        } catch (e) {
-          console.warn('CMSAdapter video load notice:', e);
-        }
+      if (!window.CMSAdapter) {
+        setTimeout(() => {
+          if (thisRequestId === currentLoadRequestId) loadVideoPage();
+        }, 100);
+        return;
       }
 
-      cachedVideos = allVideos;
+      let allVideos = [];
+      try {
+        allVideos = await window.CMSAdapter.getVideos({ status: 'published' });
+      } catch (e) {
+        console.warn('CMSAdapter video load notice:', e);
+      }
+
+      if (thisRequestId !== currentLoadRequestId) return;
+
+      cachedVideos = Array.isArray(allVideos) ? allVideos : [];
 
       let selected = null;
-      if (Array.isArray(allVideos) && allVideos.length > 0) {
+      if (cachedVideos.length > 0) {
         if (targetId) {
-          selected = allVideos.find(v => v.id === targetId);
+          selected = cachedVideos.find(v => v.id === targetId);
         }
-        if (!selected && targetIndex >= 1 && targetIndex <= allVideos.length) {
-          selected = allVideos[targetIndex - 1];
+        if (!selected && targetIndex >= 1 && targetIndex <= cachedVideos.length) {
+          selected = cachedVideos[targetIndex - 1];
         }
         if (!selected) {
-          selected = allVideos[0];
+          selected = cachedVideos[0];
         }
       }
 
       if (selected) {
-        renderPlayer(selected);
-        renderRelatedVideos(allVideos, selected);
-      }
+        const isGuest = window.AuthGuard && window.AuthGuard.isGuest();
+        const videoIndex = cachedVideos.findIndex(v => v.id === selected.id);
 
-      // Play overlay click fallback
-      const playOverlay = document.getElementById('playOverlay');
-      if (playOverlay) {
-        playOverlay.addEventListener('click', () => {
-          if (selected) {
-            renderPlayer(selected);
-          } else {
-            playOverlay.style.display = 'none';
-          }
-        });
+        renderVideoMeta(selected);
+        renderRelatedVideos(cachedVideos, selected);
+
+        if (isGuest && videoIndex > 0) {
+          renderLockedPlayer(selected);
+          window.AuthGuard.showGuestLimitModal(
+            `Video: ${selected.title}`,
+            'Sebagai pengguna <strong>Mod Tetamu</strong>, anda hanya dibenarkan menonton 1 video pengenalan. Sila daftar akaun percuma untuk membuka semua video dan animasi 3D pembelajaran sains!'
+          );
+        } else {
+          renderPlayer(selected);
+        }
+      } else {
+        // Video tidak dijumpai atau pangkalan data tiada video
+        const container = document.getElementById('player-container');
+        if (container) {
+          container.innerHTML = `
+            <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white p-6 text-center">
+              <span class="material-symbols-outlined text-5xl text-amber-400 mb-2">videocam_off</span>
+              <h2 class="font-headline font-bold text-lg mb-1">Video Tidak Ditemui</h2>
+              <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mb-4">
+                Video yang anda pilih tidak wujud dalam pangkalan data atau telah dinyahterbitkan oleh pentadbir.
+              </p>
+              <a href="../perpustakaan_video/code.html" class="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                <span>Kembali ke Senarai Video</span>
+              </a>
+            </div>
+          `;
+        }
+        const infoSkeleton = document.getElementById('video-info-skeleton');
+        if (infoSkeleton) infoSkeleton.classList.add('hidden');
       }
     }
 
@@ -578,15 +758,9 @@
 
     // Touch micro-interactions feedback
     document.querySelectorAll('a, button, [onclick]').forEach(el => {
-      el.addEventListener('mousedown', () => {
-        el.classList.add('scale-98');
-      });
-      el.addEventListener('mouseup', () => {
-        el.classList.remove('scale-98');
-      });
-      el.addEventListener('mouseleave', () => {
-        el.classList.remove('scale-98');
-      });
+      el.addEventListener('mousedown', () => el.classList.add('scale-98'));
+      el.addEventListener('mouseup', () => el.classList.remove('scale-98'));
+      el.addEventListener('mouseleave', () => el.classList.remove('scale-98'));
     });
 
     // Scroll effect for header shadow
@@ -598,37 +772,6 @@
       } else {
         header.classList.remove('shadow-md', 'border-slate-200');
         header.classList.add('border-slate-100');
-      }
-    });
-
-    // Guest Mode restriction handler
-    window.addEventListener('DOMContentLoaded', () => {
-      if (window.AuthGuard && window.AuthGuard.isGuest()) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoId = parseInt(urlParams.get('video') || '1', 10);
-        
-        if (videoId > 1) {
-          window.AuthGuard.showGuestLimitModal(
-            'Video Pembelajaran Lanjutan',
-            'Sebagai pengguna <strong>Mod Tetamu</strong>, anda hanya dibenarkan menonton 1 video pengenalan. Sila log masuk atau daftar akaun percuma untuk menonton semua siri video biologi sains!'
-          );
-          setTimeout(() => {
-            window.location.href = '../perpustakaan_video/code.html';
-          }, 3500);
-        }
-
-        // Intercept related / up-next videos
-        const relatedVideos = document.querySelectorAll('section.mt-12 [onclick]');
-        relatedVideos.forEach(el => {
-          el.removeAttribute('onclick');
-          el.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.AuthGuard.showGuestLimitModal(
-              'Siri Video Lanjutan',
-              'Sila daftar akaun percuma untuk membuka semua video lanjutan dan penerangan mendalam dalam modul ini!'
-            );
-          });
-        });
       }
     });
   </script>

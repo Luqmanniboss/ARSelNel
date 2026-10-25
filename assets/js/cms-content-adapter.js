@@ -882,6 +882,7 @@
     async getVideos(filters = {}) {
       await this.initPromise;
       let videos = [];
+      const allowDemo = filters.allowDemoFallback === true;
 
       if (this.supabaseClient && this.connectionStatus === 'connected') {
         try {
@@ -906,27 +907,87 @@
               displayOrder: r.display_order,
               createdAt: r.created_at
             }));
-            localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
+            
+            // Simpan cache video terkini
+            if (!filters.status || filters.status === 'all') {
+              localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
+            } else if (filters.status === 'published') {
+              localStorage.setItem('arselnel_cms_videos_published', JSON.stringify(videos));
+            }
             return videos;
+          } else if (error) {
+            console.warn('[CMSAdapter] Supabase getVideos returned error:', error);
           }
         } catch (e) {
-          console.warn('[CMSAdapter] Remote getVideos error; using local cache.', e);
+          console.warn('[CMSAdapter] Remote getVideos error; checking local fallback.', e);
         }
       }
 
+      // Local fallback jika Supabase belum disambungkan atau luar talian
       try {
-        const cached = localStorage.getItem(STORAGE_KEYS.VIDEOS);
-        if (cached) videos = JSON.parse(cached);
+        const cacheKey = (filters.status === 'published') ? 'arselnel_cms_videos_published' : STORAGE_KEYS.VIDEOS;
+        const cached = localStorage.getItem(cacheKey) || localStorage.getItem(STORAGE_KEYS.VIDEOS);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) {
+            videos = parsed;
+          }
+        }
       } catch (_) {}
 
-      if (!Array.isArray(videos) || videos.length === 0) {
-        videos = BUNDLED_SEEDS.videos.slice();
+      // Tapis status jika perlu
+      if (Array.isArray(videos) && filters.status && filters.status !== 'all') {
+        videos = videos.filter(v => (v.publicationStatus || v.status) === filters.status);
       }
 
-      if (filters.status && filters.status !== 'all') {
-        videos = videos.filter(v => v.publicationStatus === filters.status);
+      // HANYA gunakan BUNDLED_SEEDS jika secara eksplisit dibenarkan (cth: mod demo standalone)
+      if ((!Array.isArray(videos) || videos.length === 0) && allowDemo) {
+        videos = BUNDLED_SEEDS.videos.slice();
+        if (filters.status && filters.status !== 'all') {
+          videos = videos.filter(v => (v.publicationStatus || v.status) === filters.status);
+        }
       }
-      return videos;
+
+      return Array.isArray(videos) ? videos : [];
+    }
+
+    async getVideoById(id) {
+      await this.initPromise;
+      if (!id) return null;
+
+      if (this.supabaseClient && this.connectionStatus === 'connected') {
+        try {
+          const { data, error } = await this.supabaseClient
+            .from('cms_videos')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+
+          if (!error && data) {
+            return {
+              id: data.id,
+              title: data.title,
+              category: data.category,
+              url: data.url,
+              thumbnail: data.thumbnail,
+              duration: data.duration,
+              instructor: data.instructor,
+              description: data.description,
+              views: data.views,
+              publicationStatus: data.publication_status,
+              status: data.publication_status || 'published',
+              displayOrder: data.display_order,
+              createdAt: data.created_at
+            };
+          }
+        } catch (e) {
+          console.warn('[CMSAdapter] Remote getVideoById error:', e);
+        }
+      }
+
+      // Semak senarai video yang ada
+      const all = await this.getVideos({ allowDemoFallback: false });
+      return all.find(v => v.id === id) || null;
     }
 
     async saveVideo(video) {
