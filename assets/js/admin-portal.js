@@ -1485,14 +1485,17 @@ function openDeleteStudentModal(studentId, studentName, studentEmail) {
   }
 }
 
-function closeDeleteStudentModal() {
-  if (isDeleteInProgress) return;
+function closeDeleteStudentModal(force = false) {
+  if (isDeleteInProgress && !force) return;
   const modal = document.getElementById('modal-delete-student');
-  if (modal && modal.open && typeof modal.close === 'function') {
-    modal.close();
+  if (modal && typeof modal.close === 'function') {
+    try {
+      if (modal.open) modal.close();
+    } catch (_) {}
   }
   document.body.style.overflow = '';
   document.documentElement.style.overflow = '';
+  isDeleteInProgress = false;
 }
 
 async function executeDeleteStudent() {
@@ -1530,6 +1533,7 @@ async function executeDeleteStudent() {
     errorEl.classList.add('hidden');
   }
 
+  let deleteSucceeded = false;
   try {
     const res = await window.CMSAdapter.deleteStudentAccount(studentId, reason);
 
@@ -1537,28 +1541,31 @@ async function executeDeleteStudent() {
       throw new Error(res && res.error ? res.error : 'Gagal memadam akaun murid dari pangkalan data.');
     }
 
-    isDeleteInProgress = false;
-    closeDeleteStudentModal();
+    deleteSucceeded = true;
+    closeDeleteStudentModal(true);
 
     if (typeof showToast === 'function') {
-      showToast('Akaun murid dan semua rekod pembelajaran telah dipadam dengan selamat.', 'success');
+      showToast('Akaun murid dan rekod pembelajaran telah berjaya dipadam dengan selamat.', 'success');
     } else {
       alert('Akaun murid dan rekod pembelajaran berjaya dipadam.');
     }
 
-    // Dynamic Refresh across views and stats
-    if (typeof renderStudents === 'function') {
-      await renderStudents();
-    }
-    if (typeof renderUsersSection === 'function') {
-      await renderUsersSection();
-    }
-    if (typeof renderOverviewStats === 'function') {
-      await renderOverviewStats();
-    }
+    // Dynamic Synchronized Refresh across both views and stats
+    await Promise.allSettled([
+      typeof renderStudents === 'function' ? renderStudents() : Promise.resolve(),
+      typeof renderUsersSection === 'function' ? renderUsersSection() : Promise.resolve(),
+      typeof renderOverviewStats === 'function' ? renderOverviewStats() : Promise.resolve()
+    ]);
 
   } catch (err) {
     console.error('Delete student failed:', err);
+    if (errorEl) {
+      errorEl.textContent = err.message || 'Ralat semasa memadam akaun murid.';
+      errorEl.classList.remove('hidden');
+    } else {
+      alert('Ralat memadam akaun: ' + err.message);
+    }
+  } finally {
     isDeleteInProgress = false;
     if (executeBtn) {
       executeBtn.disabled = false;
@@ -1566,12 +1573,6 @@ async function executeDeleteStudent() {
     }
     if (btnText) {
       btnText.textContent = 'Padam Akaun';
-    }
-    if (errorEl) {
-      errorEl.textContent = err.message || 'Ralat semasa memadam akaun murid.';
-      errorEl.classList.remove('hidden');
-    } else {
-      alert('Ralat memadam akaun: ' + err.message);
     }
   }
 }

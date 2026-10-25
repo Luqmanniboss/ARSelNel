@@ -490,33 +490,67 @@ begin
   select full_name into v_target_name from public.profiles where id = p_target_user_id;
 
   -- 5. Record audit log BEFORE deletion
-  insert into public.admin_audit_logs (
-    actor_id, actor_email, action, target_id, target_email, details, created_at
-  ) values (
-    v_caller_id,
-    coalesce(v_caller_email, 'admin@test.com'),
-    'DELETE_STUDENT',
-    p_target_user_id,
-    coalesce(v_target_email, 'unknown'),
-    jsonb_build_object(
-      'student_name', coalesce(v_target_name, 'Pelajar'),
-      'reason', coalesce(p_reason, 'Dipadam oleh Super Admin'),
-      'timestamp', now()
-    ),
-    now()
-  );
+  if to_regclass('public.admin_audit_logs') is not null then
+    insert into public.admin_audit_logs (
+      actor_id, actor_email, action, target_id, target_email, details, created_at
+    ) values (
+      v_caller_id,
+      coalesce(v_caller_email, 'admin@test.com'),
+      'DELETE_STUDENT',
+      p_target_user_id,
+      coalesce(v_target_email, 'unknown'),
+      jsonb_build_object(
+        'student_name', coalesce(v_target_name, 'Pelajar'),
+        'reason', coalesce(p_reason, 'Dipadam oleh Super Admin'),
+        'timestamp', now()
+      ),
+      now()
+    );
+  end if;
 
-  -- 6. Safely remove student learning records (cascade-safe, leaves other users intact)
-  delete from public.learning_progress where user_id = p_target_user_id;
-  delete from public.quiz_attempts where user_id = p_target_user_id;
-  delete from public.activity_results where user_id = p_target_user_id;
-  delete from public.student_learning_events where user_id = p_target_user_id;
-  delete from public.user_settings where user_id = p_target_user_id;
-  delete from public.student_annotations where user_id = p_target_user_id;
-  delete from public.student_note_progress where student_id = p_target_user_id;
-  delete from public.profiles where id = p_target_user_id;
+  -- 6. Safely remove student learning records (cascade-safe with defensive table existence checks)
+  -- Protects against "relation does not exist" errors on any optional/unmigrated tables
+  if to_regclass('public.student_learning_events') is not null then
+    execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id;
+  end if;
 
-  -- 7. Remove from auth.users
+  if to_regclass('public.quiz_attempts') is not null then
+    execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id;
+  end if;
+
+  if to_regclass('public.learning_progress') is not null then
+    execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id;
+  end if;
+
+  if to_regclass('public.activity_results') is not null then
+    execute 'delete from public.activity_results where user_id = $1' using p_target_user_id;
+  end if;
+
+  if to_regclass('public.user_settings') is not null then
+    execute 'delete from public.user_settings where user_id = $1' using p_target_user_id;
+  end if;
+
+  if to_regclass('public.student_annotations') is not null then
+    execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id;
+  end if;
+
+  if to_regclass('public.student_note_progress') is not null then
+    execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id;
+  end if;
+
+  if to_regclass('public.game_leaderboards') is not null then
+    execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id;
+  end if;
+
+  if to_regclass('public.student_quiz_snapshots') is not null then
+    execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;
+  end if;
+
+  if to_regclass('public.profiles') is not null then
+    delete from public.profiles where id = p_target_user_id;
+  end if;
+
+  -- 7. Remove from auth.users (Permanent Supabase Authentication account deletion)
   delete from auth.users where id = p_target_user_id;
 
   return jsonb_build_object(

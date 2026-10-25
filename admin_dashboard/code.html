@@ -2090,7 +2090,7 @@
             <p class="text-xs text-rose-600 font-semibold">Tindakan Pentadbir Utama (Super Admin)</p>
           </div>
         </div>
-        <button type="button" id="btn-close-delete-student" onclick="closeDeleteStudentModal()" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition" aria-label="Tutup Dialog">
+        <button type="button" id="btn-close-delete-student" onclick="closeDeleteStudentModal(true)" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition" aria-label="Tutup Dialog">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
       </div>
@@ -2134,7 +2134,7 @@
       <input type="hidden" id="del-student-target-id" value=""/>
 
       <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-        <button type="button" id="btn-cancel-delete-student" onclick="closeDeleteStudentModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+        <button type="button" id="btn-cancel-delete-student" onclick="closeDeleteStudentModal(true)" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
           Batal
         </button>
         <button type="button" id="btn-execute-delete-student" onclick="executeDeleteStudent()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-headline font-bold text-xs shadow-md transition flex items-center gap-1.5">

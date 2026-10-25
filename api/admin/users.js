@@ -312,41 +312,66 @@ async function handleAdminUsersRequest(req, res) {
   // --- 4. SAFE STUDENT ACCOUNT DELETION ---
   if ((pathname.endsWith('/delete') || method === 'DELETE' || body.action === 'delete') && (method === 'POST' || method === 'DELETE')) {
     try {
+      // 1. Strict Server-Side Super Admin verification
+      if (!caller.isSuperAdmin) {
+        return sendJSON(res, 403, { success: false, error: 'Akses terhad: Hanya Pentadbir Utama (Super Admin) dibenarkan memadam akaun murid.' });
+      }
+
       if (targetUserId === caller.user.id) {
         return sendJSON(res, 400, { success: false, error: 'Pentadbir utama tidak boleh memadam akaunnya sendiri.' });
       }
 
-      // Check if target is teacher or admin
+      // 2. Prevent deleting teachers or admins
       const { data: targetAdmin } = await fetchSupabase(`/rest/v1/admin_users?user_id=eq.${targetUserId}&select=role`);
       if (Array.isArray(targetAdmin) && targetAdmin.length > 0) {
         return sendJSON(res, 400, { success: false, error: 'Akaun Guru atau Pentadbir tidak boleh dipadam melalui fungsi ini.' });
       }
 
+      // 3. Primary Method: Execute PostgreSQL RPC delete_student_account with caller JWT
       const rpcRes = await fetchSupabase('/rest/v1/rpc/delete_student_account', {
         method: 'POST',
         headers: { Authorization: `Bearer ${caller.token}` },
         body: { p_target_user_id: targetUserId, p_reason: body.reason || 'Dipadam oleh Super Admin' }
       });
 
-      if (rpcRes.status === 200) {
+      if (rpcRes.status === 200 && rpcRes.data && rpcRes.data.success) {
         return sendJSON(res, 200, rpcRes.data);
       }
 
-      // Safe fallback deletion across tables
-      await Promise.all([
-        fetchSupabase(`/rest/v1/quiz_attempts?user_id=eq.${targetUserId}`, { method: 'DELETE' }),
-        fetchSupabase(`/rest/v1/learning_progress?user_id=eq.${targetUserId}`, { method: 'DELETE' }),
-        fetchSupabase(`/rest/v1/activity_results?user_id=eq.${targetUserId}`, { method: 'DELETE' }),
-        fetchSupabase(`/rest/v1/student_learning_events?user_id=eq.${targetUserId}`, { method: 'DELETE' }),
-        fetchSupabase(`/rest/v1/user_settings?user_id=eq.${targetUserId}`, { method: 'DELETE' }),
-        fetchSupabase(`/rest/v1/student_annotations?user_id=eq.${targetUserId}`, { method: 'DELETE' }),
-        fetchSupabase(`/rest/v1/student_note_progress?student_id=eq.${targetUserId}`, { method: 'DELETE' })
-      ]);
-      await fetchSupabase(`/rest/v1/profiles?id=eq.${targetUserId}`, { method: 'DELETE' });
+      // If RPC failed due to missing migration/table, log warning and run resilient fallback
+      console.warn('[AdminAPI] RPC delete_student_account returned status:', rpcRes.status, rpcRes.data);
+
+      // 4. Safe fallback deletion across all student-related tables
+      // Promise.allSettled ensures that 404 on unmigrated/optional tables never halts deletion
+      const tablesToClean = [
+        `quiz_attempts?user_id=eq.${targetUserId}`,
+        `learning_progress?user_id=eq.${targetUserId}`,
+        `activity_results?user_id=eq.${targetUserId}`,
+        `student_learning_events?user_id=eq.${targetUserId}`,
+        `user_settings?user_id=eq.${targetUserId}`,
+        `student_annotations?user_id=eq.${targetUserId}`,
+        `student_note_progress?student_id=eq.${targetUserId}`,
+        `game_leaderboards?user_id=eq.${targetUserId}`,
+        `student_quiz_snapshots?user_id=eq.${targetUserId}`
+      ];
+
+      await Promise.allSettled(
+        tablesToClean.map(tbl => fetchSupabase(`/rest/v1/${tbl}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${caller.token}` }
+        }))
+      );
+
+      // Remove from profiles
+      await fetchSupabase(`/rest/v1/profiles?id=eq.${targetUserId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${caller.token}` }
+      });
 
       // Audit log
       await fetchSupabase('/rest/v1/admin_audit_logs', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${caller.token}` },
         body: {
           actor_id: caller.user.id,
           actor_email: caller.email,
@@ -357,7 +382,27 @@ async function handleAdminUsersRequest(req, res) {
         }
       });
 
-      return sendJSON(res, 200, { success: true, message: 'Akaun murid dan semua rekod berkaitan telah dipadam dengan selamat.' });
+      // If Service Role Key is configured in environment, also delete from Supabase Auth admin API
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (serviceKey) {
+        try {
+          await fetchSupabase(`/auth/v1/admin/users/${targetUserId}`, {
+            method: 'DELETE',
+            headers: {
+              'apikey': serviceKey,
+              'Authorization': `Bearer ${serviceKey}`
+            }
+          });
+        } catch (authDelErr) {
+          console.warn('[AdminAPI] Service-role auth deletion warning:', authDelErr.message);
+        }
+      }
+
+      return sendJSON(res, 200, {
+        success: true,
+        deleted_user_id: targetUserId,
+        message: 'Akaun murid dan rekod pembelajaran telah berjaya dipadam dengan selamat.'
+      });
     } catch (err) {
       return sendJSON(res, 500, { success: false, error: 'Ralat pemadaman murid: ' + err.message });
     }

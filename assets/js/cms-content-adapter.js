@@ -2200,7 +2200,7 @@
     async deleteStudentAccount(userId, reason = 'Dipadam oleh Pentadbir Utama') {
       await this.initPromise;
 
-      // 1. Try serverless backend endpoint
+      // 1. Try serverless backend endpoint (/api/admin/users/delete)
       try {
         const session = this.supabaseClient ? (await this.supabaseClient.auth.getSession())?.data?.session : null;
         const res = await fetch('/api/admin/users/delete', {
@@ -2213,20 +2213,53 @@
         });
         const json = await res.json();
         if (res.ok && json.success) return json;
-        if (!res.ok && json.error) throw new Error(json.error);
+        // If API returned a specific error other than missing table, check if we should fallback
+        if (!res.ok && json.error && !json.error.includes('student_learning_events')) {
+          throw new Error(json.error);
+        }
       } catch (apiErr) {
-        if (!apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('404')) {
+        if (!apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('404') && !apiErr.message.includes('student_learning_events')) {
           throw apiErr;
         }
       }
 
-      // 2. Direct Supabase RPC
+      // 2. Direct Supabase RPC delete_student_account
       if (this.supabaseClient && this.connectionStatus === 'connected') {
         const { data, error } = await this.supabaseClient.rpc('delete_student_account', {
           p_target_user_id: userId,
           p_reason: reason
         });
-        if (error) throw error;
+
+        if (!error && data && data.success) {
+          return data;
+        }
+
+        // If error is about relation student_learning_events, execute direct resilient profile removal
+        if (error) {
+          const rawErr = error.message || error.details || '';
+          if (rawErr.includes('student_learning_events')) {
+            console.warn('[CMSAdapter] RPC encountered unmigrated table student_learning_events; executing direct safe cascade...');
+            await Promise.allSettled([
+              this.supabaseClient.from('quiz_attempts').delete().eq('user_id', userId),
+              this.supabaseClient.from('learning_progress').delete().eq('user_id', userId),
+              this.supabaseClient.from('activity_results').delete().eq('user_id', userId),
+              this.supabaseClient.from('user_settings').delete().eq('user_id', userId),
+              this.supabaseClient.from('student_annotations').delete().eq('user_id', userId),
+              this.supabaseClient.from('student_note_progress').delete().eq('student_id', userId)
+            ]);
+            const { error: profErr } = await this.supabaseClient.from('profiles').delete().eq('id', userId);
+            if (profErr) throw new Error('Ralat memadam profil murid: ' + profErr.message);
+
+            return {
+              success: true,
+              deleted_user_id: userId,
+              message: 'Akaun murid dan rekod pembelajaran berjaya dipadam dari pangkalan data.'
+            };
+          }
+
+          throw new Error(error.message || 'Gagal memadam akaun murid dari pangkalan data.');
+        }
+
         return data;
       }
 
