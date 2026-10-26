@@ -1408,87 +1408,416 @@
   },
   {
     "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 510,
-    "keyword": "DELETE",
-    "statement": "delete from public.learning_progress where user_id = p_target_user_id;",
-    "context": "-- 6. Safely remove student learning records (cascade-safe, leaves other users intact) | delete from public.learning_progress where user_id = p_target_user_id; | delete from public.quiz_attempts where user_id = p_target_user_id;"
-  },
-  {
-    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 511,
-    "keyword": "DELETE",
-    "statement": "delete from public.quiz_attempts where user_id = p_target_user_id;",
-    "context": "delete from public.learning_progress where user_id = p_target_user_id; | delete from public.quiz_attempts where user_id = p_target_user_id; | delete from public.activity_results where user_id = p_target_user_id;"
-  },
-  {
-    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 512,
-    "keyword": "DELETE",
-    "statement": "delete from public.activity_results where user_id = p_target_user_id;",
-    "context": "delete from public.quiz_attempts where user_id = p_target_user_id; | delete from public.activity_results where user_id = p_target_user_id; | delete from public.student_learning_events where user_id = p_target_user_id;"
-  },
-  {
-    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 513,
-    "keyword": "DELETE",
-    "statement": "delete from public.student_learning_events where user_id = p_target_user_id;",
-    "context": "delete from public.activity_results where user_id = p_target_user_id; | delete from public.student_learning_events where user_id = p_target_user_id; | delete from public.user_settings where user_id = p_target_user_id;"
-  },
-  {
-    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
     "lineNum": 514,
     "keyword": "DELETE",
-    "statement": "delete from public.user_settings where user_id = p_target_user_id;",
-    "context": "delete from public.student_learning_events where user_id = p_target_user_id; | delete from public.user_settings where user_id = p_target_user_id; | delete from public.student_annotations where user_id = p_target_user_id;"
+    "statement": "execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_learning_events') is not null then | execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id; | end if;"
   },
   {
     "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 515,
+    "lineNum": 518,
     "keyword": "DELETE",
-    "statement": "delete from public.student_annotations where user_id = p_target_user_id;",
-    "context": "delete from public.user_settings where user_id = p_target_user_id; | delete from public.student_annotations where user_id = p_target_user_id; | delete from public.student_note_progress where student_id = p_target_user_id;"
+    "statement": "execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.quiz_attempts') is not null then | execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id; | end if;"
   },
   {
     "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 516,
+    "lineNum": 522,
     "keyword": "DELETE",
-    "statement": "delete from public.student_note_progress where student_id = p_target_user_id;",
-    "context": "delete from public.student_annotations where user_id = p_target_user_id; | delete from public.student_note_progress where student_id = p_target_user_id; | delete from public.profiles where id = p_target_user_id;"
+    "statement": "execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.learning_progress') is not null then | execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id; | end if;"
   },
   {
     "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 517,
+    "lineNum": 526,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.activity_results where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.activity_results') is not null then | execute 'delete from public.activity_results where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 530,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.user_settings where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.user_settings') is not null then | execute 'delete from public.user_settings where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 534,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_annotations') is not null then | execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 538,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_note_progress') is not null then | execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 542,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.game_leaderboards') is not null then | execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 546,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_quiz_snapshots') is not null then | execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
+    "lineNum": 550,
     "keyword": "DELETE",
     "statement": "delete from public.profiles where id = p_target_user_id;",
-    "context": "delete from public.student_note_progress where student_id = p_target_user_id; | delete from public.profiles where id = p_target_user_id; | "
+    "context": "if to_regclass('public.profiles') is not null then | delete from public.profiles where id = p_target_user_id; | end if;"
   },
   {
     "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 520,
+    "lineNum": 554,
     "keyword": "DELETE",
     "statement": "delete from auth.users where id = p_target_user_id;",
-    "context": "-- 7. Remove from auth.users | delete from auth.users where id = p_target_user_id; | "
+    "context": "-- 7. Remove from auth.users (Permanent Supabase Authentication account deletion) | delete from auth.users where id = p_target_user_id; | "
   },
   {
     "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 536,
+    "lineNum": 570,
     "keyword": "CREATE OR REPLACE FUNCTION",
     "statement": "create or replace function public.handle_new_student_profile()",
     "context": "-- ---------------------------------------------------------------------------- | create or replace function public.handle_new_student_profile() | returns trigger"
   },
   {
     "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 553,
+    "lineNum": 587,
     "keyword": "UPDATE",
     "statement": "on conflict (id) do update set",
     "context": ") | on conflict (id) do update set | email = coalesce(excluded.email, public.profiles.email),"
   },
   {
     "file": "202610250002_teacher_roles_student_deletion_and_audit.sql",
-    "lineNum": 553,
+    "lineNum": 587,
     "keyword": "ON CONFLICT",
     "statement": "on conflict (id) do update set",
     "context": ") | on conflict (id) do update set | email = coalesce(excluded.email, public.profiles.email),"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 19,
+    "keyword": "DELETE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | event_type text not null,"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 19,
+    "keyword": "CASCADE",
+    "statement": "user_id uuid not null references auth.users(id) on delete cascade,",
+    "context": "id uuid primary key default gen_random_uuid(), | user_id uuid not null references auth.users(id) on delete cascade, | event_type text not null,"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 35,
+    "keyword": "ALTER TABLE",
+    "statement": "alter table public.student_learning_events enable row level security;",
+    "context": " | alter table public.student_learning_events enable row level security; | "
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 50,
+    "keyword": "DELETE",
+    "statement": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_learning_events' and policyname='admins delete events') then",
+    "context": " | if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_learning_events' and policyname='admins delete events') then | create policy \"admins delete events\" on public.student_learning_events"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 51,
+    "keyword": "DELETE",
+    "statement": "create policy \"admins delete events\" on public.student_learning_events",
+    "context": "if not exists (select 1 from pg_policies where schemaname='public' and tablename='student_learning_events' and policyname='admins delete events') then | create policy \"admins delete events\" on public.student_learning_events | for delete to authenticated using (public.is_admin());"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 52,
+    "keyword": "DELETE",
+    "statement": "for delete to authenticated using (public.is_admin());",
+    "context": "create policy \"admins delete events\" on public.student_learning_events | for delete to authenticated using (public.is_admin()); | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 57,
+    "keyword": "DELETE",
+    "statement": "grant select, insert, delete on public.student_learning_events to authenticated;",
+    "context": " | grant select, insert, delete on public.student_learning_events to authenticated; | "
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 63,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_super_admin()",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.is_super_admin() | returns boolean"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 91,
+    "keyword": "UPDATE",
+    "statement": "on conflict (user_id) do update set role = 'superadmin';",
+    "context": "values (v_uid, 'superadmin', now()) | on conflict (user_id) do update set role = 'superadmin'; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 91,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (user_id) do update set role = 'superadmin';",
+    "context": "values (v_uid, 'superadmin', now()) | on conflict (user_id) do update set role = 'superadmin'; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 111,
+    "keyword": "UPDATE",
+    "statement": "on conflict (user_id) do update set role = 'superadmin';",
+    "context": "values (v_uid, 'superadmin', now()) | on conflict (user_id) do update set role = 'superadmin'; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 111,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (user_id) do update set role = 'superadmin';",
+    "context": "values (v_uid, 'superadmin', now()) | on conflict (user_id) do update set role = 'superadmin'; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 126,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.delete_student_account(",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.delete_student_account( | p_target_user_id uuid,"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 196,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_learning_events') is not null then | execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 200,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.quiz_attempts') is not null then | execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 204,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.learning_progress') is not null then | execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 208,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.activity_results where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.activity_results') is not null then | execute 'delete from public.activity_results where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 212,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.user_settings where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.user_settings') is not null then | execute 'delete from public.user_settings where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 216,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_annotations') is not null then | execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 220,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_note_progress') is not null then | execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 224,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.game_leaderboards') is not null then | execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 228,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_quiz_snapshots') is not null then | execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 233,
+    "keyword": "DELETE",
+    "statement": "delete from public.profiles where id = p_target_user_id;",
+    "context": "if to_regclass('public.profiles') is not null then | delete from public.profiles where id = p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260001_fix_student_deletion_and_learning_events.sql",
+    "lineNum": 237,
+    "keyword": "DELETE",
+    "statement": "delete from auth.users where id = p_target_user_id;",
+    "context": "-- 8. Permanently remove account from auth.users | delete from auth.users where id = p_target_user_id; | "
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 21,
+    "keyword": "UPDATE",
+    "statement": "update public.admin_users a",
+    "context": "-- Backfill any missing/null email in public.admin_users from auth.users or profiles | update public.admin_users a | set email = lower(coalesce(u.email, p.email, 'admin@arselnel.my')),"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 34,
+    "keyword": "UPDATE",
+    "statement": "on conflict (user_id) do update set",
+    "context": "where lower(email) = 'admin@test.com' | on conflict (user_id) do update set | email = excluded.email,"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 34,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (user_id) do update set",
+    "context": "where lower(email) = 'admin@test.com' | on conflict (user_id) do update set | email = excluded.email,"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 47,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_super_admin()",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.is_super_admin() | returns boolean"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 93,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_admin()",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.is_admin() | returns boolean"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 154,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.delete_student_account(",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.delete_student_account( | p_target_user_id uuid,"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 252,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_learning_events') is not null then | execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 256,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.quiz_attempts') is not null then | execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 260,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.learning_progress') is not null then | execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 264,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.activity_results where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.activity_results') is not null then | execute 'delete from public.activity_results where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 268,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.user_settings where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.user_settings') is not null then | execute 'delete from public.user_settings where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 272,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_annotations') is not null then | execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 276,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_note_progress') is not null then | execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 280,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.game_leaderboards') is not null then | execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 284,
+    "keyword": "DELETE",
+    "statement": "execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;",
+    "context": "if to_regclass('public.student_quiz_snapshots') is not null then | execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 289,
+    "keyword": "DELETE",
+    "statement": "delete from public.profiles where id = p_target_user_id;",
+    "context": "if to_regclass('public.profiles') is not null then | delete from public.profiles where id = p_target_user_id; | end if;"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 293,
+    "keyword": "DELETE",
+    "statement": "delete from auth.users where id = p_target_user_id;",
+    "context": "-- 10. Permanently remove account from auth.users (Supabase Authentication) | delete from auth.users where id = p_target_user_id; | "
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 309,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.promote_user_to_teacher(",
+    "context": "-- ---------------------------------------------------------------------------- | create or replace function public.promote_user_to_teacher( | p_target_user_id uuid"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 356,
+    "keyword": "UPDATE",
+    "statement": "on conflict (user_id) do update set",
+    "context": "values (p_target_user_id, lower(trim(v_target_email)), 'teacher', now()) | on conflict (user_id) do update set | email = excluded.email,"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 356,
+    "keyword": "ON CONFLICT",
+    "statement": "on conflict (user_id) do update set",
+    "context": "values (p_target_user_id, lower(trim(v_target_email)), 'teacher', now()) | on conflict (user_id) do update set | email = excluded.email,"
+  },
+  {
+    "file": "202610260002_fix_admin_users_not_null_and_student_deletion.sql",
+    "lineNum": 363,
+    "keyword": "UPDATE",
+    "statement": "update public.profiles",
+    "context": "if to_regclass('public.profiles') is not null then | update public.profiles | set role = 'teacher', updated_at = now()"
   },
   {
     "file": "rollback_202610230003.sql",
@@ -1643,5 +1972,12 @@
     "keyword": "DROP POLICY",
     "statement": "drop policy if exists \"students read own progress\" on public.student_note_progress;",
     "context": "drop policy if exists \"students write own progress\" on public.student_note_progress; | drop policy if exists \"students read own progress\" on public.student_note_progress; | "
+  },
+  {
+    "file": "rollback_202610260002.sql",
+    "lineNum": 7,
+    "keyword": "CREATE OR REPLACE FUNCTION",
+    "statement": "create or replace function public.is_super_admin()",
+    "context": "-- Reverts is_super_admin() to previous definition if needed | create or replace function public.is_super_admin() | returns boolean"
   }
 ]

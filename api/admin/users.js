@@ -231,12 +231,23 @@ async function handleAdminUsersRequest(req, res) {
       }
 
       // Fallback direct table updates
+      let targetEmail = body.email;
+      if (!targetEmail || !targetEmail.trim()) {
+        const { data: prof } = await fetchSupabase(`/rest/v1/profiles?id=eq.${targetUserId}&select=email`);
+        if (Array.isArray(prof) && prof[0] && prof[0].email) {
+          targetEmail = prof[0].email;
+        }
+      }
+      if (!targetEmail || !targetEmail.trim()) {
+        return sendJSON(res, 400, { success: false, error: 'E-mel pengguna sasaran tidak sah atau tidak dijumpai.' });
+      }
+
       await fetchSupabase('/rest/v1/admin_users', {
         method: 'POST',
         headers: { Prefer: 'resolution=merge-duplicates' },
         body: {
           user_id: targetUserId,
-          email: body.email || 'guru@arselnel.my',
+          email: targetEmail.toLowerCase().trim(),
           role: 'teacher',
           updated_at: new Date().toISOString()
         }
@@ -255,7 +266,7 @@ async function handleAdminUsersRequest(req, res) {
           actor_email: caller.email,
           action: 'PROMOTE_TEACHER',
           target_id: targetUserId,
-          target_email: body.email || 'unknown',
+          target_email: targetEmail.toLowerCase().trim(),
           details: { teacher_name: body.name || 'Guru' }
         }
       });
@@ -335,73 +346,100 @@ async function handleAdminUsersRequest(req, res) {
       });
 
       if (rpcRes.status === 200 && rpcRes.data && rpcRes.data.success) {
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (serviceKey) {
+          try {
+            await fetchSupabase(`/auth/v1/admin/users/${targetUserId}`, {
+              method: 'DELETE',
+              headers: {
+                'apikey': serviceKey,
+                'Authorization': `Bearer ${serviceKey}`
+              }
+            });
+          } catch (_) {}
+        }
         return sendJSON(res, 200, rpcRes.data);
       }
 
-      // If RPC failed due to missing migration/table, log warning and run resilient fallback
-      console.warn('[AdminAPI] RPC delete_student_account returned status:', rpcRes.status, rpcRes.data);
+      // If RPC failed: extract real error message
+      const rpcErrMsg = (rpcRes.data && (rpcRes.data.message || rpcRes.data.error || rpcRes.data.details || rpcRes.data.hint))
+        || (typeof rpcRes.data === 'string' ? rpcRes.data : null);
 
-      // 4. Safe fallback deletion across all student-related tables
-      // Promise.allSettled ensures that 404 on unmigrated/optional tables never halts deletion
-      const tablesToClean = [
-        `quiz_attempts?user_id=eq.${targetUserId}`,
-        `learning_progress?user_id=eq.${targetUserId}`,
-        `activity_results?user_id=eq.${targetUserId}`,
-        `student_learning_events?user_id=eq.${targetUserId}`,
-        `user_settings?user_id=eq.${targetUserId}`,
-        `student_annotations?user_id=eq.${targetUserId}`,
-        `student_note_progress?student_id=eq.${targetUserId}`,
-        `game_leaderboards?user_id=eq.${targetUserId}`,
-        `student_quiz_snapshots?user_id=eq.${targetUserId}`
-      ];
-
-      await Promise.allSettled(
-        tablesToClean.map(tbl => fetchSupabase(`/rest/v1/${tbl}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${caller.token}` }
-        }))
-      );
-
-      // Remove from profiles
-      await fetchSupabase(`/rest/v1/profiles?id=eq.${targetUserId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${caller.token}` }
-      });
-
-      // Audit log
-      await fetchSupabase('/rest/v1/admin_audit_logs', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${caller.token}` },
-        body: {
-          actor_id: caller.user.id,
-          actor_email: caller.email,
-          action: 'DELETE_STUDENT',
-          target_id: targetUserId,
-          target_email: body.email || 'unknown',
-          details: { student_name: body.name || 'Pelajar', reason: body.reason || 'Dipadam oleh Super Admin' }
-        }
-      });
-
-      // If Service Role Key is configured in environment, also delete from Supabase Auth admin API
-      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (serviceKey) {
-        try {
-          await fetchSupabase(`/auth/v1/admin/users/${targetUserId}`, {
-            method: 'DELETE',
-            headers: {
-              'apikey': serviceKey,
-              'Authorization': `Bearer ${serviceKey}`
-            }
-          });
-        } catch (authDelErr) {
-          console.warn('[AdminAPI] Service-role auth deletion warning:', authDelErr.message);
-        }
+      // Never disguise RPC authorization/validation failure as false success!
+      if (rpcRes.status === 400 || rpcRes.status === 403 || (rpcErrMsg && !rpcErrMsg.includes('delete_student_account'))) {
+        return sendJSON(res, rpcRes.status >= 400 ? rpcRes.status : 500, {
+          success: false,
+          error: rpcErrMsg || 'Gagal memadam akaun murid dari pangkalan data.'
+        });
       }
 
-      return sendJSON(res, 200, {
-        success: true,
-        deleted_user_id: targetUserId,
-        message: 'Akaun murid dan rekod pembelajaran telah berjaya dipadam dengan selamat.'
+      // 4. Fallback ONLY if RPC function does not exist and service role key is present
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (serviceKey) {
+        // Delete from Supabase Auth admin API FIRST
+        const authDelRes = await fetchSupabase(`/auth/v1/admin/users/${targetUserId}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': serviceKey,
+            'Authorization': `Bearer ${serviceKey}`
+          }
+        });
+
+        if (authDelRes.status !== 200 && authDelRes.status !== 204 && authDelRes.status !== 404) {
+          return sendJSON(res, 500, {
+            success: false,
+            error: 'Gagal memadam akaun dari Supabase Authentication: ' + JSON.stringify(authDelRes.data)
+          });
+        }
+
+        // Clean up remaining student tables
+        const tablesToClean = [
+          `quiz_attempts?user_id=eq.${targetUserId}`,
+          `learning_progress?user_id=eq.${targetUserId}`,
+          `activity_results?user_id=eq.${targetUserId}`,
+          `student_learning_events?user_id=eq.${targetUserId}`,
+          `user_settings?user_id=eq.${targetUserId}`,
+          `student_annotations?user_id=eq.${targetUserId}`,
+          `student_note_progress?student_id=eq.${targetUserId}`,
+          `game_leaderboards?user_id=eq.${targetUserId}`,
+          `student_quiz_snapshots?user_id=eq.${targetUserId}`
+        ];
+
+        await Promise.allSettled(
+          tablesToClean.map(tbl => fetchSupabase(`/rest/v1/${tbl}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${caller.token}` }
+          }))
+        );
+
+        await fetchSupabase(`/rest/v1/profiles?id=eq.${targetUserId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${caller.token}` }
+        });
+
+        await fetchSupabase('/rest/v1/admin_audit_logs', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${caller.token}` },
+          body: {
+            actor_id: caller.user.id,
+            actor_email: caller.email,
+            action: 'DELETE_STUDENT',
+            target_id: targetUserId,
+            target_email: body.email || 'unknown',
+            details: { student_name: body.name || 'Pelajar', reason: body.reason || 'Dipadam oleh Super Admin' }
+          }
+        });
+
+        return sendJSON(res, 200, {
+          success: true,
+          deleted_user_id: targetUserId,
+          message: 'Akaun murid dan rekod pembelajaran telah berjaya dipadam dengan selamat.'
+        });
+      }
+
+      return sendJSON(res, 500, {
+        success: false,
+        error: rpcErrMsg || 'Operasi pemadaman akaun murid gagal dalam pangkalan data.'
       });
     } catch (err) {
       return sendJSON(res, 500, { success: false, error: 'Ralat pemadaman murid: ' + err.message });

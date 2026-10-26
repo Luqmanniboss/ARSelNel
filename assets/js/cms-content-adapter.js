@@ -2223,11 +2223,18 @@
     async deleteStudentAccount(userId, reason = 'Dipadam oleh Pentadbir Utama') {
       await this.initPromise;
 
+      // 1. Try serverless backend endpoint first (/api/admin/users)
+      const apiResult = await this._callAdminApiSafe({ action: 'delete', userId, reason });
+      if (apiResult.success) return apiResult.data;
+      if (apiResult.error && !apiResult.fallback) {
+        throw new Error(apiResult.error);
+      }
+
+      // 2. Direct Supabase RPC delete_student_account fallback (Atomic & Secure)
       if (!this.supabaseClient || this.connectionStatus !== 'connected') {
         throw new Error('Tidak dapat menyambung ke pangkalan data Supabase.');
       }
 
-      // 1. Direct Supabase RPC delete_student_account (Primary, Atomic & Secure)
       const { data, error } = await this.supabaseClient.rpc('delete_student_account', {
         p_target_user_id: userId,
         p_reason: reason

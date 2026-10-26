@@ -1543,6 +1543,7 @@ async function executeDeleteStudent() {
 
     deleteSucceeded = true;
     closeDeleteStudentModal(true);
+    closeDeleteStudentModal();
 
     if (typeof showToast === 'function') {
       showToast('Akaun murid dan rekod pembelajaran telah berjaya dipadam dengan selamat.', 'success');
@@ -1551,11 +1552,9 @@ async function executeDeleteStudent() {
     }
 
     // Dynamic Synchronized Refresh across both views and stats
-    await Promise.allSettled([
-      typeof renderStudents === 'function' ? renderStudents() : Promise.resolve(),
-      typeof renderUsersSection === 'function' ? renderUsersSection() : Promise.resolve(),
-      typeof renderOverviewStats === 'function' ? renderOverviewStats() : Promise.resolve()
-    ]);
+    if (typeof renderStudents === 'function') await renderStudents();
+    if (typeof renderUsersSection === 'function') await renderUsersSection();
+    if (typeof renderOverviewStats === 'function') await renderOverviewStats();
 
   } catch (err) {
     console.error('Delete student failed:', err);
