@@ -1558,11 +1558,15 @@ async function executeDeleteStudent() {
 
   } catch (err) {
     console.error('Delete student failed:', err);
+    let errMsg = err.message || 'Ralat semasa memadam akaun murid.';
+    if (errMsg.includes('column') && errMsg.includes('does not exist')) {
+      errMsg = 'Ralat Padanan Lajur Pangkalan Data: Sila jalankan migrasi 202610260002 terkini di Supabase SQL Editor.';
+    }
     if (errorEl) {
-      errorEl.textContent = err.message || 'Ralat semasa memadam akaun murid.';
+      errorEl.textContent = errMsg;
       errorEl.classList.remove('hidden');
     } else {
-      alert('Ralat memadam akaun: ' + err.message);
+      alert('Ralat memadam akaun: ' + errMsg);
     }
   } finally {
     isDeleteInProgress = false;

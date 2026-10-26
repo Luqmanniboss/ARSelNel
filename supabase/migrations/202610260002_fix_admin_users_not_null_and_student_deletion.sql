@@ -248,41 +248,91 @@ begin
   end if;
 
   -- 8. Clean up student learning data defensively across all possible tables
-  if to_regclass('public.student_learning_events') is not null then
-    execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.student_learning_events') is not null then
+      execute 'delete from public.student_learning_events where user_id = $1' using p_target_user_id;
+    end if;
+  exception when others then null;
+  end;
 
-  if to_regclass('public.quiz_attempts') is not null then
-    execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.quiz_attempts') is not null then
+      execute 'delete from public.quiz_attempts where user_id = $1' using p_target_user_id;
+    end if;
+  exception when others then null;
+  end;
 
-  if to_regclass('public.learning_progress') is not null then
-    execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.learning_progress') is not null then
+      execute 'delete from public.learning_progress where user_id = $1' using p_target_user_id;
+    end if;
+  exception when others then null;
+  end;
 
-  if to_regclass('public.activity_results') is not null then
-    execute 'delete from public.activity_results where user_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.activity_results') is not null then
+      execute 'delete from public.activity_results where user_id = $1' using p_target_user_id;
+    end if;
+  exception when others then null;
+  end;
 
-  if to_regclass('public.user_settings') is not null then
-    execute 'delete from public.user_settings where user_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.user_settings') is not null then
+      execute 'delete from public.user_settings where user_id = $1' using p_target_user_id;
+    end if;
+  exception when others then null;
+  end;
 
-  if to_regclass('public.student_annotations') is not null then
-    execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.student_annotations') is not null then
+      if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_annotations' and column_name = 'student_id') then
+        execute 'delete from public.student_annotations where student_id = $1' using p_target_user_id;
+      elsif exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_annotations' and column_name = 'user_id') then
+        execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id;
+      end if;
+    end if;
+  exception when others then null;
+  end;
 
-  if to_regclass('public.student_note_progress') is not null then
-    execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.student_note_progress') is not null then
+      if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_note_progress' and column_name = 'student_id') then
+        execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id;
+      elsif exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_note_progress' and column_name = 'user_id') then
+        execute 'delete from public.student_note_progress where user_id = $1' using p_target_user_id;
+      end if;
+    end if;
+  exception when others then null;
+  end;
 
-  if to_regclass('public.game_leaderboards') is not null then
-    execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.game_leaderboards') is not null then
+      if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'game_leaderboards' and column_name = 'user_id') then
+        execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id;
+      elsif exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'game_leaderboards' and column_name = 'student_id') then
+        execute 'delete from public.game_leaderboards where student_id = $1' using p_target_user_id;
+      end if;
+    end if;
+  exception when others then null;
+  end;
 
-  if to_regclass('public.student_quiz_snapshots') is not null then
-    execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;
-  end if;
+  begin
+    if to_regclass('public.student_quiz_snapshots') is not null then
+      if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_quiz_snapshots' and column_name = 'user_id') then
+        execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;
+      elsif exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_quiz_snapshots' and column_name = 'student_id') then
+        execute 'delete from public.student_quiz_snapshots where student_id = $1' using p_target_user_id;
+      end if;
+    end if;
+  exception when others then null;
+  end;
+
+  begin
+    if to_regclass('public.admin_users') is not null then
+      execute 'delete from public.admin_users where user_id = $1 and role not in (''superadmin'', ''teacher'', ''admin'', ''guru'')' using p_target_user_id;
+    end if;
+  exception when others then null;
+  end;
 
   -- 9. Remove from public.profiles
   if to_regclass('public.profiles') is not null then

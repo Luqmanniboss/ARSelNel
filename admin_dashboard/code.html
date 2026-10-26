@@ -2078,16 +2078,25 @@
   <!-- ======================================================== -->
   <!-- MODAL: DELETE STUDENT ACCOUNT CONFIRMATION DIALOG        -->
   <!-- ======================================================== -->
-  <dialog id="modal-delete-student" class="w-[min(94vw,520px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60 m-auto">
-    <div class="p-6 sm:p-8">
+  <!-- MODAL: DELETE STUDENT ACCOUNT CONFIRMATION (ENHANCED)     -->
+  <!-- ======================================================== -->
+  <dialog id="modal-delete-student" class="w-[min(94vw,520px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60 m-auto border border-rose-100 overflow-hidden">
+    <div class="p-6 sm:p-7 bg-white">
+      <!-- Modal Header -->
       <div class="flex items-center justify-between pb-4 border-b border-rose-100">
         <div class="flex items-center gap-3">
-          <span class="w-11 h-11 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xl shrink-0">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-rose-500/20 shrink-0">
             <span class="material-symbols-outlined">delete_forever</span>
-          </span>
+          </div>
           <div>
-            <h3 class="font-headline font-extrabold text-lg text-slate-900">Padam Akaun Murid?</h3>
-            <p class="text-xs text-rose-600 font-semibold">Tindakan Pentadbir Utama (Super Admin)</p>
+            <div class="flex items-center gap-2">
+              <h3 class="font-headline font-extrabold text-base sm:text-lg text-slate-900">Padam Akaun Murid?</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 uppercase tracking-wider">Kekal</span>
+            </div>
+            <p class="text-xs text-rose-600 font-semibold flex items-center gap-1 mt-0.5">
+              <span class="material-symbols-outlined text-xs">shield_person</span>
+              Tindakan Pentadbir Utama (Super Admin)
+            </p>
           </div>
         </div>
         <button type="button" id="btn-close-delete-student" onclick="closeDeleteStudentModal(true)" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition" aria-label="Tutup Dialog">
@@ -2095,49 +2104,79 @@
         </button>
       </div>
 
-      <div class="my-5 space-y-4">
-        <p class="text-xs text-slate-600 leading-relaxed">
-          Anda sedang memilih akaun murid berikut:
+      <div class="my-4 space-y-3.5">
+        <p class="text-xs text-slate-600">
+          Akaun murid berikut telah dipilih untuk pemadaman penuh dari sistem:
         </p>
 
-        <!-- Account details card -->
-        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5 text-xs">
-          <div class="flex justify-between text-slate-600">
-            <span>Nama Murid:</span>
-            <strong id="del-student-modal-name" class="text-slate-900 font-bold">...</strong>
+        <!-- Account details card (Enhanced) -->
+        <div class="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-rose-50/40 border border-slate-200/80 space-y-2.5 text-xs shadow-sm">
+          <div class="flex items-center gap-3 pb-2.5 border-b border-slate-200/60">
+            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm shrink-0 border border-rose-200/80 shadow-inner">
+              <span class="material-symbols-outlined text-lg">person</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div id="del-student-modal-name" class="font-headline font-bold text-slate-900 text-sm truncate">...</div>
+              <div id="del-student-modal-email" class="text-xs text-slate-600 font-mono truncate">...</div>
+            </div>
           </div>
-          <div class="flex justify-between text-slate-600">
-            <span>E-mel:</span>
-            <strong id="del-student-modal-email" class="text-slate-800 font-mono">...</strong>
-          </div>
-          <div class="flex justify-between text-slate-500">
-            <span>ID Pengguna:</span>
-            <span id="del-student-modal-id" class="text-slate-400 font-mono text-[11px] truncate max-w-[200px]">...</span>
+          <div class="flex items-center justify-between text-slate-500 pt-0.5">
+            <span class="text-[11px] font-semibold">ID Pengguna (Auth UID):</span>
+            <span id="del-student-modal-id" class="text-slate-600 font-mono text-[11px] truncate max-w-[230px] bg-white px-2 py-0.5 rounded-md border border-slate-200/70 shadow-2xs">...</span>
           </div>
         </div>
 
-        <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5">
-          <span class="material-symbols-outlined text-rose-600 text-lg shrink-0 mt-0.5">warning</span>
-          <p class="leading-relaxed">
-            Tindakan ini boleh menyebabkan kehilangan akses dan data berkaitan secara kekal. Sila pastikan anda memilih akaun yang betul sebelum memadam.
+        <!-- Scope Checklist Card -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2 text-xs">
+          <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-rose-500 text-sm">checklist</span>
+            Data Yang Akan Dipadamkan Secara Kekal:
+          </div>
+          <ul class="space-y-1.5 text-slate-600 text-[11px]">
+            <li class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+              <span><strong>Akaun Supabase Auth:</strong> Akses log masuk ditamatkan serta-merta</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+              <span><strong>Data Pembelajaran:</strong> Markah kuiz, rekod aktiviti & kemajuan sains</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+              <span><strong>Anotasi Slaid:</strong> Lukisan anotasi pintar & tetapan profil murid</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Warning Callout -->
+        <div class="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-rose-600 text-base shrink-0 mt-0.5">warning</span>
+          <p class="leading-relaxed text-[11px]">
+            <strong>Amaran:</strong> Tindakan ini adalah kekal dan tidak boleh diundur. Semua data berkaitan akan dihapuskan dari pangkalan data.
           </p>
         </div>
 
-        <div id="del-student-error" class="hidden p-3 rounded-xl bg-rose-100 border border-rose-300 text-rose-800 text-xs font-semibold"></div>
+        <!-- Error Container -->
+        <div id="del-student-error" class="hidden p-3.5 rounded-2xl bg-rose-100 border border-rose-300 text-rose-800 text-xs font-semibold"></div>
 
+        <!-- Audit Note Input -->
         <div>
-          <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Catatan Audit (Pilihan):</label>
-          <input type="text" id="del-student-reason" placeholder="Contoh: Akaun ujian automasi lama / permintaan murid" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 focus:border-rose-500 focus:ring-rose-500/20"/>
+          <label for="del-student-reason" class="block text-[11px] font-bold uppercase text-slate-600 mb-1 flex items-center gap-1">
+            <span class="material-symbols-outlined text-slate-400 text-sm">edit_note</span>
+            Catatan Audit (Pilihan):
+          </label>
+          <input type="text" id="del-student-reason" placeholder="Contoh: Akaun ujian automasi lama / permintaan murid" class="w-full rounded-xl border border-slate-200 text-xs py-2.5 px-3 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 bg-white transition shadow-2xs"/>
         </div>
       </div>
 
       <input type="hidden" id="del-student-target-id" value=""/>
 
-      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-end gap-3 pt-3.5 border-t border-slate-100">
         <button type="button" id="btn-cancel-delete-student" onclick="closeDeleteStudentModal(true)" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
           Batal
         </button>
-        <button type="button" id="btn-execute-delete-student" onclick="executeDeleteStudent()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-headline font-bold text-xs shadow-md transition flex items-center gap-1.5">
+        <button type="button" id="btn-execute-delete-student" onclick="executeDeleteStudent()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-headline font-bold text-xs shadow-md shadow-rose-600/20 transition active:scale-95 flex items-center gap-2">
           <span class="material-symbols-outlined text-base">delete</span>
           <span id="btn-delete-student-text">Padam Akaun</span>
         </button>

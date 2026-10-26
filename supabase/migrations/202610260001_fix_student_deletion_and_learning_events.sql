@@ -213,19 +213,35 @@ begin
   end if;
 
   if to_regclass('public.student_annotations') is not null then
-    execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id;
+    if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_annotations' and column_name = 'student_id') then
+      execute 'delete from public.student_annotations where student_id = $1' using p_target_user_id;
+    elsif exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_annotations' and column_name = 'user_id') then
+      execute 'delete from public.student_annotations where user_id = $1' using p_target_user_id;
+    end if;
   end if;
 
   if to_regclass('public.student_note_progress') is not null then
-    execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id;
+    if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_note_progress' and column_name = 'student_id') then
+      execute 'delete from public.student_note_progress where student_id = $1' using p_target_user_id;
+    elsif exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_note_progress' and column_name = 'user_id') then
+      execute 'delete from public.student_note_progress where user_id = $1' using p_target_user_id;
+    end if;
   end if;
 
   if to_regclass('public.game_leaderboards') is not null then
-    execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id;
+    if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'game_leaderboards' and column_name = 'user_id') then
+      execute 'delete from public.game_leaderboards where user_id = $1' using p_target_user_id;
+    elsif exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'game_leaderboards' and column_name = 'student_id') then
+      execute 'delete from public.game_leaderboards where student_id = $1' using p_target_user_id;
+    end if;
   end if;
 
   if to_regclass('public.student_quiz_snapshots') is not null then
-    execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;
+    if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_quiz_snapshots' and column_name = 'user_id') then
+      execute 'delete from public.student_quiz_snapshots where user_id = $1' using p_target_user_id;
+    elsif exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_quiz_snapshots' and column_name = 'student_id') then
+      execute 'delete from public.student_quiz_snapshots where student_id = $1' using p_target_user_id;
+    end if;
   end if;
 
   -- 7. Remove from public.profiles

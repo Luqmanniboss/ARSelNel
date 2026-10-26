@@ -399,7 +399,7 @@ async function handleAdminUsersRequest(req, res) {
           `activity_results?user_id=eq.${targetUserId}`,
           `student_learning_events?user_id=eq.${targetUserId}`,
           `user_settings?user_id=eq.${targetUserId}`,
-          `student_annotations?user_id=eq.${targetUserId}`,
+          `student_annotations?student_id=eq.${targetUserId}`,
           `student_note_progress?student_id=eq.${targetUserId}`,
           `game_leaderboards?user_id=eq.${targetUserId}`,
           `student_quiz_snapshots?user_id=eq.${targetUserId}`
