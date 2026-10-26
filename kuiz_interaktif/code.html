@@ -670,6 +670,8 @@
 
       // Mulakan Pengawal UI & Interaksi
       const uiController = new ARSelNelAdventure.AdventureUIController(gameEngine);
+      window.adventureEngine = gameEngine;
+      window.adventureUI = uiController;
 
       // Mulakan gelung animasi canvas
       gameEngine.start();

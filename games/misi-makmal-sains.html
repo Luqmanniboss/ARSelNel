@@ -128,6 +128,11 @@
             <span id="lab-hud-equipment">0/10</span>
           </div>
 
+          <div id="lab-hud-lives-pill" class="lab-hud-pill bg-rose-50 border-rose-200 text-rose-700 font-bold" title="Nyawa Keselamatan Makmal">
+            <span class="text-xs leading-none">❤️</span>
+            <span id="lab-hud-lives">❤️❤️❤️</span>
+          </div>
+
           <div class="lab-hud-pill hidden md:inline-flex bg-slate-50 border-slate-200 text-slate-700">
             <span class="material-symbols-outlined text-slate-500 text-base">timer</span>
             <span id="lab-hud-timer">00:00</span>
@@ -414,6 +419,31 @@
         <button id="lab-confirm-yes-btn" class="py-2.5 px-4 rounded-xl font-headline font-bold text-xs bg-teal-700 hover:bg-teal-800 text-white transition-colors">
           Ya, Teruskan
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5B. Modal Keselamatan / Game Over (Kehabisan Nyawa) -->
+  <div id="lab-gameover-modal" class="lab-modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="lab-modal-card p-6 sm:p-8 text-center max-w-sm">
+      <div class="w-16 h-16 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner border border-rose-200">
+        ⚠️
+      </div>
+      <h2 class="font-headline text-2xl font-extrabold text-slate-900 tracking-tight">
+        Misi Terhenti!
+      </h2>
+      <p class="font-body text-xs text-slate-600 mt-2 mb-5 leading-relaxed">
+        Nyawa keselamatan makmal anda telah habis akibat perlanggaran halangan makmal. Sentiasa utamakan keselamatan dan perhatikan persekitaran semasa bertugas di makmal!
+      </p>
+      <div class="flex flex-col gap-2.5">
+        <button id="lab-gameover-retry-btn" onclick="window.location.reload()" class="w-full py-3 px-4 rounded-xl font-headline font-bold text-sm bg-teal-700 text-white hover:bg-teal-800 transition-all flex items-center justify-center gap-2 shadow-sm">
+          <span class="material-symbols-outlined text-base">replay</span>
+          <span>Cuba Lagi Misi</span>
+        </button>
+        <a href="../hab_permainan/code.html" class="w-full py-2.5 px-3 rounded-xl font-headline font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">home</span>
+          <span>Kembali ke Hab Permainan</span>
+        </a>
       </div>
     </div>
   </div>

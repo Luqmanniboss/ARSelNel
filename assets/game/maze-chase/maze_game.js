@@ -57,7 +57,8 @@
         speedTimer: 0,      // ⚡ Pecutan Saintis (+50% kelajuan, 3s)
         virusFreezeTimer: 0,// ❄️ Pembeku Virus (3s)
         radarTimer: 0,      // 📡 Radar Saintis (5s)
-        hasShield: false    // 🛡️ Perisai Sel (Menahan 1 hit)
+        hasShield: false,   // 🛡️ Perisai Sel (Menahan 1 hit)
+        slowTimer: 0        // 🍯 Kesan perangkap enzim sel (memperlahankan kelajuan)
       };
 
       // Sistem Penyingkiran Jawapan Salah (Task 6)
@@ -126,6 +127,17 @@
       this.activePowerups.virusFreezeTimer = 0;
       this.activePowerups.radarTimer = 0;
       this.activePowerups.hasShield = false;
+      this.activePowerups.slowTimer = 0;
+
+      // Halangan Biologi Khas Maze Chase: Perangkap Enzim & Membran Telap (Task 4)
+      this.enzymeTraps = [
+        { x: (5.5) * this.tileSize, y: (8.5) * this.tileSize, radius: 13, name: 'Perangkap Enzim Sel A' },
+        { x: (17.5) * this.tileSize, y: (8.5) * this.tileSize, radius: 13, name: 'Perangkap Enzim Sel B' }
+      ];
+
+      this.bioMembranes = [
+        { col: 11, row: 8, cycleTime: 4.5, openDuration: 2.2, isOpen: true }
+      ];
 
       // Kosongkan zon jawapan yang disingkirkan untuk soalan baharu
       this.eliminatedZones.clear();
@@ -303,11 +315,12 @@
     handleResize() {
       if (!this.canvas) return;
       const rect = this.canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      this.canvas.width = rect.width * dpr;
-      this.canvas.height = rect.height * dpr;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      this.canvas.width = Math.round(rect.width * dpr);
+      this.canvas.height = Math.round(rect.height * dpr);
       this.scaleX = this.canvas.width / this.virtualWidth;
       this.scaleY = this.canvas.height / this.virtualHeight;
+      this.ctx.imageSmoothingEnabled = false;
     }
 
     // 5. Semakan Dinding & Ketercapaian
@@ -317,6 +330,21 @@
 
       if (tileCol < 0 || tileCol >= this.cols || tileRow < 0 || tileRow >= this.rows) {
         return false;
+      }
+
+      // Semakan Membran Biologi Telap (Sekatan berirama)
+      if (this.bioMembranes) {
+        for (let i = 0; i < this.bioMembranes.length; i++) {
+          const mb = this.bioMembranes[i];
+          if (!mb.isOpen) {
+            const mbX = (mb.col + 0.5) * this.tileSize;
+            const mbY = (mb.row + 0.5) * this.tileSize;
+            if (Math.abs(pixelX - mbX) < (this.tileSize / 2 + radius - 2) &&
+                Math.abs(pixelY - mbY) < (this.tileSize / 2 + radius - 2)) {
+              return false;
+            }
+          }
+        }
       }
 
       const offsets = [
@@ -367,6 +395,23 @@
       if (this.activePowerups.radarTimer > 0) {
         this.activePowerups.radarTimer -= dt;
       }
+      if (this.activePowerups.slowTimer > 0) {
+        this.activePowerups.slowTimer -= dt;
+      }
+
+      // Semakan Perangkap Enzim (Memperlahankan pergerakan jika terpijak)
+      if (this.enzymeTraps) {
+        for (let i = 0; i < this.enzymeTraps.length; i++) {
+          const trap = this.enzymeTraps[i];
+          const dist = Math.hypot(p.x - trap.x, p.y - trap.y);
+          if (dist < trap.radius + p.radius - 2) {
+            this.activePowerups.slowTimer = 1.2;
+            if (Math.random() < 0.25) {
+              this.createGlitchParticles(p.x, p.y, '#f59e0b', 3);
+            }
+          }
+        }
+      }
 
       const dirVectors = {
         up: { x: 0, y: -1 },
@@ -375,8 +420,11 @@
         right: { x: 1, y: 0 }
       };
 
-      // Kelajuan pemain: +50% jika Pecutan Saintis aktif (Task 4)
-      const currentSpeed = (this.activePowerups.speedTimer > 0 ? 1.5 : 1.0) * p.speed;
+      // Kelajuan pemain: +50% jika Pecutan, atau -35% jika terkena perangkap enzim
+      let speedMultiplier = 1.0;
+      if (this.activePowerups.speedTimer > 0) speedMultiplier = 1.5;
+      else if (this.activePowerups.slowTimer > 0) speedMultiplier = 0.65;
+      const currentSpeed = speedMultiplier * p.speed;
 
       if (p.desiredDirection) {
         const vec = dirVectors[p.desiredDirection];
@@ -908,6 +956,10 @@
       // D. Item Power-Up Kolektibel (Task 4)
       this.drawPowerups(ctx);
 
+      // D2. Halangan Biologi: Perangkap Enzim & Membran Telap
+      this.drawEnzymeTraps(ctx);
+      this.drawBioMembranes(ctx);
+
       // E. Dinding Maze Futuristic Science Laboratory (Task 7)
       this.drawWalls(ctx);
 
@@ -1057,6 +1109,88 @@
 
         ctx.restore();
       }
+    }
+
+    // Lukis Perangkap Enzim Sel (Halangan Biologi Khas Maze Chase)
+    drawEnzymeTraps(ctx) {
+      if (!this.enzymeTraps) return;
+      const time = performance.now() * 0.003;
+
+      this.enzymeTraps.forEach(trap => {
+        ctx.save();
+        // Kolam enzim likat ambar
+        const pulse = Math.sin(time * 3) * 1.5;
+        const grad = ctx.createRadialGradient(trap.x, trap.y, 2, trap.x, trap.y, trap.radius + pulse);
+        grad.addColorStop(0, 'rgba(245, 158, 11, 0.65)');
+        grad.addColorStop(0.7, 'rgba(217, 119, 6, 0.45)');
+        grad.addColorStop(1, 'rgba(180, 83, 9, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(trap.x, trap.y, trap.radius + pulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Gelembung enzim mikro
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(trap.x - 4 + Math.sin(time * 4) * 2, trap.y - 3, 2, 0, Math.PI * 2);
+        ctx.arc(trap.x + 3, trap.y + 4 + Math.cos(time * 3) * 2, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Label ringkas
+        ctx.fillStyle = '#fde68a';
+        ctx.font = 'bold 7.5px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ENZIM', trap.x, trap.y + 1);
+
+        ctx.restore();
+      });
+    }
+
+    // Lukis Membran Biologi Telap Berirama
+    drawBioMembranes(ctx) {
+      if (!this.bioMembranes) return;
+      const ts = this.tileSize;
+      const time = performance.now() * 0.004;
+
+      this.bioMembranes.forEach(mb => {
+        const x = mb.col * ts;
+        const y = mb.row * ts;
+        ctx.save();
+
+        if (mb.isOpen) {
+          // Membran Terbuka (Permeable green aura)
+          ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 4]);
+          ctx.strokeRect(x + 2, y + 2, ts - 4, ts - 4);
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+          ctx.fillRect(x + 2, y + 2, ts - 4, ts - 4);
+        } else {
+          // Membran Tertutup / Disekat (Closed lipid bilayer barrier)
+          const pulse = Math.sin(time * 4) * 0.2 + 0.8;
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+          ctx.fillRect(x + 1, y + 1, ts - 2, ts - 2);
+
+          // Jalur dwilapisan fosfolipid
+          ctx.strokeStyle = `rgba(239, 68, 68, ${pulse})`;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(x + 3, y + ts / 2);
+          ctx.lineTo(x + ts - 3, y + ts / 2);
+          ctx.stroke();
+
+          // Protein reseptor liang tertutup
+          ctx.fillStyle = '#f87171';
+          ctx.beginPath();
+          ctx.arc(x + ts / 2, y + ts / 2, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      });
     }
 
     // Redesigned Futuristic Science Laboratory Walls (Task 7)
@@ -1472,30 +1606,53 @@
         ctx.ellipse(e.x, e.y + e.radius, e.radius * 0.8, 4, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Protein Spikes berdenyut
+        // Protein Spikes berdenyut mengikut Jenis Morfologi Virus
         const spikePulse = Math.sin(e.animTimer) * 2;
-        const spikeCount = e.type === 'patrol' ? 8 : (e.type === 'wander' ? 6 : 8);
-        ctx.strokeStyle = e.cfg.secondaryColor;
-        ctx.lineWidth = 2.5;
 
-        for (let s = 0; s < spikeCount; s++) {
-          const angle = (s / spikeCount) * Math.PI * 2 + e.animTimer * 0.2;
-          const outerR = e.radius + 4 + spikePulse;
-          const sx = e.x + Math.cos(angle) * outerR;
-          const sy = e.y + Math.sin(angle) * outerR;
-
+        if (e.type === 'purple') {
+          // BACTERIOPHAGE: Kaki gentian ekor (Spider-like tail fibers & sheath)
+          ctx.strokeStyle = '#c084fc';
+          ctx.lineWidth = 2.2;
+          // Sarung leher (Sheath)
           ctx.beginPath();
-          ctx.moveTo(e.x + Math.cos(angle) * e.radius, e.y + Math.sin(angle) * e.radius);
-          ctx.lineTo(sx, sy);
+          ctx.moveTo(e.x, e.y);
+          ctx.lineTo(e.x, e.y + e.radius + 6);
           ctx.stroke();
 
-          ctx.fillStyle = e.cfg.secondaryColor;
-          ctx.beginPath();
-          ctx.arc(sx, sy, 2, 0, Math.PI * 2);
-          ctx.fill();
+          // 4 Gentian Ekor / Landing Pins
+          [-10, -5, 5, 10].forEach((offX, idx) => {
+            ctx.beginPath();
+            ctx.moveTo(e.x, e.y + e.radius + 5);
+            ctx.lineTo(e.x + offX * 0.8, e.y + e.radius + 9);
+            ctx.lineTo(e.x + offX * 1.3, e.y + e.radius + 14);
+            ctx.stroke();
+          });
+        } else {
+          // ADENOVIRUS / CORONAVIRUS Spikes
+          const spikeCount = e.type === 'red' ? 10 : 8;
+          ctx.strokeStyle = e.cfg.secondaryColor;
+          ctx.lineWidth = e.type === 'red' ? 3.0 : 2.2;
+
+          for (let s = 0; s < spikeCount; s++) {
+            const angle = (s / spikeCount) * Math.PI * 2 + e.animTimer * 0.25;
+            const outerR = e.radius + 5 + spikePulse;
+            const sx = e.x + Math.cos(angle) * outerR;
+            const sy = e.y + Math.sin(angle) * outerR;
+
+            ctx.beginPath();
+            ctx.moveTo(e.x + Math.cos(angle) * e.radius, e.y + Math.sin(angle) * e.radius);
+            ctx.lineTo(sx, sy);
+            ctx.stroke();
+
+            // Kepala Spike (Club/Crown-shaped glycoprotein peplomers)
+            ctx.fillStyle = e.type === 'red' ? '#fb7185' : e.cfg.secondaryColor;
+            ctx.beginPath();
+            ctx.arc(sx, sy, e.type === 'red' ? 2.8 : 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
 
-        // Badan Virus Utama
+        // Badan Kapsid Virus Utama
         const grad = ctx.createRadialGradient(e.x - 3, e.y - 3, 2, e.x, e.y, e.radius);
         grad.addColorStop(0, '#ffffff');
         grad.addColorStop(0.3, e.cfg.color);
@@ -1503,7 +1660,17 @@
 
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        if (e.type === 'purple') {
+          // Bentuk Kapsid Poligonal Ikosahedral (Bacteriophage Head)
+          ctx.moveTo(e.x, e.y - e.radius - 2);
+          ctx.lineTo(e.x + e.radius, e.y - e.radius * 0.4);
+          ctx.lineTo(e.x + e.radius * 0.8, e.y + e.radius * 0.6);
+          ctx.lineTo(e.x - e.radius * 0.8, e.y + e.radius * 0.6);
+          ctx.lineTo(e.x - e.radius, e.y - e.radius * 0.4);
+          ctx.closePath();
+        } else {
+          ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        }
         ctx.fill();
         ctx.strokeStyle = e.cfg.secondaryColor;
         ctx.lineWidth = 1.5;
@@ -1621,6 +1788,14 @@
       this.lastTime = currentTime;
 
       if (!this.paused && !this.transitioning) {
+        // Kemas kini status buka/tutup membran biologi
+        if (this.bioMembranes) {
+          const t = performance.now() * 0.001;
+          this.bioMembranes.forEach(mb => {
+            mb.isOpen = (Math.sin(t * (Math.PI * 2 / mb.cycleTime)) > 0);
+          });
+        }
+
         this.updatePlayer(dt);
         this.updateEnemies(dt);
         this.updateParticles(dt);

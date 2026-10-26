@@ -48,6 +48,7 @@
       this.canvas = document.getElementById('lab-canvas');
       this.hudScore = document.getElementById('lab-hud-score');
       this.hudEquipment = document.getElementById('lab-hud-equipment');
+      this.hudLives = document.getElementById('lab-hud-lives');
       this.hudTimer = document.getElementById('lab-hud-timer');
       this.hudPlayerName = document.getElementById('lab-hud-player-name');
       this.toastNotice = document.getElementById('lab-toast-notice');
@@ -66,13 +67,16 @@
       this.inventoryModal = document.getElementById('lab-inventory-modal');
       this.confirmModal = document.getElementById('lab-confirm-modal');
       this.victoryModal = document.getElementById('lab-victory-modal');
+      this.gameoverModal = document.getElementById('lab-gameover-modal');
 
       // Inisialisasi Enjin Permainan
       this.engine = new LabAdventureGameEngine(this.canvas, {
         playerName: this.playerProfile.name,
         onEquipmentTrigger: (item) => this.handleEquipmentTrigger(item),
         onStorageStationTrigger: () => this.handleStorageStationTrigger(),
-        onExitDoorTrigger: (isUnlocked) => this.handleExitDoorTrigger(isUnlocked)
+        onExitDoorTrigger: (isUnlocked) => this.handleExitDoorTrigger(isUnlocked),
+        onPlayerHurt: (lives, source) => this.handlePlayerHurt(lives, source),
+        onGameOver: () => this.handleGameOver()
       });
 
       this.initEvents();
@@ -153,8 +157,27 @@
       if (this.hudEquipment) {
         this.hudEquipment.textContent = `${this.collectedCount}/10`;
       }
+      if (this.hudLives) {
+        const lives = (this.engine && this.engine.player) ? this.engine.player.lives : 3;
+        const hearts = '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
+        this.hudLives.textContent = hearts;
+      }
       if (this.hudTimer) {
         this.hudTimer.textContent = this.formatTime(this.elapsedSeconds);
+      }
+    }
+
+    // 3B. Pengendalian Kerosakan Halangan & Game Over
+    handlePlayerHurt(lives, sourceLabel) {
+      this.updateHUD();
+      this.showToast(`⚠️ Awas! Terlanggar ${sourceLabel || 'halangan makmal'}! Baki nyawa: ${lives}/3`, 'warning', 2500);
+    }
+
+    handleGameOver() {
+      this.stopTimer();
+      this.updateHUD();
+      if (this.gameoverModal) {
+        this.gameoverModal.classList.remove('hidden');
       }
     }
 

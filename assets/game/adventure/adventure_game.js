@@ -1,6 +1,15 @@
 /**
- * ARSelNel 2D Science Rescue Adventure - Game Engine & Renderer
- * Engine Canvas 2D: Physics, Camera, Collision, Dynamic Hazards, Patrol Bots, Power-ups & Particle Systems
+ * ARSelNel 2D Science Rescue Adventure - High-Definition Game Engine & Renderer
+ * Modul: Misi Penyelamat Makmal Sains (Kuiz Saintis Muda)
+ * 
+ * HD Upgrades:
+ * - High-DPI / DevicePixelRatio support for razor-sharp rendering on all screens
+ * - Smart camera scaling & zoom (1.85x - 2.05x) for optimal visibility & detail
+ * - Detailed HD Pixel-Art procedural sprites for all 10 science samples
+ * - Volumetric environment tiles (shaded trees, cobblestones, glossy lab benches, cleanroom)
+ * - Animated hazards (bubbling chemical spills, biohazard zones, scanning patrol bots)
+ * - Soft ambient shadows, pulsing halos, and polished particle effects
+ * - 100% preservation of collision physics, speeds, coordinates, questions, and mechanics!
  */
 
 (function(global) {
@@ -31,16 +40,24 @@
 
       this.map = generateCampusMap();
 
-      // Kamera
+      // HD Viewport & Camera Scaling (Mudah dikonfigurasi - Fasa 3: Zoom out 10-15%)
+      this.CAMERA_ZOOM_CONFIG = {
+        mobile: 1.25,   // Sebelum ini 1.40 (-10.7%)
+        tablet: 1.45,   // Sebelum ini 1.65 (-12.1%)
+        laptop: 1.60,   // Sebelum ini 1.85 (-13.5% untuk paparan 1366x768 & laptop)
+        wide: 1.75      // Sebelum ini 2.05 (-14.6% untuk 1080p & 2K)
+      };
+      this.dpr = 1;
+      this.gameScale = this.CAMERA_ZOOM_CONFIG.laptop; // Skala kamera dikonfigurasikan
       this.camera = { x: 0, y: 0, width: 800, height: 600 };
 
-      // Pemain (Saintis Muda)
+      // Pemain (Saintis Muda) - KEKALKAN 100% SIFAT FIZIK & COLLISION BOX
       this.player = {
         x: 19 * TILE_SIZE, // Mula di Dataran Sains Utama
         y: 19 * TILE_SIZE,
         width: 22,
         height: 28,
-        baseSpeed: 155, // px per saat
+        baseSpeed: 155, // px per saat (KEKAL)
         speed: 155,
         lives: 3,
         maxLives: 3,
@@ -67,7 +84,7 @@
       // Virtual touch joystick / dpad state
       this.touchVector = { x: 0, y: 0, active: false };
 
-      // 10 Objek & Sampel Sains
+      // 10 Objek & Sampel Sains (Lokasi & Soalan KEKAL)
       this.samples = SCIENCE_SAMPLES.map((loc, idx) => ({
         id: idx + 1,
         questionId: loc.questionId,
@@ -82,7 +99,7 @@
         bobOffset: idx * 0.65
       }));
 
-      // Power-ups
+      // Power-ups (Lokasi & Kesan KEKAL)
       this.powerups = POWERUP_LOCATIONS.map((p) => ({
         id: p.id,
         type: p.type,
@@ -126,7 +143,7 @@
       // Partikel
       this.particles = [];
 
-      // Keadaan permainan (Bermula dalam mod READY sebelum pemain menekan Mula)
+      // Keadaan permainan
       this.state = GameState ? GameState.READY : 'ready';
       this.isPaused = true;
       this.lastTime = 0;
@@ -142,12 +159,12 @@
       this.onPowerupCollect = options.onPowerupCollect || (() => {});
       this.onGameOver = options.onGameOver || (() => {});
 
-      // Sediakan cache tekstur tile, watak, sampel sains & power-ups
-      this.tileSprites = this.createTileTextures();
-      this.playerSprites = this.createPlayerSprites();
-      this.sampleSprites = this.createSampleSprites();
-      this.powerupSprites = this.createPowerupSprites();
-      this.robotSprite = this.createRobotSprite();
+      // Sediakan cache tekstur HD Pixel-Art
+      this.tileSprites = this.createHDTileTextures();
+      this.playerSprites = this.createHDPlayerSprites();
+      this.sampleSprites = this.createHDSampleSprites();
+      this.powerupSprites = this.createHDPowerupSprites();
+      this.robotSprite = this.createHDRobotSprite();
 
       // Dengar input keyboard & resize
       this.initInput();
@@ -155,10 +172,12 @@
       window.addEventListener('resize', () => this.handleResize());
     }
 
-    // 1. Cipta Tekstur Tile Map
-    createTileTextures() {
+    // =========================================================================
+    // 1. HD PIXEL-ART PROCEDURAL TILE TEXTURES (32x32)
+    // =========================================================================
+    createHDTileTextures() {
       const textures = {};
-      const size = TILE_SIZE;
+      const size = TILE_SIZE; // 32px
 
       const makeCanvas = (drawFn) => {
         const c = document.createElement('canvas');
@@ -170,244 +189,458 @@
         return c;
       };
 
-      // 0: Rumput Kampus Sains
+      // 0: Rumput Kampus Sains (Lush Emerald with Shading & Flowers)
       textures[0] = makeCanvas((c) => {
+        // Base grass tone
         c.fillStyle = '#4ade80';
         c.fillRect(0, 0, size, size);
+
+        // Subtle micro-pattern for grass blades
         c.fillStyle = '#22c55e';
-        c.fillRect(4, 6, 2, 4);
-        c.fillRect(18, 12, 2, 4);
-        c.fillRect(10, 24, 2, 4);
-        c.fillRect(26, 22, 2, 4);
+        c.fillRect(3, 4, 2, 4);
+        c.fillRect(14, 2, 2, 3);
+        c.fillRect(24, 6, 2, 4);
+        c.fillRect(8, 14, 2, 4);
+        c.fillRect(20, 16, 2, 4);
+        c.fillRect(5, 24, 2, 4);
+        c.fillRect(17, 26, 2, 3);
+        c.fillRect(27, 22, 2, 4);
+
+        // Sunlight highlights on blade tips
         c.fillStyle = '#86efac';
-        c.fillRect(5, 5, 2, 2);
-        c.fillRect(19, 11, 2, 2);
-        c.fillStyle = '#fef08a'; // Bunga liar sains
-        c.fillRect(24, 8, 2, 2);
+        c.fillRect(4, 3, 2, 2);
+        c.fillRect(15, 1, 2, 2);
+        c.fillRect(25, 5, 2, 2);
+        c.fillRect(9, 13, 2, 2);
+        c.fillRect(21, 15, 2, 2);
+        c.fillRect(6, 23, 2, 2);
+
+        // Wildflowers (kuning & putih)
+        c.fillStyle = '#fef08a';
+        c.fillRect(11, 8, 3, 3);
+        c.fillStyle = '#ffffff';
+        c.fillRect(12, 9, 1, 1);
+
+        c.fillStyle = '#ffffff';
+        c.fillRect(25, 27, 3, 3);
+        c.fillStyle = '#facc15';
+        c.fillRect(26, 28, 1, 1);
       });
 
-      // 1: Laluan Batu Berturap / Koridor
+      // 1: Laluan Batu Berturap / Cobblestones (Beveled Slate Pavers)
       textures[1] = makeCanvas((c) => {
-        c.fillStyle = '#e2e8f0';
+        // Base mortar tone
+        c.fillStyle = '#cbd5e1';
         c.fillRect(0, 0, size, size);
-        c.strokeStyle = '#cbd5e1';
-        c.lineWidth = 1;
-        c.strokeRect(1, 1, 14, 14);
-        c.strokeRect(17, 1, 14, 14);
-        c.strokeRect(1, 17, 14, 14);
-        c.strokeRect(17, 17, 14, 14);
-        c.fillStyle = '#f8fafc';
-        c.fillRect(3, 3, 4, 3);
-        c.fillRect(19, 3, 4, 3);
-        c.fillRect(3, 19, 4, 3);
-        c.fillRect(19, 19, 4, 3);
+
+        // Paver blocks (4 distinct pavers with light highlights & drop shadows)
+        const drawPaver = (x, y, w, h) => {
+          // Shadow underneath
+          c.fillStyle = '#94a3b8';
+          c.fillRect(x, y, w, h);
+          // Face
+          c.fillStyle = '#e2e8f0';
+          c.fillRect(x, y, w - 1, h - 1);
+          // Highlight
+          c.fillStyle = '#f8fafc';
+          c.fillRect(x, y, w - 2, 1);
+          c.fillRect(x, y, 1, h - 2);
+        };
+
+        drawPaver(1, 1, 14, 14);
+        drawPaver(17, 1, 14, 14);
+        drawPaver(1, 17, 14, 14);
+        drawPaver(17, 17, 14, 14);
       });
 
-      // 2: Jubin Makmal Biologi (Teal Aksen)
+      // 2: Jubin Makmal Biologi (Glossy White Lab Tiles with Teal Trim)
       textures[2] = makeCanvas((c) => {
-        c.fillStyle = '#f1f5f9';
+        c.fillStyle = '#f8fafc';
         c.fillRect(0, 0, size, size);
-        c.fillStyle = '#e2eaf4';
+
+        // Grout grid
+        c.fillStyle = '#e2e8f0';
         c.fillRect(0, 0, size, 1);
         c.fillRect(0, 0, 1, size);
-        c.fillStyle = '#0d9488'; // Aksen teal makmal
+        c.fillRect(0, size - 1, size, 1);
+        c.fillRect(size - 1, 0, 1, size);
+
+        // Specular light reflection on glossy floor
+        c.fillStyle = '#ffffff';
+        c.fillRect(3, 3, 10, 2);
+        c.fillRect(3, 5, 2, 8);
+
+        // Corner teal lab motif
+        c.fillStyle = '#0d9488';
         c.fillRect(15, 15, 2, 2);
       });
 
-      // 3: Lantai Rumah Hijau Botanik
+      // 3: Lantai Rumah Hijau Botanik (Mint Terracotta Garden Tiles)
       textures[3] = makeCanvas((c) => {
         c.fillStyle = '#dcfce7';
         c.fillRect(0, 0, size, size);
+
         c.strokeStyle = '#bbf7d0';
-        c.strokeRect(0, 0, size, size);
+        c.lineWidth = 1;
+        c.strokeRect(1, 1, size - 2, size - 2);
+
+        // Botanical terracotta diamond
         c.fillStyle = '#86efac';
-        c.fillRect(8, 8, 4, 4);
-        c.fillRect(20, 20, 4, 4);
+        c.beginPath();
+        c.moveTo(16, 6);
+        c.lineTo(26, 16);
+        c.lineTo(16, 26);
+        c.lineTo(6, 16);
+        c.closePath();
+        c.fill();
+
+        c.fillStyle = '#4ade80';
+        c.fillRect(15, 15, 2, 2);
       });
 
-      // 4: Dataran Mar-mar Pavilion
+      // 4: Dataran Mar-mar Pavilion (Plaza Marble with Soft Veins)
       textures[4] = makeCanvas((c) => {
         c.fillStyle = '#f8fafc';
         c.fillRect(0, 0, size, size);
+
         c.strokeStyle = '#e2e8f0';
+        c.lineWidth = 1;
         c.strokeRect(0, 0, size, size);
+
+        // Inner decorative frame
+        c.fillStyle = '#f1f5f9';
+        c.fillRect(3, 3, 26, 26);
+
         c.fillStyle = '#e0f2fe';
-        c.fillRect(4, 4, 24, 24);
+        c.fillRect(6, 6, 20, 20);
+
+        // Soft marble vein
+        c.fillStyle = '#bae6fd';
+        c.fillRect(8, 12, 12, 1);
+        c.fillRect(16, 13, 8, 1);
       });
 
-      // 5: Lantai Makmal Utama (Bilik Bersih High-Tech)
+      // 5: Lantai Makmal Utama (Futuristic Cleanroom Tiles)
       textures[5] = makeCanvas((c) => {
         c.fillStyle = '#0f172a';
         c.fillRect(0, 0, size, size);
+
+        // Outer beveled edge
         c.fillStyle = '#1e293b';
         c.fillRect(2, 2, size - 4, size - 4);
-        c.fillStyle = '#0284c7';
-        c.fillRect(6, 6, 2, 2);
-        c.fillRect(24, 24, 2, 2);
-        c.strokeStyle = '#0369a1';
+
+        // High-tech circuit track
+        c.strokeStyle = '#0284c7';
         c.lineWidth = 1;
-        c.strokeRect(4, 4, size - 8, size - 8);
+        c.strokeRect(5, 5, size - 10, size - 10);
+
+        // Corner blue LED nodes
+        c.fillStyle = '#38bdf8';
+        c.fillRect(6, 6, 2, 2);
+        c.fillRect(24, 6, 2, 2);
+        c.fillRect(6, 24, 2, 2);
+        c.fillRect(24, 24, 2, 2);
       });
 
-      // 10: Dinding Bata Luar (SOLID)
+      // 10: Dinding Bata Luar (SOLID - Charcoal Slate Masonry with Coping)
       textures[10] = makeCanvas((c) => {
-        c.fillStyle = '#334155';
-        c.fillRect(0, 0, size, size);
-        c.fillStyle = '#475569';
-        c.fillRect(0, 0, size, 6);
+        // Wall base
         c.fillStyle = '#1e293b';
-        c.fillRect(0, size - 4, size, 4);
+        c.fillRect(0, 0, size, size);
+
+        // Stone coping cap on top
+        c.fillStyle = '#475569';
+        c.fillRect(0, 0, size, 5);
         c.fillStyle = '#64748b';
-        c.fillRect(2, 8, 12, 6);
-        c.fillRect(18, 8, 12, 6);
-        c.fillRect(10, 18, 12, 6);
+        c.fillRect(0, 0, size, 2);
+
+        // Mortar lines & bricks
+        c.fillStyle = '#334155';
+        c.fillRect(2, 7, 12, 6);
+        c.fillRect(16, 7, 14, 6);
+        c.fillRect(1, 15, 14, 6);
+        c.fillRect(17, 15, 13, 6);
+        c.fillRect(3, 23, 12, 6);
+        c.fillRect(17, 23, 12, 6);
+
+        // Brick highlights
+        c.fillStyle = '#475569';
+        c.fillRect(3, 8, 10, 1);
+        c.fillRect(17, 8, 12, 1);
+        c.fillRect(2, 16, 12, 1);
+        c.fillRect(18, 16, 11, 1);
       });
 
-      // 11: Dinding Kaca Makmal Berkaca (SOLID)
+      // 11: Dinding Kaca Makmal (SOLID - Teal Reinforced Glass Partitions)
       textures[11] = makeCanvas((c) => {
+        // Steel frame
         c.fillStyle = '#0f766e';
         c.fillRect(0, 0, size, size);
+
+        // Translucent glass panel
         c.fillStyle = '#14b8a6';
         c.fillRect(2, 2, size - 4, size - 4);
-        c.fillStyle = '#99f6e4';
-        c.fillRect(4, 4, 6, size - 8);
+        c.fillStyle = '#5eead4';
+        c.fillRect(4, 4, size - 8, size - 8);
+
+        // Glass reflection streaks
         c.fillStyle = '#ffffff';
-        c.fillRect(6, 6, 2, size - 12);
+        c.fillRect(6, 6, 3, size - 12);
+        c.fillRect(12, 6, 1, size - 12);
+        c.fillRect(22, 6, 2, size - 12);
       });
 
-      // 12: Pagar / Pokok Renek Sempadan (SOLID)
+      // 12: Pagar / Pokok Renek Sempadan (SOLID - Volumetric Lush Hedge)
       textures[12] = makeCanvas((c) => {
-        c.fillStyle = '#15803d';
+        c.fillStyle = '#14532d';
         c.fillRect(0, 0, size, size);
-        c.fillStyle = '#16a34a';
-        c.beginPath();
-        c.arc(8, 8, 6, 0, Math.PI * 2);
-        c.arc(24, 8, 6, 0, Math.PI * 2);
-        c.arc(16, 22, 7, 0, Math.PI * 2);
-        c.fill();
-        c.fillStyle = '#4ade80';
-        c.fillRect(6, 6, 3, 3);
-        c.fillRect(22, 6, 3, 3);
-        c.fillRect(14, 20, 3, 3);
+
+        // Multiple overlapping foliage lobes
+        const drawLobe = (cx, cy, r, fill, hi) => {
+          c.fillStyle = fill;
+          c.beginPath();
+          c.arc(cx, cy, r, 0, Math.PI * 2);
+          c.fill();
+          c.fillStyle = hi;
+          c.beginPath();
+          c.arc(cx - 2, cy - 2, r * 0.55, 0, Math.PI * 2);
+          c.fill();
+        };
+
+        drawLobe(8, 8, 7, '#16a34a', '#4ade80');
+        drawLobe(24, 8, 7, '#16a34a', '#4ade80');
+        drawLobe(8, 24, 7, '#15803d', '#22c55e');
+        drawLobe(24, 24, 7, '#15803d', '#22c55e');
+        drawLobe(16, 16, 8, '#22c55e', '#86efac');
       });
 
-      // 13: Meja Eksperimen Makmal (SOLID)
+      // 13: Meja Eksperimen Makmal (SOLID - Granite Bench with Lab Glassware)
       textures[13] = makeCanvas((c) => {
-        c.fillStyle = '#64748b';
+        // Wooden / steel frame shadow
+        c.fillStyle = '#1e293b';
         c.fillRect(2, 4, size - 4, size - 8);
-        c.fillStyle = '#94a3b8';
-        c.fillRect(4, 6, size - 8, 6);
-        // Beaker & kelalang makmal
+
+        // Granite worktop
+        c.fillStyle = '#475569';
+        c.fillRect(2, 4, size - 4, 10);
+        c.fillStyle = '#64748b';
+        c.fillRect(3, 4, size - 6, 2);
+
+        // Bench drawer & legs
+        c.fillStyle = '#334155';
+        c.fillRect(4, 14, size - 8, size - 18);
+        c.fillStyle = '#94a3b8'; // Drawer handle
+        c.fillRect(13, 17, 6, 2);
+
+        // Glassware on top: Erlenmeyer flask (cyan) & beaker (pink)
+        // Flask
         c.fillStyle = '#38bdf8';
-        c.fillRect(8, 14, 4, 6);
-        c.fillStyle = '#ec4899';
-        c.fillRect(18, 14, 4, 6);
+        c.fillRect(6, 6, 4, 5);
+        c.fillStyle = '#ffffff';
+        c.fillRect(7, 5, 2, 2);
+
+        // Beaker
+        c.fillStyle = '#f43f5e';
+        c.fillRect(20, 6, 5, 5);
+        c.fillStyle = '#ffffff';
+        c.fillRect(20, 6, 1, 5);
       });
 
-      // 14: Pokok Rendang Kampus (SOLID)
+      // 14: Pokok Rendang Kampus (SOLID - Volumetric Shaded Tree)
       textures[14] = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
+        // Cast shadow on ground
+        c.fillStyle = 'rgba(15, 23, 42, 0.28)';
         c.beginPath();
-        c.ellipse(16, 26, 12, 5, 0, 0, Math.PI * 2);
+        c.ellipse(16, 28, 12, 4, 0, 0, Math.PI * 2);
         c.fill();
+
+        // Tree trunk
         c.fillStyle = '#78350f';
         c.fillRect(13, 16, 6, 12);
-        c.fillStyle = '#15803d';
+        c.fillStyle = '#92400e';
+        c.fillRect(14, 16, 2, 12);
+
+        // Tree canopy layers (Dark base -> Mid -> Light)
+        c.fillStyle = '#14532d';
         c.beginPath();
-        c.arc(16, 12, 12, 0, Math.PI * 2);
+        c.arc(16, 14, 13, 0, Math.PI * 2);
         c.fill();
+
+        c.fillStyle = '#16a34a';
+        c.beginPath();
+        c.arc(15, 12, 11, 0, Math.PI * 2);
+        c.fill();
+
         c.fillStyle = '#22c55e';
         c.beginPath();
-        c.arc(14, 9, 8, 0, Math.PI * 2);
+        c.arc(13, 9, 8, 0, Math.PI * 2);
         c.fill();
+
         c.fillStyle = '#86efac';
         c.fillRect(10, 6, 4, 3);
+        c.fillRect(16, 7, 3, 2);
       });
 
-      // 15: Kolam Air Pancut Dataran (SOLID)
+      // 15: Kolam Air Pancut Dataran (SOLID - Rippling Fountain Basin)
       textures[15] = makeCanvas((c) => {
+        // Stone basin rim
+        c.fillStyle = '#64748b';
+        c.fillRect(1, 1, size - 2, size - 2);
+        c.fillStyle = '#94a3b8';
+        c.fillRect(2, 2, size - 4, size - 4);
+
+        // Deep water
         c.fillStyle = '#0284c7';
-        c.fillRect(0, 0, size, size);
+        c.fillRect(3, 3, size - 6, size - 6);
+
+        // Water ripples & fountain spray
         c.fillStyle = '#38bdf8';
         c.beginPath();
-        c.arc(16, 16, 12, 0, Math.PI * 2);
+        c.arc(16, 16, 9, 0, Math.PI * 2);
         c.fill();
+
+        c.fillStyle = '#bae6fd';
+        c.beginPath();
+        c.arc(16, 16, 5, 0, Math.PI * 2);
+        c.fill();
+
+        // Water jet center
         c.fillStyle = '#ffffff';
-        c.fillRect(14, 12, 4, 4);
-        c.strokeStyle = '#94a3b8';
-        c.lineWidth = 2;
-        c.strokeRect(1, 1, size - 2, size - 2);
+        c.fillRect(15, 13, 2, 6);
+        c.fillRect(13, 15, 6, 2);
       });
 
-      // 16: Dinding Rumah Kaca (SOLID)
+      // 16: Dinding Rumah Kaca (SOLID - Greenhouse Glass Structure)
       textures[16] = makeCanvas((c) => {
-        c.fillStyle = '#15803d';
+        c.fillStyle = '#14532d';
         c.fillRect(0, 0, size, size);
-        c.fillStyle = '#dcfce7';
-        c.fillRect(2, 2, size - 4, size - 4);
-        c.strokeStyle = '#86efac';
-        c.lineWidth = 1;
-        c.strokeRect(4, 4, size - 8, size - 8);
+
+        // Glass panes
+        c.fillStyle = '#bbf7d0';
+        c.fillRect(2, 2, 13, 13);
+        c.fillRect(17, 2, 13, 13);
+        c.fillRect(2, 17, 13, 13);
+        c.fillRect(17, 17, 13, 13);
+
+        // Light sheen
+        c.fillStyle = '#ffffff';
+        c.fillRect(4, 4, 2, 6);
+        c.fillRect(19, 4, 2, 6);
       });
 
-      // 17: Rak Instrumen / Mikroskop (SOLID)
+      // 17: Rak Instrumen & Mikroskop (SOLID - High-Tech Equipment Console)
       textures[17] = makeCanvas((c) => {
-        c.fillStyle = '#475569';
-        c.fillRect(2, 4, size - 4, size - 8);
-        c.fillStyle = '#e2e8f0';
-        c.fillRect(14, 8, 4, 12);
-        c.fillRect(10, 18, 12, 3);
-        c.fillStyle = '#0ea5e9';
-        c.fillRect(16, 6, 6, 3);
+        c.fillStyle = '#1e293b';
+        c.fillRect(2, 2, size - 4, size - 4);
+
+        c.fillStyle = '#334155';
+        c.fillRect(3, 3, size - 6, size - 6);
+
+        // Digital screen displaying waveform
+        c.fillStyle = '#0f172a';
+        c.fillRect(5, 5, 22, 12);
+        c.fillStyle = '#06b6d4'; // Cyan oscilloscope line
+        c.fillRect(6, 11, 4, 1);
+        c.fillRect(10, 8, 3, 1);
+        c.fillRect(13, 13, 3, 1);
+        c.fillRect(16, 10, 5, 1);
+        c.fillRect(21, 11, 5, 1);
+
+        // Knobs & meters below
+        c.fillStyle = '#10b981';
+        c.fillRect(6, 20, 3, 3);
+        c.fillStyle = '#f59e0b';
+        c.fillRect(12, 20, 3, 3);
+        c.fillStyle = '#ef4444';
+        c.fillRect(18, 20, 3, 3);
       });
 
-      // 18: Papan Tanda Arah Zon Makmal (SOLID)
+      // 18: Papan Tanda Arah Zon Makmal (SOLID - Clear Directional Signpost)
       textures[18] = makeCanvas((c) => {
+        // Ground shadow
+        c.fillStyle = 'rgba(0,0,0,0.2)';
+        c.beginPath();
+        c.ellipse(16, 28, 8, 3, 0, 0, Math.PI * 2);
+        c.fill();
+
+        // Wooden post
         c.fillStyle = '#78350f';
-        c.fillRect(14, 16, 4, 14);
+        c.fillRect(14, 14, 4, 15);
+
+        // Signboard 1 (Makmal Utama - Blue pointing up/north)
         c.fillStyle = '#0284c7';
-        c.fillRect(4, 4, 24, 12);
+        c.fillRect(4, 3, 24, 7);
         c.strokeStyle = '#ffffff';
         c.lineWidth = 1;
-        c.strokeRect(5, 5, 22, 10);
+        c.strokeRect(4, 3, 24, 7);
         c.fillStyle = '#ffffff';
-        c.fillRect(7, 8, 4, 2);
-        c.fillRect(13, 8, 4, 2);
-        c.fillRect(19, 8, 4, 2);
+        c.fillRect(6, 6, 2, 2); // Arrow indicator
+        c.fillRect(10, 6, 16, 1);
+
+        // Signboard 2 (Bilik Mikroskop - Teal pointing side)
+        c.fillStyle = '#0d9488';
+        c.fillRect(4, 12, 24, 7);
+        c.strokeStyle = '#ffffff';
+        c.lineWidth = 1;
+        c.strokeRect(4, 12, 24, 7);
+        c.fillStyle = '#ffffff';
+        c.fillRect(6, 15, 2, 2);
+        c.fillRect(10, 15, 16, 1);
       });
 
-      // 20: Terminal Pengaktifan Keselamatan Makmal (FINISH Zone)
+      // 20: Terminal Pengaktifan Keselamatan Makmal (Mainframe Finish Target)
       textures[20] = makeCanvas((c) => {
         c.fillStyle = '#0f172a';
         c.fillRect(0, 0, size, size);
+
+        // Glowing reactor border
         c.fillStyle = '#0284c7';
+        c.fillRect(2, 2, size - 4, size - 4);
+        c.fillStyle = '#0369a1';
         c.fillRect(4, 4, size - 8, size - 8);
+
+        // Supercomputer screen
         c.fillStyle = '#38bdf8';
         c.fillRect(8, 8, size - 16, size - 16);
+
+        // Pulse icon in center
         c.fillStyle = '#ffffff';
-        c.fillRect(14, 12, 4, 8);
-        c.fillRect(12, 14, 8, 4);
+        c.fillRect(13, 10, 6, 12);
+        c.fillRect(10, 13, 12, 6);
       });
 
-      // 21: Tiang Struktur Gerbang Makmal (SOLID)
+      // 21: Tiang Struktur Gerbang Makmal (SOLID - Reinforced Bronze/Teal Pillars)
       textures[21] = makeCanvas((c) => {
         c.fillStyle = '#0f766e';
-        c.fillRect(4, 0, size - 8, size);
+        c.fillRect(2, 0, size - 4, size);
+
         c.fillStyle = '#14b8a6';
-        c.fillRect(6, 2, 4, size - 4);
-        c.fillStyle = '#134e4a';
-        c.fillRect(4, size - 4, size - 8, 4);
+        c.fillRect(4, 2, size - 8, size - 4);
+
+        // Fluted vertical ridges
+        c.fillStyle = '#5eead4';
+        c.fillRect(6, 2, 2, size - 4);
+        c.fillRect(12, 2, 2, size - 4);
+        c.fillRect(18, 2, 2, size - 4);
+        c.fillRect(24, 2, 2, size - 4);
+
+        // Top & bottom caps
+        c.fillStyle = '#042f2e';
+        c.fillRect(2, 0, size - 4, 3);
+        c.fillRect(2, size - 3, size - 4, 3);
       });
 
       return textures;
     }
 
-    // 2. Sprite Watak Pelajar Comel 4-arah (Down, Up, Left, Right)
-    createPlayerSprites() {
+    // =========================================================================
+    // 2. HD PIXEL-ART YOUNG SCIENTIST AVATAR (32x36)
+    // =========================================================================
+    createHDPlayerSprites() {
       const sprites = {};
       const directions = ['down', 'up', 'left', 'right'];
 
-      directions.forEach(dir => {
+      directions.forEach((dir) => {
         sprites[dir] = [];
         for (let frame = 0; frame < 4; frame++) {
           const c = document.createElement('canvas');
@@ -416,59 +649,123 @@
           const cx = c.getContext('2d');
           cx.imageSmoothingEnabled = false;
 
-          const legOffset = (frame === 1) ? 2 : (frame === 3) ? -2 : 0;
+          const legOffset = (frame === 1) ? 3 : (frame === 3) ? -3 : 0;
           const bob = (frame % 2 === 1) ? -1 : 0;
+          const armSwing = (frame === 1) ? 2 : (frame === 3) ? -2 : 0;
 
-          // Bayang bawah
-          cx.fillStyle = 'rgba(0,0,0,0.22)';
+          // 1. Soft Oval Drop Shadow
+          cx.fillStyle = 'rgba(15, 23, 42, 0.32)';
           cx.beginPath();
           cx.ellipse(16, 33, 9, 3.5, 0, 0, Math.PI * 2);
           cx.fill();
 
-          // Kaki & Kasut
-          cx.fillStyle = '#1e293b';
+          // 2. Shoes & Trousers
+          cx.fillStyle = '#1e293b'; // Slate pants
           if (dir === 'left' || dir === 'right') {
-            cx.fillRect(14 + legOffset, 27, 5, 6);
+            cx.fillRect(14 + legOffset, 26, 5, 5);
+            cx.fillStyle = '#0f172a'; // Shoe
+            cx.fillRect(14 + legOffset, 31, 6, 3);
           } else {
-            cx.fillRect(10 - legOffset, 27, 4, 6);
-            cx.fillRect(18 + legOffset, 27, 4, 6);
+            cx.fillRect(10 - legOffset, 26, 4, 5);
+            cx.fillRect(18 + legOffset, 26, 4, 5);
+            cx.fillStyle = '#0f172a';
+            cx.fillRect(9 - legOffset, 31, 5, 3);
+            cx.fillRect(18 + legOffset, 31, 5, 3);
           }
 
-          // Kot Makmal Putih & Baju Teal
-          cx.fillStyle = '#0d9488'; // Baju dalam teal
-          cx.fillRect(11, 15 + bob, 10, 13);
-          cx.fillStyle = '#ffffff'; // Kot makmal putih
-          cx.fillRect(9, 15 + bob, 4, 13);
-          cx.fillRect(19, 15 + bob, 4, 13);
+          // 3. Lab Coat & Shirt (White Coat with Shading & Teal Undershirt)
+          // Teal shirt
+          cx.fillStyle = '#0d9488';
+          cx.fillRect(12, 14 + bob, 8, 12);
 
-          // Lencana saintis
-          cx.fillStyle = '#0f766e';
-          cx.fillRect(14, 17 + bob, 4, 4);
+          // White scientist coat (left & right flaps with depth)
+          cx.fillStyle = '#e2e8f0'; // Coat shade
+          cx.fillRect(8, 14 + bob, 5, 13);
+          cx.fillRect(19, 14 + bob, 5, 13);
 
-          // Kepala (Kulit cerah)
-          cx.fillStyle = '#fed7aa';
-          cx.fillRect(10, 7 + bob, 12, 10);
+          cx.fillStyle = '#ffffff'; // Coat highlight
+          cx.fillRect(9, 14 + bob, 4, 12);
+          cx.fillRect(19, 14 + bob, 4, 12);
 
-          // Rambut Coklat Pelajar
-          cx.fillStyle = '#451a03';
-          cx.fillRect(9, 4 + bob, 14, 5);
-          cx.fillRect(8, 7 + bob, 3, 5);
-          cx.fillRect(21, 7 + bob, 3, 5);
+          // Coat collar / lapels
+          cx.fillStyle = '#f8fafc';
+          cx.fillRect(10, 14 + bob, 3, 5);
+          cx.fillRect(19, 14 + bob, 3, 5);
 
-          // Mata & Wajah
-          cx.fillStyle = '#1e293b';
-          if (dir === 'down') {
-            cx.fillRect(12, 10 + bob, 2, 3);
-            cx.fillRect(18, 10 + bob, 2, 3);
-            cx.fillStyle = '#e11d48'; // Senyuman
-            cx.fillRect(15, 14 + bob, 2, 1);
-          } else if (dir === 'left') {
-            cx.fillRect(10, 10 + bob, 2, 3);
+          // Scientist ID badge & pen in pocket
+          cx.fillStyle = '#0f766e'; // Badge
+          cx.fillRect(10, 18 + bob, 3, 3);
+          cx.fillStyle = '#ef4444'; // Red pen clip
+          cx.fillRect(19, 16 + bob, 1, 3);
+
+          // Arms swinging
+          cx.fillStyle = '#ffffff';
+          if (dir === 'left') {
+            cx.fillRect(13 + armSwing, 16 + bob, 4, 8);
+            cx.fillStyle = '#fed7aa'; // Hand
+            cx.fillRect(13 + armSwing, 24 + bob, 3, 3);
           } else if (dir === 'right') {
-            cx.fillRect(20, 10 + bob, 2, 3);
+            cx.fillRect(15 - armSwing, 16 + bob, 4, 8);
+            cx.fillStyle = '#fed7aa';
+            cx.fillRect(16 - armSwing, 24 + bob, 3, 3);
+          } else {
+            cx.fillRect(7 - armSwing, 16 + bob, 3, 8);
+            cx.fillRect(22 + armSwing, 16 + bob, 3, 8);
+            cx.fillStyle = '#fed7aa';
+            cx.fillRect(7 - armSwing, 24 + bob, 3, 3);
+            cx.fillRect(22 + armSwing, 24 + bob, 3, 3);
+          }
+
+          // 4. Head & Face (Peach skin with smooth neck)
+          cx.fillStyle = '#fed7aa';
+          cx.fillRect(10, 6 + bob, 12, 10);
+          cx.fillStyle = '#fbcfe8'; // Soft cheek blush
+          if (dir === 'down') {
+            cx.fillRect(10, 12 + bob, 2, 2);
+            cx.fillRect(20, 12 + bob, 2, 2);
+          }
+
+          // 5. Hair (Brunette with Highlight Layers)
+          cx.fillStyle = '#451a03'; // Deep brown
+          cx.fillRect(8, 3 + bob, 16, 5);
+          cx.fillRect(7, 6 + bob, 3, 6);
+          cx.fillRect(22, 6 + bob, 3, 6);
+
+          cx.fillStyle = '#78350f'; // Hair mid-tone highlight
+          cx.fillRect(11, 4 + bob, 10, 2);
+
+          // 6. Facial Expressions (Eyes & Glasses)
+          if (dir === 'down') {
+            // Glasses frame (Modern teal/black specs)
+            cx.fillStyle = '#0f172a';
+            cx.strokeRect(11, 9 + bob, 3, 3);
+            cx.strokeRect(18, 9 + bob, 3, 3);
+            cx.fillRect(14, 10 + bob, 4, 1); // Bridge
+
+            // Eyes
+            cx.fillStyle = '#0284c7';
+            cx.fillRect(12, 10 + bob, 2, 2);
+            cx.fillRect(19, 10 + bob, 2, 2);
+
+            // Smile
+            cx.fillStyle = '#e11d48';
+            cx.fillRect(15, 13 + bob, 2, 1);
+          } else if (dir === 'left') {
+            cx.fillStyle = '#0f172a';
+            cx.fillRect(9, 9 + bob, 4, 3);
+            cx.fillStyle = '#0284c7';
+            cx.fillRect(9, 10 + bob, 2, 2);
+          } else if (dir === 'right') {
+            cx.fillStyle = '#0f172a';
+            cx.fillRect(19, 9 + bob, 4, 3);
+            cx.fillStyle = '#0284c7';
+            cx.fillRect(21, 10 + bob, 2, 2);
           } else if (dir === 'up') {
+            // Full back of hair
             cx.fillStyle = '#451a03';
-            cx.fillRect(9, 5 + bob, 14, 10);
+            cx.fillRect(8, 4 + bob, 16, 11);
+            cx.fillStyle = '#78350f';
+            cx.fillRect(11, 5 + bob, 10, 4);
           }
 
           sprites[dir].push(c);
@@ -478,10 +775,12 @@
       return sprites;
     }
 
-    // 3. 10 Sprite Objek & Sampel Sains (Pixel Art Menggantikan Burger)
-    createSampleSprites() {
+    // =========================================================================
+    // 3. HD PROCEDURAL SPRITES FOR 10 SCIENCE SAMPLES (40x40 Canvas)
+    // =========================================================================
+    createHDSampleSprites() {
       const sprites = {};
-      const size = 32;
+      const size = 40;
 
       const makeCanvas = (drawFn) => {
         const c = document.createElement('canvas');
@@ -493,154 +792,326 @@
         return c;
       };
 
-      // 1. animal_cell: Kelalang spesimen sel haiwan bulat & nukleus biru
+      // 1. animal_cell: Glass specimen jar with translucent blue animal cell & nucleus
       sprites.animal_cell = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 28, 9, 3, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#38bdf8'; // Cecair biru
-        c.beginPath(); c.arc(16, 16, 9, 0, Math.PI * 2); c.fill();
-        c.strokeStyle = '#bae6fd'; c.lineWidth = 1.5; c.stroke();
-        c.fillStyle = '#0369a1'; // Nukleus di dalam
-        c.beginPath(); c.arc(16, 16, 4, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#ffffff'; c.fillRect(13, 12, 2, 2); // Kilauan kaca
+        // Shadow
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 35, 11, 3.5, 0, 0, Math.PI * 2); c.fill();
+
+        // Glass vial body
+        c.fillStyle = 'rgba(224, 242, 254, 0.85)';
+        c.beginPath(); c.arc(20, 20, 13, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = '#0284c7'; c.lineWidth = 1.5; c.stroke();
+
+        // Cytoplasm
+        c.fillStyle = '#38bdf8';
+        c.beginPath(); c.arc(20, 20, 11, 0, Math.PI * 2); c.fill();
+
+        // Cell membrane outer ring
+        c.strokeStyle = '#0369a1'; c.lineWidth = 1;
+        c.beginPath(); c.arc(20, 20, 11, 0, Math.PI * 2); c.stroke();
+
+        // Nucleus in center
+        c.fillStyle = '#1e3a8a';
+        c.beginPath(); c.arc(19, 19, 5, 0, Math.PI * 2); c.fill();
+
+        // Nucleolus
+        c.fillStyle = '#93c5fd';
+        c.beginPath(); c.arc(18, 18, 2, 0, Math.PI * 2); c.fill();
+
+        // Specular glass reflection
+        c.fillStyle = 'rgba(255, 255, 255, 0.75)';
+        c.fillRect(13, 11, 3, 3);
+        c.fillRect(11, 14, 2, 4);
       });
 
-      // 2. plant_cell: Kelalang spesimen sel tumbuhan heksagon hijau & kloroplas
+      // 2. plant_cell: Hexagonal specimen flask with thick cell walls & chloroplasts
       sprites.plant_cell = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 28, 9, 3, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#15803d'; // Dinding sel tegar
-        c.fillRect(7, 8, 18, 16);
-        c.fillStyle = '#4ade80'; // Sitoplasma hijau
-        c.fillRect(9, 10, 14, 12);
-        c.fillStyle = '#166534'; // Kloroplas berbintik
-        c.fillRect(10, 12, 2, 2);
-        c.fillRect(19, 13, 2, 2);
-        c.fillRect(15, 17, 3, 2);
-        c.fillStyle = '#bbf7d0'; // Vakuol pusat
-        c.fillRect(12, 13, 6, 6);
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 35, 12, 3.5, 0, 0, Math.PI * 2); c.fill();
+
+        // Hexagonal / Rectangular rigid cell wall (Dark emerald)
+        c.fillStyle = '#14532d';
+        c.fillRect(8, 9, 24, 22);
+        c.fillStyle = '#16a34a'; // Inner wall
+        c.fillRect(10, 11, 20, 18);
+
+        // Cytoplasm
+        c.fillStyle = '#4ade80';
+        c.fillRect(12, 13, 16, 14);
+
+        // Large central vacuole (sap)
+        c.fillStyle = '#bbf7d0';
+        c.fillRect(15, 15, 10, 10);
+        c.strokeStyle = '#86efac'; c.lineWidth = 1; c.strokeRect(15, 15, 10, 10);
+
+        // Chloroplast discs (vibrant green)
+        c.fillStyle = '#15803d';
+        c.fillRect(13, 14, 2, 2);
+        c.fillRect(23, 14, 2, 2);
+        c.fillRect(13, 23, 2, 2);
+        c.fillRect(23, 23, 2, 2);
+
+        // Nucleus at periphery
+        c.fillStyle = '#1e3a8a';
+        c.fillRect(19, 21, 3, 3);
       });
 
-      // 3. micro_slide: Slaid kaca mikroskop segi empat tepat
+      // 3. micro_slide: Realistic ground glass slide with specimen & cover slip
       sprites.micro_slide = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 27, 11, 3, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 34, 14, 3.5, 0, 0, Math.PI * 2); c.fill();
+
+        // Glass slide rectangle
         c.fillStyle = '#f1f5f9';
-        c.fillRect(5, 11, 22, 10);
-        c.strokeStyle = '#94a3b8'; c.lineWidth = 1; c.strokeRect(5, 11, 22, 10);
-        c.fillStyle = '#e11d48'; // Titisan pewarna spesimen merah
-        c.fillRect(14, 14, 4, 4);
-        c.fillStyle = 'rgba(56, 189, 248, 0.4)'; // Kaca penutup
-        c.fillRect(12, 12, 8, 8);
+        c.fillRect(6, 14, 28, 14);
+        c.strokeStyle = '#94a3b8'; c.lineWidth = 1.5; c.strokeRect(6, 14, 28, 14);
+
+        // Frosted label area on left
+        c.fillStyle = '#e2e8f0';
+        c.fillRect(7, 15, 6, 12);
+        c.fillStyle = '#64748b'; // Barcode
+        c.fillRect(8, 17, 4, 1);
+        c.fillRect(8, 19, 4, 1);
+        c.fillRect(8, 21, 4, 1);
+
+        // Square glass cover slip in center
+        c.fillStyle = 'rgba(224, 242, 254, 0.85)';
+        c.fillRect(16, 15, 12, 12);
+        c.strokeStyle = '#0ea5e9'; c.lineWidth = 1; c.strokeRect(16, 15, 12, 12);
+
+        // Stained histological specimen (Crimson)
+        c.fillStyle = '#e11d48';
+        c.beginPath(); c.arc(22, 21, 4, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#881337';
+        c.fillRect(21, 20, 2, 2);
+
+        // Glass shine
+        c.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        c.fillRect(17, 16, 4, 2);
       });
 
-      // 4. obj_lens: Kanta objektif mikroskop logam keluli / tembaga
+      // 4. obj_lens: High-precision 40x metal & brass objective lens
       sprites.obj_lens = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 28, 8, 3, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#475569'; // Badan kanta logam
-        c.fillRect(11, 7, 10, 15);
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 35, 10, 3.5, 0, 0, Math.PI * 2); c.fill();
+
+        // Screw thread top
+        c.fillStyle = '#64748b';
+        c.fillRect(16, 6, 8, 4);
+
+        // Knurled chrome barrel
+        c.fillStyle = '#334155';
+        c.fillRect(13, 10, 14, 18);
         c.fillStyle = '#94a3b8';
-        c.fillRect(12, 9, 8, 11);
-        c.fillStyle = '#d97706'; // Gelung emas pembesaran 40x
-        c.fillRect(10, 13, 12, 3);
-        c.fillStyle = '#38bdf8'; // Lensa kaca optik bawah
-        c.fillRect(13, 22, 6, 2);
+        c.fillRect(14, 11, 12, 16);
+
+        // Gold magnification 40x band
+        c.fillStyle = '#d97706';
+        c.fillRect(12, 16, 16, 5);
+        c.fillStyle = '#fbbf24';
+        c.fillRect(13, 17, 14, 3);
+        c.fillStyle = '#78350f';
+        c.fillRect(16, 18, 6, 1); // "40"
+
+        // Front lens tip with blue optical reflection
+        c.fillStyle = '#1e293b';
+        c.fillRect(15, 28, 10, 4);
+        c.fillStyle = '#0284c7';
+        c.fillRect(17, 30, 6, 2);
+        c.fillStyle = '#38bdf8';
+        c.fillRect(18, 30, 2, 1);
       });
 
-      // 5. test_tube: Tabung uji dengan larutan bercahaya sian
+      // 5. test_tube: Glass test tube in rack with glowing bubbling cyan reagent
       sprites.test_tube = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 28, 7, 3, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#64748b'; // Rak tabung uji
-        c.fillRect(9, 23, 14, 3);
-        c.fillStyle = '#ffffff'; // Kaca tabung uji
-        c.fillRect(13, 6, 6, 17);
-        c.beginPath(); c.arc(16, 23, 3, 0, Math.PI); c.fill();
-        c.fillStyle = '#06b6d4'; // Cecair kimia aktif
-        c.fillRect(14, 12, 4, 10);
-        c.beginPath(); c.arc(16, 22, 2, 0, Math.PI); c.fill();
-        c.fillStyle = '#cffafe'; c.fillRect(14, 8, 1, 6); // Kilauan kaca
-      });
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 35, 9, 3.5, 0, 0, Math.PI * 2); c.fill();
 
-      // 6. petri_dish: Piring petri bulat dengan kultur bakteria/sel
-      sprites.petri_dish = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 26, 12, 4, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = 'rgba(241, 245, 249, 0.9)';
-        c.beginPath(); c.arc(16, 16, 11, 0, Math.PI * 2); c.fill();
+        // Wooden test tube stand
+        c.fillStyle = '#78350f';
+        c.fillRect(12, 30, 16, 4);
+        c.fillStyle = '#92400e';
+        c.fillRect(13, 31, 14, 2);
+
+        // Glass tube
+        c.fillStyle = 'rgba(241, 245, 249, 0.85)';
+        c.fillRect(16, 6, 8, 23);
+        c.beginPath(); c.arc(20, 29, 4, 0, Math.PI); c.fill();
         c.strokeStyle = '#94a3b8'; c.lineWidth = 1; c.stroke();
-        c.fillStyle = '#fef08a'; // Medium agar kuning
-        c.beginPath(); c.arc(16, 16, 9, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#ef4444'; // Koloni sel merah
-        c.fillRect(13, 13, 2, 2);
-        c.fillRect(17, 15, 3, 2);
-        c.fillStyle = '#3b82f6'; // Koloni sel biru
-        c.fillRect(14, 18, 2, 2);
+
+        // Active cyan reagent liquid
+        c.fillStyle = '#06b6d4';
+        c.fillRect(17, 14, 6, 15);
+        c.beginPath(); c.arc(20, 29, 3, 0, Math.PI); c.fill();
+
+        // Meniscus & bubbles
+        c.fillStyle = '#22d3ee';
+        c.fillRect(17, 14, 6, 2);
+        c.fillStyle = '#ffffff';
+        c.fillRect(18, 18, 1, 1);
+        c.fillRect(21, 22, 1, 1);
+
+        // Glass highlight line
+        c.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        c.fillRect(17, 8, 1, 18);
       });
 
-      // 7. tissue_sample: Kelalang sampel tisu berjalur
+      // 6. petri_dish: Glass petri dish with agar & vibrant microbial colonies
+      sprites.petri_dish = makeCanvas((c) => {
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 33, 14, 4.5, 0, 0, Math.PI * 2); c.fill();
+
+        // Outer dish rim
+        c.fillStyle = 'rgba(224, 242, 254, 0.9)';
+        c.beginPath(); c.arc(20, 20, 14, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = '#0284c7'; c.lineWidth = 1.5; c.stroke();
+
+        // Nutrient agar plate (Amber yellow)
+        c.fillStyle = '#fef08a';
+        c.beginPath(); c.arc(20, 20, 11, 0, Math.PI * 2); c.fill();
+
+        // Distinct cultured colonies (Red & Blue)
+        c.fillStyle = '#ef4444';
+        c.fillRect(16, 15, 3, 3);
+        c.fillRect(22, 18, 3, 3);
+        c.fillRect(15, 22, 2, 2);
+
+        c.fillStyle = '#3b82f6';
+        c.fillRect(20, 14, 2, 2);
+        c.fillRect(17, 19, 3, 3);
+        c.fillRect(22, 23, 2, 2);
+
+        // Glass lid glare
+        c.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        c.beginPath();
+        c.arc(20, 20, 12, -Math.PI * 0.7, -Math.PI * 0.3);
+        c.lineWidth = 2; c.stroke();
+      });
+
+      // 7. tissue_sample: Amber reagent bottle with striated tissue fibers
       sprites.tissue_sample = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 27, 8, 3, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#b45309'; // Botol kaca amber
-        c.fillRect(10, 9, 12, 15);
-        c.fillStyle = '#78350f'; // Penutup botol
-        c.fillRect(12, 6, 8, 3);
-        c.fillStyle = '#f43f5e'; // Gentian tisu di dalam
-        c.fillRect(13, 12, 6, 2);
-        c.fillRect(13, 16, 6, 2);
-        c.fillRect(13, 20, 6, 2);
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 35, 10, 3.5, 0, 0, Math.PI * 2); c.fill();
+
+        // Black ribbed cap
+        c.fillStyle = '#1e293b';
+        c.fillRect(16, 6, 8, 4);
+
+        // Amber bottle glass
+        c.fillStyle = '#b45309';
+        c.fillRect(13, 10, 14, 21);
+        c.strokeStyle = '#78350f'; c.lineWidth = 1; c.strokeRect(13, 10, 14, 21);
+
+        // White paper label
+        c.fillStyle = '#f8fafc';
+        c.fillRect(14, 15, 12, 12);
+
+        // Striated muscle/plant tissue fibers
+        c.fillStyle = '#f43f5e';
+        c.fillRect(16, 17, 8, 2);
+        c.fillRect(16, 20, 8, 2);
+        c.fillRect(16, 23, 8, 2);
+
+        // Glass highlight
+        c.fillStyle = 'rgba(254, 243, 199, 0.6)';
+        c.fillRect(14, 11, 2, 18);
       });
 
-      // 8. nucleus_model: Model sfera nukleus 3D
+      // 8. nucleus_model: Volumetric spherical cell nucleus with chromatin & nucleolus
       sprites.nucleus_model = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 28, 9, 3, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#7c3aed'; // Membran luar nukleus ungu
-        c.beginPath(); c.arc(16, 16, 10, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#a78bfa'; // Nukleoplasma
-        c.beginPath(); c.arc(16, 16, 8, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#4c1d95'; // Nukleolus tengah
-        c.beginPath(); c.arc(16, 16, 4, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#ffffff'; c.fillRect(12, 11, 2, 2);
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 35, 12, 3.5, 0, 0, Math.PI * 2); c.fill();
+
+        // Outer nuclear membrane (Purple)
+        c.fillStyle = '#6d28d9';
+        c.beginPath(); c.arc(20, 20, 13, 0, Math.PI * 2); c.fill();
+
+        // Nucleoplasm
+        c.fillStyle = '#8b5cf6';
+        c.beginPath(); c.arc(20, 20, 11, 0, Math.PI * 2); c.fill();
+
+        // Chromatin thread network
+        c.fillStyle = '#4c1d95';
+        c.fillRect(14, 15, 4, 1);
+        c.fillRect(22, 16, 5, 1);
+        c.fillRect(15, 24, 6, 1);
+
+        // Glowing dense nucleolus
+        c.fillStyle = '#c4b5fd';
+        c.beginPath(); c.arc(19, 19, 5, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#ffffff';
+        c.fillRect(18, 17, 2, 2);
       });
 
-      // 9. mito_model: Model mitokondria bujur dengan lipatan krista
+      // 9. mito_model: Oblong bean-shaped mitochondrion with cristae inner folds
       sprites.mito_model = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 28, 10, 3, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#ea580c'; // Dinding luar oren
-        c.beginPath(); c.ellipse(16, 16, 11, 7, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#fed7aa'; // Matriks dalaman
-        c.beginPath(); c.ellipse(16, 16, 9, 5, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#c2410c'; // Lipatan krista
-        c.fillRect(11, 13, 2, 6);
-        c.fillRect(15, 13, 2, 6);
-        c.fillRect(19, 13, 2, 6);
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 35, 13, 3.5, 0, 0, Math.PI * 2); c.fill();
+
+        // Outer membrane (Rich orange)
+        c.fillStyle = '#ea580c';
+        c.beginPath(); c.ellipse(20, 20, 15, 10, 0, 0, Math.PI * 2); c.fill();
+
+        // Inner matrix (Peach)
+        c.fillStyle = '#fed7aa';
+        c.beginPath(); c.ellipse(20, 20, 13, 8, 0, 0, Math.PI * 2); c.fill();
+
+        // Wavy Cristae baffles
+        c.fillStyle = '#c2410c';
+        c.fillRect(12, 15, 2, 8);
+        c.fillRect(16, 14, 2, 9);
+        c.fillRect(20, 15, 2, 8);
+        c.fillRect(24, 14, 2, 9);
+
+        // ATP spark
+        c.fillStyle = '#fef08a';
+        c.fillRect(18, 18, 2, 2);
       });
 
-      // 10. cell_kit: Kotak kit pemerhatian sel lapangan logam
+      // 10. cell_kit: Heavy-duty metallic scientific observation case
       sprites.cell_kit = makeCanvas((c) => {
-        c.fillStyle = 'rgba(0,0,0,0.2)';
-        c.beginPath(); c.ellipse(16, 28, 11, 3.5, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#0f766e'; // Kotak logam teal
-        c.fillRect(6, 10, 20, 14);
-        c.strokeStyle = '#14b8a6'; c.lineWidth = 1; c.strokeRect(6, 10, 20, 14);
-        c.fillStyle = '#334155'; // Pemegang kotak
-        c.fillRect(13, 6, 6, 4);
-        c.fillStyle = '#ffffff'; // Lambang palang sains
-        c.fillRect(15, 13, 2, 8);
-        c.fillRect(12, 16, 8, 2);
+        c.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        c.beginPath(); c.ellipse(20, 35, 14, 4, 0, 0, Math.PI * 2); c.fill();
+
+        // Case handle
+        c.fillStyle = '#334155';
+        c.fillRect(16, 7, 8, 5);
+        c.fillStyle = '#0f172a';
+        c.fillRect(18, 9, 4, 3);
+
+        // Case body (ARSelNel Teal)
+        c.fillStyle = '#0f766e';
+        c.fillRect(7, 12, 26, 18);
+        c.strokeStyle = '#14b8a6'; c.lineWidth = 1.5; c.strokeRect(7, 12, 26, 18);
+
+        // Silver corner bumpers
+        c.fillStyle = '#94a3b8';
+        c.fillRect(7, 12, 3, 3);
+        c.fillRect(30, 12, 3, 3);
+        c.fillRect(7, 27, 3, 3);
+        c.fillRect(30, 27, 3, 3);
+
+        // Silver latches
+        c.fillStyle = '#f8fafc';
+        c.fillRect(12, 19, 3, 4);
+        c.fillRect(25, 19, 3, 4);
+
+        // Science cross badge on center lid
+        c.fillStyle = '#ffffff';
+        c.fillRect(19, 16, 2, 10);
+        c.fillRect(15, 20, 10, 2);
       });
 
       return sprites;
     }
 
-    // 4. Sprite Power-Ups (Kasut Pantas, Perisai Keselamatan & Medkit)
-    createPowerupSprites() {
+    // =========================================================================
+    // 4. HD POWER-UP SPRITES
+    // =========================================================================
+    createHDPowerupSprites() {
       const sprites = {};
-      const size = 28;
+      const size = 36;
 
       const makeCanvas = (drawFn) => {
         const c = document.createElement('canvas');
@@ -652,103 +1123,129 @@
         return c;
       };
 
-      // Kasut Pantas (Speed Boost): Kasut sayap kilat emas
+      // Kasut Pantas (Winged Lightning Sneaker)
       sprites.speed = makeCanvas((c) => {
+        c.fillStyle = 'rgba(234, 179, 8, 0.3)';
+        c.beginPath(); c.arc(18, 18, 15, 0, Math.PI * 2); c.fill();
+
         c.fillStyle = '#eab308';
-        c.beginPath();
-        c.arc(14, 14, 11, 0, Math.PI * 2);
-        c.fill();
+        c.beginPath(); c.arc(18, 18, 12, 0, Math.PI * 2); c.fill();
         c.strokeStyle = '#fef08a'; c.lineWidth = 2; c.stroke();
-        // Lambang kilat putih
+
+        // Lightning bolt
         c.fillStyle = '#ffffff';
         c.beginPath();
-        c.moveTo(15, 5);
-        c.lineTo(8, 15);
-        c.lineTo(14, 15);
-        c.lineTo(12, 23);
-        c.lineTo(20, 12);
-        c.lineTo(14, 12);
+        c.moveTo(19, 7);
+        c.lineTo(10, 19);
+        c.lineTo(18, 19);
+        c.lineTo(15, 29);
+        c.lineTo(26, 16);
+        c.lineTo(18, 16);
         c.closePath();
         c.fill();
       });
 
-      // Perisai Keselamatan: Medan tenaga sian
+      // Perisai Keselamatan (Holographic Energy Shield Orb)
       sprites.shield = makeCanvas((c) => {
+        c.fillStyle = 'rgba(6, 182, 212, 0.3)';
+        c.beginPath(); c.arc(18, 18, 15, 0, Math.PI * 2); c.fill();
+
         c.fillStyle = '#06b6d4';
-        c.beginPath();
-        c.arc(14, 14, 11, 0, Math.PI * 2);
-        c.fill();
+        c.beginPath(); c.arc(18, 18, 12, 0, Math.PI * 2); c.fill();
         c.strokeStyle = '#cffafe'; c.lineWidth = 2; c.stroke();
-        // Lambang perisai
+
+        // Crest shield
         c.fillStyle = '#ffffff';
         c.beginPath();
-        c.moveTo(14, 7);
-        c.lineTo(20, 9);
-        c.lineTo(20, 15);
-        c.quadraticCurveTo(14, 21, 14, 22);
-        c.quadraticCurveTo(14, 21, 8, 15);
-        c.lineTo(8, 9);
+        c.moveTo(18, 9);
+        c.lineTo(25, 12);
+        c.lineTo(25, 19);
+        c.quadraticCurveTo(18, 27, 18, 28);
+        c.quadraticCurveTo(18, 27, 11, 19);
+        c.lineTo(11, 12);
         c.closePath();
         c.fill();
       });
 
-      // Kit Pertolongan Cemas: Kotak medkit dengan palang merah
+      // Kit Pertolongan Cemas (Medical Box with Red Cross)
       sprites.medkit = makeCanvas((c) => {
+        c.fillStyle = 'rgba(239, 68, 68, 0.25)';
+        c.beginPath(); c.arc(18, 18, 15, 0, Math.PI * 2); c.fill();
+
+        // Medkit box
         c.fillStyle = '#ffffff';
-        c.fillRect(4, 5, 20, 18);
-        c.strokeStyle = '#e2e8f0'; c.lineWidth = 1; c.strokeRect(4, 5, 20, 18);
-        c.fillStyle = '#ef4444'; // Palang perubatan merah
-        c.fillRect(12, 8, 4, 12);
-        c.fillRect(8, 12, 12, 4);
+        c.fillRect(6, 8, 24, 20);
+        c.strokeStyle = '#cbd5e1'; c.lineWidth = 1.5; c.strokeRect(6, 8, 24, 20);
+
+        // Handle
+        c.fillStyle = '#64748b';
+        c.fillRect(15, 5, 6, 3);
+
+        // Red cross
+        c.fillStyle = '#ef4444';
+        c.fillRect(16, 12, 4, 12);
+        c.fillRect(12, 16, 12, 4);
       });
 
       return sprites;
     }
 
-    // 5. Sprite Robot Pembersih Makmal Rosak (Patrol Bot)
-    createRobotSprite() {
+    // =========================================================================
+    // 5. HD PATROL ROBOT SPRITE (32x32)
+    // =========================================================================
+    createHDRobotSprite() {
       const c = document.createElement('canvas');
-      c.width = 28;
-      c.height = 28;
+      c.width = 32;
+      c.height = 32;
       const cx = c.getContext('2d');
       cx.imageSmoothingEnabled = false;
 
-      // Bayang bawah
-      cx.fillStyle = 'rgba(0,0,0,0.25)';
+      // Drop shadow
+      cx.fillStyle = 'rgba(15, 23, 42, 0.35)';
       cx.beginPath();
-      cx.ellipse(14, 25, 9, 3, 0, 0, Math.PI * 2);
+      cx.ellipse(16, 29, 11, 3, 0, 0, Math.PI * 2);
       cx.fill();
 
-      // Roda bawah bot
-      cx.fillStyle = '#1e293b';
-      cx.fillRect(5, 20, 4, 4);
-      cx.fillRect(19, 20, 4, 4);
-
-      // Badan robot silinder logam
-      cx.fillStyle = '#64748b';
-      cx.fillRect(6, 9, 16, 12);
-      cx.fillStyle = '#94a3b8';
-      cx.fillRect(8, 10, 12, 9);
-
-      // Skrin sensor wajah robot
+      // Caterpillar treads / wheels
       cx.fillStyle = '#0f172a';
-      cx.fillRect(9, 11, 10, 5);
-      cx.fillStyle = '#ef4444'; // Mata amaran merah berkerlip
-      cx.fillRect(10, 12, 2, 2);
-      cx.fillRect(16, 12, 2, 2);
+      cx.fillRect(5, 23, 6, 6);
+      cx.fillRect(21, 23, 6, 6);
+      cx.fillStyle = '#334155';
+      cx.fillRect(6, 24, 4, 4);
+      cx.fillRect(22, 24, 4, 4);
 
-      // Lampu kubah amaran kecemasan berputar
+      // Chassis (Gunmetal steel with bevel)
+      cx.fillStyle = '#475569';
+      cx.fillRect(7, 10, 18, 14);
+      cx.fillStyle = '#94a3b8';
+      cx.fillRect(9, 11, 14, 11);
+
+      // Sensor visor (Black glass)
+      cx.fillStyle = '#0f172a';
+      cx.fillRect(9, 13, 14, 6);
+
+      // Red digital scanning eye
+      cx.fillStyle = '#ef4444';
+      cx.fillRect(11, 14, 4, 3);
+      cx.fillRect(18, 14, 4, 3);
+      cx.fillStyle = '#fca5a5';
+      cx.fillRect(12, 15, 2, 1);
+      cx.fillRect(19, 15, 2, 1);
+
+      // Rotating emergency beacon siren on top
       cx.fillStyle = '#dc2626';
       cx.beginPath();
-      cx.arc(14, 7, 4, Math.PI, 0);
+      cx.arc(16, 8, 4.5, Math.PI, 0);
       cx.fill();
-      cx.fillStyle = '#f87171';
-      cx.fillRect(13, 5, 2, 2);
+      cx.fillStyle = '#fef2f2';
+      cx.fillRect(15, 5, 2, 2);
 
       return c;
     }
 
-    // 6. Input Keyboard & Touch
+    // =========================================================================
+    // 6. INPUT HANDLING & RESIZING
+    // =========================================================================
     initInput() {
       window.addEventListener('keydown', (e) => {
         if (this.isPaused || this.state !== (GameState ? GameState.PLAYING : 'playing')) return;
@@ -794,23 +1291,48 @@
     handleResize() {
       if (!this.canvas || !this.canvas.parentElement) return;
       const rect = this.canvas.parentElement.getBoundingClientRect();
-      const w = Math.floor(rect.width);
-      const h = Math.min(Math.max(460, window.innerHeight - 200), 720);
+      const cssW = Math.floor(rect.width);
+      const cssH = Math.min(Math.max(480, window.innerHeight - 200), 720);
 
-      this.canvas.width = w;
-      this.canvas.height = h;
+      // Support High-DPI screens without pixelation
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
 
-      this.camera.width = w;
-      this.camera.height = h;
+      this.canvas.style.width = cssW + 'px';
+      this.canvas.style.height = cssH + 'px';
+
+      this.canvas.width = Math.round(cssW * dpr);
+      this.canvas.height = Math.round(cssH * dpr);
+
+      this.dpr = dpr;
+
+      // Smart zoom scaling dikonfigurasikan (Fasa 3: Zoom out 10-15% daripada asal)
+      const cfg = this.CAMERA_ZOOM_CONFIG || { mobile: 1.25, tablet: 1.45, laptop: 1.60, wide: 1.75 };
+      let scale = cfg.laptop;
+      if (cssW < 600) {
+        scale = cfg.mobile;
+      } else if (cssW < 960) {
+        scale = cfg.tablet;
+      } else if (cssW > 1400) {
+        scale = cfg.wide;
+      }
+
+      this.gameScale = scale;
+
+      // Virtual camera dimensions in game world units
+      this.camera.width = cssW / scale;
+      this.camera.height = cssH / scale;
+
       this.ctx.imageSmoothingEnabled = false;
     }
 
-    // 7. Semakan Pelanggaran Dinding (Tile Collision)
+    // =========================================================================
+    // 7. COLLISION & DAMAGE (100% KEKALKAN MEKANIK ASAL)
+    // =========================================================================
     isSolidTile(col, row) {
       if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS) return true;
       const tile = this.map[row][col];
 
-      // Tile 19 ialah Pintu Keselamatan Makmal: SOLID jika sampel < 10, TERBUKA jika sampel = 10
+      // Tile 19: Pintu Keselamatan Makmal: SOLID jika sampel < 10, TERBUKA jika sampel = 10
       if (tile === 19) {
         const collectedCount = this.samples.filter(s => s.collected).length;
         return collectedCount < 10;
@@ -843,7 +1365,6 @@
       return false;
     }
 
-    // 8. Kerosakan & Nyawa Pemain
     damagePlayer(sourceLabel) {
       if (this.player.invulnerableTimer > 0) return;
 
@@ -873,7 +1394,9 @@
       }
     }
 
-    // 9. Kemas Kini Gelung Permainan (Update Physics, Hazards, Robots, Pickups)
+    // =========================================================================
+    // 8. UPDATE GAME LOOP
+    // =========================================================================
     update(dt) {
       if (this.isPaused) return;
 
@@ -968,8 +1491,8 @@
       // Kemas kini Kamera (Lerp licin mengikut pemain)
       const targetCamX = this.player.x - this.camera.width / 2;
       const targetCamY = this.player.y - this.camera.height / 2;
-      this.camera.x += (targetCamX - this.camera.x) * 0.12;
-      this.camera.y += (targetCamY - this.camera.y) * 0.12;
+      this.camera.x += (targetCamX - this.camera.x) * 0.14;
+      this.camera.y += (targetCamY - this.camera.y) * 0.14;
       this.camera.x = Math.max(0, Math.min(this.worldWidth - this.camera.width, this.camera.x));
       this.camera.y = Math.max(0, Math.min(this.worldHeight - this.camera.height, this.camera.y));
 
@@ -1099,7 +1622,7 @@
       }
     }
 
-    // Percikan kutipan sampel
+    // Partikel
     spawnCollectBurst(x, y, colors = ['#06b6d4', '#10b981', '#fbbf24']) {
       for (let i = 0; i < 22; i++) {
         const angle = Math.random() * Math.PI * 2;
@@ -1115,7 +1638,6 @@
       }
     }
 
-    // Percikan kerosakan (hurt)
     spawnHurtBurst(x, y) {
       for (let i = 0; i < 16; i++) {
         const angle = Math.random() * Math.PI * 2;
@@ -1131,7 +1653,6 @@
       }
     }
 
-    // Percikan perisai pecah
     spawnShieldBreakBurst(x, y) {
       for (let i = 0; i < 25; i++) {
         const angle = Math.random() * Math.PI * 2;
@@ -1147,7 +1668,6 @@
       }
     }
 
-    // Konfeti kemenangan
     spawnVictoryConfetti() {
       const colors = ['#0d9488', '#06b6d4', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'];
       for (let i = 0; i < 90; i++) {
@@ -1163,12 +1683,16 @@
       }
     }
 
-    // 10. Render Seluruh Dunia Permainan
+    // =========================================================================
+    // 9. HD RENDER TO CANVAS
+    // =========================================================================
     render(time) {
       const ctx = this.ctx;
+      const dpr = this.dpr || 1;
+      const scale = this.gameScale || 1.85;
       const cam = this.camera;
 
-      // Screen shake offset jika terkena kerosakan
+      // Screen shake offset jika cedera
       let shakeX = 0;
       let shakeY = 0;
       if (this.screenShake > 0) {
@@ -1176,11 +1700,17 @@
         shakeY = (Math.random() - 0.5) * 8 * (this.screenShake / 0.3);
       }
 
+      ctx.save();
+      // Bersihkan kanvas fizikal
       ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-      ctx.save();
+      // Gunakan transformasi skala HD
+      ctx.scale(dpr * scale, dpr * scale);
       ctx.translate(-Math.floor(cam.x + shakeX), -Math.floor(cam.y + shakeY));
 
+      ctx.imageSmoothingEnabled = false;
+
+      // Julat tile kelihatan dalam viewport kamera
       const startCol = Math.max(0, Math.floor(cam.x / TILE_SIZE));
       const endCol = Math.min(MAP_COLS - 1, Math.ceil((cam.x + cam.width) / TILE_SIZE));
       const startRow = Math.max(0, Math.floor(cam.y / TILE_SIZE));
@@ -1202,22 +1732,31 @@
               ctx.fillStyle = '#10b981';
               ctx.fillRect(c * TILE_SIZE + 4, r * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8);
               ctx.fillStyle = '#ffffff';
-              ctx.font = 'bold 9px Inter, sans-serif';
+              ctx.font = 'bold 9px "Plus Jakarta Sans", sans-serif';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText('BUKA', c * TILE_SIZE + TILE_SIZE / 2, r * TILE_SIZE + TILE_SIZE / 2);
             } else {
-              // Pintu terkunci: palang laser merah amaran
-              ctx.fillStyle = '#7f1d1d';
+              // Pintu terkunci: palang laser merah beranimasi
+              ctx.fillStyle = '#450a0a';
               ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-              ctx.fillStyle = '#ef4444';
-              ctx.fillRect(c * TILE_SIZE + 2, r * TILE_SIZE + 8, TILE_SIZE - 4, 4);
-              ctx.fillRect(c * TILE_SIZE + 2, r * TILE_SIZE + 20, TILE_SIZE - 4, 4);
+              // Jalur amaran kuning/hitam
+              ctx.fillStyle = '#ca8a04';
+              ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, 4);
+              ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE + TILE_SIZE - 4, TILE_SIZE, 4);
+
+              // Laser bars berkedip
+              const laserGlow = Math.sin(time * 0.008) * 0.3 + 0.7;
+              ctx.fillStyle = `rgba(239, 68, 68, ${laserGlow})`;
+              ctx.fillRect(c * TILE_SIZE + 2, r * TILE_SIZE + 8, TILE_SIZE - 4, 3);
+              ctx.fillRect(c * TILE_SIZE + 2, r * TILE_SIZE + 15, TILE_SIZE - 4, 3);
+              ctx.fillRect(c * TILE_SIZE + 2, r * TILE_SIZE + 22, TILE_SIZE - 4, 3);
+
               ctx.fillStyle = '#fee2e2';
-              ctx.font = 'bold 8px Inter, sans-serif';
+              ctx.font = 'bold 8px "Plus Jakarta Sans", sans-serif';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.fillText('🔒 KUNCI', c * TILE_SIZE + TILE_SIZE / 2, r * TILE_SIZE + 14);
+              ctx.fillText('🔒 KUNCI', c * TILE_SIZE + TILE_SIZE / 2, r * TILE_SIZE + 15);
             }
             continue;
           }
@@ -1227,129 +1766,172 @@
         }
       }
 
-      // B. Lukis Halangan Tumpahan Bahan Kimia
+      // B. Lukis Halangan Tumpahan Bahan Kimia (HD Dynamic Puddles)
       this.hazards.forEach((h) => {
         ctx.save();
         const pulse = Math.sin(time * 0.006 + h.x) * 2;
         if (h.type === 'biohazard') {
           // Zon pencemaran biohazard ungu berpendar
-          ctx.fillStyle = 'rgba(147, 51, 234, 0.45)';
+          const grad = ctx.createRadialGradient(h.x, h.y, 2, h.x, h.y, h.radius + pulse);
+          grad.addColorStop(0, 'rgba(192, 132, 252, 0.7)');
+          grad.addColorStop(0.7, 'rgba(147, 51, 234, 0.45)');
+          grad.addColorStop(1, 'rgba(107, 33, 168, 0)');
+
+          ctx.fillStyle = grad;
           ctx.beginPath();
           ctx.arc(h.x, h.y, h.radius + pulse, 0, Math.PI * 2);
           ctx.fill();
+
           ctx.strokeStyle = '#c084fc';
           ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 2]);
+          ctx.beginPath();
+          ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2);
           ctx.stroke();
 
-          ctx.fillStyle = '#581c87';
-          ctx.font = 'bold 8px Inter, sans-serif';
+          // Lencana amaran
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+          ctx.beginPath();
+          ctx.roundRect(h.x - 28, h.y - 7, 56, 14, 7);
+          ctx.fill();
+          ctx.fillStyle = '#f3e8ff';
+          ctx.font = 'bold 8px "Plus Jakarta Sans", sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText('⚠️ BIOHAZARD', h.x, h.y + 3);
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⚠️ BIOHAZARD', h.x, h.y);
         } else {
-          // Tumpahan asid / reagen hijau neon
-          ctx.fillStyle = 'rgba(34, 197, 94, 0.55)';
+          // Tumpahan asid hijau neon berkilat
+          const grad = ctx.createRadialGradient(h.x, h.y, 2, h.x, h.y, h.radius + pulse);
+          grad.addColorStop(0, 'rgba(134, 239, 172, 0.75)');
+          grad.addColorStop(0.7, 'rgba(34, 197, 94, 0.5)');
+          grad.addColorStop(1, 'rgba(21, 128, 61, 0)');
+
+          ctx.fillStyle = grad;
           ctx.beginPath();
           ctx.arc(h.x, h.y, h.radius + pulse, 0, Math.PI * 2);
           ctx.fill();
+
           ctx.strokeStyle = '#86efac';
           ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2);
           ctx.stroke();
 
-          ctx.fillStyle = '#14532d';
-          ctx.font = 'bold 8px Inter, sans-serif';
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+          ctx.beginPath();
+          ctx.roundRect(h.x - 20, h.y - 7, 40, 14, 7);
+          ctx.fill();
+          ctx.fillStyle = '#dcfce7';
+          ctx.font = 'bold 8px "Plus Jakarta Sans", sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText('⚠️ ASID', h.x, h.y + 3);
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⚠️ ASID', h.x, h.y);
         }
         ctx.restore();
       });
 
       // C. Lukis Robot Pembersih Makmal Ronda
       this.robots.forEach((bot) => {
-        ctx.drawImage(this.robotSprite, bot.x - 14, bot.y - 14);
+        // Lukis sprite robot HD
+        ctx.drawImage(this.robotSprite, bot.x - 16, bot.y - 16);
 
-        // Amaran laser merah kecil di hadapan robot
+        // Amaran laser pengimbas merah beranimasi di hadapan robot
         ctx.save();
-        ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
-        ctx.lineWidth = 1;
+        const laserLen = 32;
+        const laserPulse = Math.sin(time * 0.01 + bot.x) * 0.25 + 0.6;
+        ctx.strokeStyle = `rgba(239, 68, 68, ${laserPulse})`;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         if (bot.axis === 'x') {
           ctx.moveTo(bot.x, bot.y);
-          ctx.lineTo(bot.x + bot.dir * 28, bot.y);
+          ctx.lineTo(bot.x + bot.dir * laserLen, bot.y);
         } else {
           ctx.moveTo(bot.x, bot.y);
-          ctx.lineTo(bot.x, bot.y + bot.dir * 28);
+          ctx.lineTo(bot.x, bot.y + bot.dir * laserLen);
         }
         ctx.stroke();
         ctx.restore();
       });
 
-      // D. Lukis Power-ups
+      // D. Lukis Power-ups (HD Floating Orbs with Aura)
       this.powerups.forEach((p) => {
         if (!p.collected) {
           const bob = Math.sin(time * 0.005 + p.bobOffset) * 4;
+
           // Lingkaran aura bercahaya
           ctx.save();
-          ctx.fillStyle = p.type === 'speed' ? 'rgba(234, 179, 8, 0.3)' : p.type === 'shield' ? 'rgba(6, 182, 212, 0.3)' : 'rgba(239, 68, 68, 0.25)';
+          const haloColor = p.type === 'speed' ? 'rgba(234, 179, 8, 0.35)' : p.type === 'shield' ? 'rgba(6, 182, 212, 0.35)' : 'rgba(239, 68, 68, 0.3)';
+          ctx.fillStyle = haloColor;
           ctx.beginPath();
-          ctx.arc(p.x, p.y + bob, 15, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y + bob, 16, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
 
           const sprite = this.powerupSprites[p.type];
           if (sprite) {
-            ctx.drawImage(sprite, p.x - 14, p.y - 14 + bob);
+            ctx.drawImage(sprite, p.x - 18, p.y - 18 + bob);
           }
 
-          // Label nama kuasa kecil
+          // Label nama kuasa HD
           ctx.save();
-          ctx.fillStyle = '#1e293b';
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
           ctx.beginPath();
-          ctx.roundRect(p.x - 22, p.y - 25 + bob, 44, 11, 5);
+          ctx.roundRect(p.x - 24, p.y - 27 + bob, 48, 12, 6);
           ctx.fill();
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 7.5px Inter, sans-serif';
+          ctx.font = 'bold 8px "Plus Jakarta Sans", sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(p.name.split(' ')[0], p.x, p.y - 19.5 + bob);
+          ctx.fillText(p.name.split(' ')[0], p.x, p.y - 21 + bob);
           ctx.restore();
         }
       });
 
-      // E. Lukis 10 Objek & Sampel Sains
+      // E. Lukis 10 Objek & Sampel Sains (HD Sprites with Glowing Aura & High-Contrast Badges)
       this.samples.forEach((s) => {
         if (!s.collected) {
           const bob = Math.sin(time * 0.005 + s.bobOffset) * 4;
 
-          // Aura cahaya sains bercahaya
+          // Soft Glowing Aura
           ctx.save();
-          ctx.fillStyle = 'rgba(6, 182, 212, 0.3)';
+          const grad = ctx.createRadialGradient(s.x, s.y + bob, 2, s.x, s.y + bob, 20);
+          grad.addColorStop(0, 'rgba(6, 182, 212, 0.5)');
+          grad.addColorStop(0.7, 'rgba(13, 148, 136, 0.25)');
+          grad.addColorStop(1, 'rgba(13, 148, 136, 0)');
+          ctx.fillStyle = grad;
           ctx.beginPath();
-          ctx.arc(s.x, s.y + bob, 18, 0, Math.PI * 2);
+          ctx.arc(s.x, s.y + bob, 20, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
 
-          // Lukis sprite spesimen sains
+          // Lukis sprite spesimen sains HD (40x40 berpusat pada sampel)
           const spr = this.sampleSprites[s.type] || this.sampleSprites.animal_cell;
-          ctx.drawImage(spr, s.x - 16, s.y - 16 + bob);
+          ctx.drawImage(spr, s.x - 20, s.y - 20 + bob);
 
-          // Tag Nombor Soalan & Sampel
+          // Tag Nombor Soalan HD (Q1 - Q10) - Jelas, Kontras Tinggi & Tidak Mengaburi Objek
           ctx.save();
-          ctx.fillStyle = '#0f766e';
+          const tagW = 34;
+          const tagH = 13;
+          ctx.fillStyle = '#0f766e'; // Teal gelap
+          ctx.strokeStyle = '#5eead4'; // Border cerah
+          ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.roundRect(s.x - 16, s.y - 28 + bob, 32, 12, 6);
+          ctx.roundRect(s.x - tagW / 2, s.y - 30 + bob, tagW, tagH, 6.5);
           ctx.fill();
+          ctx.stroke();
+
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 8px Inter, sans-serif';
+          ctx.font = 'bold 8.5px "Plus Jakarta Sans", sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(`Q${s.questionId}`, s.x, s.y - 22 + bob);
+          ctx.fillText(`Q${s.questionId}`, s.x, s.y - 23.5 + bob);
           ctx.restore();
         } else {
-          // Tanda semak hijau apabila sampel telah dikutip
+          // Tanda semak hijau kemas apabila sampel telah dikutip
           ctx.save();
           ctx.fillStyle = 'rgba(16, 185, 129, 0.4)';
           ctx.beginPath();
-          ctx.arc(s.x, s.y, 8, 0, Math.PI * 2);
+          ctx.arc(s.x, s.y, 9, 0, Math.PI * 2);
           ctx.fill();
           ctx.fillStyle = '#10b981';
           ctx.font = 'bold 11px Inter, sans-serif';
@@ -1363,7 +1945,7 @@
       // F. Lukis Gerbang & Terminal Makmal Utama
       this.drawMainLabArchway(ctx, allSamplesGathered);
 
-      // G. Lukis Pemain (Avatar Saintis Muda)
+      // G. Lukis Pemain (Avatar Saintis Muda HD)
       const p = this.player;
 
       // Jika kebal (flicker berkedip)
@@ -1373,33 +1955,33 @@
         ctx.drawImage(sprite, p.x - 16, p.y - 28);
       }
 
-      // Jika ada Perisai Keselamatan aktif: lukis gelang tenaga sian berputar
+      // Jika ada Perisai Keselamatan aktif: gelang tenaga sian berputar
       if (p.hasShield) {
         ctx.save();
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
         ctx.lineWidth = 2;
         ctx.setLineDash([6, 3]);
         ctx.beginPath();
         ctx.arc(p.x, p.y - 12, 22, 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
         ctx.beginPath();
         ctx.arc(p.x, p.y - 12, 22, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
 
-      // Tag Nama & Nyawa Pemain di atas Watak
+      // Tag Nama Pemain di atas Watak
       ctx.save();
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
-      const nameWidth = ctx.measureText(p.name).width + 12;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      const nameWidth = ctx.measureText(p.name).width + 14;
       ctx.beginPath();
       ctx.roundRect(p.x - nameWidth / 2, p.y - 44, nameWidth, 14, 7);
       ctx.fill();
 
       ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 9px Inter, sans-serif';
+      ctx.font = 'bold 9px "Plus Jakarta Sans", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(p.name, p.x, p.y - 37);
@@ -1425,10 +2007,10 @@
       ctx.save();
       // Banner makmal
       ctx.fillStyle = isUnlocked ? '#065f46' : '#0f766e';
-      ctx.fillRect(archX + 10, archY + 4, archW - 20, 16);
+      ctx.fillRect(archX + 8, archY + 4, archW - 16, 16);
       ctx.strokeStyle = isUnlocked ? '#34d399' : '#5eead4';
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(archX + 10, archY + 4, archW - 20, 16);
+      ctx.strokeRect(archX + 8, archY + 4, archW - 16, 16);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 9px "Plus Jakarta Sans", sans-serif';
@@ -1447,7 +2029,9 @@
       ctx.restore();
     }
 
-    // 11. Kawalan Gelung Utama (Loop)
+    // =========================================================================
+    // 10. KAWALAN GELUNG UTAMA (LOOP)
+    // =========================================================================
     start() {
       this.lastTime = performance.now();
       const loop = (time) => {

@@ -241,6 +241,33 @@
     { id: 10, key: 'forseps', name: 'Forseps Keluli', icon: '🥢', col: 29, row: 7, zone: 'Zon D — Rak Radang' }
   ];
 
+  // 3B. Konfigurasi 4 Halangan Sains Unik (Bukan Letupan / Bom)
+  const LAB_OBSTACLES = {
+    // Halangan A: Troli Peralatan Bergerak (Moving Equipment Trolleys)
+    trolleys: [
+      { id: 'trolley_1', name: 'Troli Makmal Utama', axis: 'x', col: 14, minCol: 13, maxCol: 16, row: 11, speed: 52, dir: 1, width: 28, height: 26 },
+      { id: 'trolley_2', name: 'Troli Koridor Pelajar', axis: 'y', col: 15, row: 16, minRow: 15, maxRow: 19, speed: 48, dir: 1, width: 28, height: 26 }
+    ],
+
+    // Halangan B: Laci Kabinet Terbuka Berkala (Animated Sliding Cabinet Drawers)
+    drawers: [
+      { id: 'drawer_1', name: 'Laci Reagen Guru', col: 28, row: 4, openDir: 'down', targetCol: 28, targetRow: 5, cycleTime: 5.0, openDuration: 2.2, warningTime: 0.8 },
+      { id: 'drawer_2', name: 'Laci Radas Zon C', col: 33, row: 18, openDir: 'left', targetCol: 32, targetRow: 18, cycleTime: 5.5, openDuration: 2.0, warningTime: 0.8 }
+    ],
+
+    // Halangan C: Robot Pembersih Makmal Beroda (Autonomous Cleaner Bot)
+    cleaners: [
+      { id: 'cleaner_1', name: 'Robot Pembersih Zon Mikroskopi', axis: 'x', minCol: 6, maxCol: 11, col: 8, row: 10, speed: 45, dir: 1, radius: 13 },
+      { id: 'cleaner_2', name: 'Robot Pembersih Koridor Belakang', axis: 'x', minCol: 17, maxCol: 24, col: 19, row: 23, speed: 50, dir: 1, radius: 13 }
+    ],
+
+    // Halangan D: Rak Peralatan Tidak Stabil (Periodic Unstable Shelf Hazard)
+    shelves: [
+      { id: 'shelf_1', name: 'Rak Radas Dinding Sisi', col: 27, row: 12, dropCol: 26, dropRow: 12, cycleTime: 6.5, warningDuration: 1.2, dropDuration: 0.4, groundDuration: 2.2 },
+      { id: 'shelf_2', name: 'Rak Penyangga Meja Mikroskop', col: 13, row: 5, dropCol: 13, dropRow: 6, cycleTime: 7.0, warningDuration: 1.2, dropDuration: 0.4, groundDuration: 2.2 }
+    ]
+  };
+
   // 4. Stesen Pemulangan Peralatan (Equipment Return Counter di Zon C)
   const STORAGE_STATION = {
     col: 30,
@@ -485,6 +512,22 @@
       });
     }
 
+    // Bunyi perlanggaran halangan makmal (Gentle caution hurt tone)
+    playHurt() {
+      if (this.muted) return;
+      this.playTone(160, 'sawtooth', 0.22, 0.16);
+      setTimeout(() => this.playTone(130, 'sawtooth', 0.28, 0.14), 110);
+    }
+
+    // Bunyi tamat permainan kerana kehabisan nyawa
+    playGameOver() {
+      if (this.muted) return;
+      const notes = [220, 196, 174.61, 146.83];
+      notes.forEach((freq, idx) => {
+        setTimeout(() => this.playTone(freq, 'sawtooth', 0.35, 0.18), idx * 140);
+      });
+    }
+
     toggleMute() {
       this.muted = !this.muted;
       return this.muted;
@@ -496,6 +539,7 @@
     GameState: LabGameState,
     QUESTIONS: LAB_QUESTIONS,
     EQUIPMENT: LAB_EQUIPMENT,
+    OBSTACLES: LAB_OBSTACLES,
     STORAGE_STATION,
     EXIT_DOOR,
     MAP_COLS: LAB_MAP_COLS,

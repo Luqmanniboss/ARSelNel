@@ -12,6 +12,7 @@
     TILE_SIZE,
     QUESTIONS,
     EQUIPMENT,
+    OBSTACLES,
     STORAGE_STATION,
     EXIT_DOOR,
     generateLabMap,
@@ -30,7 +31,9 @@
 
       this.map = generateLabMap();
 
-      // Camera
+      // HD Viewport & Camera Scaling
+      this.dpr = 1;
+      this.gameScale = 1.0;
       this.camera = { x: 0, y: 0, width: 800, height: 600 };
 
       // Pemain (Mula di bahagian tengah-selatan makmal: r: 24, c: 15)
@@ -40,6 +43,10 @@
         width: 24,
         height: 30,
         speed: 160, // px per saat
+        lives: 3,
+        maxLives: 3,
+        invulnerableTimer: 0,
+        knockback: { vx: 0, vy: 0, timer: 0 },
         direction: 'up', // 'down', 'up', 'left', 'right'
         isMoving: false,
         animFrame: 0,
@@ -74,6 +81,81 @@
         bobOffset: Math.random() * Math.PI * 2
       }));
 
+      // =========================================================================
+      // 4 HALANGAN SAINS UNIK (MAKMAL SAINS) - BUKAN BOM / LETUPAN
+      // =========================================================================
+      const obs = OBSTACLES || {};
+
+      // Halangan A: Troli Peralatan Bergerak (Stainless Steel Carts)
+      this.trolleys = (obs.trolleys || []).map((t) => ({
+        id: t.id,
+        name: t.name,
+        axis: t.axis,
+        col: t.col,
+        row: t.row,
+        x: t.col * TILE_SIZE + TILE_SIZE / 2,
+        y: t.row * TILE_SIZE + TILE_SIZE / 2,
+        min: t.axis === 'x' ? t.minCol * TILE_SIZE : t.minRow * TILE_SIZE,
+        max: t.axis === 'x' ? t.maxCol * TILE_SIZE : t.maxRow * TILE_SIZE,
+        speed: t.speed,
+        dir: t.dir,
+        width: t.width || 28,
+        height: t.height || 26
+      }));
+
+      // Halangan B: Laci Kabinet Terbuka (Periodic Sliding Drawers)
+      this.drawers = (obs.drawers || []).map((d) => ({
+        id: d.id,
+        name: d.name,
+        col: d.col,
+        row: d.row,
+        openDir: d.openDir,
+        targetCol: d.targetCol,
+        targetRow: d.targetRow,
+        cycleTime: d.cycleTime || 5.0,
+        openDuration: d.openDuration || 2.0,
+        warningTime: d.warningTime || 0.8,
+        timer: Math.random() * 2.0, // Fasa rawak awal
+        state: 'closed', // 'closed', 'warning', 'open'
+        extension: 0 // 0 to 1
+      }));
+
+      // Halangan C: Robot Pembersih Makmal (Autonomous Round Cleaner Bot)
+      this.cleaners = (obs.cleaners || []).map((c) => ({
+        id: c.id,
+        name: c.name,
+        axis: c.axis,
+        min: c.minCol * TILE_SIZE + TILE_SIZE / 2,
+        max: c.maxCol * TILE_SIZE + TILE_SIZE / 2,
+        x: c.col * TILE_SIZE + TILE_SIZE / 2,
+        y: c.row * TILE_SIZE + TILE_SIZE / 2,
+        speed: c.speed,
+        dir: c.dir,
+        radius: c.radius || 13,
+        brushAngle: 0
+      }));
+
+      // Halangan D: Rak Peralatan Tidak Stabil (Periodic Unstable Shelf Hazard)
+      this.shelves = (obs.shelves || []).map((s) => ({
+        id: s.id,
+        name: s.name,
+        col: s.col,
+        row: s.row,
+        dropCol: s.dropCol,
+        dropRow: s.dropRow,
+        targetX: s.dropCol * TILE_SIZE + TILE_SIZE / 2,
+        targetY: s.dropRow * TILE_SIZE + TILE_SIZE / 2,
+        shelfX: s.col * TILE_SIZE + TILE_SIZE / 2,
+        shelfY: s.row * TILE_SIZE + TILE_SIZE / 2,
+        cycleTime: s.cycleTime || 6.5,
+        warningDuration: s.warningDuration || 1.2,
+        dropDuration: s.dropDuration || 0.4,
+        groundDuration: s.groundDuration || 2.2,
+        timer: Math.random() * 2.0,
+        state: 'idle', // 'idle', 'warning', 'dropping', 'ground'
+        boxY: s.row * TILE_SIZE + TILE_SIZE / 2
+      }));
+
       // Partikel
       this.particles = [];
 
@@ -85,17 +167,21 @@
       this.lastTime = 0;
       this.exitCooldown = 0;
       this.animReqId = null;
+      this.screenShake = 0;
 
       // Event Callbacks
       this.onEquipmentTrigger = options.onEquipmentTrigger || (() => {});
       this.onStorageStationTrigger = options.onStorageStationTrigger || (() => {});
       this.onExitDoorTrigger = options.onExitDoorTrigger || (() => {});
       this.onPlayerMove = options.onPlayerMove || (() => {});
+      this.onPlayerHurt = options.onPlayerHurt || (() => {});
+      this.onGameOver = options.onGameOver || (() => {});
 
       // Sediakan tekstur tile & sprite canvas secara prosedural
       this.tileSprites = this.createLabTileTextures();
       this.playerSprites = this.createStudentSprites();
       this.equipmentSprites = this.createEquipmentSprites();
+      this.obstacleSprites = this.createObstacleSprites();
 
       // Dengar input keyboard & resize
       this.initInput();
@@ -296,28 +382,42 @@
         c.fillRect(size / 2 - 1, size / 2 - 4, 2, 8);
       });
 
-      // 9: Kerusi Bangku Makmal (Lab Stool Obstacle)
+      // 9: Kerusi Bangku Ergonomik Makmal (Ergonomic Blue Lab Swivel Stool - TIADA RUPA BOM/PERIUK API)
       textures[9] = makeCanvas((c) => {
         c.fillStyle = '#f8fafc';
         c.fillRect(0, 0, size, size);
-        // Kaki logam kerusi
-        c.strokeStyle = '#64748b';
+        // Bayang lembut kerusi
+        c.fillStyle = 'rgba(15, 23, 42, 0.15)';
+        c.beginPath();
+        c.ellipse(size / 2, size - 4, 10, 3, 0, 0, Math.PI * 2);
+        c.fill();
+        // Tapak 5 jejari keluli tahan karat (Chrome star base)
+        c.strokeStyle = '#94a3b8';
         c.lineWidth = 2;
         c.beginPath();
-        c.moveTo(8, 8);
-        c.lineTo(24, 24);
-        c.moveTo(24, 8);
-        c.lineTo(8, 24);
+        c.moveTo(size / 2, size / 2 + 4);
+        c.lineTo(size / 2 - 8, size - 4);
+        c.moveTo(size / 2, size / 2 + 4);
+        c.lineTo(size / 2 + 8, size - 4);
         c.stroke();
-        // Tempat duduk bulat kerusi
-        c.fillStyle = '#1e293b';
+        // Silinder hidraulik kerusi
+        c.fillStyle = '#64748b';
+        c.fillRect(size / 2 - 2, size / 2 - 2, 4, 7);
+        // Kusyen tempat duduk makmal segi empat melengkung (Warna Biru Diraja Sains)
+        c.fillStyle = '#0284c7';
         c.beginPath();
-        c.arc(size / 2, size / 2, 8, 0, Math.PI * 2);
+        c.roundRect(size / 2 - 9, size / 2 - 7, 18, 11, 3);
         c.fill();
-        c.fillStyle = '#334155';
+        // Jalur kemasan kusyen
+        c.fillStyle = '#38bdf8';
+        c.fillRect(size / 2 - 7, size / 2 - 5, 14, 2);
+        // Penyandar belakang kerusi (Backrest)
+        c.fillStyle = '#0369a1';
         c.beginPath();
-        c.arc(size / 2 - 2, size / 2 - 2, 5, 0, Math.PI * 2);
+        c.roundRect(size / 2 - 8, 4, 16, 5, 2);
         c.fill();
+        c.fillStyle = '#7dd3fc';
+        c.fillRect(size / 2 - 6, 5, 12, 1.5);
       });
 
       // 10: Kebuk Wasap / Fume Hood
@@ -708,6 +808,166 @@
       return sprites;
     }
 
+    // =========================================================================
+    // 3B. SPRITE PROSEDURAL HD UNTUK 4 HALANGAN SAINS (TIADA UNSUR BOM)
+    // =========================================================================
+    createObstacleSprites() {
+      const sprites = {};
+
+      const makeCanvas = (w, h, drawFn) => {
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const cx = c.getContext('2d');
+        cx.imageSmoothingEnabled = false;
+        drawFn(cx);
+        return c;
+      };
+
+      // 1. Troli Peralatan Makmal (Stainless Steel Utility Cart, 28x26)
+      sprites.trolley = makeCanvas(28, 26, (c) => {
+        // Rangka keluli perak
+        c.fillStyle = '#64748b';
+        c.fillRect(2, 6, 24, 16);
+        c.fillStyle = '#94a3b8';
+        c.fillRect(3, 7, 22, 14);
+        c.fillStyle = '#f1f5f9';
+        c.fillRect(4, 8, 20, 4);  // Rak atas
+        c.fillRect(4, 15, 20, 4); // Rak bawah
+
+        // Pemegang tiub keluli
+        c.fillStyle = '#475569';
+        c.fillRect(1, 4, 3, 16);
+        c.fillRect(24, 4, 3, 16);
+        c.fillRect(1, 4, 26, 2);
+
+        // 4 Roda Kastor Getah (Rubber swivel wheels)
+        c.fillStyle = '#1e293b';
+        c.fillRect(3, 22, 4, 4);
+        c.fillRect(21, 22, 4, 4);
+        c.fillStyle = '#94a3b8';
+        c.fillRect(4, 23, 2, 2);
+        c.fillRect(22, 23, 2, 2);
+
+        // Radas kaca di atas rak troli (Bikar & Kelalang)
+        c.fillStyle = '#38bdf8';
+        c.fillRect(6, 4, 3, 4);
+        c.fillStyle = '#ec4899';
+        c.fillRect(11, 3, 4, 5);
+        c.fillStyle = '#facc15';
+        c.fillRect(18, 4, 3, 4);
+      });
+
+      // 2. Robot Pembersih Makmal Beroda (Autonomous Cleaner Bot, 26x26)
+      sprites.cleaner = makeCanvas(26, 26, (c) => {
+        // Badan cakera putih bersih
+        c.fillStyle = '#f8fafc';
+        c.beginPath();
+        c.arc(13, 13, 11, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = '#cbd5e1';
+        c.lineWidth = 1.5;
+        c.stroke();
+
+        // Bumper keliling kelabu
+        c.strokeStyle = '#64748b';
+        c.lineWidth = 1.8;
+        c.beginPath();
+        c.arc(13, 13, 9.5, 0, Math.PI * 2);
+        c.stroke();
+
+        // Sensor Visor Pengimbas Merah (Status aktif)
+        c.fillStyle = '#ef4444';
+        c.fillRect(17, 10, 4, 6);
+        c.fillStyle = '#fca5a5';
+        c.fillRect(18, 11, 2, 4);
+
+        // Lampu LED status biru di tengah
+        c.fillStyle = '#0284c7';
+        c.beginPath();
+        c.arc(11, 13, 2.5, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = '#7dd3fc';
+        c.fillRect(10, 12, 2, 2);
+      });
+
+      // 3. Kotak Peralatan Jatuh (Laboratory Equipment Box, 24x20)
+      sprites.box = makeCanvas(24, 20, (c) => {
+        // Kotak simpanan tahan impak
+        c.fillStyle = '#d97706';
+        c.fillRect(2, 4, 20, 14);
+        c.fillStyle = '#f59e0b';
+        c.fillRect(3, 5, 18, 12);
+        // Jalur pita amaran keselamatan
+        c.fillStyle = '#0f172a';
+        c.fillRect(3, 10, 18, 3);
+        c.fillStyle = '#facc15';
+        c.fillRect(5, 10, 3, 3);
+        c.fillRect(11, 10, 3, 3);
+        c.fillRect(17, 10, 3, 3);
+        // Pemegang kotak
+        c.fillStyle = '#78350f';
+        c.fillRect(9, 2, 6, 3);
+      });
+
+      return sprites;
+    }
+
+    // =========================================================================
+    // 3C. SISTEM KEROSAKAN & NYAWA HALANGAN (BERFUNGSI & MESRA MURID)
+    // =========================================================================
+    applyObstacleDamage(obstacle, sourceLabel) {
+      if (this.player.invulnerableTimer > 0) return;
+
+      // Tolak 1 nyawa keselamatan makmal
+      this.player.lives = Math.max(0, this.player.lives - 1);
+      this.player.invulnerableTimer = 1.8; // Tempoh kebal 1.8 saat
+      this.screenShake = 0.25;
+
+      // Knockback selamat (tolak menjauhi halangan tanpa terperangkap dalam dinding)
+      const ox = obstacle.x !== undefined ? obstacle.x : (obstacle.col * TILE_SIZE + TILE_SIZE / 2);
+      const oy = obstacle.y !== undefined ? obstacle.y : (obstacle.row * TILE_SIZE + TILE_SIZE / 2);
+      const dx = this.player.x - ox;
+      const dy = this.player.y - oy;
+      const dist = Math.hypot(dx, dy) || 1;
+      const pushDist = 24;
+      const pushX = (dx / dist) * pushDist;
+      const pushY = (dy / dist) * pushDist;
+
+      if (!this.checkCollision(this.player.x + pushX, this.player.y, this.player.width, this.player.height)) {
+        this.player.x += pushX;
+      }
+      if (!this.checkCollision(this.player.x, this.player.y + pushY, this.player.width, this.player.height)) {
+        this.player.y += pushY;
+      }
+
+      // Partikel amaran kerosakan
+      for (let i = 0; i < 16; i++) {
+        this.particles.push({
+          x: this.player.x,
+          y: this.player.y,
+          vx: (Math.random() - 0.5) * 120,
+          vy: (Math.random() - 0.5) * 120,
+          color: ['#f43f5e', '#fb7185', '#facc15', '#ffffff'][Math.floor(Math.random() * 4)],
+          life: 0.6,
+          maxLife: 0.6,
+          size: 2.5 + Math.random() * 2.5
+        });
+      }
+
+      Audio.playHurt();
+      this.onPlayerHurt(this.player.lives, sourceLabel);
+
+      // Sekiranya semua 3 nyawa habis -> Game Over
+      if (this.player.lives <= 0) {
+        this.state = GameState.READY;
+        this.isPaused = true;
+        this.resetInputs();
+        Audio.playGameOver();
+        this.onGameOver();
+      }
+    }
+
     // 4. Kawalan Input Keyboard
     initInput() {
       const preventScroll = (e) => {
@@ -778,7 +1038,7 @@
       this.player.isMoving = false;
     }
 
-    // 5. Penyesuaian Saiz Skrin & Canvas Responsive
+    // 5. Penyesuaian Saiz Skrin & Canvas Responsive (HD DevicePixelRatio Support)
     handleResize() {
       const container = this.canvas.parentElement;
       if (!container) return;
@@ -788,8 +1048,14 @@
       // Hadkan tinggi kanvas mengikut perkadaran makmal yang selesa
       const height = Math.min(Math.floor(width * 0.68), 580);
 
-      this.canvas.width = width;
-      this.canvas.height = height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      this.dpr = dpr;
+
+      this.canvas.style.width = width + 'px';
+      this.canvas.style.height = height + 'px';
+
+      this.canvas.width = Math.round(width * dpr);
+      this.canvas.height = Math.round(height * dpr);
 
       this.camera.width = width;
       this.camera.height = height;
@@ -853,8 +1119,10 @@
     update(dt) {
       if (this.isPaused || this.state !== GameState.PLAYING) return;
 
-      // Kemas kini pemasa cooldown pintu
+      // Kemas kini pemasa cooldown pintu, kebal & screen shake
       if (this.exitCooldown > 0) this.exitCooldown -= dt;
+      if (this.player.invulnerableTimer > 0) this.player.invulnerableTimer = Math.max(0, this.player.invulnerableTimer - dt);
+      if (this.screenShake > 0) this.screenShake = Math.max(0, this.screenShake - dt);
 
       // Vektor pergerakan
       let dx = 0;
@@ -959,6 +1227,92 @@
         this.onExitDoorTrigger(this.isExitUnlocked);
       }
 
+      // =======================================================================
+      // 10B. KEMAS KINI 4 HALANGAN SAINS UNIK & PENGESANAN KEROSAKAN
+      // =======================================================================
+
+      // Halangan A: Troli Peralatan Bergerak (Moving Utility Trolleys)
+      this.trolleys.forEach((t) => {
+        if (t.axis === 'x') {
+          t.x += t.speed * t.dir * dt;
+          if (t.x <= t.min) { t.x = t.min; t.dir = 1; }
+          else if (t.x >= t.max) { t.x = t.max; t.dir = -1; }
+        } else {
+          t.y += t.speed * t.dir * dt;
+          if (t.y <= t.min) { t.y = t.min; t.dir = 1; }
+          else if (t.y >= t.max) { t.y = t.max; t.dir = -1; }
+        }
+
+        const halfW = t.width / 2;
+        const halfH = t.height / 2;
+        if (Math.abs(this.player.x - t.x) < (halfW + this.player.width / 2 - 4) &&
+            Math.abs(this.player.y - t.y) < (halfH + this.player.height / 2 - 4)) {
+          this.applyObstacleDamage(t, 'Troli Peralatan Bergerak');
+        }
+      });
+
+      // Halangan B: Laci Kabinet Terbuka (Animated Sliding Drawers)
+      this.drawers.forEach((d) => {
+        d.timer = (d.timer + dt) % d.cycleTime;
+        if (d.timer < d.warningTime) {
+          d.state = 'warning';
+          d.extension = d.timer / d.warningTime;
+        } else if (d.timer < d.warningTime + d.openDuration) {
+          d.state = 'open';
+          d.extension = 1.0;
+          const targetX = d.targetCol * TILE_SIZE + TILE_SIZE / 2;
+          const targetY = d.targetRow * TILE_SIZE + TILE_SIZE / 2;
+          if (Math.abs(this.player.x - targetX) < 16 && Math.abs(this.player.y - targetY) < 16) {
+            this.applyObstacleDamage(d, 'Laci Kabinet Terbuka');
+          }
+        } else {
+          d.state = 'closed';
+          d.extension = 0;
+        }
+      });
+
+      // Halangan C: Robot Pembersih Makmal Beroda (Autonomous Cleaner Bot)
+      this.cleaners.forEach((c) => {
+        c.x += c.speed * c.dir * dt;
+        c.brushAngle += dt * 8;
+        if (c.x <= c.min) { c.x = c.min; c.dir = 1; }
+        else if (c.x >= c.max) { c.x = c.max; c.dir = -1; }
+
+        const dist = Math.hypot(this.player.x - c.x, this.player.y - c.y);
+        if (dist < (c.radius + this.player.width / 2 - 3)) {
+          this.applyObstacleDamage(c, 'Robot Pembersih Makmal');
+        }
+      });
+
+      // Halangan D: Rak Peralatan Tidak Stabil (Periodic Unstable Shelf Hazard)
+      this.shelves.forEach((s) => {
+        s.timer = (s.timer + dt) % s.cycleTime;
+        const t1 = s.warningDuration;
+        const t2 = t1 + s.dropDuration;
+        const t3 = t2 + s.groundDuration;
+
+        if (s.timer < t1) {
+          s.state = 'warning';
+          s.boxY = s.shelfY;
+        } else if (s.timer < t2) {
+          s.state = 'dropping';
+          const progress = (s.timer - t1) / s.dropDuration;
+          s.boxY = s.shelfY + (s.targetY - s.shelfY) * progress;
+          if (Math.abs(this.player.x - s.targetX) < 16 && Math.abs(this.player.y - s.targetY) < 16) {
+            this.applyObstacleDamage(s, 'Peralatan Terjatuh dari Rak');
+          }
+        } else if (s.timer < t3) {
+          s.state = 'ground';
+          s.boxY = s.targetY;
+          if (Math.abs(this.player.x - s.targetX) < 16 && Math.abs(this.player.y - s.targetY) < 16) {
+            this.applyObstacleDamage(s, 'Peralatan Terhalang di Lantai');
+          }
+        } else {
+          s.state = 'idle';
+          s.boxY = s.shelfY;
+        }
+      });
+
       // Kemas kini partikel
       for (let i = this.particles.length - 1; i >= 0; i--) {
         const p = this.particles[i];
@@ -982,12 +1336,22 @@
       const ctx = this.ctx;
       const cw = this.canvas.width;
       const ch = this.canvas.height;
+      const dpr = this.dpr || 1;
 
       // Bersihkan kanvas
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, cw, ch);
 
       ctx.save();
+      ctx.scale(dpr, dpr);
+
+      // Kesan gegaran skrin jika ada perlanggaran halangan
+      if (this.screenShake > 0) {
+        const shakeX = (Math.random() - 0.5) * 6;
+        const shakeY = (Math.random() - 0.5) * 6;
+        ctx.translate(shakeX, shakeY);
+      }
+
       ctx.translate(-this.camera.x, -this.camera.y);
 
       // Tentukan julat jubin yang kelihatan dalam skrin (Culling)
@@ -1023,8 +1387,117 @@
       const exitTitle = this.isExitUnlocked ? 'PINTU KELUAR MAKMAL (DIBUKA)' : 'PINTU KELUAR MAKMAL (TERKUNCI)';
       ctx.fillText(exitTitle, 19 * TILE_SIZE, 0.75 * TILE_SIZE);
 
-      // Lukis 10 Peralatan Makmal yang Belum Dikumpulkan
+      // =======================================================================
+      // LUKIS 4 HALANGAN SAINS UNIK (MAKMAL SAINS)
+      // =======================================================================
       const now = (time || performance.now()) / 1000;
+
+      // Halangan D: Rak Tidak Stabil (Zon Amaran & Kotak Jatuh)
+      this.shelves.forEach((s) => {
+        if (s.state === 'warning') {
+          // Amaran zon bahaya berdenyut di lantai
+          const pulse = 0.5 + Math.sin(now * 8) * 0.3;
+          ctx.fillStyle = `rgba(245, 158, 11, ${pulse * 0.4})`;
+          ctx.beginPath();
+          ctx.arc(s.targetX, s.targetY, 14, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 3]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Ikon amaran
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = 'bold 10px "Segoe UI Emoji", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('⚠️', s.targetX, s.targetY - 14);
+        } else if (s.state === 'dropping' || s.state === 'ground') {
+          // Bayang kotak di lantai
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
+          ctx.beginPath();
+          ctx.ellipse(s.targetX, s.targetY + 8, 10, 4, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Kotak peralatan makmal jatuh
+          if (this.obstacleSprites && this.obstacleSprites.box) {
+            ctx.drawImage(this.obstacleSprites.box, s.targetX - 12, s.boxY - 10);
+          }
+        }
+      });
+
+      // Halangan B: Laci Kabinet Terbuka
+      this.drawers.forEach((d) => {
+        if (d.state === 'warning' || d.state === 'open') {
+          const originX = d.col * TILE_SIZE;
+          const originY = d.row * TILE_SIZE;
+          const extX = (d.openDir === 'left' ? -1 : (d.openDir === 'right' ? 1 : 0)) * (d.extension * 18);
+          const extY = (d.openDir === 'up' ? -1 : (d.openDir === 'down' ? 1 : 0)) * (d.extension * 18);
+
+          // Badan laci yang ditarik keluar
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(originX + extX + 4, originY + extY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillRect(originX + extX + 5, originY + extY + 5, TILE_SIZE - 10, TILE_SIZE - 10);
+
+          // Pemegang logam laci
+          ctx.fillStyle = '#f8fafc';
+          ctx.fillRect(originX + extX + TILE_SIZE / 2 - 4, originY + extY + TILE_SIZE / 2 - 2, 8, 4);
+
+          // Jalur amaran kuning
+          if (d.state === 'open') {
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 9px "Segoe UI Emoji", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('⚠️', originX + extX + TILE_SIZE / 2, originY + extY - 4);
+          }
+        }
+      });
+
+      // Halangan A: Troli Peralatan Bergerak
+      this.trolleys.forEach((t) => {
+        // Bayang troli di lantai
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.25)';
+        ctx.beginPath();
+        ctx.ellipse(t.x, t.y + 11, 13, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sprite troli keluli tahan karat
+        if (this.obstacleSprites && this.obstacleSprites.trolley) {
+          ctx.drawImage(this.obstacleSprites.trolley, Math.floor(t.x - 14), Math.floor(t.y - 13));
+        }
+      });
+
+      // Halangan C: Robot Pembersih Makmal Beroda
+      this.cleaners.forEach((c) => {
+        // Bayang robot
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+        ctx.beginPath();
+        ctx.ellipse(c.x, c.y + 11, 11, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Alur cahaya pengimbas di hadapan robot
+        const beamLength = 20;
+        const beamX = c.x + c.dir * beamLength;
+        const beamGrad = ctx.createLinearGradient(c.x, c.y, beamX, c.y);
+        beamGrad.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
+        beamGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y - 5);
+        ctx.lineTo(beamX, c.y - 10);
+        ctx.lineTo(beamX, c.y + 10);
+        ctx.lineTo(c.x, c.y + 5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Sprite Robot Pembersih
+        if (this.obstacleSprites && this.obstacleSprites.cleaner) {
+          ctx.drawImage(this.obstacleSprites.cleaner, Math.floor(c.x - 13), Math.floor(c.y - 13));
+        }
+      });
+
+      // Lukis 10 Peralatan Makmal yang Belum Dikumpulkan
       for (let i = 0; i < this.equipmentList.length; i++) {
         const item = this.equipmentList[i];
         if (item.collected) continue;
@@ -1064,6 +1537,12 @@
       const p = this.player;
       const pSprite = this.playerSprites[p.direction][p.animFrame];
 
+      // Berkelip jika dalam keadaan kebal / cedera
+      if (p.invulnerableTimer > 0) {
+        const flash = Math.floor(p.invulnerableTimer * 10) % 2 === 0;
+        ctx.globalAlpha = flash ? 0.35 : 0.85;
+      }
+
       // Bayang pemain di lantai makmal
       ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
       ctx.beginPath();
@@ -1072,6 +1551,7 @@
 
       // Lukis badan pemain
       ctx.drawImage(pSprite, Math.floor(p.x - p.width / 2), Math.floor(p.y - p.height / 2));
+      ctx.globalAlpha = 1.0;
 
       // Lencana Nama Pemain di atas kepala
       ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
