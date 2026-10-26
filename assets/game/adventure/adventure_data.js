@@ -1,12 +1,13 @@
 /**
- * ARSelNel 2D Open World Quiz Adventure - Data, Map & Audio Engine
+ * ARSelNel 2D Science Rescue Adventure - Data, Map, Hazards & Audio Engine
+ * Modul: Misi Penyelamat Makmal Sains (Kuiz Saintis Muda)
  * Topik: Sains Tingkatan 1 - Bab 2: Sel sebagai Unit Asas Hidupan
  */
 
 (function(global) {
   'use strict';
 
-  // 1. Data Soalan Sains Tingkatan 1 (10 Soalan DSKP)
+  // 1. Data Soalan Sains Tingkatan 1 (10 Soalan Objektif DSKP Asal - DIKEKALKAN SEPENUHNYA)
   const ADVENTURE_QUESTIONS = [
     {
       id: 1,
@@ -160,138 +161,339 @@
     }
   ];
 
-  // 2. Konfigurasi Dunia Permainan (48x36 tiles @ 32px = 1536 x 1152 px)
+  // 2. 10 Sampel & Objek Sains (Menggantikan burger sepenuhnya)
+  const SCIENCE_SAMPLES = [
+    {
+      questionId: 1,
+      name: "Sampel Sel Haiwan",
+      type: "animal_cell",
+      icon: "🔬",
+      col: 19,
+      row: 17,
+      zone: "Dataran Sains Utama (Pusat Kampus)",
+      description: "Kelalang spesimen sel pipi haiwan dengan nukleus jelas."
+    },
+    {
+      questionId: 2,
+      name: "Sampel Sel Tumbuhan",
+      type: "plant_cell",
+      icon: "🌿",
+      col: 9,
+      row: 11,
+      zone: "Pintu Masuk Makmal Biologi Sel",
+      description: "Spesimen sel daun Elodea kaya dengan pigmen kloroplas."
+    },
+    {
+      questionId: 3,
+      name: "Slaid Mikroskop",
+      type: "micro_slide",
+      icon: "🔍",
+      col: 10,
+      row: 5,
+      zone: "Bilik Mikroskop & Pemerhatian",
+      description: "Slaid kaca berpenutup mengandungi kultur sel epidermis bawang."
+    },
+    {
+      questionId: 4,
+      name: "Kanta Objektif",
+      type: "obj_lens",
+      icon: "🔭",
+      col: 26,
+      row: 14,
+      zone: "Laluan Masuk Taman Botani",
+      description: "Kanta objektif pembesaran 40x untuk resolusi struktur organel halus."
+    },
+    {
+      questionId: 5,
+      name: "Tabung Uji",
+      type: "test_tube",
+      icon: "🧪",
+      col: 36,
+      row: 8,
+      zone: "Rumah Hijau Botanik",
+      description: "Tabung uji kaca dengan larutan penunjuk fotosintesis aktif."
+    },
+    {
+      questionId: 6,
+      name: "Piring Petri",
+      type: "petri_dish",
+      icon: "🧫",
+      col: 42,
+      row: 10,
+      zone: "Sudut Turgiditi & Vakuol Tumbuhan",
+      description: "Piring petri beragar kultur tisu kalus tumbuhan herba."
+    },
+    {
+      questionId: 7,
+      name: "Sampel Tisu",
+      type: "tissue_sample",
+      icon: "🧬",
+      col: 10,
+      row: 27,
+      zone: "Stor Peralatan & Makmal Bio-Tenaga",
+      description: "Kelalang bio-sampel tisu otot berketumpatan mitokondria tinggi."
+    },
+    {
+      questionId: 8,
+      name: "Model Nukleus",
+      type: "nucleus_model",
+      icon: "⚛️",
+      col: 24,
+      row: 26,
+      zone: "Koridor Selatan Komparatif Sel",
+      description: "Model anatomi 3D membran ganda nukleus dan benang kromatin."
+    },
+    {
+      questionId: 9,
+      name: "Model Mitokondrion",
+      type: "mito_model",
+      icon: "⚡",
+      col: 36,
+      row: 27,
+      zone: "Pavilion Hierarki Organisasi Sel",
+      description: "Model organel krista mitokondria penjana molekul ATP."
+    },
+    {
+      questionId: 10,
+      name: "Kit Pemerhatian Sel",
+      type: "cell_kit",
+      icon: "📦",
+      col: 41,
+      row: 25,
+      zone: "Stesen Sel Khusus & Hemoglobin",
+      description: "Kit instrumen pewarnaan metilena biru dan iodin lengkap."
+    }
+  ];
+
+  // 3. Konfigurasi Kuasa Tambahan (Power-ups Sains)
+  const POWERUP_LOCATIONS = [
+    {
+      id: "p_speed",
+      type: "speed",
+      name: "Kasut Pantas Makmal",
+      icon: "⚡",
+      col: 15,
+      row: 18,
+      duration: 8, // 8 saat rangsangan kelajuan
+      zone: "Dataran Utama Barat",
+      description: "Meningkatkan kelajuan larian avatar sebanyak 50% selama 8 saat."
+    },
+    {
+      id: "p_shield",
+      type: "shield",
+      name: "Perisai Keselamatan Bio",
+      icon: "🛡️",
+      col: 31,
+      row: 18,
+      duration: 0, // bertahan sehingga 1 pelanggaran
+      zone: "Dataran Utama Timur",
+      description: "Membentuk medan tenaga pelindung yang menyerap 1 kerosakan halangan."
+    },
+    {
+      id: "p_medkit",
+      type: "medkit",
+      name: "Kit Pertolongan Cemas",
+      icon: "🩹",
+      col: 24,
+      row: 8,
+      duration: 0,
+      zone: "Laluan Menuju Makmal Utama",
+      description: "Memulihkan 1 nyawa (sehingga maksimum 3 nyawa)."
+    }
+  ];
+
+  // 4. Halangan Dinamik & Bahaya Persekitaran Makmal
+  // A. Tumpahan Bahan Kimia & Biohazard Puddles (Statik Berbahaya)
+  const HAZARD_PUDDLES = [
+    { id: "h1", type: "chemical", col: 14, row: 8,  radius: 18, label: "Tumpahan Asid Bio" },
+    { id: "h2", type: "chemical", col: 33, row: 8,  radius: 18, label: "Tumpahan Reagen Berasid" },
+    { id: "h3", type: "biohazard", col: 14, row: 24, radius: 20, label: "Kawasan Pencemaran Bio" },
+    { id: "h4", type: "chemical", col: 33, row: 24, radius: 18, label: "Tumpahan Pelarut Organik" }
+  ];
+
+  // B. Robot Pembersih Makmal Rosak (Halangan Bergerak Ronda)
+  const PATROL_ROBOTS = [
+    {
+      id: "bot_1",
+      name: "Bot Pembersih-01 (Rosak)",
+      axis: "x",
+      minCol: 18,
+      maxCol: 30,
+      row: 20,
+      speed: 60,
+      dir: 1,
+      width: 24,
+      height: 24
+    },
+    {
+      id: "bot_2",
+      name: "Bot Pembersih-02 (Rosak)",
+      axis: "y",
+      col: 9,
+      minRow: 14,
+      maxRow: 21,
+      speed: 55,
+      dir: 1,
+      width: 24,
+      height: 24
+    },
+    {
+      id: "bot_3",
+      name: "Bot Pembersih-03 (Rosak)",
+      axis: "y",
+      col: 36,
+      minRow: 14,
+      maxRow: 21,
+      speed: 55,
+      dir: -1,
+      width: 24,
+      height: 24
+    }
+  ];
+
+  // 5. Konfigurasi Dunia Permainan (48x36 tiles @ 32px = 1536 x 1152 px)
   const MAP_COLS = 48;
   const MAP_ROWS = 36;
   const TILE_SIZE = 32;
 
-  // Nilai Tile:
-  // 0 = Rumput (Walkable)
-  // 1 = Laluan Batu / Koridor (Walkable)
-  // 2 = Lantai Makmal Jubin (Walkable)
-  // 3 = Lantai Rumah Hijau (Walkable)
-  // 4 = Dataran Jubin Mar-mar (Walkable)
+  // Nilai Kod Tile:
+  // 0 = Rumput Kampus Sains (Walkable)
+  // 1 = Laluan Batu Berturap / Koridor (Walkable)
+  // 2 = Jubin Makmal Biologi (Walkable)
+  // 3 = Lantai Rumah Hijau Botanik (Walkable)
+  // 4 = Dataran Mar-mar Pavilion (Walkable)
+  // 5 = Lantai Bilik Bersih Makmal Utama (Walkable)
   // 10 = Dinding Bata Luar (SOLID)
   // 11 = Dinding Kaca Makmal (SOLID)
-  // 12 = Pagar / Pokok Renek (SOLID)
-  // 13 = Meja Makmal / Console (SOLID)
-  // 14 = Pokok Rendang Besar (SOLID)
-  // 15 = Kolam Air / Air Pancut (SOLID)
+  // 12 = Pagar / Pokok Renek Sempadan (SOLID)
+  // 13 = Meja Eksperimen Makmal (SOLID)
+  // 14 = Pokok Rendang Kampus (SOLID)
+  // 15 = Kolam Air Pancut Dataran (SOLID)
   // 16 = Dinding Rumah Hijau (SOLID)
-  // 17 = Rak Paparan Sains / Mikroskop Besar (SOLID)
-  // 20 = Jubin FINISH Checkered (Walkable - Trigger Finish Check)
-  // 21 = Tiang Pintu Gerbang FINISH (SOLID)
+  // 17 = Rak Instrumen / Mikroskop Gergasi (SOLID)
+  // 18 = Papan Tanda Arah Zon Makmal (SOLID)
+  // 19 = Pintu Keselamatan Makmal Utama (SOLID jika sampel < 10, TERBUKA jika sampel = 10)
+  // 20 = Terminal Pengaktifan Keselamatan Makmal Utama (FINISH Zone)
+  // 21 = Tiang Pintu Gerbang Makmal Utama (SOLID)
 
-  // Jana peta kampus berstruktur
   function generateCampusMap() {
     const map = [];
     for (let r = 0; r < MAP_ROWS; r++) {
       const row = [];
       for (let c = 0; c < MAP_COLS; c++) {
-        // Border sempadan kampus (Pagar Luar)
+        // Pagar Sempadan Luar Kampus
         if (r === 0 || r === MAP_ROWS - 1 || c === 0 || c === MAP_COLS - 1) {
-          row.push(12); // Pagar luar
+          row.push(12);
         }
-        // Bangunan 1: Makmal Biologi Sel (Barat Laut: r: 3-12, c: 3-18)
+        // Zon 1: Bilik Mikroskop & Makmal Biologi Sel (Barat Laut: r: 3-12, c: 3-18)
         else if (r >= 3 && r <= 12 && c >= 3 && c <= 18) {
           if (r === 3 || c === 3 || c === 18) {
             row.push(11); // Dinding kaca makmal
           } else if (r === 12) {
-            // Pintu masuk makmal pada c: 8-10
-            if (c >= 8 && c <= 10) row.push(2);
+            if (c >= 8 && c <= 10) row.push(2); // Pintu masuk makmal
             else row.push(11);
           } else {
-            // Dalam makmal: meja eksperimen dan lantai
+            // Meja eksperimen & instrumen mikroskopi
             if ((r === 6 || r === 9) && c >= 6 && c <= 15 && c !== 10 && c !== 11) {
               row.push(13); // Meja makmal
             } else if (r === 4 && (c === 6 || c === 15)) {
-              row.push(17); // Konsol sains
+              row.push(17); // Rak mikroskop
             } else {
-              row.push(2); // Lantai jubin makmal
+              row.push(2); // Jubin makmal biologi
             }
           }
         }
-        // Bangunan 2: Rumah Hijau & Taman Botani (Timur Laut: r: 3-12, c: 29-44)
+        // Zon 2: Rumah Hijau & Taman Botani (Timur Laut: r: 3-12, c: 29-44)
         else if (r >= 3 && r <= 12 && c >= 29 && c <= 44) {
           if (r === 3 || c === 29 || c === 44) {
-            row.push(16); // Dinding rumah kaca
+            row.push(16); // Dinding rumah hijau
           } else if (r === 12) {
-            if (c >= 35 && c <= 37) row.push(3); // Pintu masuk
+            if (c >= 35 && c <= 37) row.push(3); // Pintu masuk rumah hijau
             else row.push(16);
           } else {
             if ((r === 6 || r === 9) && c >= 32 && c <= 41 && c !== 36) {
-              row.push(12); // Pasu tumbuhan panjang
+              row.push(12); // Meja tanaman bertingkat
             } else {
               row.push(3); // Lantai rumah hijau
             }
           }
         }
-        // Zon Penamat (FINISH Portal): Utara Tengah (r: 1-4, c: 22-26)
-        else if (r >= 1 && r <= 4 && c >= 21 && c <= 27) {
-          if ((c === 21 || c === 27) && (r === 2 || r === 3)) {
-            row.push(21); // Tiang gerbang
-          } else if (r >= 2 && r <= 4 && c >= 22 && c <= 26) {
-            row.push(20); // FINISH CHECKERED TILE
+        // Zon 5: Makmal Utama ARSelNel & Terminal Keselamatan (Utara Tengah: r: 1-4, c: 20-27)
+        else if (r >= 1 && r <= 4 && c >= 20 && c <= 27) {
+          if (r === 1 || c === 20 || c === 27) {
+            row.push(21); // Tiang struktur dinding pelindung
+          } else if (r === 4 && (c === 23 || c === 24)) {
+            row.push(19); // PINTU KESELAMATAN BERKUNCI (Dibuka bila 10 sampel siap)
+          } else if (r === 4) {
+            row.push(21); // Dinding pintu gerbang
+          } else if (r === 2 && (c === 23 || c === 24)) {
+            row.push(20); // TERMINAL PENGAKTIFAN KESELAMATAN (FINISH TARGET)
           } else {
-            row.push(4); // Laluan dataran
+            row.push(5); // Lantai bilik bersih makmal utama
           }
         }
-        // Bangunan 3: Makmal Bio-Tenaga & Mitokondria (Barat Daya: r: 23-32, c: 3-18)
+        // Zon 3: Stor Peralatan & Makmal Bio-Tenaga (Barat Daya: r: 23-32, c: 3-18)
         else if (r >= 23 && r <= 32 && c >= 3 && c <= 18) {
           if (r === 23) {
-            if (c >= 8 && c <= 10) row.push(2); // Pintu masuk
+            if (c >= 8 && c <= 10) row.push(2); // Pintu masuk stor
             else row.push(10);
           } else if (r === 32 || c === 3 || c === 18) {
-            row.push(10); // Dinding bata
+            row.push(10); // Dinding bata kukuh
           } else {
             if ((r === 26 || r === 29) && c >= 6 && c <= 15 && c !== 10) {
-              row.push(13); // Meja generator tenaga
+              row.push(13); // Rak peralatan berat
+            } else if (r === 24 && c === 6) {
+              row.push(17); // Kabinet bahan kimia
             } else {
-              row.push(2); // Lantai makmal
+              row.push(2);
             }
           }
         }
-        // Bangunan 4: Pavilion Hierarki & Sel Khusus (Timur Daya: r: 23-32, c: 29-44)
+        // Zon 4: Pavilion Hierarki & Sel Khusus (Timur Daya: r: 23-32, c: 29-44)
         else if (r >= 23 && r <= 32 && c >= 29 && c <= 44) {
           if (r === 23) {
-            if (c >= 35 && c <= 37) row.push(4); // Pintu masuk
+            if (c >= 35 && c <= 37) row.push(4); // Pintu masuk pavilion
             else row.push(11);
           } else if (r === 32 || c === 29 || c === 44) {
             row.push(11);
           } else {
             if ((r === 26 || r === 29) && c >= 32 && c <= 41 && c !== 36) {
-              row.push(17); // Meja spesimen
+              row.push(17); // Meja pameran spesimen
             } else {
-              row.push(4); // Lantai mar-mar
+              row.push(4);
             }
           }
         }
-        // Pancutan Air & Kolam Dataran Utama: Pusat (r: 17-19, c: 23-25)
+        // Kolam Dataran Sains Utama (Pusat Kampus: r: 17-19, c: 23-25)
         else if (r >= 17 && r <= 19 && c >= 23 && c <= 25) {
-          row.push(15); // Kolam air pancut
+          row.push(15);
         }
-        // Pokok-pokok hiasan kampus
+        // Papan Tanda Arah Kampus Sains (Informatif untuk Pelajar)
+        else if ((r === 15 && c === 21) || (r === 15 && c === 27) || (r === 21 && c === 24)) {
+          row.push(18); // Papan tanda arah
+        }
+        // Pokok-pokok Rendang Kampus
         else if (
           (r === 15 && (c === 6 || c === 14 || c === 33 || c === 41)) ||
           (r === 21 && (c === 6 || c === 14 || c === 33 || c === 41)) ||
-          (r === 7 && (c === 23 || c === 25)) ||
+          (r === 7 && (c === 21 || c === 26)) ||
           (r === 28 && (c === 23 || c === 25))
         ) {
-          row.push(14); // Pokok rendang
+          row.push(14);
         }
-        // Laluan utama berturap (Laluan rentas kampus)
+        // Laluan Berturap (Koridor Penghubung Antara Zon)
         else if (
-          (r >= 14 && r <= 22 && c >= 19 && c <= 29) || // Dataran utama tengah
-          (c >= 22 && c <= 26) || // Laluan koridor utara-selatan
-          (r >= 17 && r <= 19) || // Laluan koridor timur-barat
+          (r >= 14 && r <= 22 && c >= 19 && c <= 28) || // Dataran utama
+          (c >= 22 && c <= 25) || // Koridor menegak utara-selatan
+          (r >= 17 && r <= 19) || // Koridor melintang timur-barat
           (c >= 8 && c <= 10 && r >= 12 && r <= 23) || // Sambungan makmal barat
           (c >= 35 && c <= 37 && r >= 12 && r <= 23) // Sambungan makmal timur
         ) {
-          row.push(1); // Laluan batu berturap
+          row.push(1);
         }
-        // Selebihnya adalah padang rumput kampus
+        // Padang Rumput Kampus
         else {
-          row.push(0); // Rumput
+          row.push(0);
         }
       }
       map.push(row);
@@ -299,22 +501,7 @@
     return map;
   }
 
-  // 3. Posisi 10 Burger Collectibles
-  // Dijajarkan di atas lantai yang sah (walkable) di seluruh 5 zon kampus
-  const BURGER_LOCATIONS = [
-    { questionId: 1,  col: 19, row: 17, zone: "Dataran Sains Utama (Pusat Kampus)" },
-    { questionId: 2,  col: 9,  row: 11, zone: "Pintu Masuk Makmal Biologi Sel" },
-    { questionId: 3,  col: 10, row: 5,  zone: "Meja Mikroskopi Makmal Biologi" },
-    { questionId: 4,  col: 26, row: 14, zone: "Laluan Masuk Taman Botani" },
-    { questionId: 5,  col: 36, row: 8,  zone: "Tengah Rumah Hijau Kloroplas" },
-    { questionId: 6,  col: 42, row: 10, zone: "Sudut Turgiditi & Vakuol Tumbuhan" },
-    { questionId: 7,  col: 10, row: 27, zone: "Pusat Makmal Tenaga Mitokondria" },
-    { questionId: 8,  col: 24, row: 26, zone: "Koridor Selatan Komparatif Sel" },
-    { questionId: 9,  col: 36, row: 27, zone: "Pavilion Hierarki Organisasi Sel" },
-    { questionId: 10, col: 41, row: 25, zone: "Stesen Sel Khusus & Hemoglobin" }
-  ];
-
-  // 4. Audio Synthesizer Engine (Web Audio API - Tiada Fail Audio Luaran)
+  // 6. Audio Synthesizer Engine (Web Audio API - Nada Sains & Maklum Balas Tanpa Aset Luaran)
   class RetroAudioEngine {
     constructor() {
       this.ctx = null;
@@ -369,18 +556,19 @@
 
     playStep() {
       if (this.muted) return;
-      this.playTone(180, 'triangle', 0.04, 0.02);
+      this.playTone(190, 'triangle', 0.04, 0.02);
     }
 
     playCollect() {
       if (this.muted) return;
       this.init();
       if (!this.ctx) return;
-      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (Arpeggio gembira)
+      // Arpeggio sci-fi ceria penemuan sampel
+      const notes = [440.0, 554.37, 659.25, 880.0]; // A4, C#5, E5, A5
       notes.forEach((freq, i) => {
         setTimeout(() => {
-          this.playTone(freq, 'triangle', 0.12, 0.12);
-        }, i * 65);
+          this.playTone(freq, 'sine', 0.14, 0.12);
+        }, i * 60);
       });
     }
 
@@ -392,7 +580,7 @@
       notes.forEach((freq, i) => {
         setTimeout(() => {
           this.playTone(freq, 'sine', 0.18, 0.15);
-        }, i * 80);
+        }, i * 75);
       });
     }
 
@@ -400,11 +588,70 @@
       if (this.muted) return;
       this.init();
       if (!this.ctx) return;
-      const notes = [311.13, 277.18, 233.08]; // Eb4, C#4, Bb3 (Menurun)
+      const notes = [311.13, 277.18, 233.08]; // Menurun
       notes.forEach((freq, i) => {
         setTimeout(() => {
           this.playTone(freq, 'sawtooth', 0.15, 0.08);
         }, i * 90);
+      });
+    }
+
+    playHurt() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      // Amaran terkena bahaya (tumpahan bahan kimia / robot)
+      this.playTone(150, 'sawtooth', 0.22, 0.16);
+      setTimeout(() => {
+        this.playTone(95, 'sawtooth', 0.18, 0.14);
+      }, 70);
+    }
+
+    playPowerup() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      // Nada meningkat bertenaga
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      notes.forEach((freq, i) => {
+        setTimeout(() => {
+          this.playTone(freq, 'triangle', 0.12, 0.14);
+        }, i * 45);
+      });
+    }
+
+    playShieldBreak() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      this.playTone(400, 'square', 0.08, 0.1);
+      setTimeout(() => {
+        this.playTone(250, 'sawtooth', 0.16, 0.12);
+      }, 50);
+    }
+
+    playReactivate() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      // Bunyi sci-fi pengaktifan semula sistem keselamatan makmal
+      const chime = [440, 659.25, 880, 1108.73, 1318.51, 1760];
+      chime.forEach((freq, i) => {
+        setTimeout(() => {
+          this.playTone(freq, 'sine', 0.35, 0.15);
+        }, i * 85);
+      });
+    }
+
+    playGameOver() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      const notes = [392.00, 349.23, 311.13, 261.63];
+      notes.forEach((freq, i) => {
+        setTimeout(() => {
+          this.playTone(freq, 'sawtooth', 0.25, 0.12);
+        }, i * 140);
       });
     }
 
@@ -432,6 +679,7 @@
     PLAYING: 'playing',
     PAUSED: 'paused',
     QUESTION: 'question',
+    GAMEOVER: 'gameover',
     COMPLETED: 'completed'
   };
 
@@ -439,11 +687,14 @@
   global.ARSelNelAdventure = {
     GameState,
     QUESTIONS: ADVENTURE_QUESTIONS,
+    SCIENCE_SAMPLES,
+    POWERUP_LOCATIONS,
+    HAZARD_PUDDLES,
+    PATROL_ROBOTS,
     MAP_COLS,
     MAP_ROWS,
     TILE_SIZE,
     generateCampusMap,
-    BURGER_LOCATIONS,
     Audio: new RetroAudioEngine()
   };
 

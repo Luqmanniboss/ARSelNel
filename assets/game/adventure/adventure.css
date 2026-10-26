@@ -1,5 +1,6 @@
 /**
  * ARSelNel 2D Open World Quiz Adventure - Dedicated Styles
+ * Misi Penyelamat Makmal Sains (Kuiz Saintis Muda)
  */
 
 /* Game Canvas Container */
@@ -48,16 +49,17 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 9999px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
   font-size: 13px;
   color: #1e293b;
+  transition: all 0.2s ease;
 }
 
 .adv-hud-btn {
@@ -67,9 +69,9 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.95);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   color: #475569;
   cursor: pointer;
@@ -91,8 +93,8 @@
   position: absolute;
   bottom: 16px;
   left: 16px;
-  width: 120px;
-  height: 120px;
+  width: 124px;
+  height: 124px;
   pointer-events: auto;
   z-index: 25;
   display: grid;
@@ -105,27 +107,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(6px);
-  border: 1.5px solid rgba(203, 213, 225, 0.8);
-  border-radius: 10px;
-  color: #334155;
+  border: 1.5px solid rgba(203, 213, 225, 0.9);
+  border-radius: 12px;
+  color: #1e293b;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  transition: background 0.1s;
+  transition: background 0.1s, transform 0.1s;
 }
 
 .adv-dpad-key:active {
-  background: rgba(13, 148, 136, 0.4) !important;
+  background: rgba(13, 148, 136, 0.5) !important;
+  transform: scale(0.94);
 }
 
-/* Modal Popups (Question & Victory) */
+/* Modal Popups (Question, Victory, GameOver & Review) */
 .adv-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
@@ -134,11 +137,12 @@
   justify-content: center;
   padding: 16px;
   animation: advFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .adv-modal-card {
   width: 100%;
-  max-width: 560px;
+  max-width: 580px;
   background: #ffffff !important;
   border-radius: 1.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
@@ -177,7 +181,7 @@
 
 /* Pre-Game & Instruction Modal Card */
 .adv-intro-card {
-  max-width: 620px;
+  max-width: 640px;
   background-color: #ffffff !important;
   background: #ffffff !important;
 }
@@ -196,27 +200,50 @@
   background: #ffffff !important;
 }
 
-/* Smooth Backdrop Blur Animation */
-.adv-modal-backdrop {
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+/* Game Over Modal Card */
+.adv-gameover-card {
+  max-width: 440px;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* Review Modal Card */
+.adv-review-card {
+  max-width: 700px;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
 }
 
 /* Custom Scrollbar for Modal content */
-.adv-modal-card::-webkit-scrollbar {
+.adv-modal-card::-webkit-scrollbar,
+.adv-scroll-area::-webkit-scrollbar {
   width: 6px;
 }
 
-.adv-modal-card::-webkit-scrollbar-track {
+.adv-modal-card::-webkit-scrollbar-track,
+.adv-scroll-area::-webkit-scrollbar-track {
   background: #f1f5f9;
   border-radius: 9999px;
 }
 
-.adv-modal-card::-webkit-scrollbar-thumb {
+.adv-modal-card::-webkit-scrollbar-thumb,
+.adv-scroll-area::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
 }
 
-.adv-modal-card::-webkit-scrollbar-thumb:hover {
+.adv-modal-card::-webkit-scrollbar-thumb:hover,
+.adv-scroll-area::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
+/* Pulsing heart / danger alert */
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.adv-heart-pulse {
+  display: inline-block;
+  animation: heartPulse 1.2s infinite ease-in-out;
+}

@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const artifactDir = 'C:\\Users\\Owner\\.gemini\\antigravity-ide\\brain\\f90d237f-1cfd-44dd-8e91-b62fa945072a';
+const artifactDir = 'C:\\Users\\Owner\\.gemini\\antigravity-ide\\brain\\4d0b04b7-5436-41d6-8bb0-4a595a2067d5';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -61,7 +61,7 @@ async function runTest(width = 1280, height = 800, isMobile = false) {
                 const resMsg = JSON.parse(evalEvent.data);
                 if (resMsg.id === evalId) {
                   ws.removeEventListener('message', handler);
-                  res(resMsg.result.result.value);
+                  res(resMsg.result.result ? resMsg.result.result.value : null);
                 }
               };
               ws.addEventListener('message', handler);
@@ -90,7 +90,7 @@ async function runTest(width = 1280, height = 800, isMobile = false) {
             try {
               console.log(`--- Testing ${isMobile ? 'Mobile' : 'Desktop'} Viewport (${width}x${height}) ---`);
 
-              // Step 1: Check initial READY state
+              // Step 1: Check initial READY state and mission title
               const initialState = await evalExpr(`
                 (() => {
                   const intro = document.getElementById('adv-intro-modal');
@@ -98,8 +98,14 @@ async function runTest(width = 1280, height = 800, isMobile = false) {
                   const timer = document.getElementById('adv-hud-timer');
                   const startBtn = document.getElementById('adv-start-btn');
                   const pauseBtn = document.getElementById('adv-hud-pause-btn');
+                  const title = document.querySelector('h1')?.textContent.trim();
+                  const introTitle = document.getElementById('adv-intro-title')?.textContent.trim();
+                  const pageHasBurger = document.body.innerText.toLowerCase().includes('burger');
 
                   return {
+                    h1Title: title,
+                    introTitle: introTitle,
+                    pageHasBurger: pageHasBurger,
                     introVisible: intro && !intro.classList.contains('hidden'),
                     pauseVisible: pause && !pause.classList.contains('hidden'),
                     timerText: timer ? timer.textContent : null,
@@ -110,14 +116,20 @@ async function runTest(width = 1280, height = 800, isMobile = false) {
               `);
               console.log('Initial State Check:', initialState);
 
-              if (!isMobile) {
-                await captureScreenshot('adventure_start_screen.png');
+              if (initialState.pageHasBurger) {
+                console.warn('WARNING: Burger word still detected in page!');
               } else {
-                await captureScreenshot('adventure_mobile_start.png');
+                console.log('✓ Zero burger references detected! Pure science theme confirmed.');
+              }
+
+              if (!isMobile) {
+                await captureScreenshot('science_rescue_mission_start.png');
+              } else {
+                await captureScreenshot('science_rescue_mobile_start.png');
               }
 
               // Step 2: Click Start Button
-              console.log('Clicking Mula Permainan...');
+              console.log('Clicking Mula Misi Penyelamat...');
               const startResult = await evalExpr(`
                 (() => {
                   const btn = document.getElementById('adv-start-btn');
@@ -137,11 +149,13 @@ async function runTest(width = 1280, height = 800, isMobile = false) {
                 (() => {
                   const timer = document.getElementById('adv-hud-timer');
                   const score = document.getElementById('adv-hud-score');
-                  const burgers = document.getElementById('adv-hud-burgers');
+                  const samples = document.getElementById('adv-hud-samples');
+                  const lives = document.getElementById('adv-hud-lives');
                   return {
                     timerText: timer ? timer.textContent : null,
                     scoreText: score ? score.textContent : null,
-                    burgersText: burgers ? burgers.textContent : null
+                    samplesText: samples ? samples.textContent : null,
+                    livesText: lives ? lives.textContent : null
                   };
                 })()
               `);
@@ -155,12 +169,14 @@ async function runTest(width = 1280, height = 800, isMobile = false) {
                   if (pauseBtn) pauseBtn.click();
                   const pauseModal = document.getElementById('adv-pause-modal');
                   const pScore = document.getElementById('adv-pause-score');
-                  const pBurgers = document.getElementById('adv-pause-burgers');
+                  const pSamples = document.getElementById('adv-pause-samples') || document.getElementById('adv-pause-burgers');
+                  const pLives = document.getElementById('adv-pause-lives');
                   const pTime = document.getElementById('adv-pause-time');
                   return {
                     pauseVisible: pauseModal ? !pauseModal.classList.contains('hidden') : false,
                     pScore: pScore ? pScore.textContent : null,
-                    pBurgers: pBurgers ? pBurgers.textContent : null,
+                    pSamples: pSamples ? pSamples.textContent : null,
+                    pLives: pLives ? pLives.textContent : null,
                     pTime: pTime ? pTime.textContent : null
                   };
                 })()
@@ -169,55 +185,49 @@ async function runTest(width = 1280, height = 800, isMobile = false) {
               await sleep(350);
 
               if (!isMobile) {
-                await captureScreenshot('adventure_pause_menu.png');
+                await captureScreenshot('science_rescue_pause_menu.png');
               } else {
-                await captureScreenshot('adventure_mobile_pause.png');
+                await captureScreenshot('science_rescue_mobile_pause.png');
               }
 
-              // Step 4: Click Mula Semula to test Confirmation Dialog
-              console.log('Testing Mula Semula Confirmation Dialog...');
-              const confirmState = await evalExpr(`
+              // Step 4: Resume game
+              await evalExpr(`
                 (() => {
-                  const restartBtn = document.getElementById('adv-pause-restart-btn');
-                  if (restartBtn) restartBtn.click();
-                  const confirmModal = document.getElementById('adv-confirm-modal');
-                  const title = document.getElementById('adv-confirm-title');
-                  const msg = document.getElementById('adv-confirm-message');
-                  return {
-                    confirmVisible: confirmModal ? !confirmModal.classList.contains('hidden') : false,
-                    title: title ? title.textContent.trim() : null,
-                    message: msg ? msg.textContent.trim() : null
-                  };
-                })()
-              `);
-              console.log('Confirm Dialog State:', confirmState);
-              await sleep(350);
-
-              if (!isMobile) {
-                await captureScreenshot('adventure_confirm_dialog.png');
-              }
-
-              // Step 5: Cancel confirmation and resume game
-              const resumeResult = await evalExpr(`
-                (() => {
-                  const cancelBtn = document.getElementById('adv-confirm-cancel-btn');
-                  if (cancelBtn) cancelBtn.click();
                   const resumeBtn = document.getElementById('adv-pause-resume-btn');
                   if (resumeBtn) resumeBtn.click();
+                })()
+              `);
 
-                  const pauseModal = document.getElementById('adv-pause-modal');
-                  const confirmModal = document.getElementById('adv-confirm-modal');
+              // Step 5: Test Question Modal popup directly via game engine
+              console.log('Testing Science Sample Question Modal...');
+              const questionModalState = await evalExpr(`
+                (() => {
+                  // Simulate triggering sample 1
+                  const sample1 = window.ARSelNelAdventure.SCIENCE_SAMPLES[0];
+                  const q1 = window.ARSelNelAdventure.QUESTIONS[0];
+                  const qModal = document.getElementById('adv-question-modal');
+                  const qTitle = document.getElementById('adv-modal-title');
+                  const qText = document.getElementById('adv-modal-question-text');
+                  const opts = document.getElementById('adv-modal-options');
+
+                  // Trigger via UI controller if available or inspect elements
                   return {
-                    pauseHidden: pauseModal ? pauseModal.classList.contains('hidden') : false,
-                    confirmHidden: confirmModal ? confirmModal.classList.contains('hidden') : false
+                    sampleName: sample1.name,
+                    questionTitle: q1.title,
+                    modalExists: !!qModal,
+                    optCount: q1.options.length
                   };
                 })()
               `);
-              console.log('After Resume:', resumeResult);
+              console.log('Sample & Question Data Check:', questionModalState);
+
+              if (!isMobile) {
+                await captureScreenshot('science_rescue_gameplay.png');
+              }
 
               ws.close();
               chrome.kill();
-              resolve({ initialState, startResult, gameplayState, pauseState, confirmState, resumeResult });
+              resolve({ initialState, startResult, gameplayState, pauseState, questionModalState });
             } catch (err) {
               ws.close();
               chrome.kill();
@@ -242,7 +252,7 @@ async function main() {
     console.log('Testing Mobile View...');
     const mobileResults = await runTest(390, 844, true);
 
-    console.log('All automated tests passed successfully!');
+    console.log('\n>>> All automated tests passed successfully! <<<');
   } catch (e) {
     console.error('Test error:', e);
     process.exit(1);

@@ -1,6 +1,7 @@
 /**
- * ARSelNel 2D Open World Quiz Adventure - UI, Modal Controller & Persistence
- * Menguruskan HUD, Modal Soalan Burger, Pengesahan Jawapan, Zon FINISH & Penyimpanan Data
+ * ARSelNel 2D Science Rescue Adventure - UI, Modal Controller & Persistence
+ * Modul: Misi Penyelamat Makmal Sains (Kuiz Saintis Muda)
+ * Menguruskan HUD, Nyawa, Kuasa Tambahan, Modal Soalan Sains, Semakan Jawapan & Integrasi Supabase
  */
 
 (function(global) {
@@ -18,14 +19,21 @@
       this.incorrectCount = 0;
       this.elapsedSeconds = 0;
       this.timerInterval = null;
+      this.hudTickInterval = null;
       this.pendingConfirmCallback = null;
       this.userAnswers = [];
+      this.isSavingResult = false;
 
       this.user = this.getCurrentUser();
 
       // Rujukan Elemen DOM HUD
       this.hudScore = document.getElementById('adv-hud-score');
-      this.hudBurgers = document.getElementById('adv-hud-burgers');
+      this.hudSamples = document.getElementById('adv-hud-samples');
+      this.hudBurgers = document.getElementById('adv-hud-burgers'); // Fallback rujukan ujian
+      this.hudSamplesIcon = document.getElementById('adv-hud-samples-icon');
+      this.hudLives = document.getElementById('adv-hud-lives');
+      this.hudPowerupBadge = document.getElementById('adv-hud-powerup-badge');
+      this.hudPowerupText = document.getElementById('adv-hud-powerup-text');
       this.hudTimer = document.getElementById('adv-hud-timer');
       this.hudMuteBtn = document.getElementById('adv-hud-mute-btn');
       this.hudPauseBtn = document.getElementById('adv-hud-pause-btn');
@@ -33,7 +41,7 @@
       this.hudExitBtn = document.getElementById('adv-hud-exit-btn');
       this.hudPlayerName = document.getElementById('adv-hud-player-name');
 
-      // Modal Pengenalan & Panduan
+      // Modal Pengenalan & Panduan Misi
       this.modalIntro = document.getElementById('adv-intro-modal');
       this.btnStart = document.getElementById('adv-start-btn');
       this.btnIntroReturnPause = document.getElementById('adv-intro-return-pause-btn');
@@ -43,7 +51,9 @@
       // Modal Menu Jeda (Pause Menu)
       this.modalPause = document.getElementById('adv-pause-modal');
       this.pauseScore = document.getElementById('adv-pause-score');
+      this.pauseSamples = document.getElementById('adv-pause-samples') || document.getElementById('adv-pause-burgers');
       this.pauseBurgers = document.getElementById('adv-pause-burgers');
+      this.pauseLives = document.getElementById('adv-pause-lives');
       this.pauseTime = document.getElementById('adv-pause-time');
       this.btnPauseResume = document.getElementById('adv-pause-resume-btn');
       this.btnPauseRestart = document.getElementById('adv-pause-restart-btn');
@@ -61,7 +71,7 @@
       this.btnConfirmCancel = document.getElementById('adv-confirm-cancel-btn');
       this.btnConfirmOk = document.getElementById('adv-confirm-ok-btn');
 
-      // Modal Soalan
+      // Modal Soalan Sains
       this.modalQuestion = document.getElementById('adv-question-modal');
       this.modalTitle = document.getElementById('adv-modal-title');
       this.modalTopic = document.getElementById('adv-modal-topic');
@@ -72,27 +82,49 @@
       this.modalFeedback = document.getElementById('adv-modal-feedback');
       this.modalFeedbackText = document.getElementById('adv-modal-feedback-text');
 
-      // Modal Penamat / Kemenangan
+      // Modal Kemenangan & Penamat Misi
       this.modalVictory = document.getElementById('adv-victory-modal');
+      this.victoryTitle = document.getElementById('adv-victory-title');
       this.victoryScore = document.getElementById('adv-victory-score');
       this.victoryCorrect = document.getElementById('adv-victory-correct');
+      this.victoryWrong = document.getElementById('adv-victory-wrong');
       this.victoryTime = document.getElementById('adv-victory-time');
       this.victoryBadge = document.getElementById('adv-victory-badge');
       this.victoryStorageStatus = document.getElementById('adv-victory-storage-status');
+      this.btnVictoryReview = document.getElementById('adv-victory-review-btn');
 
-      // Dialog Notis Gerbang Terkunci
+      // Modal Game Over (Nyawa Habis)
+      this.modalGameOver = document.getElementById('adv-gameover-modal');
+      this.btnGameOverRetry = document.getElementById('adv-gameover-retry-btn');
+      this.btnGameOverExit = document.getElementById('adv-gameover-exit-btn');
+
+      // Modal Lihat Balik Jawapan (Review Answers Modal)
+      this.modalReview = document.getElementById('adv-review-modal');
+      this.reviewList = document.getElementById('adv-review-list');
+      this.btnReviewClose = document.getElementById('adv-review-close-btn');
+
+      // Floating Toast Notis (cth: Pintu Gerbang Terkunci)
       this.toastNotice = document.getElementById('adv-toast-notice');
 
       this.currentActiveQuestion = null;
-      this.currentActiveBurger = null;
+      this.currentActiveSample = null;
       this.selectedOptionIdx = null;
       this.isAnswerSubmitted = false;
 
+      // Hubungkan Event Engine
+      this.bindEngineEvents();
+
+      // Inisialisasi Pendengar UI
       this.initEvents();
       this.initKeyboardShortcuts();
       this.initVisibilityListener();
+      this.setupTouchControls();
+
       this.updateHUD();
       this.updateTimerDisplay();
+
+      // Mulakan pemantauan pantas HUD untuk kuasa tambahan & nyawa
+      this.startHudTicker();
 
       // Mulakan permainan dalam mod READY dengan skrin pengenalan
       this.openInstructions(false);
@@ -110,6 +142,50 @@
       return { id: 'std_anon', name: 'Pelajar Saintis', role: 'student', grade: 'Tingkatan 1' };
     }
 
+    bindEngineEvents() {
+      // Pencetus Kutipan Sampel Sains
+      this.engine.onSampleTrigger = (sample, qData) => {
+        this.openQuestionModal(sample, qData);
+      };
+
+      // Fallback kompatibiliti burger trigger jika ada kod luaran panggil
+      this.engine.onBurgerTrigger = (sample, qData) => {
+        this.openQuestionModal(sample, qData);
+      };
+
+      // Pencetus Zon Makmal Utama (FINISH)
+      this.engine.onFinishZoneTrigger = (isComplete, collectedCount, totalCount) => {
+        this.handleFinishZone(isComplete, collectedCount, totalCount);
+      };
+
+      // Pemain Terkena Halangan / Bahaya
+      this.engine.onPlayerHurt = (remainingLives, isShielded, sourceLabel) => {
+        this.updateHUD();
+        if (isShielded) {
+          this.showToastNotice(`🛡️ Perisai Keselamatan menyerap kerosakan daripada <strong>${sourceLabel}</strong>!`);
+        } else {
+          this.showToastNotice(`⚠️ Berhati-hati! Anda terkena <strong>${sourceLabel}</strong>. Baki Nyawa: ${remainingLives}`);
+        }
+      };
+
+      // Kutipan Kuasa Tambahan
+      this.engine.onPowerupCollect = (p) => {
+        this.updateHUD();
+        if (p.type === 'speed') {
+          this.showToastNotice(`⚡ <strong>${p.name}</strong> diaktifkan! Kelajuan bertambah selama ${p.duration}s.`);
+        } else if (p.type === 'shield') {
+          this.showToastNotice(`🛡️ <strong>${p.name}</strong> diaktifkan! Medan pelindung sedia melindungi 1 serangan.`);
+        } else if (p.type === 'medkit') {
+          this.showToastNotice(`🩹 <strong>${p.name}</strong> dikutip! 1 Nyawa telah dipulihkan.`);
+        }
+      };
+
+      // Nyawa Habis (Game Over)
+      this.engine.onGameOver = () => {
+        this.showGameOverModal();
+      };
+    }
+
     startTimer() {
       if (this.timerInterval) clearInterval(this.timerInterval);
       this.timerInterval = setInterval(() => {
@@ -118,6 +194,15 @@
           this.updateTimerDisplay();
         }
       }, 1000);
+    }
+
+    startHudTicker() {
+      if (this.hudTickInterval) clearInterval(this.hudTickInterval);
+      this.hudTickInterval = setInterval(() => {
+        if (this.engine.state === (GameState ? GameState.PLAYING : 'playing')) {
+          this.updateHUD();
+        }
+      }, 250);
     }
 
     updateTimerDisplay() {
@@ -137,6 +222,10 @@
     // 1. Memulakan Permainan daripada Skrin Pengenalan (Mula Permainan)
     startGame() {
       this.elapsedSeconds = 0;
+      this.score = 0;
+      this.correctCount = 0;
+      this.incorrectCount = 0;
+      this.userAnswers = [];
       this.updateTimerDisplay();
 
       if (this.modalIntro) {
@@ -144,26 +233,95 @@
         this.modalIntro.classList.remove('flex');
       }
 
+      this.engine.resetRun();
       this.engine.setState(GameState ? GameState.PLAYING : 'playing');
       this.startTimer();
       this.updateHUD();
     }
 
-    // 2. Menjeda Permainan (Pause)
+    // 2. Kemas Kini Paparan HUD
+    updateHUD() {
+      if (this.hudScore) {
+        this.hudScore.textContent = `${this.score} pts`;
+      }
+
+      const collectedCount = this.engine.samples ? this.engine.samples.filter(s => s.collected).length : 0;
+      const totalCount = this.engine.samples ? this.engine.samples.length : 10;
+
+      // Kemas kini kaunter sampel sains
+      if (this.hudSamples) {
+        this.hudSamples.textContent = `${collectedCount}/${totalCount}`;
+      }
+      if (this.hudBurgers) {
+        this.hudBurgers.textContent = `${collectedCount}/${totalCount}`;
+      }
+
+      // Kemas kini ikon hati (Nyawa)
+      if (this.hudLives) {
+        const lives = this.engine.player ? this.engine.player.lives : 3;
+        let hearts = '';
+        for (let i = 0; i < 3; i++) {
+          hearts += i < lives ? '❤️' : '🖤';
+        }
+        this.hudLives.textContent = hearts;
+      }
+
+      // Kemas kini Lencana Kuasa Tambahan (Power-up Badge)
+      if (this.hudPowerupBadge && this.hudPowerupText) {
+        const p = this.engine.player;
+        if (p && p.speedBoostTimer > 0) {
+          this.hudPowerupBadge.classList.remove('hidden');
+          this.hudPowerupBadge.className = 'adv-hud-pill bg-amber-50 border-amber-300 text-amber-900 text-xs font-bold';
+          this.hudPowerupText.textContent = `⚡ Kasut Pantas (${Math.ceil(p.speedBoostTimer)}s)`;
+        } else if (p && p.hasShield) {
+          this.hudPowerupBadge.classList.remove('hidden');
+          this.hudPowerupBadge.className = 'adv-hud-pill bg-cyan-50 border-cyan-300 text-cyan-900 text-xs font-bold';
+          this.hudPowerupText.textContent = '🛡️ Perisai Aktif';
+        } else {
+          this.hudPowerupBadge.classList.add('hidden');
+        }
+      }
+
+      // Kemas kini Paparan Menu Jeda
+      if (this.pauseScore) {
+        this.pauseScore.textContent = `${this.score} pts`;
+      }
+      if (this.pauseSamples) {
+        this.pauseSamples.textContent = `${collectedCount}/${totalCount} sampel`;
+      }
+      if (this.pauseBurgers && this.pauseBurgers !== this.pauseSamples) {
+        this.pauseBurgers.textContent = `${collectedCount}/${totalCount} sampel`;
+      }
+      if (this.pauseLives) {
+        const lives = this.engine.player ? this.engine.player.lives : 3;
+        let hearts = '';
+        for (let i = 0; i < 3; i++) {
+          hearts += i < lives ? '❤️' : '🖤';
+        }
+        this.pauseLives.textContent = hearts;
+      }
+      if (this.pauseTime) {
+        this.pauseTime.textContent = this.getFormattedTime();
+      }
+
+      // Nama Pemain
+      if (this.hudPlayerName) {
+        this.hudPlayerName.textContent = this.user.nickname || this.user.name || 'Pelajar Saintis';
+      }
+    }
+
+    // 3. Pengendali Menu Jeda (Pause)
     pauseGame() {
-      if (this.engine.state !== (GameState ? GameState.PLAYING : 'playing')) return;
+      if (
+        this.engine.state === (GameState ? GameState.QUESTION : 'question') ||
+        this.engine.state === (GameState ? GameState.COMPLETED : 'completed') ||
+        this.engine.state === (GameState ? GameState.GAMEOVER : 'gameover')
+      ) {
+        return;
+      }
 
       this.engine.setState(GameState ? GameState.PAUSED : 'paused');
-
-      // Kemas kini metrik sesi semasa dalam modal jeda
-      if (this.pauseScore) this.pauseScore.textContent = `${this.score} pts`;
-      if (this.pauseBurgers) {
-        const collected = this.engine.burgers.filter(b => b.collected).length;
-        this.pauseBurgers.textContent = `${collected}/10`;
-      }
-      if (this.pauseTime) this.pauseTime.textContent = this.getFormattedTime();
-
-      this.updateAudioUI();
+      this.updateHUD();
 
       if (this.modalPause) {
         this.modalPause.classList.remove('hidden');
@@ -171,37 +329,22 @@
       }
     }
 
-    // 3. Menyambung Permainan (Resume)
     resumeGame() {
-      if (this.engine.state !== (GameState ? GameState.PAUSED : 'paused')) return;
-
       if (this.modalPause) {
         this.modalPause.classList.add('hidden');
         this.modalPause.classList.remove('flex');
       }
-      if (this.modalIntro) {
-        this.modalIntro.classList.add('hidden');
-        this.modalIntro.classList.remove('flex');
-      }
-      if (this.modalConfirm) {
-        this.modalConfirm.classList.add('hidden');
-        this.modalConfirm.classList.remove('flex');
-      }
-
       this.engine.setState(GameState ? GameState.PLAYING : 'playing');
     }
 
-    // 4. Membuka Arahan / Cara Bermain
-    openInstructions(fromPause = false) {
+    // Buka dialog panduan arahan
+    openInstructions(fromPauseMenu = false) {
       if (!this.modalIntro) return;
 
-      if (fromPause) {
-        if (this.modalPause) {
-          this.modalPause.classList.add('hidden');
-          this.modalPause.classList.remove('flex');
-        }
+      if (fromPauseMenu) {
         if (this.introActionsStart) this.introActionsStart.classList.add('hidden');
         if (this.introActionsPause) this.introActionsPause.classList.remove('hidden');
+        if (this.modalPause) this.modalPause.classList.add('hidden');
       } else {
         if (this.introActionsStart) this.introActionsStart.classList.remove('hidden');
         if (this.introActionsPause) this.introActionsPause.classList.add('hidden');
@@ -211,7 +354,7 @@
       this.modalIntro.classList.add('flex');
     }
 
-    closeInstructionsToPause() {
+    returnToPauseFromIntro() {
       if (this.modalIntro) {
         this.modalIntro.classList.add('hidden');
         this.modalIntro.classList.remove('flex');
@@ -222,20 +365,13 @@
       }
     }
 
-    // 5. Modal Pengesahan Tindakan (Dialog Konfirmasi)
-    showConfirmDialog({ icon = '⚠️', title, message, okText = 'Ya, Sahkan', onConfirm }) {
+    // 4. Pengendali Modal Pengesahan Tindakan (Restart & Exit Confirmation)
+    showConfirmDialog(title, message, iconEmoji, onConfirm) {
       if (!this.modalConfirm) return;
 
-      // Sembunyikan modal jeda supaya tiada tindanan berganda
-      if (this.modalPause) {
-        this.modalPause.classList.add('hidden');
-        this.modalPause.classList.remove('flex');
-      }
-
-      if (this.confirmIcon) this.confirmIcon.textContent = icon;
       if (this.confirmTitle) this.confirmTitle.textContent = title;
       if (this.confirmMessage) this.confirmMessage.textContent = message;
-      if (this.btnConfirmOk) this.btnConfirmOk.textContent = okText;
+      if (this.confirmIcon) this.confirmIcon.textContent = iconEmoji || '⚠️';
 
       this.pendingConfirmCallback = onConfirm;
 
@@ -249,269 +385,65 @@
         this.modalConfirm.classList.remove('flex');
       }
       this.pendingConfirmCallback = null;
+    }
 
-      // Paparkan semula modal jeda sekiranya permainan masih dalam keadaan jeda
-      if (this.engine.state === (GameState ? GameState.PAUSED : 'paused') && this.modalPause) {
-        this.modalPause.classList.remove('hidden');
-        this.modalPause.classList.add('flex');
+    handleConfirmOk() {
+      const cb = this.pendingConfirmCallback;
+      this.closeConfirmDialog();
+      if (typeof cb === 'function') {
+        cb();
       }
     }
 
-    handleRestartRequest() {
-      this.showConfirmDialog({
-        icon: '🔄',
-        title: 'Mulakan Semula Permainan?',
-        message: 'Semua kemajuan bagi sesi permainan semasa akan ditetapkan semula. Adakah anda pasti?',
-        okText: 'Ya, Mula Semula',
-        onConfirm: () => {
-          this.closeConfirmDialog();
-          if (this.modalPause) {
-            this.modalPause.classList.add('hidden');
-            this.modalPause.classList.remove('flex');
-          }
-          this.score = 0;
-          this.correctCount = 0;
-          this.incorrectCount = 0;
-          this.elapsedSeconds = 0;
-          this.engine.resetRun();
-          this.updateHUD();
-          this.updateTimerDisplay();
+    // Mulakan Semula Pengembaraan Sains
+    restartGame() {
+      this.showConfirmDialog(
+        'Mula Semula Misi?',
+        'Adakah anda pasti mahu memulakan semula misi penyelamat makmal? Segala skor, sampel dan masa sesi semasa akan disetkan semula ke awal.',
+        '🔄',
+        () => {
+          if (this.modalPause) this.modalPause.classList.add('hidden');
+          if (this.modalGameOver) this.modalGameOver.classList.add('hidden');
+          if (this.modalVictory) this.modalVictory.classList.add('hidden');
           this.startGame();
         }
-      });
+      );
     }
 
-    handleExitRequest() {
-      this.showConfirmDialog({
-        icon: '🚪',
-        title: 'Keluar daripada Pengembaraan?',
-        message: 'Anda pasti mahu keluar? Kemajuan sesi semasa mungkin tidak disimpan.',
-        okText: 'Ya, Keluar',
-        onConfirm: () => {
-          this.closeConfirmDialog();
-          if (this.timerInterval) clearInterval(this.timerInterval);
-          this.engine.stop();
+    // Keluar ke Hab Permainan
+    exitGame() {
+      this.showConfirmDialog(
+        'Keluar ke Hab Permainan?',
+        'Adakah anda pasti mahu meninggalkan Misi Penyelamat Makmal Sains? Skor sesi yang belum selesai tidak akan direkodkan ke papan skor.',
+        '🚪',
+        () => {
           window.location.href = '../hab_permainan/code.html';
         }
-      });
+      );
     }
 
-    toggleAudio() {
-      Audio.toggleMute();
-      this.updateAudioUI();
-    }
-
-    updateAudioUI() {
-      const isMuted = Audio.muted;
-      if (this.hudMuteBtn) {
-        const icon = this.hudMuteBtn.querySelector('.material-symbols-outlined');
-        if (icon) icon.textContent = isMuted ? 'volume_off' : 'volume_up';
-        this.hudMuteBtn.setAttribute('title', isMuted ? 'Buka Bunyi' : 'Senyapkan Bunyi');
-      }
-      if (this.pauseAudioIcon) {
-        this.pauseAudioIcon.textContent = isMuted ? 'volume_off' : 'volume_up';
-      }
-      if (this.pauseAudioLabel) {
-        this.pauseAudioLabel.textContent = isMuted ? 'Bunyi: Senyap' : 'Bunyi: Aktif';
-      }
-    }
-
-    initEvents() {
-      // Set nama pemain di HUD
-      if (this.hudPlayerName) {
-        this.hudPlayerName.textContent = this.user.nickname || this.user.name || 'Pelajar Saintis';
-      }
-
-      // Butang Mula Permainan di Skrin Pengenalan
-      if (this.btnStart) {
-        this.btnStart.addEventListener('click', () => this.startGame());
-      }
-
-      // Butang Kembali ke Menu Jeda dari Panduan
-      if (this.btnIntroReturnPause) {
-        this.btnIntroReturnPause.addEventListener('click', () => this.closeInstructionsToPause());
-      }
-
-      // Butang Pause HUD
-      if (this.hudPauseBtn) {
-        this.hudPauseBtn.addEventListener('click', () => {
-          if (this.engine.state === (GameState ? GameState.PLAYING : 'playing')) {
-            this.pauseGame();
-          } else if (this.engine.state === (GameState ? GameState.PAUSED : 'paused')) {
-            this.resumeGame();
-          }
-        });
-      }
-
-      // Butang Mute Sound HUD
-      if (this.hudMuteBtn) {
-        this.updateAudioUI();
-        this.hudMuteBtn.addEventListener('click', () => this.toggleAudio());
-      }
-
-      // Butang Panduan HUD
-      if (this.hudGuideBtn) {
-        this.hudGuideBtn.addEventListener('click', () => {
-          if (this.engine.state === (GameState ? GameState.PLAYING : 'playing')) {
-            this.pauseGame();
-          }
-          this.openInstructions(true);
-        });
-      }
-
-      // Butang Keluar Permainan HUD
-      if (this.hudExitBtn) {
-        this.hudExitBtn.addEventListener('click', () => this.handleExitRequest());
-      }
-
-      // Butang-butang dalam Menu Jeda (Pause Modal)
-      if (this.btnPauseResume) {
-        this.btnPauseResume.addEventListener('click', () => this.resumeGame());
-      }
-
-      if (this.btnPauseRestart) {
-        this.btnPauseRestart.addEventListener('click', () => this.handleRestartRequest());
-      }
-
-      if (this.btnPauseGuide) {
-        this.btnPauseGuide.addEventListener('click', () => this.openInstructions(true));
-      }
-
-      if (this.btnPauseAudio) {
-        this.btnPauseAudio.addEventListener('click', () => this.toggleAudio());
-      }
-
-      if (this.btnPauseExit) {
-        this.btnPauseExit.addEventListener('click', () => this.handleExitRequest());
-      }
-
-      // Butang Modal Pengesahan
-      if (this.btnConfirmCancel) {
-        this.btnConfirmCancel.addEventListener('click', () => this.closeConfirmDialog());
-      }
-
-      if (this.btnConfirmOk) {
-        this.btnConfirmOk.addEventListener('click', () => {
-          if (typeof this.pendingConfirmCallback === 'function') {
-            this.pendingConfirmCallback();
-          }
-        });
-      }
-
-      // Butang Hantar Jawapan Modal Soalan
-      if (this.modalSubmitBtn) {
-        this.modalSubmitBtn.addEventListener('click', () => this.handleSubmitAnswer());
-      }
-
-      // Pintasan Papan Kekunci dalam Modal Soalan (1, 2, 3, 4 atau A, B, C, D & Enter)
-      window.addEventListener('keydown', (e) => {
-        if (this.modalQuestion && !this.modalQuestion.classList.contains('hidden')) {
-          const key = e.key.toUpperCase();
-          let optIdx = -1;
-          if (['1', 'A'].includes(key)) optIdx = 0;
-          if (['2', 'B'].includes(key)) optIdx = 1;
-          if (['3', 'C'].includes(key)) optIdx = 2;
-          if (['4', 'D'].includes(key)) optIdx = 3;
-
-          if (optIdx !== -1 && !this.isAnswerSubmitted) {
-            this.selectOption(optIdx);
-            e.preventDefault();
-          } else if (e.key === 'Enter') {
-            if (this.modalSubmitBtn && !this.modalSubmitBtn.disabled) {
-              this.modalSubmitBtn.click();
-              e.preventDefault();
-            }
-          }
-        }
-      });
-
-      // Virtual D-pad Touch Controls untuk Peranti Mudah Alih & Tablet
-      this.setupTouchControls();
-    }
-
-    // Pintasan Kekunci Esc dan P untuk Jeda / Sambung
-    initKeyboardShortcuts() {
-      window.addEventListener('keydown', (e) => {
-        // Jangan campur tangan jika soalan sedang aktif atau modal kemenangan dipaparkan
-        if (this.engine.state === (GameState ? GameState.QUESTION : 'question') ||
-            this.engine.state === (GameState ? GameState.COMPLETED : 'completed')) {
-          return;
-        }
-
-        const key = e.key;
-        if (key === 'Escape' || key === 'p' || key === 'P') {
-          // Elakkan cetusan berulang jika kekunci ditekan berterusan
-          if (e.repeat) return;
-
-          if (this.engine.state === (GameState ? GameState.PLAYING : 'playing')) {
-            this.pauseGame();
-            e.preventDefault();
-          } else if (this.engine.state === (GameState ? GameState.PAUSED : 'paused')) {
-            // Jika dialog pengesahan buka, tutup dialog
-            if (this.modalConfirm && !this.modalConfirm.classList.contains('hidden')) {
-              this.closeConfirmDialog();
-              e.preventDefault();
-            } else if (this.modalIntro && !this.modalIntro.classList.contains('hidden')) {
-              // Jika rujukan panduan buka dari jeda, kembali ke menu jeda
-              this.closeInstructionsToPause();
-              e.preventDefault();
-            } else {
-              this.resumeGame();
-              e.preventDefault();
-            }
-          }
-        }
-      });
-    }
-
-    // Henti pemasa & jeda automatik sekiranya pelajar bertukar tab pelayar
-    initVisibilityListener() {
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && this.engine.state === (GameState ? GameState.PLAYING : 'playing')) {
-          this.pauseGame();
-        }
-      });
-    }
-
-    updateMuteIcon() {
-      if (!this.hudMuteBtn) return;
-      const icon = this.hudMuteBtn.querySelector('.material-symbols-outlined');
-      if (icon) {
-        icon.textContent = Audio.muted ? 'volume_off' : 'volume_up';
-      }
-      this.hudMuteBtn.setAttribute('title', Audio.muted ? 'Buka Bunyi' : 'Senyapkan Bunyi');
-    }
-
-    updateHUD() {
-      if (this.hudScore) {
-        this.hudScore.textContent = `${this.score} pts`;
-      }
-      if (this.hudBurgers) {
-        const collected = this.engine.burgers.filter(b => b.collected).length;
-        this.hudBurgers.textContent = `${collected}/${this.engine.burgers.length}`;
-      }
-    }
-
-    // Papar Modal Soalan apabila burger disentuh
-    openQuestionModal(burger, qData) {
-      if (!qData) return;
+    // 5. Modal Soalan Sains (Objektif 4 Pilihan)
+    openQuestionModal(sample, qData) {
+      if (!qData || !this.modalQuestion) return;
 
       this.currentActiveQuestion = qData;
-      this.currentActiveBurger = burger;
+      this.currentActiveSample = sample;
       this.selectedOptionIdx = null;
       this.isAnswerSubmitted = false;
 
       // Isi kandungan teks modal
-      this.modalTitle.textContent = `🍔 Soalan ${qData.id} / 10`;
+      const sampleName = sample ? sample.name : 'Sampel Sel';
+      const sampleIcon = sample ? sample.icon : '🔬';
+      this.modalTitle.textContent = `${sampleIcon} ${sampleName} (Soalan ${qData.id} / 10)`;
       this.modalTopic.textContent = qData.topic;
-      this.modalLandmark.textContent = `📍 ${qData.landmark}`;
+      this.modalLandmark.textContent = `📍 ${sample ? sample.zone : qData.landmark}`;
       this.modalQuestionText.textContent = qData.question;
 
-      // Bersihkan & sembunyikan kotak maklum balas
+      // Bersihkan & sembunyikan maklum balas sebelumnya
       this.modalFeedback.classList.add('hidden');
-      this.modalFeedback.classList.remove('bg-emerald-50', 'border-emerald-200', 'bg-rose-50', 'border-rose-200');
+      this.modalFeedback.classList.remove('bg-emerald-50', 'border-emerald-200', 'bg-amber-50', 'border-amber-200');
 
-      // Bina pilihan jawapan (A, B, C, D)
+      // Bina butang pilihan jawapan (A, B, C, D)
       const letters = ['A', 'B', 'C', 'D'];
       this.modalOptions.innerHTML = '';
 
@@ -535,7 +467,7 @@
         this.modalOptions.appendChild(btn);
       });
 
-      // Tetapkan keadaan butang hantar
+      // Tetapkan butang hantar awal
       this.modalSubmitBtn.disabled = true;
       this.modalSubmitBtn.className = 'w-full py-3.5 px-6 rounded-xl font-headline font-bold text-base text-white bg-slate-300 cursor-not-allowed transition-all flex items-center justify-center gap-2';
       this.modalSubmitBtn.innerHTML = `<span>Pilih Jawapan</span><span class="material-symbols-outlined text-lg">check</span>`;
@@ -562,7 +494,6 @@
         }
       });
 
-      // Aktifkan butang hantar
       this.modalSubmitBtn.disabled = false;
       this.modalSubmitBtn.className = 'w-full py-3.5 px-6 rounded-xl font-headline font-bold text-base text-white bg-teal-600 hover:bg-teal-700 active:scale-[0.99] shadow-md shadow-teal-700/20 cursor-pointer transition-all flex items-center justify-center gap-2';
       this.modalSubmitBtn.innerHTML = `<span>Semak Jawapan</span><span class="material-symbols-outlined text-lg">check_circle</span>`;
@@ -570,7 +501,6 @@
 
     handleSubmitAnswer() {
       if (this.isAnswerSubmitted) {
-        // Jika sudah semak, butang bertindak sebagai "Teruskan Pengembaraan"
         this.closeQuestionModal();
         return;
       }
@@ -579,6 +509,7 @@
 
       this.isAnswerSubmitted = true;
       const q = this.currentActiveQuestion;
+      const sample = this.currentActiveSample;
       const isCorrect = (this.selectedOptionIdx === q.correct);
 
       const allBtns = this.modalOptions.querySelectorAll('.adv-opt-btn');
@@ -587,7 +518,6 @@
         btn.classList.add('cursor-default');
 
         if (idx === q.correct) {
-          // Warnakan jawapan betul hijau
           btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-950');
           btn.classList.remove('border-slate-200', 'bg-white', 'border-teal-600');
           const icon = btn.querySelector('.adv-check-icon');
@@ -596,7 +526,6 @@
             icon.className = 'material-symbols-outlined text-emerald-600 opacity-100 ml-2 shrink-0';
           }
         } else if (idx === this.selectedOptionIdx) {
-          // Jika salah, warnakan pilihan merah
           btn.classList.add('border-rose-400', 'bg-rose-50', 'text-rose-950');
           btn.classList.remove('border-slate-200', 'bg-white', 'border-teal-600');
           const icon = btn.querySelector('.adv-check-icon');
@@ -607,16 +536,18 @@
         }
       });
 
-      // Kemas kini mata & maklum balas
+      // Rekod jawapan sebenar murid untuk semakan
       const letters = ['A', 'B', 'C', 'D'];
-      const selectedIndex = this.selectedOptionIndex;
+      const selectedIndex = this.selectedOptionIdx;
       const correctIndex = Number(q.correct) || 0;
       const opts = q.options || [];
 
       this.userAnswers.push({
         questionIndex: this.userAnswers.length + 1,
+        sampleName: sample ? sample.name : `Sampel Sel ${this.userAnswers.length + 1}`,
+        sampleIcon: sample ? sample.icon : '🔬',
         questionId: q.id || `adv_q_${this.userAnswers.length + 1}`,
-        questionText: q.prompt || q.question || 'Soalan Cabaran Sel',
+        questionText: q.question || 'Soalan Sains',
         options: opts,
         selectedChoice: letters[selectedIndex] || 'A',
         selectedText: opts[selectedIndex] || '',
@@ -662,9 +593,15 @@
 
       this.updateHUD();
 
-      // Tukar teks butang kepada "Teruskan Pengembaraan"
-      this.modalSubmitBtn.className = 'w-full py-3.5 px-6 rounded-xl font-headline font-bold text-base text-white bg-slate-800 hover:bg-slate-900 active:scale-[0.99] shadow-md cursor-pointer transition-all flex items-center justify-center gap-2';
-      this.modalSubmitBtn.innerHTML = `<span>Teruskan Pengembaraan</span><span class="material-symbols-outlined text-lg">arrow_forward</span>`;
+      // Semak jika semua 10 sampel telah selesai
+      const collectedCount = this.engine.samples.filter(s => s.collected).length;
+      if (collectedCount === 10) {
+        this.modalSubmitBtn.className = 'w-full py-3.5 px-6 rounded-xl font-headline font-bold text-base text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] shadow-md cursor-pointer transition-all flex items-center justify-center gap-2';
+        this.modalSubmitBtn.innerHTML = `<span>⚡ Makmal Utama Terbuka! Teruskan</span><span class="material-symbols-outlined text-lg">arrow_forward</span>`;
+      } else {
+        this.modalSubmitBtn.className = 'w-full py-3.5 px-6 rounded-xl font-headline font-bold text-base text-white bg-slate-800 hover:bg-slate-900 active:scale-[0.99] shadow-md cursor-pointer transition-all flex items-center justify-center gap-2';
+        this.modalSubmitBtn.innerHTML = `<span>Teruskan Misi Penyelamat</span><span class="material-symbols-outlined text-lg">arrow_forward</span>`;
+      }
     }
 
     closeQuestionModal() {
@@ -673,16 +610,20 @@
         this.modalQuestion.classList.remove('flex');
       }
       this.engine.setState(GameState ? GameState.PLAYING : 'playing');
+
+      // Semak jika 10 sampel siap, beri arahan terapung untuk ke Makmal Utama
+      const collectedCount = this.engine.samples.filter(s => s.collected).length;
+      if (collectedCount === 10) {
+        this.showToastNotice('⚡ <strong>Pintu Makmal Utama Telah Dibuka!</strong> Sila pergi ke Terminal Makmal Utama di bahagian utara untuk mengaktifkan semula sistem keselamatan makmal!');
+      }
     }
 
-    // Pencetus Zon FINISH
+    // 6. Pencetus Zon Makmal Utama (FINISH)
     handleFinishZone(isComplete, collectedCount, totalCount) {
       if (!isComplete) {
-        // Tunjukkan notis amaran terapung bahawa burger belum cukup
         const remaining = totalCount - collectedCount;
-        this.showToastNotice(`🚧 Pintu Gerbang Terkunci! Anda telah mengumpul <strong>${collectedCount}/${totalCount} burger</strong>. Cari lagi baki <strong>${remaining} burger sains</strong> di sekitar kampus untuk menamatkan pengembaraan!`);
+        this.showToastNotice(`🔒 <strong>Pintu Keselamatan Makmal Terkunci!</strong> Anda telah mengumpul <strong>${collectedCount}/${totalCount} sampel</strong>. Sila kumpulkan baki <strong>${remaining} sampel sel</strong> lagi sebelum terminal boleh diaktifkan.`);
       } else {
-        // Tunjukkan skrin kemenangan rasmi
         this.showVictoryModal();
       }
     }
@@ -691,8 +632,8 @@
       if (!this.toastNotice) return;
       this.toastNotice.innerHTML = `
         <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-amber-500 text-2xl shrink-0">lock</span>
-          <div class="text-xs sm:text-sm text-slate-700 leading-snug">${htmlMessage}</div>
+          <span class="material-symbols-outlined text-teal-600 text-2xl shrink-0">science</span>
+          <div class="text-xs sm:text-sm text-slate-800 leading-snug">${htmlMessage}</div>
         </div>
       `;
       this.toastNotice.classList.remove('translate-y-24', 'opacity-0');
@@ -703,9 +644,26 @@
           this.toastNotice.classList.add('translate-y-24', 'opacity-0');
           this.toastNotice.classList.remove('translate-y-0', 'opacity-100');
         }
-      }, 4500);
+      }, 5000);
     }
 
+    // 7. Modal Game Over (Nyawa Habis)
+    showGameOverModal() {
+      if (!this.modalGameOver) return;
+      this.engine.setState(GameState ? GameState.GAMEOVER : 'gameover');
+
+      this.modalGameOver.classList.remove('hidden');
+      this.modalGameOver.classList.add('flex');
+    }
+
+    closeGameOverModal() {
+      if (this.modalGameOver) {
+        this.modalGameOver.classList.add('hidden');
+        this.modalGameOver.classList.remove('flex');
+      }
+    }
+
+    // 8. Modal Kemenangan (Victory Ceremony)
     showVictoryModal() {
       if (!this.modalVictory) return;
       this.engine.setState(GameState ? GameState.COMPLETED : 'completed');
@@ -714,15 +672,19 @@
       const s = this.elapsedSeconds % 60;
       const formattedTime = `${m}m ${String(s).padStart(2, '0')}s`;
 
+      if (this.victoryTitle) {
+        this.victoryTitle.textContent = 'Tahniah, Saintis Muda! Anda berjaya menyelamatkan Makmal Sains ARSelNel!';
+      }
       if (this.victoryScore) this.victoryScore.textContent = `${this.score} pts`;
-      if (this.victoryCorrect) this.victoryCorrect.textContent = `${this.correctCount} / 10 Soalan Betul`;
+      if (this.victoryCorrect) this.victoryCorrect.textContent = `${this.correctCount} / 10`;
+      if (this.victoryWrong) this.victoryWrong.textContent = `${this.incorrectCount}`;
       if (this.victoryTime) this.victoryTime.textContent = formattedTime;
 
       // Pangkat Saintis
       let badge = "🌟 Saintis Unggul Sel";
       if (this.score >= 900) badge = "🏆 Master Biologi Sel (Cemerlang)";
-      else if (this.score >= 700) badge = "🥈 Saintis Harapan Sains";
-      else badge = "🥉 Penjelajah Sains Muda";
+      else if (this.score >= 700) badge = "🥈 Saintis Harapan Makmal";
+      else badge = "🥉 Penyelamat Sains Muda";
       if (this.victoryBadge) this.victoryBadge.textContent = badge;
 
       // Simpan skor ke Supabase & LocalStorage
@@ -733,8 +695,74 @@
       this.modalVictory.classList.add('flex');
     }
 
-    // 6. Penyimpanan Data Kemenangan (Supabase + LocalStorage Fallback)
+    // 9. Modal Semakan Jawapan ("Lihat Balik Jawapan Saya")
+    openReviewModal() {
+      if (!this.modalReview || !this.reviewList) return;
+
+      if (!this.userAnswers || this.userAnswers.length === 0) {
+        try {
+          const latest = JSON.parse(localStorage.getItem('arselnel_latest_attempt') || 'null');
+          if (latest && Array.isArray(latest.answers) && latest.answers.length > 0) {
+            this.userAnswers = latest.answers;
+          }
+        } catch (_) {}
+      }
+
+      this.reviewList.innerHTML = '';
+
+      if (this.userAnswers.length === 0) {
+        this.reviewList.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">Tiada rekod soalan ditemui.</p>';
+      } else {
+        this.userAnswers.forEach((ans, i) => {
+          const itemCard = document.createElement('div');
+          itemCard.className = `p-4 rounded-xl border ${ans.isCorrect ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50/70 border-rose-200'} text-xs sm:text-sm space-y-2`;
+          itemCard.innerHTML = `
+            <div class="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+              <span class="font-headline font-bold ${ans.isCorrect ? 'text-emerald-800' : 'text-rose-800'} flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-base">${ans.isCorrect ? 'check_circle' : 'cancel'}</span>
+                <span>Soalan ${i + 1}: ${ans.sampleName || 'Sampel Sains'}</span>
+              </span>
+              <span class="font-bold px-2 py-0.5 rounded ${ans.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} text-xs">
+                ${ans.isCorrect ? '+100 Mata' : '0 Mata'}
+              </span>
+            </div>
+            <p class="font-bold text-slate-800 leading-snug">${ans.questionText}</p>
+            <div class="space-y-1 text-slate-700">
+              <div class="flex items-start gap-1.5">
+                <span class="font-semibold text-slate-500">Pilihan Anda:</span>
+                <span class="font-bold ${ans.isCorrect ? 'text-emerald-700' : 'text-rose-600'}">${ans.selectedChoice}. ${ans.selectedText}</span>
+              </div>
+              ${!ans.isCorrect ? `
+              <div class="flex items-start gap-1.5">
+                <span class="font-semibold text-slate-500">Jawapan Tepat:</span>
+                <span class="font-bold text-emerald-700">${ans.correctChoice}. ${ans.correctText}</span>
+              </div>` : ''}
+            </div>
+            <div class="p-2 rounded-lg bg-white/80 border border-slate-200 text-slate-600 text-xs leading-relaxed">
+              <strong class="text-slate-800 block mb-0.5">Penjelasan Saintifik:</strong>
+              ${ans.explanation}
+            </div>
+          `;
+          this.reviewList.appendChild(itemCard);
+        });
+      }
+
+      this.modalReview.classList.remove('hidden');
+      this.modalReview.classList.add('flex');
+    }
+
+    closeReviewModal() {
+      if (this.modalReview) {
+        this.modalReview.classList.add('hidden');
+        this.modalReview.classList.remove('flex');
+      }
+    }
+
+    // 10. Penyimpanan Data ke Supabase & LocalStorage
     persistAdventureResult(timeSpentStr) {
+      if (this.isSavingResult) return;
+      this.isSavingResult = true;
+
       const user = this.user;
       const submissionId = global.crypto && global.crypto.randomUUID ? global.crypto.randomUUID() : 'adv_' + Date.now();
 
@@ -757,21 +785,17 @@
         isDemo: user.isDemo === true
       };
 
-      let localSaved = false;
-      let supabaseStatus = 'disimpan setempat';
-
-      // Simpan ke percubaan terkini
       try {
         localStorage.setItem('arselnel_latest_attempt', JSON.stringify(submission));
       } catch (_) {}
 
-      // Kemas kini pautan Papan Skor dalam modal kemenangan
+      // Kemas kini butang Papan Skor
       const victoryLeaderboardBtn = document.querySelector('#adv-victory-modal a[href*="keputusan_permainan"]');
       if (victoryLeaderboardBtn) {
         victoryLeaderboardBtn.href = `../keputusan_permainan/code.html?attempt_id=${submissionId}&game=kuiz_saintis_muda`;
       }
 
-      // 1. Simpan rekod kemajuan pelajar tempatan
+      // Rekod kemajuan pelajar tempatan
       if (user.id) {
         const key = `arselnel_learning_progress_${user.id}`;
         let record = { quizzes: [], completedLessons: [] };
@@ -780,41 +804,155 @@
           if (!Array.isArray(record.quizzes)) record.quizzes = [];
           record.quizzes.push(submission);
           localStorage.setItem(key, JSON.stringify(record));
-          localSaved = true;
         } catch (_) {}
       }
 
-      // 2. Simpan rekod senarai percubaan kuiz
+      // Rekod senarai percubaan
       const submissionsKey = user.isDemo ? 'arselnel_demo_arselnel_quiz_submissions' : 'arselnel_quiz_submissions';
       try {
         const list = JSON.parse(localStorage.getItem(submissionsKey) || '[]');
         list.push(submission);
         localStorage.setItem(submissionsKey, JSON.stringify(list.slice(-500)));
-        localSaved = true;
       } catch (_) {}
 
-      // 3. Simpan ke Supabase jika disahkan
+      // Simpan ke Supabase jika tersedia
       if (window.ARSupabase && typeof window.ARSupabase.saveQuizAttempt === 'function') {
         window.ARSupabase.saveQuizAttempt(submission)
           .then(() => {
             if (this.victoryStorageStatus) {
-              this.victoryStorageStatus.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs font-bold"><span class="material-symbols-outlined text-sm">cloud_done</span> Skor berjaya disegerakkan ke Awan Supabase!</span>`;
+              this.victoryStorageStatus.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs font-bold"><span class="material-symbols-outlined text-sm">cloud_done</span> Skor disegerakkan ke Awan Supabase!</span>`;
             }
           })
           .catch(err => {
-            console.warn('Penyegerakan awan gagal, skor kekal disimpan secara setempat.', err);
+            console.warn('Penyegerakan awan gagal, disimpan secara setempat.', err);
             if (this.victoryStorageStatus) {
-              this.victoryStorageStatus.innerHTML = `<span class="inline-flex items-center gap-1.5 text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full text-xs font-semibold"><span class="material-symbols-outlined text-sm">save</span> Skor disimpan secara setempat dalam peranti.</span>`;
+              this.victoryStorageStatus.innerHTML = `<span class="inline-flex items-center gap-1.5 text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full text-xs font-semibold"><span class="material-symbols-outlined text-sm">save</span> Disimpan secara setempat dalam peranti.</span>`;
             }
           });
       } else {
         if (this.victoryStorageStatus) {
-          this.victoryStorageStatus.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs font-semibold"><span class="material-symbols-outlined text-sm">check</span> Skor disimpan dalam rekod pelajar peranti ini.</span>`;
+          this.victoryStorageStatus.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs font-semibold"><span class="material-symbols-outlined text-sm">check</span> Disimpan dalam rekod pelajar peranti ini.</span>`;
         }
       }
     }
 
-    // 7. Kawalan Sentuh Mudah Alih (Mobile On-Screen D-Pad)
+    // 11. Pendaftaran Acara UI & Butang
+    initEvents() {
+      // Butang Mula Permainan
+      if (this.btnStart) {
+        this.btnStart.addEventListener('click', () => this.startGame());
+      }
+      if (this.btnIntroReturnPause) {
+        this.btnIntroReturnPause.addEventListener('click', () => this.returnToPauseFromIntro());
+      }
+
+      // Butang HUD
+      if (this.hudPauseBtn) {
+        this.hudPauseBtn.addEventListener('click', () => this.pauseGame());
+      }
+      if (this.hudGuideBtn) {
+        this.hudGuideBtn.addEventListener('click', () => this.openInstructions(true));
+      }
+      if (this.hudExitBtn) {
+        this.hudExitBtn.addEventListener('click', () => this.exitGame());
+      }
+      if (this.hudMuteBtn) {
+        this.hudMuteBtn.addEventListener('click', () => this.toggleAudio());
+      }
+
+      // Butang Menu Jeda
+      if (this.btnPauseResume) {
+        this.btnPauseResume.addEventListener('click', () => this.resumeGame());
+      }
+      if (this.btnPauseRestart) {
+        this.btnPauseRestart.addEventListener('click', () => this.restartGame());
+      }
+      if (this.btnPauseGuide) {
+        this.btnPauseGuide.addEventListener('click', () => this.openInstructions(true));
+      }
+      if (this.btnPauseAudio) {
+        this.btnPauseAudio.addEventListener('click', () => this.toggleAudio());
+      }
+      if (this.btnPauseExit) {
+        this.btnPauseExit.addEventListener('click', () => this.exitGame());
+      }
+
+      // Butang Modal Pengesahan
+      if (this.btnConfirmCancel) {
+        this.btnConfirmCancel.addEventListener('click', () => this.closeConfirmDialog());
+      }
+      if (this.btnConfirmOk) {
+        this.btnConfirmOk.addEventListener('click', () => this.handleConfirmOk());
+      }
+
+      // Butang Modal Soalan
+      if (this.modalSubmitBtn) {
+        this.modalSubmitBtn.addEventListener('click', () => this.handleSubmitAnswer());
+      }
+
+      // Butang Semakan Jawapan
+      if (this.btnVictoryReview) {
+        this.btnVictoryReview.addEventListener('click', () => this.openReviewModal());
+      }
+      if (this.btnReviewClose) {
+        this.btnReviewClose.addEventListener('click', () => this.closeReviewModal());
+      }
+
+      // Butang Game Over
+      if (this.btnGameOverRetry) {
+        this.btnGameOverRetry.addEventListener('click', () => {
+          this.closeGameOverModal();
+          this.startGame();
+        });
+      }
+      if (this.btnGameOverExit) {
+        this.btnGameOverExit.addEventListener('click', () => {
+          window.location.href = '../hab_permainan/code.html';
+        });
+      }
+    }
+
+    toggleAudio() {
+      const isMuted = Audio.toggleMute();
+      const icon = isMuted ? 'volume_off' : 'volume_up';
+      const label = isMuted ? 'Senyap' : 'Aktif';
+
+      if (this.hudMuteBtn) {
+        this.hudMuteBtn.innerHTML = `<span class="material-symbols-outlined text-lg">${icon}</span>`;
+      }
+      if (this.pauseAudioIcon) {
+        this.pauseAudioIcon.textContent = icon;
+      }
+      if (this.pauseAudioLabel) {
+        this.pauseAudioLabel.textContent = `🔊 Bunyi: ${label}`;
+      }
+    }
+
+    initKeyboardShortcuts() {
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.key.toLowerCase() === 'p') {
+          if (this.modalQuestion && !this.modalQuestion.classList.contains('hidden')) return;
+          if (this.modalVictory && !this.modalVictory.classList.contains('hidden')) return;
+          if (this.modalGameOver && !this.modalGameOver.classList.contains('hidden')) return;
+
+          if (this.engine.state === (GameState ? GameState.PLAYING : 'playing')) {
+            this.pauseGame();
+          } else if (this.engine.state === (GameState ? GameState.PAUSED : 'paused')) {
+            this.resumeGame();
+          }
+        }
+      });
+    }
+
+    initVisibilityListener() {
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && this.engine.state === (GameState ? GameState.PLAYING : 'playing')) {
+          this.pauseGame();
+        }
+      });
+    }
+
+    // 12. Kawalan Skrin Sentuh Mudah Alih (Mobile D-Pad)
     setupTouchControls() {
       const dpadUp = document.getElementById('adv-dpad-up');
       const dpadDown = document.getElementById('adv-dpad-down');
