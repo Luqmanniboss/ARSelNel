@@ -31,6 +31,12 @@ html, body {
   font-family: var(--cq-font);
   background-color: var(--cq-bg);
   color: #f1f5f9;
+  transition: background-color 0.3s ease;
+}
+
+body.cq-ar-mode {
+  background-color: transparent !important;
+  background: transparent !important;
 }
 
 #canvas-container {
@@ -40,12 +46,15 @@ html, body {
   width: 100%;
   height: 100%;
   z-index: 1;
+  pointer-events: auto;
+  background: transparent !important;
 }
 
 #canvas-container canvas {
   width: 100%;
   height: 100%;
   display: block;
+  background: transparent !important;
 }
 
 /* ==============================================================================
@@ -139,14 +148,15 @@ html, body {
 }
 
 .cq-camera-feed {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
   z-index: 0;
   pointer-events: none;
+  background-color: #000;
 }
 
 .cq-stat-pill .icon {
@@ -1080,7 +1090,7 @@ html, body {
 }
 
 /* ==============================================================================
-   WEBXR AR OVERLAY
+   AR HUD & WEBXR OVERLAY INTERFACE
    ============================================================================== */
 
 .cq-ar-overlay {
@@ -1091,70 +1101,283 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px;
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
 }
 
 .cq-ar-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   pointer-events: auto;
+  flex-wrap: wrap;
 }
 
 .cq-ar-status-badge {
   background: rgba(15, 23, 42, 0.85);
-  border: 1px solid #a855f7;
+  backdrop-filter: blur(8px);
+  border: 1px solid #2dd4bf;
   padding: 8px 16px;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 800;
-  color: #d8b4fe;
+  color: #5eead4;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.cq-ar-model-tabs {
+  display: flex;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  gap: 4px;
+}
+
+.cq-ar-model-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cq-ar-model-btn.active {
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+}
+
+.cq-ar-top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Floating Gesture Hint Banner */
+.cq-ar-hint-banner {
+  align-self: center;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #cbd5e1;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  pointer-events: auto;
+  margin-top: 6px;
+}
+
+/* Organelle Quick-Select Strip */
+.cq-ar-organelle-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 4px;
+  pointer-events: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  max-width: 100%;
+}
+.cq-ar-organelle-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.cq-ar-organelle-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-ar-organelle-chip:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: #2dd4bf;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.cq-ar-organelle-chip.active {
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+  border-color: #5eead4;
+  color: #fff;
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.4);
+}
+
+.cq-ar-organelle-chip .chip-badge {
+  font-size: 11px;
+  color: #10b981;
+}
+
+/* Selected Organelle Card (Bottom Sheet / Overlay Card) */
+.cq-ar-organelle-card {
+  pointer-events: auto;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(6, 25, 33, 0.95) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(45, 212, 191, 0.15);
+  border-radius: 22px;
+  padding: 16px 20px;
+  max-width: 620px;
+  width: 100%;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease;
+  transition: all 0.25s ease;
+}
+
+.cq-ar-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.cq-ar-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cq-ar-card-icon {
+  font-size: 26px;
+}
+
+.cq-ar-card-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.cq-ar-card-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.18);
+  color: #5eead4;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+}
+
+.cq-ar-card-badge.completed {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: #10b981;
+}
+
+.cq-ar-card-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #cbd5e1;
+  margin-bottom: 14px;
+}
+
+.cq-ar-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cq-ar-card-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cq-ar-card-btn.primary {
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);
+}
+
+.cq-ar-card-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.5);
+}
+
+.cq-ar-card-btn.secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cq-ar-card-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .cq-ar-bottombar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   pointer-events: auto;
+  width: 100%;
 }
 
 .cq-ar-place-btn {
   padding: 14px 28px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
   border: none;
   color: #fff;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
   animation: pulseBtn 1.5s infinite;
-}
-
-@keyframes pulseBtn {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
 }
 
 .cq-ar-tools {
   display: flex;
   gap: 8px;
   background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
   padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .cq-ar-tool-btn {
   background: rgba(255, 255, 255, 0.12);
   border: none;
   color: #fff;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cq-ar-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* ==============================================================================

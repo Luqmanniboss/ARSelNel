@@ -54,6 +54,8 @@
     { "source": "/utama", "destination": "/halaman_utama/code.html" },
     { "source": "/halaman_utama", "destination": "/halaman_utama/code.html" },
     { "source": "/cellquest", "destination": "/cellquest/code.html" },
+    { "source": "/cellquest/adventure", "destination": "/cellquest/adventure.html" },
+    { "source": "/cellquest-adventure", "destination": "/cellquest/adventure.html" },
     { "source": "/hab_permainan", "destination": "/hab_permainan/code.html" },
     { "source": "/kuiz_interaktif", "destination": "/kuiz_interaktif/code.html" },
     { "source": "/nota_pembelajaran", "destination": "/nota_pembelajaran/code.html" },

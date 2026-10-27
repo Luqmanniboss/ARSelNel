@@ -30,7 +30,7 @@
   </div>
 
   <!-- Real Device Camera Video Feed (For Interactive Camera AR Mode) -->
-  <video id="ar-camera-feed" class="cq-camera-feed" playsinline autoplay muted style="display:none"></video>
+  <video id="ar-camera-feed" class="cq-camera-feed" playsinline webkit-playsinline autoplay muted style="display:none"></video>
 
   <!-- 3D Canvas Container -->
   <div id="canvas-container"></div>
@@ -257,25 +257,25 @@
         <!-- Option 1: 3D Walkthrough Mode -->
         <div class="cq-mode-card featured" id="choose-3d-btn">
           <span class="cq-mode-icon">🖥️</span>
-          <h3>Mod Jelajah 3D</h3>
-          <p>Terokai keseluruhan makmal 3D menggunakan tetikus, papan kekunci atau joystick telefon pintar. Sesuai untuk semua laptop, komputer dan telefon tanpa memerlukan kamera.</p>
-          <span class="cq-mode-tag">Mod Asas Utama • Semua Peranti</span>
+          <h3>1. Mod Jelajah 3D</h3>
+          <p>Terokai keseluruhan makmal 3D menggunakan papan kekunci (WASD), tetikus atau joystick telefon. 8 stesen penuh, soalan kuiz dan lencana tanpa memerlukan akses kamera.</p>
+          <span class="cq-mode-tag">Semua Laptop, Komputer & Telefon • Tanpa Kamera</span>
         </div>
 
         <!-- Option 2: Live Camera Interactive AR Mode -->
         <div class="cq-mode-card" id="choose-camera-ar-btn">
           <span class="cq-mode-icon">📷</span>
-          <h3>Mod Kamera Interaktif</h3>
-          <p>Buka kamera telefon pintar sebenar dengan tindanan makmal 3D! Kawal pergerakan menggunakan joystick dan putar pandangan dengan sentuhan atau penderia giroskop telefon.</p>
-          <span class="cq-mode-tag camera-tag">Kamera Telefon • Mudah Diakses</span>
+          <h3>2. Mod Kamera AR Interaktif</h3>
+          <p>Buka kamera telefon anda! Lihat model <strong>Sel Haiwan</strong>, <strong>Sel Tumbuhan</strong> atau <strong>Makmal Mini ARSelNel</strong> terapung di atas meja/bilik sebenar anda. Putar, zum & sentuh organel.</p>
+          <span class="cq-mode-tag camera-tag">Kamera Sebenar • Pusing & Zum Sentuhan</span>
         </div>
 
         <!-- Option 3: Real WebXR Spatial AR Mode -->
         <div class="cq-mode-card" id="choose-ar-btn">
           <span class="cq-mode-icon">✨</span>
-          <h3>Mod AR Spasial (WebXR)</h3>
-          <p>Realiti Terimbuh dengan penjejakan kedudukan fizikal 6DOF & pengesanan permukaan (hit-test). Memerlukan peranti yang menyokong Google Play Services for AR (ARCore).</p>
-          <span class="cq-mode-tag ar-tag">WebXR Immersive-AR • ARCore</span>
+          <h3>3. Mod AR Spasial (WebXR)</h3>
+          <p>Realiti Terimbuh dengan penjejakan kedudukan fizikal 6DOF & pengesanan permukaan meja/lantai sebenar (hit-test). Model kekal melekat pada meja fizikal apabila telefon bergerak.</p>
+          <span class="cq-mode-tag ar-tag">WebXR Immersive-AR • Google ARCore</span>
         </div>
       </div>
 
@@ -382,24 +382,100 @@
   </div>
 
   <!-- ==============================================================================
-       WEBXR AR OVERLAY (VISIBLE DURING IMMERSIVE-AR)
+       AR HUD OVERLAY (ACTIVE IN CAMERA AR & WEBXR MODES)
        ============================================================================== -->
   <div class="cq-ar-overlay" id="ar-overlay" style="display:none">
+    <!-- Topbar: Status, Model Switcher & Toolbar Actions -->
     <div class="cq-ar-topbar">
-      <div class="cq-ar-status-badge">✨ Mod AR Spasial WebXR Aktif</div>
-      <button type="button" class="cq-btn-secondary" id="ar-exit-btn" style="padding:6px 14px;">
-        <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">close</span> Keluar AR
-      </button>
+      <div class="cq-ar-status-badge" id="ar-status-badge">
+        <span id="ar-badge-icon">📷</span>
+        <span id="ar-badge-text">Mod Kamera AR</span>
+      </div>
+
+      <!-- Model Switcher: Sel Haiwan / Sel Tumbuhan / Makmal Mini -->
+      <div class="cq-ar-model-tabs" id="ar-model-tabs" role="tablist" aria-label="Pilih Model AR">
+        <button type="button" class="cq-ar-model-btn active" id="ar-btn-animal" data-ar-model="animal">
+          🐾 Sel Haiwan
+        </button>
+        <button type="button" class="cq-ar-model-btn" id="ar-btn-plant" data-ar-model="plant">
+          🌿 Sel Tumbuhan
+        </button>
+        <button type="button" class="cq-ar-model-btn" id="ar-btn-minilab" data-ar-model="minilab">
+          🏛️ Makmal Mini
+        </button>
+      </div>
+
+      <div class="cq-ar-top-actions">
+        <button type="button" class="cq-icon-btn" id="ar-autorotate-btn" title="Hidup/Mati Putaran Automatik">
+          <span class="material-symbols-outlined">sync</span>
+        </button>
+        <button type="button" class="cq-icon-btn" id="ar-reset-view-btn" title="Tetapkan Semula Kedudukan & Putaran">
+          <span class="material-symbols-outlined">restart_alt</span>
+        </button>
+        <button type="button" class="cq-icon-btn" id="ar-change-mode-btn" title="Tukar Mod Permainan">
+          <span class="material-symbols-outlined">tune</span>
+        </button>
+        <button type="button" class="cq-icon-btn" id="ar-exit-btn" title="Keluar dari Mod AR">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
     </div>
 
-    <div class="cq-ar-bottombar">
+    <!-- Helpful Interactive Hint Banner -->
+    <div class="cq-ar-hint-banner" id="ar-hint-banner">
+      👆 Seret untuk pusing 360° • 🤏 Cubit untuk zum • 🎯 Ketik organel pada model 3D
+    </div>
+
+    <!-- Organelle Quick-Select Strip (Horizontal Scrollable Chips) -->
+    <div class="cq-ar-organelle-strip" id="ar-organelle-strip">
+      <!-- Populated dynamically via JS according to active model -->
+    </div>
+
+    <!-- Selected Organelle Bottom Sheet Card -->
+    <div class="cq-ar-organelle-card" id="ar-organelle-card" style="display:none">
+      <div class="cq-ar-card-header">
+        <div class="cq-ar-card-title-group">
+          <span class="cq-ar-card-icon" id="ar-card-icon">🧬</span>
+          <div>
+            <h3 class="cq-ar-card-title" id="ar-card-title">Nukleus</h3>
+            <span class="cq-ar-card-badge" id="ar-card-badge">Stesen 1 • Sains Tingkatan 1</span>
+          </div>
+        </div>
+        <button type="button" class="cq-modal-close" id="ar-card-close-btn" aria-label="Tutup Maklumat Organel" style="position:static; width:32px; height:32px; font-size:16px;">
+          <span class="material-symbols-outlined" style="font-size:18px">close</span>
+        </button>
+      </div>
+
+      <p class="cq-ar-card-desc" id="ar-card-desc">
+        Pusat kawalan sel yang mengandungi bahan genetik (DNA). Mengawal semua aktiviti penting sel.
+      </p>
+
+      <div class="cq-ar-card-actions">
+        <button type="button" class="cq-ar-card-btn primary" id="ar-card-quiz-btn">
+          <span class="material-symbols-outlined" style="font-size:18px">quiz</span>
+          <span>Jawab Soalan Kuiz</span>
+        </button>
+        <button type="button" class="cq-ar-card-btn secondary" id="ar-card-speech-btn">
+          <span class="material-symbols-outlined" style="font-size:18px">volume_up</span>
+          <span>Dengar Penerangan</span>
+        </button>
+        <button type="button" class="cq-ar-card-btn secondary" id="ar-card-focus-btn">
+          <span class="material-symbols-outlined" style="font-size:18px">center_focus_strong</span>
+          <span>Fokus Organel</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Spatial WebXR Placement Bottombar (Active when spatial hit-test is ready) -->
+    <div class="cq-ar-bottombar" id="ar-spatial-tools" style="display:none">
       <button type="button" class="cq-ar-place-btn" id="ar-place-btn">
-        📍 Letak Makmal di Sini
+        📍 Letak Model di Meja / Lantai
       </button>
       <div class="cq-ar-tools">
         <button type="button" class="cq-ar-tool-btn" id="ar-smaller-btn">− Kecilkan</button>
         <button type="button" class="cq-ar-tool-btn" id="ar-larger-btn">＋ Besarkan</button>
-        <button type="button" class="cq-ar-tool-btn" id="ar-rotate-btn">⟳ Putar</button>
+        <button type="button" class="cq-ar-tool-btn" id="ar-rotate-btn">⟳ Putar 45°</button>
+        <button type="button" class="cq-ar-tool-btn" id="ar-reposition-btn">🔄 Alih Semula</button>
       </div>
     </div>
   </div>
