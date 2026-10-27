@@ -138,8 +138,26 @@ html, body {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
+.cq-camera-feed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .cq-stat-pill .icon {
   font-size: 18px;
+}
+
+.cq-stat-pill.mode-pill {
+  border-color: #2dd4bf;
+  color: #5eead4;
+  background: rgba(13, 148, 136, 0.25);
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.25);
 }
 
 .cq-stat-pill.badge-pill {
@@ -223,7 +241,7 @@ html, body {
 }
 
 /* ==============================================================================
-   PROXIMITY INTERACTION BANNER
+   PROXIMITY INTERACTION BANNER & MOBILE INTERACT BUTTON
    ============================================================================== */
 
 .cq-prompt-container {
@@ -324,8 +342,49 @@ html, body {
   font-family: monospace;
 }
 
+/* Dedicated Mobile Floating Interact Button */
+.cq-mobile-interact-btn {
+  position: absolute;
+  bottom: 28px;
+  right: 28px;
+  z-index: 25;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  border: 3px solid #fef08a;
+  color: #fff;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 8px 24px rgba(234, 88, 12, 0.5), 0 0 20px rgba(250, 204, 21, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  pointer-events: auto;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.cq-mobile-interact-btn.visible {
+  display: flex;
+  animation: bounceInteract 1.8s infinite ease-in-out;
+}
+
+.cq-mobile-interact-btn:active {
+  transform: scale(0.92);
+  filter: brightness(0.9);
+}
+
+@keyframes bounceInteract {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.05); }
+}
+
 /* ==============================================================================
-   MOBILE VIRTUAL CONTROLS (D-PAD & TOUCH ROTATION)
+   MOBILE VIRTUAL CONTROLS (ANALOG JOYSTICK & TOUCH ROTATION)
    ============================================================================== */
 
 .cq-mobile-controls {
@@ -333,66 +392,76 @@ html, body {
   bottom: 24px;
   left: 24px;
   z-index: 20;
-  display: none;
+  display: block; /* Managed by JS or responsive media queries */
   pointer-events: auto;
+  user-select: none;
+  touch-action: none;
 }
 
-/* Virtual D-pad (as seen in TikTok screenshots) */
-.cq-dpad {
+/* Smooth Virtual Joystick Base & Thumb Knob */
+.cq-joystick {
+  position: relative;
   width: 130px;
   height: 130px;
-  position: relative;
-  background: rgba(15, 23, 42, 0.7);
-  border-radius: 28px;
-  border: 2px solid rgba(250, 204, 21, 0.5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
+  user-select: none;
+  touch-action: none;
 }
 
-.cq-dpad-btn {
-  position: absolute;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: #facc15;
-  color: #000;
-  border: none;
+.cq-joystick-base {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, rgba(30, 58, 75, 0.75) 0%, rgba(10, 22, 30, 0.85) 100%);
+  border: 2.5px solid rgba(45, 212, 191, 0.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(45, 212, 191, 0.15);
+  backdrop-filter: blur(10px);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: transform 0.1s ease;
 }
 
-.cq-dpad-btn:active {
-  transform: scale(0.9);
-  background: #eab308;
-}
-
-.cq-dpad-up    { top: 6px; left: 44px; }
-.cq-dpad-down  { bottom: 6px; left: 44px; }
-.cq-dpad-left  { top: 44px; left: 6px; }
-.cq-dpad-right { top: 44px; right: 6px; }
-.cq-dpad-center {
-  top: 44px;
-  left: 44px;
-  width: 42px;
-  height: 42px;
+.cq-joystick-thumb {
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: rgba(250, 204, 21, 0.25);
+  background: radial-gradient(circle at 35% 35%, #5eead4 0%, #0d9488 60%, #0f766e 100%);
+  border: 2px solid #a7f3d0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 16px rgba(45, 212, 191, 0.6);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   pointer-events: none;
+  transition: transform 0.05s linear;
 }
 
-/* Right Touch Drag Instruction (Mobile) */
+.cq-joystick-arrows {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  font-size: 11px;
+  color: #5eead4;
+}
+
+.cq-joystick-arrows .arrow-up    { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); }
+.cq-joystick-arrows .arrow-down  { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); }
+.cq-joystick-arrows .arrow-left  { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); }
+.cq-joystick-arrows .arrow-right { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
+
+/* Right Touch Drag Look Zone for Mobile */
 .cq-touch-look-zone {
   position: absolute;
   top: 70px;
   right: 0;
   bottom: 0;
-  width: 55%;
+  width: 58%;
   z-index: 10;
+  pointer-events: auto;
+  user-select: none;
+  touch-action: none;
+}
   pointer-events: auto;
 }
 
@@ -511,6 +580,56 @@ html, body {
   font-weight: 900;
   letter-spacing: -0.5px;
   color: #fff;
+}
+
+/* 3D Interactive Organelle Preview Box in Modal */
+.cq-station-preview-box {
+  width: 100%;
+  height: 190px;
+  background: radial-gradient(circle at 50% 50%, rgba(20, 48, 65, 0.75) 0%, rgba(8, 18, 26, 0.95) 100%);
+  border: 1.5px solid rgba(45, 212, 191, 0.35);
+  border-radius: 18px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6), 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.cq-preview-canvas-host {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  touch-action: none;
+  cursor: grab;
+}
+
+.cq-preview-canvas-host:active {
+  cursor: grabbing;
+}
+
+.cq-preview-canvas-host canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+.cq-preview-caption {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #5eead4;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  pointer-events: none;
+  letter-spacing: 0.2px;
 }
 
 .cq-station-description {
@@ -763,10 +882,34 @@ html, body {
   border: 1px solid rgba(45, 212, 191, 0.4);
 }
 
+.cq-mode-tag.camera-tag {
+  background: rgba(14, 165, 233, 0.2);
+  color: #7dd3fc;
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
 .cq-mode-tag.ar-tag {
   background: rgba(168, 85, 247, 0.2);
   color: #d8b4fe;
   border-color: rgba(168, 85, 247, 0.4);
+}
+
+.cq-scale-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-scale-btn.active, .cq-scale-btn:hover {
+  background: rgba(45, 212, 191, 0.25);
+  border-color: #2dd4bf;
+  color: #5eead4;
 }
 
 /* ==============================================================================
@@ -1020,7 +1163,8 @@ html, body {
 
 @media (max-width: 768px) {
   .cq-hud {
-    padding: 8px 12px;
+    padding: max(8px, env(safe-area-inset-top)) 10px 8px 10px;
+    gap: 6px;
   }
   .cq-title-badge h1 {
     font-size: 13px;
@@ -1029,13 +1173,17 @@ html, body {
     display: none;
   }
   .cq-stat-pill {
-    padding: 5px 10px;
+    padding: 4px 8px;
     font-size: 11px;
+    gap: 4px;
+  }
+  .cq-stat-pill .icon {
+    font-size: 14px;
   }
   .cq-badge-strip {
-    top: 58px;
+    top: 56px;
     gap: 4px;
-    padding: 4px 8px;
+    padding: 3px 8px;
   }
   .cq-mini-badge {
     width: 22px;
@@ -1044,13 +1192,23 @@ html, body {
   }
   .cq-mobile-controls {
     display: block;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    left: max(16px, env(safe-area-inset-left));
+  }
+  .cq-mobile-interact-btn {
+    bottom: max(20px, env(safe-area-inset-bottom));
+    right: max(20px, env(safe-area-inset-right));
   }
   .cq-mode-cards {
     grid-template-columns: 1fr;
   }
   .cq-modal {
-    padding: 20px;
-    border-radius: 22px;
+    padding: 18px;
+    border-radius: 20px;
+    max-height: 85vh;
+  }
+  .cq-station-preview-box {
+    height: 160px;
   }
 }
 

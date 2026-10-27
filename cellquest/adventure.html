@@ -19,6 +19,7 @@
   <script src="../assets/js/supabase-client.js"></script>
   <script src="../assets/js/auth-guard.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
@@ -27,6 +28,9 @@
     <div class="cq-spinner"></div>
     <div class="cq-loading-text">Menyediakan Makmal Eksplorasi Sel ARSelNel…</div>
   </div>
+
+  <!-- Real Device Camera Video Feed (For Interactive Camera AR Mode) -->
+  <video id="ar-camera-feed" class="cq-camera-feed" playsinline autoplay muted style="display:none"></video>
 
   <!-- 3D Canvas Container -->
   <div id="canvas-container"></div>
@@ -53,6 +57,10 @@
     </div>
 
     <div class="cq-hud-center">
+      <div class="cq-stat-pill mode-pill" id="hud-mode-pill" title="Mod Permainan Semasa">
+        <span class="icon" id="hud-mode-icon">🖥️</span>
+        <strong id="hud-mode-text">Mod Jelajah 3D</strong>
+      </div>
       <div class="cq-stat-pill badge-pill" title="Lencana Stesen Dikumpul">
         <span class="icon">🎖️</span>
         <span>Lencana:</span>
@@ -70,8 +78,11 @@
     </div>
 
     <div class="cq-hud-right">
-      <button type="button" class="cq-icon-btn" id="mode-select-btn" title="Pilih Mod (3D / AR)">
+      <button type="button" class="cq-icon-btn" id="mode-select-btn" title="Pilih Mod (3D / AR Kamera / AR Spasial)">
         <span class="material-symbols-outlined">view_in_ar</span>
+      </button>
+      <button type="button" class="cq-icon-btn" id="gyro-reset-btn" title="Set Semula Orientasi Giroskop" style="display:none">
+        <span class="material-symbols-outlined">screen_rotation</span>
       </button>
       <button type="button" class="cq-icon-btn" id="sound-toggle-btn" title="Bunyi (Hidup/Mati)">
         <span class="material-symbols-outlined" id="sound-icon">volume_up</span>
@@ -105,14 +116,25 @@
     </div>
   </div>
 
-  <!-- Mobile Virtual Controls (D-pad) -->
-  <div class="cq-mobile-controls">
-    <div class="cq-dpad">
-      <button type="button" class="cq-dpad-btn cq-dpad-up" id="dpad-up" aria-label="Maju">▲</button>
-      <button type="button" class="cq-dpad-btn cq-dpad-left" id="dpad-left" aria-label="Ke Kiri">◀</button>
-      <div class="cq-dpad-center"></div>
-      <button type="button" class="cq-dpad-btn cq-dpad-right" id="dpad-right" aria-label="Ke Kanan">▶</button>
-      <button type="button" class="cq-dpad-btn cq-dpad-down" id="dpad-down" aria-label="Undur">▼</button>
+  <!-- Mobile Floating Quick Interact Button (Bottom Right) -->
+  <button type="button" class="cq-mobile-interact-btn" id="mobile-interact-btn" aria-label="Teroka Stesen">
+    <span class="material-symbols-outlined">touch_app</span>
+    <span>TEROKA</span>
+  </button>
+
+  <!-- Mobile Virtual Controls (Joystick & Optional D-pad) -->
+  <div class="cq-mobile-controls" id="mobile-controls">
+    <!-- Analog Virtual Joystick -->
+    <div class="cq-joystick" id="virtual-joystick">
+      <div class="cq-joystick-base" id="joystick-base">
+        <div class="cq-joystick-thumb" id="joystick-thumb"></div>
+        <div class="cq-joystick-arrows">
+          <span class="arrow-up">▲</span>
+          <span class="arrow-down">▼</span>
+          <span class="arrow-left">◀</span>
+          <span class="arrow-right">▶</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -129,6 +151,17 @@
       
       <div class="cq-station-header">
         <h2 id="stn-title">Nukleus</h2>
+      </div>
+
+      <!-- 3D Interactive Organelle Preview Box inside Modal -->
+      <div class="cq-station-preview-box">
+        <div class="cq-preview-canvas-host" id="stn-preview-host">
+          <canvas id="stn-preview-canvas"></canvas>
+        </div>
+        <div class="cq-preview-caption">
+          <span class="material-symbols-outlined" style="font-size:16px">3d_rotation</span>
+          <span>Seret untuk memutar & mengkaji struktur 3D organel</span>
+        </div>
       </div>
 
       <div class="cq-station-description" id="stn-description">
@@ -161,7 +194,7 @@
   </div>
 
   <!-- ==============================================================================
-       MODAL 2: CARA BERMAIN (INSPIRASI VIDEO TIKTOK DOKUMENTASI)
+       MODAL 2: CARA BERMAIN (PANDUAN LENGKAP DESKTOP & TELEFON)
        ============================================================================== -->
   <div class="cq-modal-backdrop" id="howto-modal" role="dialog" aria-modal="true">
     <div class="cq-modal cq-howto-card">
@@ -171,32 +204,32 @@
 
       <div class="cq-howto-gamepad">🎮</div>
       <h2 style="font-size: 26px; font-weight: 900; color: #facc15; margin-bottom: 6px;">Cara Bermain</h2>
-      <p style="font-size: 13px; color: #94a3b8;">Panduan langkah demi langkah menjelajah Makmal Eksplorasi Sel</p>
+      <p style="font-size: 13px; color: #94a3b8;">Panduan kawalan dan penerokaan Makmal Eksplorasi Sel ARSelNel</p>
 
       <div class="cq-howto-list">
         <div class="cq-howto-item">
           <span class="cq-howto-num">1.</span>
-          <span><strong>Masuk & Teroka:</strong> Gunakan kekunci <strong>WASD</strong> atau anak panah pada laptop/komputer. Gunakan <strong>pad kawalan maya ▲ ◀ ▶ ▼</strong> pada telefon atau tablet untuk berjalan meneroka makmal.</span>
+          <span><strong>Pergerakan (Ikut Pandangan Kamera):</strong> Pada komputer/laptop gunakan kekunci <strong>W / ↑</strong> (Maju), <strong>S / ↓</strong> (Undur), <strong>A / ←</strong> (Ke Kiri), <strong>D / →</strong> (Ke Kanan). Pada telefon, gunakan <strong>Joystick Maya di kiri bawah</strong>. Pergerakan sentiasa mengikut arah kamera yang sedang anda pandang.</span>
         </div>
         <div class="cq-howto-item">
           <span class="cq-howto-num">2.</span>
-          <span><strong>Pusing Sudut Pandangan:</strong> Seret tetikus (atau seret jari pada skrin kanan) untuk melihat sekeliling bilik makmal dalam perspektif orang pertama.</span>
+          <span><strong>Putar Pandangan:</strong> Seret tetikus di skrin komputer, atau <strong>seret jari pada bahagian kanan skrin telefon</strong> untuk melihat sekeliling bilik makmal 360°.</span>
         </div>
         <div class="cq-howto-item">
           <span class="cq-howto-num">3.</span>
-          <span><strong>Cari 8 Stesen Berwarna-warni:</strong> Terokai 8 stesen organel di dinding kiri dan kanan makmal (Nukleus, Membran Sel, Sitoplasma, Mitokondrion, Kloroplas, Dinding Sel, Vakuol dan Perbandingan Sel).</span>
+          <span><strong>Logo ARSelNel di Tengah:</strong> Di tengah makmal terdapat monumen hologram sel ARSelNel bercahaya pirus. Gunakan ia sebagai tanda arah utama makmal anda.</span>
         </div>
         <div class="cq-howto-item">
           <span class="cq-howto-num">4.</span>
-          <span><strong>Dekati & Tekan "Teroka":</strong> Papan stesen akan menyala apabila anda menghampirinya. Tekan butang <strong>Teroka</strong> atau kekunci <strong>[E]</strong> untuk membaca fakta sains dan menjawab cabaran kuiz.</span>
+          <span><strong>8 Stesen Organel:</strong> Lawati 8 stesen di sepanjang dinding kiri dan kanan (Nukleus, Membran Sel, Sitoplasma, Mitokondrion, Kloroplas, Dinding Sel, Vakuol, Perbandingan Sel).</span>
         </div>
         <div class="cq-howto-item">
           <span class="cq-howto-num">5.</span>
-          <span><strong>Jawapan Betul = Lencana!:</strong> Jawab soalan objektif dengan betul untuk mengumpul lencana stesen dan markah tertinggi (100 mata percubaan pertama).</span>
+          <span><strong>Interaksi Stesen:</strong> Apabila menghampiri stesen, tekan butang <strong>[E]</strong> pada keyboard atau sentuh butang <strong>Teroka</strong> untuk membuka fakta sains dan cabaran kuiz.</span>
         </div>
         <div class="cq-howto-item">
           <span class="cq-howto-num">6.</span>
-          <span><strong>Buka Pintu Pakar Sel:</strong> Kumpul semua <strong>8 Lencana</strong> untuk membuka Pintu Keluar bercahaya dan terima <strong>Sijil Pencapaian Digital</strong> anda!</span>
+          <span><strong>Lencana & Sijil Digital:</strong> Dapatkan kesemua 8 lencana untuk membuka <strong>Pintu Pakar Sel</strong> dan muat turun Sijil Pencapaian Digital anda!</span>
         </div>
       </div>
 
@@ -209,7 +242,7 @@
   </div>
 
   <!-- ==============================================================================
-       MODAL 3: PEMILIHAN MOD PERMAINAN (MOD JELAJAH 3D vs MOD AR)
+       MODAL 3: PEMILIHAN MOD PERMAINAN (3D / KAMERA INTERAKTIF / WEBXR AR)
        ============================================================================== -->
   <div class="cq-modal-backdrop" id="mode-modal" role="dialog" aria-modal="true">
     <div class="cq-modal cq-mode-dialog">
@@ -221,31 +254,75 @@
       <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-top: 4px;">Pilih pengalaman pembelajaran yang paling sesuai untuk peranti anda.</p>
 
       <div class="cq-mode-cards">
-        <!-- Option A: 3D Walkthrough Mode -->
+        <!-- Option 1: 3D Walkthrough Mode -->
         <div class="cq-mode-card featured" id="choose-3d-btn">
           <span class="cq-mode-icon">🖥️</span>
           <h3>Mod Jelajah 3D</h3>
-          <p>Terokai keseluruhan makmal 3D menggunakan tetikus, papan kekunci atau joystick sentuhan. Sesuai untuk semua laptop, komputer dan telefon pintar tanpa memerlukan kamera.</p>
-          <span class="cq-mode-tag">Mod Asas Utama • Disyorkan</span>
+          <p>Terokai keseluruhan makmal 3D menggunakan tetikus, papan kekunci atau joystick telefon pintar. Sesuai untuk semua laptop, komputer dan telefon tanpa memerlukan kamera.</p>
+          <span class="cq-mode-tag">Mod Asas Utama • Semua Peranti</span>
         </div>
 
-        <!-- Option B: Real WebXR AR Mode -->
+        <!-- Option 2: Live Camera Interactive AR Mode -->
+        <div class="cq-mode-card" id="choose-camera-ar-btn">
+          <span class="cq-mode-icon">📷</span>
+          <h3>Mod Kamera Interaktif</h3>
+          <p>Buka kamera telefon pintar sebenar dengan tindanan makmal 3D! Kawal pergerakan menggunakan joystick dan putar pandangan dengan sentuhan atau penderia giroskop telefon.</p>
+          <span class="cq-mode-tag camera-tag">Kamera Telefon • Mudah Diakses</span>
+        </div>
+
+        <!-- Option 3: Real WebXR Spatial AR Mode -->
         <div class="cq-mode-card" id="choose-ar-btn">
-          <span class="cq-mode-icon">📱</span>
+          <span class="cq-mode-icon">✨</span>
           <h3>Mod AR Spasial (WebXR)</h3>
-          <p>Letakkan bilik makmal 3D berskala mini di atas meja atau lantai sebenar melalui kamera AR. Berfungsi pada telefon atau tablet yang menyokong WebXR AR & ARCore.</p>
-          <span class="cq-mode-tag ar-tag">Kamera AR • WebXR</span>
+          <p>Realiti Terimbuh dengan penjejakan kedudukan fizikal 6DOF & pengesanan permukaan (hit-test). Memerlukan peranti yang menyokong Google Play Services for AR (ARCore).</p>
+          <span class="cq-mode-tag ar-tag">WebXR Immersive-AR • ARCore</span>
         </div>
       </div>
 
-      <p style="font-size: 12px; color: #64748b; text-align: center;">
-        💡 Jika peranti anda tidak menyokong AR Spasial, sistem akan beralih secara automatik ke Mod Jelajah 3D.
+      <!-- AR Placement sub-options (for WebXR AR) -->
+      <div class="cq-ar-scale-chooser" id="ar-scale-chooser" style="display:none; margin-top: 14px; padding: 14px; background: rgba(255,255,255,0.05); border-radius: 16px;">
+        <span style="font-size:12px; font-weight:800; color:#5eead4; display:block; margin-bottom:8px;">PILIHAN SKALA PENEMPATAN AR:</span>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="cq-scale-btn active" id="scale-mini-btn">
+            🪑 <strong>Makmal Mini</strong> (Atas Meja)
+          </button>
+          <button type="button" class="cq-scale-btn" id="scale-room-btn">
+            🏛️ <strong>Makmal Imersif</strong> (Skala Sebenar)
+          </button>
+        </div>
+      </div>
+
+      <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 14px;">
+        💡 Mod Kamera Interaktif memaparkan kamera belakang pada sebarang telefon yang menyokong pelayar moden tanpa memerlukan perkakasan AR khusus.
       </p>
     </div>
   </div>
 
   <!-- ==============================================================================
-       MODAL 4: VICTORY & SIJIL PENCAPAIAN DIGITAL
+       MODAL 4: CAMERA PERMISSION & FALLBACK DIALOG
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="camera-fallback-modal" role="dialog" aria-modal="true">
+    <div class="cq-modal" style="max-width: 480px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 12px;">📷</div>
+      <h2 style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px;" id="camera-fallback-title">Kebenaran Kamera Diperlukan</h2>
+      <p style="font-size: 14px; color: #cbd5e1; line-height: 1.5; margin-bottom: 20px;" id="camera-fallback-msg">
+        Pelayar tidak dapat mengakses kamera peranti. Anda masih boleh menikmati keseluruhan pengembaraan makmal sel dalam Mod Jelajah 3D!
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" class="cq-btn-primary" id="retry-camera-btn">
+          <span class="material-symbols-outlined">refresh</span>
+          <span>Cuba Semula Kamera</span>
+        </button>
+        <button type="button" class="cq-btn-secondary" id="fallback-to-3d-btn">
+          <span class="material-symbols-outlined">view_in_ar</span>
+          <span>Beralih ke Mod Jelajah 3D</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 5: VICTORY & SIJIL PENCAPAIAN DIGITAL
        ============================================================================== -->
   <div class="cq-modal-backdrop" id="victory-modal" role="dialog" aria-modal="true">
     <div class="cq-modal cq-victory-card">
