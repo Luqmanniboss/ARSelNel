@@ -648,7 +648,7 @@ function switchCellQuestTab(tabName) {
   activeCellQuestTab = tabName;
 
   // Update tab navigation buttons
-  ['models', 'organelles', 'preview', 'ar'].forEach(tab => {
+  ['models', 'organelles', 'preview', 'ar', 'adventure'].forEach(tab => {
     const btn = document.getElementById(`cq-tab-${tab}`) || document.getElementById(`tab-cq-btn-${tab}`);
     if (btn) {
       if (tab === tabName) {
@@ -674,6 +674,8 @@ function switchCellQuestTab(tabName) {
     changePreviewModel('animal');
   } else if (tabName === 'ar') {
     renderARSettingsTab();
+  } else if (tabName === 'adventure') {
+    renderAdventureManagementTab();
   }
 }
 
@@ -1937,3 +1939,426 @@ window.handleSaveAdminProfile = handleSaveAdminProfile;
 window.handleUpdateAdminPassword = handleUpdateAdminPassword;
 window.handleUpdateAdminEmail = handleUpdateAdminEmail;
 window.handleAdminLogout = handleAdminLogout;
+
+// ---------------------------------------------------------------------
+// 5. CELLQUEST AR ADVENTURE CMS MANAGEMENT
+// ---------------------------------------------------------------------
+const DEFAULT_ADVENTURE_STATIONS = [
+  {
+    id: 'stn-1-nucleus',
+    station_number: 1,
+    title: 'Nukleus',
+    organelle: 'Nukleus',
+    color: '#8b5cf6',
+    description: 'Nukleus ialah pusat kawalan sel yang mengandungi bahan genetik (DNA). Ia mengawal semua aktiviti sel seperti sintesis protein dan pembahagian sel.',
+    question_text: 'Apakah fungsi utama nukleus?',
+    option_a: 'Menghasilkan tenaga',
+    option_b: 'Mengawal aktiviti sel',
+    option_c: 'Menghasilkan makanan',
+    option_d: 'Melindungi dinding sel',
+    correct_option: 'B',
+    explanation: 'Jawapan Tepat: B. Nukleus mengandungi DNA dan mengawal seluruh aktiviti biokimia serta tumbesaran sel.',
+    is_active: true
+  },
+  {
+    id: 'stn-2-membrane',
+    station_number: 2,
+    title: 'Membran Sel',
+    organelle: 'Membran Sel',
+    color: '#3b82f6',
+    description: 'Lapisan nipis separuh telap yang menyelaputi sel. Ia mengawal pergerakan bahan masuk dan keluar sel serta melindungi struktur dalaman sel.',
+    question_text: 'Apakah fungsi membran sel?',
+    option_a: 'Mengawal pergerakan bahan masuk dan keluar dari sel',
+    option_b: 'Menghasilkan cahaya',
+    option_c: 'Menyimpan klorofil',
+    option_d: 'Membina dinding sel',
+    correct_option: 'A',
+    explanation: 'Jawapan Tepat: A. Membran sel bersifat telap memilih dan mengawal pertukaran nutrien, gas dan bahan kumuh.',
+    is_active: true
+  },
+  {
+    id: 'stn-3-cytoplasm',
+    station_number: 3,
+    title: 'Sitoplasma',
+    organelle: 'Sitoplasma',
+    color: '#eab308',
+    description: 'Bahan seperti jeli yang mengisi ruang antara nukleus dan membran sel. Sitoplasma bertindak sebagai medium di mana pelbagai tindak balas kimia berlaku.',
+    question_text: 'Apakah sitoplasma?',
+    option_a: 'Lapisan luar dinding sel',
+    option_b: 'Struktur yang mengandungi klorofil',
+    option_c: 'Bahan seperti jeli tempat banyak tindak balas kimia berlaku',
+    option_d: 'Bahagian yang menghasilkan cahaya',
+    correct_option: 'C',
+    explanation: 'Jawapan Tepat: C. Sitoplasma ialah bahan berair seperti jeli di mana proses metabolisme sel berlaku secara aktif.',
+    is_active: true
+  },
+  {
+    id: 'stn-4-mitochondria',
+    station_number: 4,
+    title: 'Mitokondrion',
+    organelle: 'Mitokondrion',
+    color: '#f97316',
+    description: 'Organel penjana tenaga sel ("powerhouse of the cell"). Di sinilah proses respirasi sel berlaku untuk menguraikan glukosa dan membebaskan tenaga kimia (ATP).',
+    question_text: 'Apakah fungsi mitokondrion?',
+    option_a: 'Mengawal pembahagian cahaya',
+    option_b: 'Menyimpan pigmen hijau',
+    option_c: 'Membentuk dinding sel',
+    option_d: 'Menjalankan respirasi sel untuk membebaskan tenaga',
+    correct_option: 'D',
+    explanation: 'Jawapan Tepat: D. Mitokondrion menukarkan glukosa dan oksigen kepada tenaga yang diperlukan oleh sel untuk hidup.',
+    is_active: true
+  },
+  {
+    id: 'stn-5-chloroplast',
+    station_number: 5,
+    title: 'Kloroplas',
+    organelle: 'Kloroplas',
+    color: '#22c55e',
+    description: 'Organel hijau yang hanya dijumpai dalam sel tumbuhan dan alga. Mengandungi pigmen klorofil yang menyerap cahaya matahari bagi menjalankan fotosintesis.',
+    question_text: 'Mengapakah kloroplas penting kepada sel tumbuhan?',
+    option_a: 'Mengawal semua aktiviti sel',
+    option_b: 'Menjalankan fotosintesis',
+    option_c: 'Menghasilkan protein sahaja',
+    option_d: 'Mengawal pergerakan bahan',
+    correct_option: 'B',
+    explanation: 'Jawapan Tepat: B. Kloroplas membolehkan tumbuhan menghasilkan makanannya sendiri (glukosa) melalui fotosintesis.',
+    is_active: true
+  },
+  {
+    id: 'stn-6-cellwall',
+    station_number: 6,
+    title: 'Dinding Sel',
+    organelle: 'Dinding Sel',
+    color: '#92400e',
+    description: 'Lapisan luar yang tegar terdiri daripada gentian selulosa. Hanya hadir pada sel tumbuhan untuk memberi sokongan mekanikal, kekuatan dan mengekalkan bentuk tetap.',
+    question_text: 'Apakah fungsi dinding sel tumbuhan?',
+    option_a: 'Memberikan sokongan dan mengekalkan bentuk sel',
+    option_b: 'Menghasilkan tenaga',
+    option_c: 'Mengawal aktiviti sel',
+    option_d: 'Menjalankan respirasi',
+    correct_option: 'A',
+    explanation: 'Jawapan Tepat: A. Dinding selulosa yang kuat menyokong sel tumbuhan dan mengekalkan bentuk tetapnya.',
+    is_active: true
+  },
+  {
+    id: 'stn-7-vacuole',
+    station_number: 7,
+    title: 'Vakuol',
+    organelle: 'Vakuol',
+    color: '#06b6d4',
+    description: 'Kantung cecair besar berisi sap sel (air, gula dan garam terlarut) pada sel tumbuhan matang. Berfungsi mengekalkan kesegahan sel serta menyimpan bahan simpanan.',
+    question_text: 'Apakah fungsi utama vakuol besar dalam sel tumbuhan?',
+    option_a: 'Menghasilkan cahaya',
+    option_b: 'Mengawal aktiviti sel',
+    option_c: 'Menyimpan sap sel dan membantu mengekalkan kesegahan sel',
+    option_d: 'Menghasilkan klorofil',
+    correct_option: 'C',
+    explanation: 'Jawapan Tepat: C. Vakuol pusat menyimpan sap sel dan memberi tekanan turgor untuk mengekalkan kesegahan tumbuhan.',
+    is_active: true
+  },
+  {
+    id: 'stn-8-comparison',
+    station_number: 8,
+    title: 'Sel Haiwan vs Sel Tumbuhan',
+    organelle: 'Perbandingan Sel',
+    color: '#ec4899',
+    description: 'Sel tumbuhan mempunyai bentuk tetap, dinding sel, kloroplas dan vakuol besar. Sebaliknya, sel haiwan tidak mempunyai dinding sel mahupun kloroplas, dan bentuknya tidak tetap.',
+    question_text: 'Antara berikut, struktur manakah terdapat pada sel tumbuhan biasa tetapi tiada pada sel haiwan?',
+    option_a: 'Membran sel',
+    option_b: 'Sitoplasma',
+    option_c: 'Nukleus',
+    option_d: 'Dinding sel',
+    correct_option: 'D',
+    explanation: 'Jawapan Tepat: D. Dinding sel dan kloroplas hanya terdapat pada sel tumbuhan, manakala nukleus dan membran sel ada pada kedua-duanya.',
+    is_active: true
+  }
+];
+
+let adventureStationsCache = [];
+
+async function renderAdventureManagementTab() {
+  const container = document.getElementById('cq-adventure-stations-grid');
+  if (!container) return;
+
+  container.innerHTML = '<div class="col-span-2 py-8 text-center text-slate-400 text-xs">Sedang memuatkan data stesen pembelajaran...</div>';
+
+  let stations = [];
+  try {
+    if (window.ARSupabase && window.ARSupabase.client) {
+      const { data, error } = await window.ARSupabase.client
+        .from('cellquest_adventure_config')
+        .select('*')
+        .order('station_number', { ascending: true });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        stations = data;
+      }
+    }
+  } catch (err) {
+    console.warn('Supabase adventure fetch failed, checking local storage:', err);
+  }
+
+  if (stations.length === 0) {
+    const local = localStorage.getItem('cellquest_adventure_cms_stations');
+    if (local) {
+      try { stations = JSON.parse(local); } catch (_) {}
+    }
+  }
+
+  if (stations.length === 0) {
+    stations = JSON.parse(JSON.stringify(DEFAULT_ADVENTURE_STATIONS));
+  }
+
+  adventureStationsCache = stations;
+
+  // Update Statistics
+  const statStations = document.getElementById('cq-adv-stat-stations');
+  if (statStations) statStations.textContent = `${stations.length} Stesen`;
+
+  const activeCount = stations.filter(s => s.is_active).length;
+  const statQuestions = document.getElementById('cq-adv-stat-questions');
+  if (statQuestions) statQuestions.textContent = `${activeCount} Soalan`;
+
+  // Render Station Cards
+  container.innerHTML = stations.map(stn => {
+    const color = stn.color || '#0d9488';
+    const isActive = stn.is_active !== false;
+
+    return `
+      <div class="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm flex flex-col justify-between gap-3 relative overflow-hidden transition hover:shadow-md">
+        <div class="absolute top-0 left-0 bottom-0 w-2" style="background-color: ${color}"></div>
+        <div class="pl-2">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold" style="background: ${color}20; color: ${color};">
+              <span>Stesen ${stn.station_number}</span>
+              <span>•</span>
+              <span>${escapeHtml(stn.organelle)}</span>
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+              ${isActive ? '● Aktif' : '○ Nyahaktif'}
+            </span>
+          </div>
+
+          <h5 class="font-headline font-bold text-sm text-slate-900">${escapeHtml(stn.title)}</h5>
+          <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">${escapeHtml(stn.description)}</p>
+
+          <!-- Question Snippet -->
+          <div class="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+            <span class="font-bold text-slate-700 block mb-1">❓ ${escapeHtml(stn.question_text)}</span>
+            <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-600 mt-1">
+              <span class="${stn.correct_option === 'A' ? 'font-bold text-emerald-700' : ''}">A. ${escapeHtml(stn.option_a)}</span>
+              <span class="${stn.correct_option === 'B' ? 'font-bold text-emerald-700' : ''}">B. ${escapeHtml(stn.option_b)}</span>
+              <span class="${stn.correct_option === 'C' ? 'font-bold text-emerald-700' : ''}">C. ${escapeHtml(stn.option_c)}</span>
+              <span class="${stn.correct_option === 'D' ? 'font-bold text-emerald-700' : ''}">D. ${escapeHtml(stn.option_d)}</span>
+            </div>
+            <div class="mt-2 text-[10px] font-bold text-teal-800">
+              Jawapan Betul: <span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono">${stn.correct_option}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pl-2 pt-2 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400 font-mono">ID: ${stn.id}</span>
+          <button type="button" onclick="openAdventureStationModal('${stn.id}')" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition">
+            <span class="material-symbols-outlined text-sm">edit</span>
+            <span>Sunting</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Load student records
+  await loadAdventureStudentRecords();
+}
+
+function openAdventureStationModal(stationId) {
+  const stn = adventureStationsCache.find(s => s.id === stationId);
+  if (!stn) return;
+
+  document.getElementById('modal-adv-stn-header').textContent = `Sunting Stesen ${stn.station_number}: ${stn.title}`;
+  document.getElementById('adv-stn-id').value = stn.id;
+  document.getElementById('adv-stn-number').value = stn.station_number;
+  document.getElementById('adv-stn-title').value = stn.title || '';
+  document.getElementById('adv-stn-organelle').value = stn.organelle || '';
+  document.getElementById('adv-stn-color').value = stn.color || '#8b5cf6';
+  document.getElementById('adv-stn-active').value = String(stn.is_active !== false);
+  document.getElementById('adv-stn-desc').value = stn.description || '';
+  document.getElementById('adv-stn-question').value = stn.question_text || '';
+  document.getElementById('adv-stn-opt-a').value = stn.option_a || '';
+  document.getElementById('adv-stn-opt-b').value = stn.option_b || '';
+  document.getElementById('adv-stn-opt-c').value = stn.option_c || '';
+  document.getElementById('adv-stn-opt-d').value = stn.option_d || '';
+  document.getElementById('adv-stn-correct').value = stn.correct_option || 'A';
+  document.getElementById('adv-stn-explanation').value = stn.explanation || '';
+
+  const modal = document.getElementById('modal-adventure-station');
+  if (modal) modal.showModal();
+}
+
+async function handleSaveAdventureStation(event) {
+  event.preventDefault();
+  const id = document.getElementById('adv-stn-id').value;
+  const station_number = parseInt(document.getElementById('adv-stn-number').value, 10);
+  const title = document.getElementById('adv-stn-title').value.trim();
+  const organelle = document.getElementById('adv-stn-organelle').value.trim();
+  const color = document.getElementById('adv-stn-color').value;
+  const is_active = document.getElementById('adv-stn-active').value === 'true';
+  const description = document.getElementById('adv-stn-desc').value.trim();
+  const question_text = document.getElementById('adv-stn-question').value.trim();
+  const option_a = document.getElementById('adv-stn-opt-a').value.trim();
+  const option_b = document.getElementById('adv-stn-opt-b').value.trim();
+  const option_c = document.getElementById('adv-stn-opt-c').value.trim();
+  const option_d = document.getElementById('adv-stn-opt-d').value.trim();
+  const correct_option = document.getElementById('adv-stn-correct').value;
+  const explanation = document.getElementById('adv-stn-explanation').value.trim();
+
+  const record = {
+    id,
+    station_number,
+    title,
+    organelle,
+    color,
+    is_active,
+    description,
+    question_text,
+    option_a,
+    option_b,
+    option_c,
+    option_d,
+    correct_option,
+    explanation,
+    updated_at: new Date().toISOString()
+  };
+
+  // 1. Save to Supabase
+  let savedToRemote = false;
+  if (window.ARSupabase && window.ARSupabase.client) {
+    try {
+      const { error } = await window.ARSupabase.client
+        .from('cellquest_adventure_config')
+        .upsert(record, { onConflict: 'id' });
+      if (!error) savedToRemote = true;
+      else console.warn('Supabase station upsert notice:', error);
+    } catch (e) {
+      console.warn('Supabase save error:', e);
+    }
+  }
+
+  // 2. Save to local storage cache
+  const idx = adventureStationsCache.findIndex(s => s.id === id);
+  if (idx >= 0) adventureStationsCache[idx] = record;
+  else adventureStationsCache.push(record);
+  localStorage.setItem('cellquest_adventure_cms_stations', JSON.stringify(adventureStationsCache));
+
+  document.getElementById('modal-adventure-station').close();
+  alert(savedToRemote ? '✅ Stesen berjaya dikemas kini dan disegerakkan ke Supabase!' : '✅ Stesen disimpan ke cache setempat!');
+  await renderAdventureManagementTab();
+}
+
+async function resetAdventureStationsToDefault() {
+  if (!confirm('Adakah anda pasti mahu memulihkan semua 8 stesen pembelajaran kepada tetapan asal kurikulum KSSM Tingkatan 1?')) return;
+
+  adventureStationsCache = JSON.parse(JSON.stringify(DEFAULT_ADVENTURE_STATIONS));
+  localStorage.setItem('cellquest_adventure_cms_stations', JSON.stringify(adventureStationsCache));
+
+  if (window.ARSupabase && window.ARSupabase.client) {
+    try {
+      await window.ARSupabase.client
+        .from('cellquest_adventure_config')
+        .upsert(adventureStationsCache, { onConflict: 'id' });
+    } catch (_) {}
+  }
+
+  alert('✅ Semua 8 stesen pembelajaran telah dipulihkan kepada tetapan asal KSSM.');
+  await renderAdventureManagementTab();
+}
+
+async function loadAdventureStudentRecords() {
+  const tbody = document.getElementById('cq-adv-records-tbody');
+  if (!tbody) return;
+
+  let records = [];
+  if (window.ARSupabase && window.ARSupabase.client) {
+    try {
+      const { data, error } = await window.ARSupabase.client
+        .from('quiz_attempts')
+        .select(`
+          id, user_id, score, correct_answers, total_questions, duration_seconds, submitted_at,
+          profiles ( id, name, nickname, grade )
+        `)
+        .eq('quiz_id', 'cellquest-ar-adventure')
+        .order('submitted_at', { ascending: false })
+        .limit(30);
+
+      if (!error && Array.isArray(data)) records = data;
+    } catch (e) {
+      console.warn('Failed to load remote adventure attempts:', e);
+    }
+  }
+
+  // Fallback to local storage submissions if empty
+  if (records.length === 0) {
+    const local = JSON.parse(localStorage.getItem('cellquest_adventure_records') || '[]');
+    records = local;
+  }
+
+  const statAttempts = document.getElementById('cq-adv-stat-attempts');
+  if (statAttempts) statAttempts.textContent = `${records.length} Rekod`;
+
+  if (records.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="py-8 text-center text-slate-400">
+          <span class="material-symbols-outlined text-3xl mb-1 text-slate-300 block">sports_esports</span>
+          Belum ada rekod murid menyelesaikan Misi Jelajah Dunia Sel.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  // Calculate Average Score
+  let totalScore = 0;
+  records.forEach(r => { totalScore += Number(r.score || 0); });
+  const avg = Math.round(totalScore / records.length);
+  const statAvg = document.getElementById('cq-adv-stat-avg');
+  if (statAvg) statAvg.textContent = `${avg} Mata`;
+
+  tbody.innerHTML = records.map(r => {
+    const p = r.profiles || {};
+    const name = p.name || p.nickname || 'Murid ARSelNel';
+    const grade = p.grade || 'Tingkatan 1';
+    const score = r.score != null ? r.score : 0;
+    const badges = (r.correct_answers != null ? r.correct_answers : 8) + '/8';
+    const duration = r.duration_seconds != null ? `${Math.floor(r.duration_seconds / 60)}m ${r.duration_seconds % 60}s` : '-';
+    const date = r.submitted_at || r.completedAt ? new Date(r.submitted_at || r.completedAt).toLocaleDateString('ms-MY', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    }) : '-';
+    const isCompleted = (r.correct_answers || 8) >= 8;
+
+    return `
+      <tr class="hover:bg-slate-50/80 transition">
+        <td class="py-3 px-4 font-bold text-slate-800">${escapeHtml(name)}</td>
+        <td class="py-3 px-4 text-slate-500">${escapeHtml(grade)}</td>
+        <td class="py-3 px-4 font-bold text-purple-700">🎖️ ${badges}</td>
+        <td class="py-3 px-4 font-extrabold text-amber-600">${score} Mata</td>
+        <td class="py-3 px-4 text-slate-500">${duration}</td>
+        <td class="py-3 px-4 text-slate-400">${date}</td>
+        <td class="py-3 px-4">
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isCompleted ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}">
+            ${isCompleted ? 'Pakar Sel Muda' : 'Sedang Jelajah'}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Expose Adventure CMS functions
+window.renderAdventureManagementTab = renderAdventureManagementTab;
+window.openAdventureStationModal = openAdventureStationModal;
+window.handleSaveAdventureStation = handleSaveAdventureStation;
+window.resetAdventureStationsToDefault = resetAdventureStationsToDefault;
+window.loadAdventureStudentRecords = loadAdventureStudentRecords;
+

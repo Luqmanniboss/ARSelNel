@@ -1,0 +1,1060 @@
+/* ==============================================================================
+   CellQuest AR Adventure — Misi Jelajah Dunia Sel
+   CSS Stylesheet: Makmal Eksplorasi Sel ARSelNel
+   ============================================================================== */
+
+:root {
+  --cq-teal: #0d9488;
+  --cq-teal-dark: #0f766e;
+  --cq-mint: #2dd4bf;
+  --cq-bg: #091319;
+  --cq-panel: rgba(15, 23, 42, 0.88);
+  --cq-border: rgba(255, 255, 255, 0.15);
+  --cq-accent: #f59e0b;
+  --cq-green: #10b981;
+  --cq-red: #ef4444;
+  --cq-font: 'Nunito', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--cq-font);
+  background-color: var(--cq-bg);
+  color: #f1f5f9;
+}
+
+#canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+#canvas-container canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ==============================================================================
+   HUD (HEADS-UP DISPLAY)
+   ============================================================================== */
+
+.cq-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(6, 25, 33, 0.85) 0%, rgba(6, 25, 33, 0.4) 70%, transparent 100%);
+  backdrop-filter: blur(8px);
+}
+
+.cq-hud > * {
+  pointer-events: auto;
+}
+
+.cq-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cq-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.cq-back-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.cq-title-badge {
+  display: flex;
+  flex-direction: column;
+}
+
+.cq-title-badge h1 {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.3px;
+  background: linear-gradient(135deg, #fff 0%, #a7f3d0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cq-title-badge span {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.cq-hud-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cq-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.cq-stat-pill .icon {
+  font-size: 18px;
+}
+
+.cq-stat-pill.badge-pill {
+  border-color: #8b5cf6;
+  color: #c4b5fd;
+}
+
+.cq-stat-pill.score-pill {
+  border-color: #eab308;
+  color: #fde047;
+}
+
+.cq-stat-pill.time-pill {
+  border-color: #38bdf8;
+  color: #7dd3fc;
+}
+
+.cq-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cq-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+/* Badge Tracker Strip on top */
+.cq-badge-strip {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  z-index: 15;
+  pointer-events: none;
+}
+
+.cq-mini-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.cq-mini-badge.completed {
+  color: #fff;
+  background: #10b981;
+  border-color: #34d399;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+  transform: scale(1.1);
+}
+
+/* ==============================================================================
+   PROXIMITY INTERACTION BANNER
+   ============================================================================== */
+
+.cq-prompt-container {
+  position: absolute;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0;
+  transform: translate(-50%, 20px) scale(0.9);
+}
+
+.cq-prompt-container.active {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  pointer-events: auto;
+}
+
+.cq-prompt-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px 10px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 2px solid var(--station-color, #2dd4bf);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 20px var(--station-glow, rgba(45, 212, 191, 0.5));
+  backdrop-filter: blur(12px);
+  animation: promptPulse 2s infinite ease-in-out;
+}
+
+@keyframes promptPulse {
+  0%, 100% { box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 15px var(--station-glow, rgba(45, 212, 191, 0.4)); }
+  50% { box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 25px var(--station-glow, rgba(45, 212, 191, 0.8)); }
+}
+
+.cq-prompt-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--station-color, #2dd4bf);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  box-shadow: 0 0 12px var(--station-glow, rgba(45, 212, 191, 0.6));
+}
+
+.cq-prompt-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cq-prompt-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.cq-prompt-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.cq-prompt-btn {
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--station-color, #2dd4bf) 0%, #0d9488 100%);
+  border: none;
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.cq-prompt-btn:hover {
+  transform: scale(1.06);
+  filter: brightness(1.15);
+}
+
+.cq-prompt-key {
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+/* ==============================================================================
+   MOBILE VIRTUAL CONTROLS (D-PAD & TOUCH ROTATION)
+   ============================================================================== */
+
+.cq-mobile-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 20;
+  display: none;
+  pointer-events: auto;
+}
+
+/* Virtual D-pad (as seen in TikTok screenshots) */
+.cq-dpad {
+  width: 130px;
+  height: 130px;
+  position: relative;
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 28px;
+  border: 2px solid rgba(250, 204, 21, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.cq-dpad-btn {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #facc15;
+  color: #000;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.cq-dpad-btn:active {
+  transform: scale(0.9);
+  background: #eab308;
+}
+
+.cq-dpad-up    { top: 6px; left: 44px; }
+.cq-dpad-down  { bottom: 6px; left: 44px; }
+.cq-dpad-left  { top: 44px; left: 6px; }
+.cq-dpad-right { top: 44px; right: 6px; }
+.cq-dpad-center {
+  top: 44px;
+  left: 44px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(250, 204, 21, 0.25);
+  pointer-events: none;
+}
+
+/* Right Touch Drag Instruction (Mobile) */
+.cq-touch-look-zone {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* Reticle / Crosshair in Center (First-Person Look) */
+.cq-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  z-index: 12;
+  transition: all 0.2s ease;
+}
+
+.cq-crosshair-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.cq-crosshair.focus .cq-crosshair-ring {
+  border-color: #facc15;
+  transform: scale(1.25);
+  box-shadow: 0 0 16px #facc15;
+}
+
+/* ==============================================================================
+   MODALS & DIALOGS
+   ============================================================================== */
+
+.cq-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.cq-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cq-modal {
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 28px;
+  background: #0f1c24;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(13, 148, 136, 0.25);
+  padding: 28px;
+  color: #f1f5f9;
+  position: relative;
+  transform: scale(0.92);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cq-modal-backdrop.open .cq-modal {
+  transform: scale(1);
+}
+
+.cq-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.cq-modal-close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Station Modal Styling */
+.cq-station-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.cq-station-header {
+  margin-bottom: 18px;
+}
+
+.cq-station-header h2 {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+.cq-station-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px 18px;
+  border-radius: 18px;
+  border-left: 4px solid var(--current-color, #2dd4bf);
+  margin-bottom: 22px;
+}
+
+/* Quiz Box */
+.cq-quiz-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.cq-quiz-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  color: #facc15;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cq-quiz-question {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+.cq-quiz-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.cq-quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-quiz-opt:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateX(4px);
+}
+
+.cq-opt-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.cq-quiz-opt.correct {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
+  color: #a7f3d0 !important;
+}
+
+.cq-quiz-opt.correct .cq-opt-letter {
+  background: #10b981;
+  color: #fff;
+}
+
+.cq-quiz-opt.incorrect {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+
+.cq-quiz-opt.incorrect .cq-opt-letter {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Feedback Box */
+.cq-feedback-box {
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.cq-feedback-box.correct {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #d1fae5;
+}
+
+.cq-feedback-box.incorrect {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fee2e2;
+}
+
+.cq-feedback-badge-reward {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-weight: 800;
+  color: #facc15;
+}
+
+.cq-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.cq-btn-primary {
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s ease;
+}
+
+.cq-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.cq-btn-secondary {
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==============================================================================
+   MODE SELECTOR DIALOG (MOD JELAJAH 3D vs MOD AR SPASIAL)
+   ============================================================================== */
+
+.cq-mode-dialog {
+  max-width: 640px;
+}
+
+.cq-mode-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 22px 0;
+}
+
+.cq-mode-card {
+  padding: 22px 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cq-mode-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #2dd4bf;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(45, 212, 191, 0.2);
+}
+
+.cq-mode-card.featured {
+  border-color: #2dd4bf;
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%);
+}
+
+.cq-mode-icon {
+  font-size: 44px;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+.cq-mode-card h3 {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.cq-mode-card p {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.cq-mode-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(45, 212, 191, 0.2);
+  color: #5eead4;
+  border: 1px solid rgba(45, 212, 191, 0.4);
+}
+
+.cq-mode-tag.ar-tag {
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+/* ==============================================================================
+   HOW TO PLAY DIALOG (CARA BERMAIN - TikTok Style)
+   ============================================================================== */
+
+.cq-howto-card {
+  max-width: 520px;
+  text-align: center;
+}
+
+.cq-howto-gamepad {
+  font-size: 52px;
+  margin-bottom: 6px;
+  display: inline-block;
+}
+
+.cq-howto-list {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 20px;
+  border-radius: 20px;
+  margin: 20px 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cq-howto-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+
+.cq-howto-num {
+  font-weight: 900;
+  color: #facc15;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+/* ==============================================================================
+   VICTORY CERTIFICATE & CELEBRATION
+   ============================================================================== */
+
+.cq-victory-card {
+  max-width: 620px;
+  text-align: center;
+}
+
+.cq-cert-container {
+  background: linear-gradient(135deg, #092c35 0%, #061c24 100%);
+  border: 3px double #facc15;
+  border-radius: 24px;
+  padding: 28px 24px;
+  margin: 20px 0;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(250, 204, 21, 0.15);
+}
+
+.cq-cert-ribbon {
+  font-size: 56px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.cq-cert-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.cq-cert-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.cq-cert-name {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  border-bottom: 2px dashed rgba(250, 204, 21, 0.5);
+  padding-bottom: 6px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.cq-cert-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.cq-cert-stat-box {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 10px;
+  border-radius: 14px;
+}
+
+.cq-cert-stat-box span {
+  font-size: 11px;
+  color: #94a3b8;
+  display: block;
+}
+
+.cq-cert-stat-box strong {
+  font-size: 18px;
+  color: #facc15;
+  font-weight: 900;
+}
+
+.cq-cert-footer {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+}
+
+/* ==============================================================================
+   LOADING SCREEN
+   ============================================================================== */
+
+.cq-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #06141a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  transition: opacity 0.5s ease;
+}
+
+.cq-loading-screen.done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cq-spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid rgba(45, 212, 191, 0.2);
+  border-top-color: #2dd4bf;
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.cq-loading-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+/* ==============================================================================
+   WEBXR AR OVERLAY
+   ============================================================================== */
+
+.cq-ar-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.cq-ar-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.cq-ar-status-badge {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #a855f7;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #d8b4fe;
+}
+
+.cq-ar-bottombar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+.cq-ar-place-btn {
+  padding: 14px 28px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.5);
+  animation: pulseBtn 1.5s infinite;
+}
+
+@keyframes pulseBtn {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.cq-ar-tools {
+  display: flex;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cq-ar-tool-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ==============================================================================
+   RESPONSIVE DESIGN (DESKTOP vs MOBILE)
+   ============================================================================== */
+
+@media (max-width: 768px) {
+  .cq-hud {
+    padding: 8px 12px;
+  }
+  .cq-title-badge h1 {
+    font-size: 13px;
+  }
+  .cq-title-badge span {
+    display: none;
+  }
+  .cq-stat-pill {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .cq-badge-strip {
+    top: 58px;
+    gap: 4px;
+    padding: 4px 8px;
+  }
+  .cq-mini-badge {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+  .cq-mobile-controls {
+    display: block;
+  }
+  .cq-mode-cards {
+    grid-template-columns: 1fr;
+  }
+  .cq-modal {
+    padding: 20px;
+    border-radius: 22px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

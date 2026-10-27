@@ -853,6 +853,10 @@
             <span class="material-symbols-outlined text-sm align-middle mr-1">ar_on_you</span>
             <span data-i18n="tab_ar">Tetapan AR (Realiti Terimbuh)</span>
           </button>
+          <button type="button" onclick="switchCellQuestTab('adventure')" id="cq-tab-adventure" class="cq-subtab px-4 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+            <span class="material-symbols-outlined text-sm align-middle mr-1">sports_esports</span>
+            <span>CellQuest AR Adventure (Misi 3D)</span>
+          </button>
         </div>
 
         <!-- Panel 1: Models & GLB Management -->
@@ -968,6 +972,100 @@
 
             <div class="p-4 rounded-2xl bg-teal-50 border border-teal-100 text-xs text-teal-900 leading-relaxed">
               <strong>Nota Keselamatan & Privasi:</strong> Konfigurasi enjin AR dan kod kebenaran kamera dikawal secara terpusat oleh kod sumber pembangun untuk memastikan pematuhan privasi peranti murid.
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 5: CellQuest AR Adventure Management -->
+        <div id="cq-panel-adventure" class="cq-panel hidden space-y-6">
+          <!-- Overview Banner -->
+          <div class="bg-gradient-to-r from-teal-900 to-teal-800 p-6 rounded-3xl text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-700/60 text-teal-200 text-xs font-bold mb-2">
+                <span class="material-symbols-outlined text-sm">sports_esports</span>
+                <span>Modul Baharu KSSM Tingkatan 1</span>
+              </div>
+              <h3 class="font-headline text-xl font-extrabold">CellQuest AR Adventure — Misi Jelajah Dunia Sel</h3>
+              <p class="text-xs text-teal-100/90 mt-1 max-width:650px">Urus kandungan 8 stesen pembelajaran, penerangan organel, soalan kuiz objektif 4 pilihan, maklum balas jawapan, dan semak rekod pencapaian murid.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <a href="../cellquest/adventure.html" target="_blank" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-headline font-bold text-xs shadow-md flex items-center gap-2 transition">
+                <span class="material-symbols-outlined text-lg">play_circle</span>
+                <span>Uji Permainan</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Quick Statistics -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs">
+              <span class="text-[11px] font-bold text-slate-400 uppercase">Jumlah Stesen</span>
+              <strong class="block text-xl font-headline font-extrabold text-slate-800 mt-1" id="cq-adv-stat-stations">8 Stesen</strong>
+            </div>
+            <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs">
+              <span class="text-[11px] font-bold text-slate-400 uppercase">Soalan Aktif</span>
+              <strong class="block text-xl font-headline font-extrabold text-emerald-600 mt-1" id="cq-adv-stat-questions">8 Soalan</strong>
+            </div>
+            <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs">
+              <span class="text-[11px] font-bold text-slate-400 uppercase">Penyelesaian Murid</span>
+              <strong class="block text-xl font-headline font-extrabold text-primary mt-1" id="cq-adv-stat-attempts">0 Rekod</strong>
+            </div>
+            <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs">
+              <span class="text-[11px] font-bold text-slate-400 uppercase">Purata Markah</span>
+              <strong class="block text-xl font-headline font-extrabold text-amber-600 mt-1" id="cq-adv-stat-avg">100%</strong>
+            </div>
+          </div>
+
+          <!-- Section: 8 Stesen Pembelajaran & Soalan Kuiz -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h4 class="font-headline font-extrabold text-base text-slate-900">Senarai 8 Stesen Pembelajaran & Cabaran Kuiz</h4>
+                <p class="text-xs text-slate-500">Klik butang "Sunting" pada mana-mana stesen untuk mengemas kini maklumat organel, soalan, atau penjelasan jawapan.</p>
+              </div>
+              <button type="button" onclick="resetAdventureStationsToDefault()" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 flex items-center gap-1.5 transition">
+                <span class="material-symbols-outlined text-sm">restart_alt</span>
+                <span>Pulihkan Asal KSSM</span>
+              </button>
+            </div>
+
+            <!-- Stations Grid Cards -->
+            <div id="cq-adventure-stations-grid" class="grid sm:grid-cols-2 gap-4">
+              <!-- Dynamically populated via renderAdventureManagementTab() -->
+            </div>
+          </div>
+
+          <!-- Section: Rekod Pencapaian Murid -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h4 class="font-headline font-extrabold text-base text-slate-900">Rekod Pencapaian & Lencana Murid (CellQuest AR Adventure)</h4>
+                <p class="text-xs text-slate-500">Senarai murid yang telah menyelesaikan misi jelajah makmal dan mengumpul lencana organel.</p>
+              </div>
+              <button type="button" onclick="loadAdventureStudentRecords()" class="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50" title="Muat Semula Rekod">
+                <span class="material-symbols-outlined text-sm">refresh</span>
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-[11px] font-bold uppercase text-slate-400">
+                  <tr>
+                    <th class="py-3 px-4 rounded-l-xl">Nama Murid</th>
+                    <th class="py-3 px-4">Kelas</th>
+                    <th class="py-3 px-4">Lencana</th>
+                    <th class="py-3 px-4">Markah</th>
+                    <th class="py-3 px-4">Masa</th>
+                    <th class="py-3 px-4">Tarikh</th>
+                    <th class="py-3 px-4 rounded-r-xl">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="cq-adv-records-tbody" class="divide-y divide-slate-100">
+                  <tr>
+                    <td colspan="7" class="py-6 text-center text-slate-400">Sedang memuatkan rekod pembelajaran murid...</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -2298,6 +2396,118 @@
         </button>
       </div>
     </div>
+  </dialog>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: SUNTSING STESEN & CABARAN KUIZ AR ADVENTURE       -->
+  <!-- ======================================================== -->
+  <dialog id="modal-adventure-station" class="w-[min(94vw,660px)] rounded-3xl p-0 shadow-2xl backdrop:bg-slate-900/60">
+    <form id="form-adventure-station" class="p-6 sm:p-8" onsubmit="handleSaveAdventureStation(event)">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div>
+          <h3 id="modal-adv-stn-header" class="font-headline font-extrabold text-xl text-slate-900">Sunting Stesen 1: Nukleus</h3>
+          <p class="text-xs text-slate-500">Kemaskini penerangan organel, soalan objektif 4 pilihan, dan penjelasan jawapan KSSM.</p>
+        </div>
+        <button type="button" onclick="document.getElementById('modal-adventure-station').close()" class="text-2xl text-slate-400 hover:text-slate-700">×</button>
+      </div>
+
+      <input type="hidden" id="adv-stn-id" value=""/>
+      <input type="hidden" id="adv-stn-number" value=""/>
+
+      <div class="space-y-4 my-5 max-h-[68vh] overflow-y-auto px-1 pr-2">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tajuk Stesen *</label>
+            <input type="text" id="adv-stn-title" required class="w-full rounded-xl border-slate-200 text-sm font-semibold"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Nama Organel / Struktur *</label>
+            <input type="text" id="adv-stn-organelle" required class="w-full rounded-xl border-slate-200 text-sm font-semibold"/>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Warna Papan & Neon Stesen</label>
+            <select id="adv-stn-color" class="w-full rounded-xl border-slate-200 text-sm font-semibold">
+              <option value="#8b5cf6">Ungu (#8b5cf6) - Nukleus</option>
+              <option value="#3b82f6">Biru (#3b82f6) - Membran Sel</option>
+              <option value="#eab308">Kuning (#eab308) - Sitoplasma</option>
+              <option value="#f97316">Jingga (#f97316) - Mitokondrion</option>
+              <option value="#22c55e">Hijau (#22c55e) - Kloroplas</option>
+              <option value="#92400e">Coklat (#92400e) - Dinding Sel</option>
+              <option value="#06b6d4">Biru Muda (#06b6d4) - Vakuol</option>
+              <option value="#ec4899">Merah Jambu (#ec4899) - Perbandingan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Status Stesen</label>
+            <select id="adv-stn-active" class="w-full rounded-xl border-slate-200 text-sm font-semibold">
+              <option value="true">Aktif (Boleh Diterokai Murid)</option>
+              <option value="false">Nyahaktif (Disembunyikan)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Penerangan Ringkas Organel *</label>
+          <textarea id="adv-stn-desc" rows="3" required class="w-full rounded-xl border-slate-200 text-sm leading-relaxed" placeholder="Penerangan biologi KSSM..."></textarea>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+          <span class="text-xs font-extrabold text-teal-800 uppercase tracking-wider block">Cabaran Kuiz Objektif Stesen</span>
+          
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Teks Soalan *</label>
+            <textarea id="adv-stn-question" rows="2" required class="w-full rounded-xl border-slate-200 text-sm" placeholder="Contoh: Apakah fungsi utama nukleus?"></textarea>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 mb-0.5">Pilihan A *</label>
+              <input type="text" id="adv-stn-opt-a" required class="w-full rounded-xl border-slate-200 text-xs"/>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 mb-0.5">Pilihan B *</label>
+              <input type="text" id="adv-stn-opt-b" required class="w-full rounded-xl border-slate-200 text-xs"/>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 mb-0.5">Pilihan C *</label>
+              <input type="text" id="adv-stn-opt-c" required class="w-full rounded-xl border-slate-200 text-xs"/>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 mb-0.5">Pilihan D *</label>
+              <input type="text" id="adv-stn-opt-d" required class="w-full rounded-xl border-slate-200 text-xs"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Jawapan Betul *</label>
+            <select id="adv-stn-correct" required class="w-full rounded-xl border-slate-200 text-sm font-bold bg-white">
+              <option value="A">Pilihan A</option>
+              <option value="B">Pilihan B</option>
+              <option value="C">Pilihan C</option>
+              <option value="D">Pilihan D</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Penerangan & Maklum Balas Jawapan *</label>
+            <textarea id="adv-stn-explanation" rows="2" required class="w-full rounded-xl border-slate-200 text-xs leading-relaxed" placeholder="Terangkan mengapa jawapan tersebut betul dan kenapa pilihan lain kurang tepat..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <button type="button" onclick="document.getElementById('modal-adventure-station').close()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+          Batal
+        </button>
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-teal-800 text-white font-headline font-bold text-xs shadow-md transition flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">save</span>
+          <span>Simpan Perubahan Stesen</span>
+        </button>
+      </div>
+    </form>
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
