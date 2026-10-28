@@ -576,6 +576,29 @@
     DOM.joystickThumb = document.getElementById('joystick-thumb');
     DOM.touchZone = document.getElementById('touch-look-zone');
     DOM.crosshair = document.getElementById('crosshair');
+
+    // Walkthrough HUD container
+    DOM.walkthroughHud = document.getElementById('cq-walkthrough-hud');
+
+    // New AR HUD, Drawer & Window Controls
+    DOM.arTopBar = document.getElementById('ar-topbar');
+    DOM.arBackBtn = document.getElementById('ar-back-btn');
+    DOM.arSoundBtn = document.getElementById('ar-sound-btn');
+    DOM.arSoundIcon = document.getElementById('ar-sound-icon');
+    DOM.arHelpBtn = document.getElementById('ar-help-btn');
+    DOM.arHudScore = document.getElementById('ar-hud-score');
+    DOM.arHudBadges = document.getElementById('ar-hud-badges');
+    DOM.arHudTimer = document.getElementById('ar-hud-timer');
+    DOM.arStationsToggle = document.getElementById('ar-stations-toggle');
+    DOM.arStnDoneCount = document.getElementById('ar-stn-done-count');
+    DOM.arRecenterBtn = document.getElementById('ar-recenter-btn');
+    DOM.arStationsDrawer = document.getElementById('ar-stations-drawer');
+    DOM.arDrawerCloseBtn = document.getElementById('ar-drawer-close-btn');
+    DOM.arDrawerList = document.getElementById('ar-drawer-list');
+    DOM.arCardMinimizeBtn = document.getElementById('ar-card-minimize-btn');
+    DOM.arCardMinIcon = document.getElementById('ar-card-min-icon');
+    DOM.arCardHeader = document.getElementById('ar-card-header');
+    DOM.arCardBody = document.getElementById('ar-card-body');
   }
 
   function loadUser() {
@@ -783,6 +806,9 @@
     buildPosters(labGroup);
 
     labEnvironmentGroup = labGroup;
+    if (walkthroughStationsGroup && walkthroughStationsGroup.parent !== labGroup) {
+      labGroup.add(walkthroughStationsGroup);
+    }
     scene.add(labGroup);
   }
 
@@ -1128,8 +1154,21 @@
   // 8 INTERACTIVE STATIONS CREATION
   // ==============================================================================
 
+  let walkthroughStationsGroup = null;
+
   function buildStations() {
     stationMeshes = [];
+
+    if (!walkthroughStationsGroup) {
+      walkthroughStationsGroup = new THREE.Group();
+      walkthroughStationsGroup.name = 'WalkthroughStationsGroup';
+      if (labEnvironmentGroup) {
+        labEnvironmentGroup.add(walkthroughStationsGroup);
+      } else {
+        scene.add(walkthroughStationsGroup);
+      }
+    }
+    walkthroughStationsGroup.clear();
 
     State.stations.forEach((stn, index) => {
       const stnGroup = new THREE.Group();
@@ -1198,7 +1237,7 @@
       halo.position.set(0, 0.02, 0.6);
       stnGroup.add(halo);
 
-      scene.add(stnGroup);
+      walkthroughStationsGroup.add(stnGroup);
 
       // Register animated elements
       animatedObjects.push({
@@ -1571,7 +1610,7 @@
     return group;
   }
 
-  // Create Brand Identity Text Plane for ARSelNel Center Monument
+  // Create Brand Identity Text Plaque for ARSelNel Center Monument (Front & Back non-mirrored)
   function createBrandTextPlane(title, subtitle, width, height) {
     const canvas = document.createElement('canvas');
     canvas.width = 512;
@@ -1579,7 +1618,7 @@
     const ctx = canvas.getContext('2d');
 
     // Rounded glowing glass panel
-    ctx.fillStyle = 'rgba(9, 23, 32, 0.88)';
+    ctx.fillStyle = 'rgba(9, 23, 32, 0.92)';
     ctx.beginPath();
     ctx.roundRect ? ctx.roundRect(6, 6, 500, 148, 20) : ctx.fillRect(6, 6, 500, 148);
     ctx.fill();
@@ -1596,17 +1635,28 @@
     ctx.textBaseline = 'middle';
     ctx.fillText(title, 256, 55);
 
-    // Subtitle: SCIENCE ADVENTURE
+    // Subtitle
     ctx.fillStyle = '#facc15';
     ctx.font = '800 24px Nunito, sans-serif';
     ctx.fillText(`★  ${subtitle}  ★`, 256, 115);
 
     const texture = new THREE.CanvasTexture(canvas);
-    const plane = new THREE.Mesh(
-      new THREE.PlaneGeometry(width, height),
-      new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true })
-    );
-    return plane;
+    const plaqueGroup = new THREE.Group();
+    const planeGeo = new THREE.PlaneGeometry(width, height);
+    const planeMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide, transparent: true });
+
+    // Front Face
+    const frontPlane = new THREE.Mesh(planeGeo, planeMat);
+    frontPlane.position.z = 0.01;
+    plaqueGroup.add(frontPlane);
+
+    // Back Face (Rotated 180° so text is never mirrored/backwards!)
+    const backPlane = new THREE.Mesh(planeGeo, planeMat);
+    backPlane.rotation.y = Math.PI;
+    backPlane.position.z = -0.01;
+    plaqueGroup.add(backPlane);
+
+    return plaqueGroup;
   }
 
   // Floating Badge Beacon on top of station
@@ -1932,26 +1982,35 @@
     if (DOM.downloadCertBtn) DOM.downloadCertBtn.addEventListener('click', printOrSaveCertificate);
 
     // 11. AR Interface & WebXR Buttons
+    if (DOM.arBackBtn) DOM.arBackBtn.addEventListener('click', () => selectMode('3d'));
     if (DOM.arExitBtn) DOM.arExitBtn.addEventListener('click', () => selectMode('3d'));
     if (DOM.arBtnAnimal) DOM.arBtnAnimal.addEventListener('click', () => switchARModel('animal'));
     if (DOM.arBtnPlant) DOM.arBtnPlant.addEventListener('click', () => switchARModel('plant'));
     if (DOM.arBtnMinilab) DOM.arBtnMinilab.addEventListener('click', () => switchARModel('minilab'));
+    if (DOM.arSoundBtn) DOM.arSoundBtn.addEventListener('click', toggleSound);
+    if (DOM.arHelpBtn) DOM.arHelpBtn.addEventListener('click', openHowToPlayDialog);
+    if (DOM.arStationsToggle) DOM.arStationsToggle.addEventListener('click', () => toggleStationsDrawer());
+    if (DOM.arDrawerCloseBtn) DOM.arDrawerCloseBtn.addEventListener('click', () => toggleStationsDrawer(false));
+    if (DOM.arRecenterBtn) DOM.arRecenterBtn.addEventListener('click', resetARView);
+    if (DOM.arResetViewBtn) DOM.arResetViewBtn.addEventListener('click', resetARView);
+    if (DOM.arCardMinimizeBtn) {
+      DOM.arCardMinimizeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleOrganelleCardMinimize();
+      });
+    }
+    if (DOM.arCardHeader) {
+      DOM.arCardHeader.addEventListener('click', (e) => {
+        if (e.target.closest('.cq-card-icon-btn')) return;
+        if (DOM.arOrganelleCard && DOM.arOrganelleCard.classList.contains('minimized')) {
+          toggleOrganelleCardMinimize(false);
+        }
+      });
+    }
     if (DOM.arAutorotateBtn) {
       DOM.arAutorotateBtn.addEventListener('click', () => {
         arState.autoRotate = !arState.autoRotate;
         alertToast(arState.autoRotate ? '🔄 Putaran Automatik Dihidupkan' : '⏸️ Putaran Automatik Dijeda');
-      });
-    }
-    if (DOM.arResetViewBtn) {
-      DOM.arResetViewBtn.addEventListener('click', () => {
-        if (arObjectGroup) {
-          arObjectGroup.rotation.set(0, 0, 0);
-          arObjectGroup.scale.set(1.0, 1.0, 1.0);
-          arObjectGroup.position.set(0, 0, 0);
-        }
-        camera.position.set(0, 0, 4.2);
-        camera.lookAt(0, 0, 0);
-        alertToast('⟳ Pandangan Model Ditetapkan Semula');
       });
     }
     if (DOM.arChangeModeBtn) {
@@ -1992,8 +2051,46 @@
       });
     }
 
+    // Stop pointer/touch propagation on all AR overlay cards & drawer so canvas doesn't receive drag/tap
+    const uiShields = [
+      DOM.arTopBar,
+      DOM.arStationsDrawer,
+      DOM.arOrganelleCard,
+      document.getElementById('ar-floating-bar')
+    ];
+    uiShields.forEach(el => {
+      if (!el) return;
+      ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click'].forEach(evt => {
+        el.addEventListener(evt, e => e.stopPropagation(), { passive: true });
+      });
+    });
+    if (DOM.arLargerBtn) {
+      DOM.arLargerBtn.addEventListener('click', () => {
+        if (arObjectGroup) {
+          arObjectGroup.scale.multiplyScalar(1.18);
+          alertToast('＋ Saiz Model Dibesarkan');
+        }
+      });
+    }
+    if (DOM.arRotateBtn) {
+      DOM.arRotateBtn.addEventListener('click', () => {
+        if (arObjectGroup) {
+          arObjectGroup.rotation.y += Math.PI / 4;
+        }
+      });
+    }
+    if (DOM.arRepositionBtn) {
+      DOM.arRepositionBtn.addEventListener('click', () => {
+        arState.isPlaced = false;
+        alertToast('🔄 Halakan kamera ke permukaan meja/lantai');
+      });
+    }
+
     // 12. Window Resize & Orientation Change
     window.addEventListener('resize', onWindowResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', onWindowResize);
+    }
     window.addEventListener('orientationchange', () => {
       setTimeout(onWindowResize, 200);
     });
@@ -2126,9 +2223,20 @@
 
   function onWindowResize() {
     if (!camera || !renderer) return;
-    camera.aspect = window.innerWidth / window.innerHeight;
+    const width = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(width, height);
+
+    // Auto-reframe active AR model on orientation change / resize so model stays centered
+    if ((State.mode === 'camera-ar' || State.mode === 'ar') && typeof frameARObject === 'function') {
+      let activeHolder = arMiniLabHolder;
+      if (arState && arState.activeModel === 'animal') activeHolder = arAnimalHolder;
+      else if (arState && arState.activeModel === 'plant') activeHolder = arPlantHolder;
+      if (activeHolder) frameARObject(activeHolder);
+    }
 
     if (previewRenderer && DOM.stnPreviewCanvas) {
       const rect = DOM.stnPreviewCanvas.getBoundingClientRect();
@@ -2683,17 +2791,6 @@
   // MODE SELECTION: MOD JELAJAH 3D, MOD KAMERA INTERAKTIF, MOD AR SPASIAL (WEBXR)
   // ==============================================================================
 
-  function openModeDialog() {
-    DOM.modeModal.classList.add('open');
-    if (DOM.arScaleChooser) {
-      DOM.arScaleChooser.style.display = 'block';
-    }
-  }
-
-  function closeModeDialog() {
-    DOM.modeModal.classList.remove('open');
-  }
-
   // ==============================================================================
   // MODE SELECTION: MOD 1 (JELAJAH 3D), MOD 2 (KAMERA AR), MOD 3 (AR SPASIAL WEBXR)
   // ==============================================================================
@@ -2735,12 +2832,18 @@
       renderer.setClearColor(0x0a161e, 1);
       renderer.xr.enabled = false;
 
-      // Show full room, hide AR objects
+      // Show full room & walkthrough stations, hide AR objects
       if (labEnvironmentGroup) labEnvironmentGroup.visible = true;
+      if (walkthroughStationsGroup) walkthroughStationsGroup.visible = true;
       if (arObjectGroup) arObjectGroup.visible = false;
 
       // Restore 3D walkthrough HUD items
+      if (DOM.walkthroughHud) DOM.walkthroughHud.style.display = 'flex';
+      if (DOM.badgeStrip) DOM.badgeStrip.style.display = 'flex';
       if (DOM.arOverlay) DOM.arOverlay.style.display = 'none';
+      if (DOM.arStationsDrawer) DOM.arStationsDrawer.classList.remove('open');
+      if (DOM.arOrganelleCard) DOM.arOrganelleCard.style.display = 'none';
+
       if (DOM.crosshair) DOM.crosshair.style.display = 'flex';
       if (DOM.touchZone) DOM.touchZone.style.display = 'block';
       if (DOM.virtualJoystick) DOM.virtualJoystick.style.display = 'block';
@@ -2819,36 +2922,40 @@
       renderer.setClearColor(0x000000, 0);
 
       // 2. Hide virtual 3D room walls, ceiling and floor so camera feed is completely unobstructed!
-      if (labEnvironmentGroup) {
-        labEnvironmentGroup.visible = false;
-      }
+      if (labEnvironmentGroup) labEnvironmentGroup.visible = false;
+      if (walkthroughStationsGroup) walkthroughStationsGroup.visible = false;
 
-      // 3. Hide walkthrough controls
+      // 3. Hide walkthrough HUD & controls
+      if (DOM.walkthroughHud) DOM.walkthroughHud.style.display = 'none';
+      if (DOM.badgeStrip) DOM.badgeStrip.style.display = 'none';
       if (DOM.crosshair) DOM.crosshair.style.display = 'none';
       if (DOM.touchZone) DOM.touchZone.style.display = 'none';
       if (DOM.virtualJoystick) DOM.virtualJoystick.style.display = 'none';
       if (DOM.promptContainer) DOM.promptContainer.classList.remove('active');
       if (DOM.mobileInteractBtn) DOM.mobileInteractBtn.classList.remove('visible');
 
-      // 4. Show AR HUD Overlay
+      // 4. Show AR HUD Overlay & update elements
       if (DOM.arOverlay) DOM.arOverlay.style.display = 'flex';
       if (DOM.arSpatialTools) DOM.arSpatialTools.style.display = 'none';
       if (DOM.arStatusBadge) {
         if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '📷';
-        if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod Kamera AR Interaktif';
+        if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod Kamera AR';
       }
+
+      // Sync stats & drawer
+      updateHUD();
+      renderARStationsDrawer();
 
       // 5. Show AR Object Group & position camera in front of it
       if (arObjectGroup) {
         arObjectGroup.visible = true;
         arObjectGroup.position.set(0, 0, 0);
+        arObjectGroup.rotation.set(0, 0, 0);
         arObjectGroup.scale.set(1.0, 1.0, 1.0);
       }
-      camera.position.set(0, 0, 4.2);
-      camera.lookAt(0, 0, 0);
 
-      // 6. Switch to active AR model
-      switchARModel(arState.activeModel || 'animal');
+      // 6. Switch to active AR model & frame it
+      switchARModel(arState.activeModel || 'minilab');
 
       // 7. Setup Device Orientation (Gyro) if available
       setupDeviceOrientation();
@@ -2857,7 +2964,7 @@
       if (DOM.hudModeText) DOM.hudModeText.textContent = 'Mod Kamera AR';
       if (DOM.gyroResetBtn) DOM.gyroResetBtn.style.display = 'flex';
 
-      alertToast('📷 Mod Kamera AR Aktif: Persekitaran sebenar dibuka! Seret untuk memutar sel.');
+      alertToast('📷 Mod Kamera AR Aktif: Persekitaran sebenar dibuka! Seret untuk memutar model.');
     } catch (err) {
       console.warn('Camera AR initialization error:', err);
       let errMsg = 'Kebenaran capaian kamera ditolak oleh pelayar atau peranti tidak mempunyai kamera aktif.';
@@ -2970,10 +3077,13 @@
       scene.fog = null;
       renderer.setClearColor(0x000000, 0);
 
-      // Hide 3D virtual room
+      // Hide 3D virtual room and walkthrough stations
       if (labEnvironmentGroup) labEnvironmentGroup.visible = false;
+      if (walkthroughStationsGroup) walkthroughStationsGroup.visible = false;
 
-      // Hide walkthrough controls
+      // Hide walkthrough HUD & controls
+      if (DOM.walkthroughHud) DOM.walkthroughHud.style.display = 'none';
+      if (DOM.badgeStrip) DOM.badgeStrip.style.display = 'none';
       if (DOM.crosshair) DOM.crosshair.style.display = 'none';
       if (DOM.touchZone) DOM.touchZone.style.display = 'none';
       if (DOM.virtualJoystick) DOM.virtualJoystick.style.display = 'none';
@@ -2985,6 +3095,10 @@
         if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '✨';
         if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod AR Spasial WebXR';
       }
+
+      // Sync stats & drawer
+      updateHUD();
+      renderARStationsDrawer();
 
       setupARReticle();
 
@@ -3100,14 +3214,149 @@
     setupARGestures();
   }
 
-  // Build the 8-station Tabletop Makmal Mini ARSelNel
+  // Helper: Create Glowing Station Number Badge for Mini Lab Pedestals (1 to 8)
+  function createStationNumberBadge(number, colorHex) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+
+    const hexColor = typeof colorHex === 'number'
+      ? '#' + colorHex.toString(16).padStart(6, '0')
+      : (colorHex || '#2dd4bf');
+
+    // Circular background
+    ctx.beginPath();
+    ctx.arc(64, 64, 56, 0, Math.PI * 2);
+    ctx.fillStyle = hexColor;
+    ctx.fill();
+
+    // Glowing border
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+
+    // Station number
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 68px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(number), 64, 67);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const badgeGeo = new THREE.CircleGeometry(0.12, 24);
+    const badgeMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true });
+    const badgeMesh = new THREE.Mesh(badgeGeo, badgeMat);
+    return badgeMesh;
+  }
+
+  // Helper: Miniature 3D Animal Cell for Makmal Mini Diorama
+  function buildMiniAnimalModel() {
+    const group = new THREE.Group();
+
+    // Outer membrane & cytoplasm with cutaway
+    const outerGeo = new THREE.SphereGeometry(0.24, 24, 18, 0, Math.PI * 1.5, 0, Math.PI);
+    const outerMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.5,
+      roughness: 0.2
+    });
+    const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+    group.add(outerMesh);
+
+    // Glowing Nucleus
+    const nucleus = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x8b5cf6, emissive: 0x6d28d9, emissiveIntensity: 0.7 })
+    );
+    nucleus.position.set(0.04, 0.04, 0.04);
+    group.add(nucleus);
+
+    // Folded Mitochondria (red pills)
+    const mitoMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.3 });
+    const m1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.06, 8), mitoMat);
+    m1.position.set(-0.09, -0.04, 0.08);
+    m1.rotation.z = 0.6;
+    group.add(m1);
+
+    const m2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.05, 8), mitoMat);
+    m2.position.set(0.09, -0.08, 0.04);
+    m2.rotation.x = 0.8;
+    group.add(m2);
+
+    // Floating Pill Label: "Sel Haiwan"
+    const labelMesh = createTextPlane('🐾 Sel Haiwan', '#38bdf8', 0.65, 0.2);
+    labelMesh.position.set(0, 0.32, 0);
+    group.add(labelMesh);
+
+    return group;
+  }
+
+  // Helper: Miniature 3D Plant Cell for Makmal Mini Diorama
+  function buildMiniPlantModel() {
+    const group = new THREE.Group();
+
+    // Rigid Hexagonal/Prismatic Plant Cell Wall
+    const wallGeo = new THREE.BoxGeometry(0.42, 0.32, 0.3);
+    const wallEdges = new THREE.EdgesGeometry(wallGeo);
+    const wallLine = new THREE.LineSegments(
+      wallEdges,
+      new THREE.LineBasicMaterial({ color: 0x4ade80, linewidth: 2 })
+    );
+    group.add(wallLine);
+
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: 0x14532d,
+      transparent: true,
+      opacity: 0.35,
+      roughness: 0.3
+    });
+    const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+    group.add(wallMesh);
+
+    // Large Blue Central Vacuole
+    const vacuole = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.2, 0.16),
+      new THREE.MeshStandardMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.65 })
+    );
+    vacuole.position.set(-0.04, 0, 0);
+    group.add(vacuole);
+
+    // Green Chloroplast discs
+    const chloroMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.2 });
+    for (let i = 0; i < 3; i++) {
+      const c = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.02, 8), chloroMat);
+      const angle = (i * Math.PI * 2) / 3;
+      c.position.set(Math.cos(angle) * 0.12, 0.06, Math.sin(angle) * 0.09);
+      group.add(c);
+    }
+
+    // Nucleus pushed to the side
+    const nucleus = new THREE.Mesh(
+      new THREE.SphereGeometry(0.06, 12, 12),
+      new THREE.MeshStandardMaterial({ color: 0x8b5cf6, emissive: 0x5b21b6, emissiveIntensity: 0.6 })
+    );
+    nucleus.position.set(0.12, 0.04, 0.05);
+    group.add(nucleus);
+
+    // Floating Pill Label: "Sel Tumbuhan"
+    const labelMesh = createTextPlane('🌿 Sel Tumbuhan', '#4ade80', 0.68, 0.2);
+    labelMesh.position.set(0, 0.32, 0);
+    group.add(labelMesh);
+
+    return group;
+  }
+
+  // Build the 8-station Tabletop Makmal Mini ARSelNel Diorama
   function buildMiniLabGroup() {
     const miniLab = new THREE.Group();
+    miniLab.name = 'MiniLabDiorama';
 
     // 1. Sleek Tabletop Circular/Octagonal Pedestal
-    const baseGeo = new THREE.CylinderGeometry(1.85, 2.05, 0.2, 16);
+    const baseGeo = new THREE.CylinderGeometry(1.6, 1.76, 0.2, 24);
     const baseMat = new THREE.MeshStandardMaterial({
-      color: 0x0f2029,
+      color: 0x0c1921,
       roughness: 0.3,
       metalness: 0.4
     });
@@ -3116,17 +3365,25 @@
     baseMesh.receiveShadow = true;
     miniLab.add(baseMesh);
 
-    // Glowing Neon Rim
-    const rimGeo = new THREE.TorusGeometry(1.9, 0.035, 8, 36);
+    // Glowing Neon Turquoise Outer Rim
+    const rimGeo = new THREE.TorusGeometry(1.65, 0.03, 8, 48);
     const rimMat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf });
     const rim = new THREE.Mesh(rimGeo, rimMat);
     rim.rotation.x = Math.PI / 2;
-    rim.position.y = 0.01;
+    rim.position.y = 0.005;
     miniLab.add(rim);
 
-    // Subtle Hexagonal grid on tabletop
-    const miniGrid = new THREE.GridHelper(3.5, 12, 0x2dd4bf, 0x133e4d);
-    miniGrid.position.y = 0.015;
+    // Inner Concentric Cyan Accent Ring
+    const innerRimGeo = new THREE.TorusGeometry(0.95, 0.018, 8, 36);
+    const innerRimMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const innerRim = new THREE.Mesh(innerRimGeo, innerRimMat);
+    innerRim.rotation.x = Math.PI / 2;
+    innerRim.position.y = 0.008;
+    miniLab.add(innerRim);
+
+    // Futuristic Hexagonal grid on tabletop
+    const miniGrid = new THREE.GridHelper(3.0, 10, 0x2dd4bf, 0x133e4d);
+    miniGrid.position.y = 0.01;
     miniLab.add(miniGrid);
 
     // 2. Central ARSelNel Holographic Monument
@@ -3135,7 +3392,7 @@
 
     // Extruded hexagonal border
     const hexShape = new THREE.Shape();
-    const hexR = 0.55;
+    const hexR = 0.48;
     for (let i = 0; i < 6; i++) {
       const a = (i * Math.PI) / 3 - Math.PI / 6;
       const x = Math.cos(a) * hexR;
@@ -3145,52 +3402,91 @@
     }
     hexShape.closePath();
 
-    const hexGeo = new THREE.ExtrudeGeometry(hexShape, { depth: 0.08, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02 });
+    const hexGeo = new THREE.ExtrudeGeometry(hexShape, { depth: 0.06, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02 });
     hexGeo.center();
     const hexMesh = new THREE.Mesh(hexGeo, new THREE.MeshStandardMaterial({ color: 0x008080, metalness: 0.7, roughness: 0.2 }));
     centerEmblem.add(hexMesh);
 
     // Central glowing nucleus core
     const coreSphere = new THREE.Mesh(
-      new THREE.SphereGeometry(0.16, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0x002020, emissive: 0x2dd4bf, emissiveIntensity: 0.9 })
+      new THREE.SphereGeometry(0.14, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x002020, emissive: 0x2dd4bf, emissiveIntensity: 0.95 })
     );
-    coreSphere.position.set(0, 0, 0.06);
+    coreSphere.position.set(0, 0, 0.05);
     centerEmblem.add(coreSphere);
 
     // Orbiting Gimbal Rings
     const ring1 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.72, 0.018, 8, 32),
+      new THREE.TorusGeometry(0.62, 0.016, 8, 32),
       new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
     );
     ring1.rotation.x = Math.PI / 3;
     centerEmblem.add(ring1);
 
     const ring2 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.65, 0.018, 8, 32),
+      new THREE.TorusGeometry(0.56, 0.016, 8, 32),
       new THREE.MeshBasicMaterial({ color: 0x2dd4bf })
     );
     ring2.rotation.y = Math.PI / 3;
     centerEmblem.add(ring2);
 
-    // Brand Plaque
-    const brandPlaque = createBrandTextPlane('ARSelNel', 'MINI LAB AR', 1.5, 0.45);
-    brandPlaque.position.set(0, 0.75, 0);
+    // Two-sided non-mirrored brand plaque
+    const brandPlaque = createBrandTextPlane('ARSelNel', 'MAKMAL MINI SAINS', 1.35, 0.42);
+    brandPlaque.position.set(0, 0.68, 0);
     centerEmblem.add(brandPlaque);
 
     miniLab.add(centerEmblem);
 
-    animatedObjects.push({
-      update(t) {
-        ring1.rotation.z = t * 0.7;
-        ring2.rotation.x = -t * 0.6;
-        centerEmblem.rotation.y = t * 0.4;
-      }
-    });
+    // 3. Miniature Sel Haiwan & Sel Tumbuhan on the platform
+    const miniAnimal = buildMiniAnimalModel();
+    miniAnimal.position.set(-0.62, 0.20, 0);
+    miniAnimal.userData = {
+      isMiniAnimal: true,
+      organelleId: 'nucleus',
+      pickable: true
+    };
+    miniLab.add(miniAnimal);
 
-    // 3. 8 Orbital Mini Learning Stations
+    // Pickable collider for mini animal cell
+    const animalCollider = new THREE.Mesh(
+      new THREE.SphereGeometry(0.3, 12, 12),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+    );
+    animalCollider.position.set(-0.62, 0.20, 0);
+    animalCollider.userData = {
+      isMiniAnimal: true,
+      organelleId: 'nucleus',
+      pickable: true
+    };
+    miniLab.add(animalCollider);
+    arPickableObjects.push(animalCollider);
+
+    const miniPlant = buildMiniPlantModel();
+    miniPlant.position.set(0.62, 0.20, 0);
+    miniPlant.userData = {
+      isMiniPlant: true,
+      organelleId: 'chloroplast',
+      pickable: true
+    };
+    miniLab.add(miniPlant);
+
+    // Pickable collider for mini plant cell
+    const plantCollider = new THREE.Mesh(
+      new THREE.BoxGeometry(0.46, 0.36, 0.34),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+    );
+    plantCollider.position.set(0.62, 0.20, 0);
+    plantCollider.userData = {
+      isMiniPlant: true,
+      organelleId: 'chloroplast',
+      pickable: true
+    };
+    miniLab.add(plantCollider);
+    arPickableObjects.push(plantCollider);
+
+    // 4. 8 Orbital Mini Learning Stations (numbered 1 to 8 around perimeter)
     const stationMeshesMini = [];
-    const radius = 1.32;
+    const radius = 1.25;
 
     State.stations.forEach((stn, i) => {
       const angle = (i / 8) * Math.PI * 2;
@@ -3198,45 +3494,59 @@
       const sz = Math.sin(angle) * radius;
 
       const miniStnGroup = new THREE.Group();
-      miniStnGroup.position.set(sx, 0.02, sz);
+      miniStnGroup.position.set(sx, 0.01, sz);
 
       // Station mini pedestal
-      const pedGeo = new THREE.CylinderGeometry(0.22, 0.26, 0.2, 16);
+      const pedGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.16, 16);
       const pedMat = new THREE.MeshStandardMaterial({ color: 0x11232e, roughness: 0.4 });
       const pedMesh = new THREE.Mesh(pedGeo, pedMat);
-      pedMesh.position.y = 0.1;
+      pedMesh.position.y = 0.08;
       miniStnGroup.add(pedMesh);
 
       // Glowing trim matching station color
-      const trimGeo = new THREE.TorusGeometry(0.23, 0.015, 8, 20);
+      const trimGeo = new THREE.TorusGeometry(0.19, 0.014, 8, 20);
       const trimMat = new THREE.MeshBasicMaterial({ color: stn.colorHex });
       const miniTrim = new THREE.Mesh(trimGeo, trimMat);
       miniTrim.rotation.x = Math.PI / 2;
-      miniTrim.position.y = 0.2;
+      miniTrim.position.y = 0.16;
       miniStnGroup.add(miniTrim);
+
+      // Distinct Glowing Station Number Badge (1 to 8) tilted at 45°
+      const numBadge = createStationNumberBadge(stn.number, stn.colorHex);
+      numBadge.position.set(0, 0.17, 0.14);
+      numBadge.rotation.x = -Math.PI / 4;
+      numBadge.rotation.y = angle;
+      miniStnGroup.add(numBadge);
 
       // Mini Stylized Organelle Model
       const organelleMini = buildStylizedOrganelle(stn.number, stn.colorHex);
-      organelleMini.scale.set(0.42, 0.42, 0.42);
-      organelleMini.position.set(0, 0.38, 0);
+      organelleMini.scale.set(0.34, 0.34, 0.34);
+      organelleMini.position.set(0, 0.32, 0);
       miniStnGroup.add(organelleMini);
 
       // Floating Mini Beacon (? or ✓)
       const beaconMini = createBeaconMesh(stn.colorHex);
-      beaconMini.scale.set(0.38, 0.38, 0.38);
-      beaconMini.position.set(0, 0.72, 0);
+      beaconMini.scale.set(0.32, 0.32, 0.32);
+      beaconMini.position.set(0, 0.62, 0);
       miniStnGroup.add(beaconMini);
 
+      // Floating Selection Label (Hidden initially, appears on select)
+      const labelMesh = createTextPlane(`Stesen ${stn.number}: ${stn.title}`, stn.color || '#2dd4bf', 1.0, 0.24);
+      labelMesh.position.set(0, 0.82, 0);
+      labelMesh.visible = false;
+      miniStnGroup.add(labelMesh);
+
       // Pickable collider mesh covering the station for raycasting
-      const clickGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.85, 12);
+      const clickGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.8, 12);
       const clickMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false });
       const clickMesh = new THREE.Mesh(clickGeo, clickMat);
-      clickMesh.position.y = 0.42;
+      clickMesh.position.y = 0.38;
       clickMesh.userData = {
         isMiniStation: true,
         stationNumber: stn.number,
         stationIndex: i,
-        organelleId: stn.id
+        organelleId: stn.id,
+        pickable: true
       };
       miniStnGroup.add(clickMesh);
       arPickableObjects.push(clickMesh);
@@ -3247,14 +3557,34 @@
         update(t) {
           organelleMini.rotation.y = t * 1.1 + i;
           beaconMini.rotation.y = t * 1.4;
+          // Keep selection label facing viewer camera
+          if (labelMesh.visible && camera) {
+            labelMesh.quaternion.copy(camera.quaternion);
+          }
         }
       });
 
       stationMeshesMini.push({
         stationNumber: stn.number,
         group: miniStnGroup,
-        beacon: beaconMini
+        beacon: beaconMini,
+        label: labelMesh
       });
+    });
+
+    // 5. Soft Turquoise/Emerald Localized Lighting
+    const miniLight = new THREE.PointLight(0x2dd4bf, 0.85, 5);
+    miniLight.position.set(0, 1.2, 0);
+    miniLab.add(miniLight);
+
+    animatedObjects.push({
+      update(t) {
+        ring1.rotation.z = t * 0.7;
+        ring2.rotation.x = -t * 0.6;
+        centerEmblem.rotation.y = t * 0.35;
+        miniAnimal.rotation.y = t * 0.4;
+        miniPlant.rotation.y = -t * 0.4;
+      }
     });
 
     miniLab.userData = { stationMeshesMini };
@@ -3603,6 +3933,10 @@
     holder.add(plantGroup);
   }
 
+  // ==============================================================================
+  // AR MODEL SWITCHING, CAMERA FRAMING & STATIONS DRAWER
+  // ==============================================================================
+
   // Switch between Animal Cell, Plant Cell and Makmal Mini
   function switchARModel(modelType) {
     arState.activeModel = modelType;
@@ -3617,17 +3951,30 @@
 
     // Rebuild pickable objects array for active model
     arPickableObjects = [];
+    let activeHolder = null;
     if (modelType === 'animal' && arAnimalHolder) {
+      activeHolder = arAnimalHolder;
       arAnimalHolder.traverse(n => { if (n.userData && n.userData.pickable) arPickableObjects.push(n); });
     } else if (modelType === 'plant' && arPlantHolder) {
+      activeHolder = arPlantHolder;
       arPlantHolder.traverse(n => { if (n.userData && n.userData.pickable) arPickableObjects.push(n); });
     } else if (modelType === 'minilab' && arMiniLabHolder) {
+      activeHolder = arMiniLabHolder;
       arMiniLabHolder.traverse(n => { if (n.userData && n.userData.pickable) arPickableObjects.push(n); });
     }
 
-    renderAROrganelleStrip(modelType);
+    // Auto-frame active model with aspect-ratio awareness
+    if (activeHolder) {
+      frameARObject(activeHolder);
+    }
 
+    // Close organelle card when switching model
     if (DOM.arOrganelleCard) DOM.arOrganelleCard.style.display = 'none';
+
+    // If stations drawer is open, re-render to reflect new model context
+    if (DOM.arStationsDrawer && DOM.arStationsDrawer.classList.contains('open')) {
+      renderARStationsDrawer();
+    }
 
     const modelNames = {
       animal: '🐾 Model Sel Haiwan 3D Aktif',
@@ -3637,66 +3984,129 @@
     alertToast(modelNames[modelType] || 'Model Ditukar');
   }
 
-  // Render Horizontal Organelle Quick-Select Strip
-  function renderAROrganelleStrip(modelType) {
-    if (!DOM.arOrganelleStrip) return;
-    DOM.arOrganelleStrip.innerHTML = '';
+  // Aspect-ratio aware framing for AR Models (prevents clipping on iPad portrait/landscape)
+  function frameARObject(targetObject) {
+    if (!targetObject || !camera) return;
 
-    let items = [];
-    if (modelType === 'animal') {
-      items = [
-        { id: 'nucleus', label: '🧬 Nukleus', stn: 1 },
-        { id: 'membrane', label: '🛡️ Membran Sel', stn: 2 },
-        { id: 'cytoplasm', label: '💧 Sitoplasma', stn: 3 },
-        { id: 'mitochondria', label: '⚡ Mitokondrion', stn: 4 },
-        { id: 'vacuole', label: '🫧 Vakuol', stn: 7 },
-        { id: 'centrioles', label: '🧭 Sentriol', stn: 8 },
-        { id: 'lysosome', label: '✨ Lisosom', stn: 8 }
-      ];
-    } else if (modelType === 'plant') {
-      items = [
-        { id: 'wall', label: '🧱 Dinding Sel', stn: 6 },
-        { id: 'membrane', label: '🛡️ Membran Sel', stn: 2 },
-        { id: 'cytoplasm', label: '💧 Sitoplasma', stn: 3 },
-        { id: 'nucleus', label: '🧬 Nukleus', stn: 1 },
-        { id: 'chloroplast', label: '🌿 Kloroplas', stn: 5 },
-        { id: 'vacuole', label: '🫧 Vakuol Besar', stn: 7 },
-        { id: 'mitochondria', label: '⚡ Mitokondrion', stn: 4 }
-      ];
-    } else {
-      items = State.stations.map(stn => ({
-        id: stn.id,
-        label: `${stn.icon || '📍'} Stesen ${stn.number}: ${stn.title}`,
-        stn: stn.number
-      }));
+    if (arObjectGroup) {
+      arObjectGroup.position.set(0, 0, 0);
+      arObjectGroup.rotation.set(0.12, 0, 0);
+      arObjectGroup.scale.set(1.0, 1.0, 1.0);
     }
 
-    items.forEach(item => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'cq-ar-organelle-chip';
-      chip.dataset.id = item.id;
-      chip.dataset.stn = String(item.stn);
+    // Compute precise bounding box
+    const bbox = new THREE.Box3().setFromObject(targetObject);
+    const size = new THREE.Vector3();
+    bbox.getSize(size);
 
-      const isDone = State.completedStations.has(item.stn);
-      chip.innerHTML = `<span>${item.label}</span>${isDone ? '<span class="chip-badge">✓</span>' : ''}`;
+    const maxDim = Math.max(size.x, size.y, size.z, 1.2);
+    const fovRad = (camera.fov * Math.PI) / 180;
+    let dist = Math.abs(maxDim / 2 / Math.tan(fovRad / 2));
 
-      chip.addEventListener('click', () => {
-        selectAROrganelle(item.id, item.stn);
+    // iPad / Tablet aspect ratio compensation (e.g. portrait aspect < 1.0)
+    const aspect = camera.aspect || (window.innerWidth / window.innerHeight);
+    if (aspect < 1.0) {
+      dist = dist / aspect;
+    }
+
+    // 35% comfortable padding so model doesn't touch HUD or edges
+    dist = Math.max(2.6, dist * 1.35);
+
+    camera.position.set(0, maxDim * 0.28, dist);
+    camera.lookAt(0, 0, 0);
+  }
+
+  // Reset AR Model view to default center, rotation and scale
+  function resetARView() {
+    if (arObjectGroup) {
+      arObjectGroup.position.set(0, 0, 0);
+      arObjectGroup.rotation.set(0.12, 0, 0);
+      arObjectGroup.scale.set(1.0, 1.0, 1.0);
+    }
+    arState.autoRotate = false;
+
+    let activeHolder = arMiniLabHolder;
+    if (arState.activeModel === 'animal') activeHolder = arAnimalHolder;
+    else if (arState.activeModel === 'plant') activeHolder = arPlantHolder;
+
+    if (activeHolder) {
+      frameARObject(activeHolder);
+    }
+
+    SoundFX.interact();
+    alertToast('🎯 Paparan AR Disetkan Semula');
+  }
+
+  // Toggle Stations Drawer (Slide-out panel for 8 stations)
+  function toggleStationsDrawer(forceOpen) {
+    if (!DOM.arStationsDrawer) return;
+    const shouldOpen = (typeof forceOpen === 'boolean') 
+      ? forceOpen 
+      : !DOM.arStationsDrawer.classList.contains('open');
+
+    DOM.arStationsDrawer.classList.toggle('open', shouldOpen);
+    if (DOM.arStationsToggle) DOM.arStationsToggle.classList.toggle('active', shouldOpen);
+
+    if (shouldOpen) {
+      renderARStationsDrawer();
+      SoundFX.interact();
+    }
+  }
+
+  // Render 8 Learning Stations in Slide-out Drawer
+  function renderARStationsDrawer() {
+    if (DOM.arStnDoneCount) {
+      DOM.arStnDoneCount.textContent = `${State.completedStations.size}/8`;
+    }
+    if (!DOM.arDrawerList) return;
+    DOM.arDrawerList.innerHTML = '';
+
+    State.stations.forEach(stn => {
+      const isDone = State.completedStations.has(stn.number);
+      const isSelected = arState.selectedOrganelle === stn.id;
+
+      const stationColor = stn.color || '#0d9488';
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = `cq-drawer-station-card ${isSelected ? 'active' : ''} ${isDone ? 'completed' : ''}`;
+      item.innerHTML = `
+        <div class="cq-drawer-stn-num" style="background: ${stationColor}25; border: 1.5px solid ${stationColor}; color: ${stationColor};">${stn.number}</div>
+        <div class="cq-drawer-stn-info">
+          <strong>${stn.icon || '📍'} Stesen ${stn.number}: ${stn.title}</strong>
+          <span>${stn.organelle || 'Eksplorasi Organel'}</span>
+        </div>
+        <div class="cq-drawer-stn-status ${isDone ? 'done' : ''}">
+          ${isDone ? '✓ Lencana' : 'Belum'}
+        </div>
+      `;
+
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectAROrganelle(stn.id, stn.number);
+        toggleStationsDrawer(false);
       });
-      DOM.arOrganelleStrip.appendChild(chip);
+
+      DOM.arDrawerList.appendChild(item);
     });
+  }
+
+  // Toggle Minimize / Expand state of Organelle Card
+  function toggleOrganelleCardMinimize(forceMin) {
+    if (!DOM.arOrganelleCard) return;
+    const shouldMin = (typeof forceMin === 'boolean')
+      ? forceMin
+      : !DOM.arOrganelleCard.classList.contains('minimized');
+
+    DOM.arOrganelleCard.classList.toggle('minimized', shouldMin);
+    if (DOM.arCardMinIcon) {
+      DOM.arCardMinIcon.textContent = shouldMin ? 'expand_less' : 'expand_more';
+    }
+    SoundFX.interact();
   }
 
   // Select an organelle in AR, display card & pulse highlight
   function selectAROrganelle(organelleId, stationNumber) {
     arState.selectedOrganelle = organelleId;
-
-    if (DOM.arOrganelleStrip) {
-      DOM.arOrganelleStrip.querySelectorAll('.cq-ar-organelle-chip').forEach(c => {
-        c.classList.toggle('active', c.dataset.id === organelleId || c.dataset.stn === String(stationNumber));
-      });
-    }
 
     const info = ORGANELLE_DATA[organelleId] || {};
     const stnIdx = (stationNumber ? stationNumber - 1 : (info.stationNumber ? info.stationNumber - 1 : 0));
@@ -3706,6 +4116,16 @@
     const organelleIcon = info.icon || stnData.icon || '🧬';
     const organelleDesc = info.description || stnData.description;
     const isCompleted = State.completedStations.has(stnData.number);
+
+    // In Makmal Mini, update mini station label plane visibility:
+    // Only show label for the selected mini station, hide all others!
+    if (arState.activeModel === 'minilab' && arMiniLabHolder) {
+      arMiniLabHolder.traverse(m => {
+        if (m.userData && m.userData.isStationLabel) {
+          m.visible = (m.userData.stationNumber === stnData.number);
+        }
+      });
+    }
 
     if (DOM.arOrganelleCard) {
       if (DOM.arCardIcon) DOM.arCardIcon.textContent = organelleIcon;
@@ -3718,23 +4138,35 @@
       }
       if (DOM.arCardDesc) DOM.arCardDesc.textContent = organelleDesc;
 
+      // Ensure card is expanded when new organelle is selected
+      toggleOrganelleCardMinimize(false);
       DOM.arOrganelleCard.style.display = 'block';
 
       if (DOM.arCardSpeechBtn) {
-        DOM.arCardSpeechBtn.onclick = () => {
+        DOM.arCardSpeechBtn.onclick = (e) => {
+          e.stopPropagation();
           speakExplanation(`${organelleName}. ${organelleDesc}`);
         };
       }
       if (DOM.arCardQuizBtn) {
-        DOM.arCardQuizBtn.onclick = () => {
+        DOM.arCardQuizBtn.onclick = (e) => {
+          e.stopPropagation();
           openStationModal(stnIdx);
         };
       }
       if (DOM.arCardFocusBtn) {
-        DOM.arCardFocusBtn.onclick = () => {
+        DOM.arCardFocusBtn.onclick = (e) => {
+          e.stopPropagation();
           pulseHighlightMesh(organelleId);
         };
       }
+    }
+
+    // Refresh active item styling in stations drawer
+    if (DOM.arDrawerList) {
+      DOM.arDrawerList.querySelectorAll('.cq-drawer-station-card').forEach((item, idx) => {
+        item.classList.toggle('active', (idx + 1) === stnData.number);
+      });
     }
 
     pulseHighlightMesh(organelleId);
@@ -3806,72 +4238,109 @@
     if (!renderer || !renderer.domElement) return;
     const dom = renderer.domElement;
 
-    let pointerDown = false;
-    let startX = 0, startY = 0;
-    let initialRotX = 0, initialRotY = 0;
+    // Active pointers map for accurate multi-touch tracking
+    const activePointers = new Map();
     let initialPinchDist = 0;
+    let initialPinchCenter = { x: 0, y: 0 };
     let initialScale = 1.0;
-    let moved = 0;
+    let initialPos = new THREE.Vector3();
+    let lastTapTime = 0;
 
     dom.addEventListener('pointerdown', e => {
       if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
-      pointerDown = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      if (arObjectGroup) {
-        initialRotX = arObjectGroup.rotation.x;
-        initialRotY = arObjectGroup.rotation.y;
+      
+      // Do not capture if target is an overlay UI element
+      if (e.target !== dom) return;
+
+      activePointers.set(e.pointerId, {
+        startX: e.clientX,
+        startY: e.clientY,
+        currentX: e.clientX,
+        currentY: e.clientY,
+        startTime: Date.now()
+      });
+
+      if (activePointers.size === 1 && arObjectGroup) {
+        arState.autoRotate = false;
+      } else if (activePointers.size === 2 && arObjectGroup) {
+        const pts = Array.from(activePointers.values());
+        initialPinchDist = Math.hypot(pts[0].currentX - pts[1].currentX, pts[0].currentY - pts[1].currentY);
+        initialPinchCenter = {
+          x: (pts[0].currentX + pts[1].currentX) / 2,
+          y: (pts[0].currentY + pts[1].currentY) / 2
+        };
         initialScale = arObjectGroup.scale.x;
+        initialPos.copy(arObjectGroup.position);
       }
-      moved = 0;
     });
 
     dom.addEventListener('pointermove', e => {
-      if (!pointerDown || (State.mode !== 'camera-ar' && State.mode !== 'ar')) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      moved += Math.hypot(dx, dy);
+      if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
+      if (!activePointers.has(e.pointerId)) return;
 
-      if (moved > 6 && arObjectGroup) {
-        arState.autoRotate = false;
-        arObjectGroup.rotation.y = initialRotY + dx * 0.008;
-        arObjectGroup.rotation.x = Math.max(-1.1, Math.min(1.1, initialRotX + dy * 0.008));
+      const p = activePointers.get(e.pointerId);
+      const prevX = p.currentX;
+      const prevY = p.currentY;
+      p.currentX = e.clientX;
+      p.currentY = e.clientY;
+
+      if (!arObjectGroup) return;
+
+      if (activePointers.size === 1) {
+        // 1 Pointer: Orbit Rotate around Y & X axis
+        const dx = e.clientX - prevX;
+        const dy = e.clientY - prevY;
+
+        arObjectGroup.rotation.y += dx * 0.007;
+        arObjectGroup.rotation.x = Math.max(-1.1, Math.min(1.1, arObjectGroup.rotation.x + dy * 0.007));
+      } else if (activePointers.size === 2) {
+        // 2 Pointers: Pinch Zoom & Two-Finger Pan
+        const pts = Array.from(activePointers.values());
+        const currentDist = Math.hypot(pts[0].currentX - pts[1].currentX, pts[0].currentY - pts[1].currentY);
+
+        if (initialPinchDist > 0) {
+          const scaleFactor = currentDist / initialPinchDist;
+          const nextScale = Math.max(0.35, Math.min(2.8, initialScale * scaleFactor));
+          arObjectGroup.scale.setScalar(nextScale);
+        }
+
+        // Two-finger Pan
+        const currentCenter = {
+          x: (pts[0].currentX + pts[1].currentX) / 2,
+          y: (pts[0].currentY + pts[1].currentY) / 2
+        };
+        const panDx = (currentCenter.x - initialPinchCenter.x) * 0.003;
+        const panDy = (currentCenter.y - initialPinchCenter.y) * 0.003;
+        arObjectGroup.position.x = initialPos.x + panDx;
+        arObjectGroup.position.y = Math.max(-1.5, Math.min(1.5, initialPos.y - panDy));
       }
     });
 
-    const onPointerUp = e => {
-      if (!pointerDown) return;
-      pointerDown = false;
+    const onPointerEnd = e => {
+      if (!activePointers.has(e.pointerId)) return;
+      const p = activePointers.get(e.pointerId);
+      const dist = Math.hypot(e.clientX - p.startX, e.clientY - p.startY);
+      const duration = Date.now() - p.startTime;
 
-      // Tap / Click Detection
-      if (moved < 8 && (State.mode === 'camera-ar' || State.mode === 'ar')) {
-        const rect = dom.getBoundingClientRect();
-        arPointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        arPointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-        arRaycaster.setFromCamera(arPointer, camera);
+      activePointers.delete(e.pointerId);
 
-        const hits = arRaycaster.intersectObjects(arPickableObjects, true);
-        if (hits.length > 0) {
-          const topHit = hits[0];
-          if (topHit.object.userData) {
-            if (topHit.object.userData.isMiniStation) {
-              const stnNum = topHit.object.userData.stationNumber;
-              const stn = State.stations[stnNum - 1];
-              selectAROrganelle(stn.id, stnNum);
-            } else if (topHit.object.userData.id) {
-              const orgId = topHit.object.userData.id;
-              const info = ORGANELLE_DATA[orgId];
-              selectAROrganelle(orgId, info?.stationNumber);
-            }
-          }
-        }
+      // Tap / Click Detection (< 10px move, < 400ms duration)
+      if (dist < 10 && duration < 400 && (State.mode === 'camera-ar' || State.mode === 'ar')) {
+        handleARTap(e.clientX, e.clientY);
+      }
+
+      if (activePointers.size === 1) {
+        // Switch back to single-finger tracking smoothly
+        const remaining = activePointers.values().next().value;
+        remaining.startX = remaining.currentX;
+        remaining.startY = remaining.currentY;
       }
     };
 
-    dom.addEventListener('pointerup', onPointerUp);
-    dom.addEventListener('pointercancel', onPointerUp);
+    dom.addEventListener('pointerup', onPointerEnd);
+    dom.addEventListener('pointercancel', onPointerEnd);
 
-    // Mouse wheel zoom
+    // Mouse wheel zoom for desktop
     dom.addEventListener('wheel', e => {
       if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
       e.preventDefault();
@@ -3880,29 +4349,46 @@
       const nextScale = Math.max(0.35, Math.min(2.8, arObjectGroup.scale.x * factor));
       arObjectGroup.scale.setScalar(nextScale);
     }, { passive: false });
+  }
 
-    // Touch pinch zoom (2 fingers)
-    window.addEventListener('touchstart', e => {
-      if ((State.mode === 'camera-ar' || State.mode === 'ar') && e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        initialPinchDist = Math.hypot(dx, dy);
-        if (arObjectGroup) initialScale = arObjectGroup.scale.x;
-      }
-    }, { passive: true });
+  // Handle Raycast Tap in AR scene
+  function handleARTap(clientX, clientY) {
+    if (!renderer || !camera || !arPickableObjects.length) return;
+    const dom = renderer.domElement;
+    const rect = dom.getBoundingClientRect();
 
-    window.addEventListener('touchmove', e => {
-      if ((State.mode === 'camera-ar' || State.mode === 'ar') && e.touches.length === 2 && initialPinchDist > 0) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const dist = Math.hypot(dx, dy);
-        const scaleChange = dist / initialPinchDist;
-        if (arObjectGroup) {
-          const nextScale = Math.max(0.35, Math.min(2.8, initialScale * scaleChange));
-          arObjectGroup.scale.setScalar(nextScale);
+    arPointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    arPointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    arRaycaster.setFromCamera(arPointer, camera);
+
+    const hits = arRaycaster.intersectObjects(arPickableObjects, true);
+    if (hits.length > 0) {
+      // Find top-most hit object with userData
+      let hitObj = null;
+      for (const h of hits) {
+        if (h.object && h.object.userData && (h.object.userData.isMiniStation || h.object.userData.id)) {
+          hitObj = h.object;
+          break;
         }
       }
-    }, { passive: true });
+      if (!hitObj) hitObj = hits[0].object;
+
+      if (hitObj && hitObj.userData) {
+        if (hitObj.userData.isMiniStation) {
+          const stnNum = hitObj.userData.stationNumber;
+          const stn = State.stations[stnNum - 1];
+          if (stn) selectAROrganelle(stn.id, stnNum);
+        } else if (hitObj.userData.id === 'mini_animal') {
+          switchARModel('animal');
+        } else if (hitObj.userData.id === 'mini_plant') {
+          switchARModel('plant');
+        } else if (hitObj.userData.id) {
+          const orgId = hitObj.userData.id;
+          const info = ORGANELLE_DATA[orgId];
+          selectAROrganelle(orgId, info?.stationNumber);
+        }
+      }
+    }
   }
 
   // ==============================================================================
@@ -3924,6 +4410,9 @@
   function updateHUD() {
     if (DOM.badgeCount) DOM.badgeCount.textContent = `${State.completedStations.size}/8`;
     if (DOM.score) DOM.score.textContent = String(State.score);
+    if (DOM.arHudBadges) DOM.arHudBadges.textContent = `${State.completedStations.size}/8`;
+    if (DOM.arHudScore) DOM.arHudScore.textContent = String(State.score);
+    if (DOM.arStnDoneCount) DOM.arStnDoneCount.textContent = `${State.completedStations.size}/8`;
   }
 
   function startTimer() {
@@ -3932,7 +4421,9 @@
     State.timerInterval = setInterval(() => {
       if (!State.isPaused && !State.isCompleted) {
         State.durationSeconds++;
-        if (DOM.timer) DOM.timer.textContent = formatTime(State.durationSeconds);
+        const formatted = formatTime(State.durationSeconds);
+        if (DOM.timer) DOM.timer.textContent = formatted;
+        if (DOM.arHudTimer) DOM.arHudTimer.textContent = formatted;
       }
     }, 1000);
   }
@@ -3947,6 +4438,9 @@
     SoundFX.muted = !SoundFX.muted;
     if (DOM.soundIcon) {
       DOM.soundIcon.textContent = SoundFX.muted ? 'volume_off' : 'volume_up';
+    }
+    if (DOM.arSoundIcon) {
+      DOM.arSoundIcon.textContent = SoundFX.muted ? 'volume_off' : 'volume_up';
     }
   }
 

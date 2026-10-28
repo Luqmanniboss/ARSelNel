@@ -44,7 +44,7 @@
   <div class="cq-touch-look-zone" id="touch-look-zone"></div>
 
   <!-- Top HUD (Heads-Up Display) -->
-  <header class="cq-hud">
+  <header class="cq-hud" id="cq-walkthrough-hud">
     <div class="cq-hud-left">
       <a href="code.html" class="cq-back-btn" title="Kembali ke Halaman CellQuest">
         <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
@@ -385,55 +385,119 @@
        AR HUD OVERLAY (ACTIVE IN CAMERA AR & WEBXR MODES)
        ============================================================================== -->
   <div class="cq-ar-overlay" id="ar-overlay" style="display:none">
-    <!-- Topbar: Status, Model Switcher & Toolbar Actions -->
-    <div class="cq-ar-topbar">
-      <div class="cq-ar-status-badge" id="ar-status-badge">
-        <span id="ar-badge-icon">📷</span>
-        <span id="ar-badge-text">Mod Kamera AR</span>
+    <!-- Topbar: Left (Back & Mode), Center (3 Models), Right (Stats & Controls) -->
+    <header class="cq-ar-topbar" id="ar-topbar">
+      <!-- Left: Back to 3D & AR Status Badge -->
+      <div class="cq-ar-top-left">
+        <button type="button" class="cq-ar-back-btn" id="ar-back-btn" title="Kembali ke Mod Jelajah 3D">
+          <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+          <span class="btn-text">Jelajah 3D</span>
+        </button>
+        <div class="cq-ar-status-badge" id="ar-status-badge">
+          <span class="ar-live-dot"></span>
+          <span id="ar-badge-icon">📷</span>
+          <span id="ar-badge-text">Kamera AR</span>
+        </div>
       </div>
 
-      <!-- Model Switcher: Sel Haiwan / Sel Tumbuhan / Makmal Mini -->
-      <div class="cq-ar-model-tabs" id="ar-model-tabs" role="tablist" aria-label="Pilih Model AR">
-        <button type="button" class="cq-ar-model-btn active" id="ar-btn-animal" data-ar-model="animal">
-          🐾 Sel Haiwan
-        </button>
-        <button type="button" class="cq-ar-model-btn" id="ar-btn-plant" data-ar-model="plant">
-          🌿 Sel Tumbuhan
-        </button>
-        <button type="button" class="cq-ar-model-btn" id="ar-btn-minilab" data-ar-model="minilab">
-          🏛️ Makmal Mini
-        </button>
+      <!-- Center: Model Switcher (Sel Haiwan / Sel Tumbuhan / Makmal Mini) -->
+      <div class="cq-ar-top-center">
+        <div class="cq-ar-model-tabs" id="ar-model-tabs" role="tablist" aria-label="Pilih Model AR">
+          <button type="button" class="cq-ar-model-btn active" id="ar-btn-animal" data-ar-model="animal" role="tab" aria-selected="true">
+            <span class="tab-emoji">🐾</span>
+            <span class="tab-label">Sel Haiwan</span>
+          </button>
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-plant" data-ar-model="plant" role="tab" aria-selected="false">
+            <span class="tab-emoji">🌿</span>
+            <span class="tab-label">Sel Tumbuhan</span>
+          </button>
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-minilab" data-ar-model="minilab" role="tab" aria-selected="false">
+            <span class="tab-emoji">🏛️</span>
+            <span class="tab-label">Makmal Mini</span>
+          </button>
+        </div>
       </div>
 
-      <div class="cq-ar-top-actions">
-        <button type="button" class="cq-icon-btn" id="ar-autorotate-btn" title="Hidup/Mati Putaran Automatik">
-          <span class="material-symbols-outlined">sync</span>
-        </button>
-        <button type="button" class="cq-icon-btn" id="ar-reset-view-btn" title="Tetapkan Semula Kedudukan & Putaran">
-          <span class="material-symbols-outlined">restart_alt</span>
-        </button>
-        <button type="button" class="cq-icon-btn" id="ar-change-mode-btn" title="Tukar Mod Permainan">
-          <span class="material-symbols-outlined">tune</span>
-        </button>
-        <button type="button" class="cq-icon-btn" id="ar-exit-btn" title="Keluar dari Mod AR">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-    </div>
+      <!-- Right: Score, Badges, Timer & Controls -->
+      <div class="cq-ar-top-right">
+        <div class="cq-ar-stats-group" id="ar-stats-group">
+          <div class="cq-ar-stat-chip score-chip" title="Markah Cabaran Sains">
+            <span>⭐</span>
+            <strong id="ar-hud-score">0</strong>
+          </div>
+          <div class="cq-ar-stat-chip badge-chip" title="Lencana Stesen Dikumpul">
+            <span>🎖️</span>
+            <strong id="ar-hud-badges">0/8</strong>
+          </div>
+          <div class="cq-ar-stat-chip timer-chip" title="Masa Eksplorasi">
+            <span>⏱️</span>
+            <strong id="ar-hud-timer">00:00</strong>
+          </div>
+        </div>
 
-    <!-- Helpful Interactive Hint Banner -->
+        <div class="cq-ar-tools-group">
+          <button type="button" class="cq-icon-btn" id="ar-autorotate-btn" title="Hidup/Mati Putaran Automatik">
+            <span class="material-symbols-outlined">sync</span>
+          </button>
+          <button type="button" class="cq-icon-btn" id="ar-reset-view-btn" title="Pusatkan Semula Model (Reset View)">
+            <span class="material-symbols-outlined">restart_alt</span>
+          </button>
+          <button type="button" class="cq-icon-btn" id="ar-sound-btn" title="Bunyi (Hidup/Mati)">
+            <span class="material-symbols-outlined" id="ar-sound-icon">volume_up</span>
+          </button>
+          <button type="button" class="cq-icon-btn" id="ar-help-btn" title="Cara Bermain & Panduan AR">
+            <span class="material-symbols-outlined">help</span>
+          </button>
+          <button type="button" class="cq-icon-btn" id="ar-change-mode-btn" title="Tukar Mod Permainan">
+            <span class="material-symbols-outlined">tune</span>
+          </button>
+          <button type="button" class="cq-icon-btn" id="ar-exit-btn" title="Keluar dari Mod AR">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Floating Gesture Hint Banner -->
     <div class="cq-ar-hint-banner" id="ar-hint-banner">
-      👆 Seret untuk pusing 360° • 🤏 Cubit untuk zum • 🎯 Ketik organel pada model 3D
+      <span>👆 1 Jari: Pusing • 🤏 2 Jari: Zum/Alih • 🎯 Ketik Model: Pilih Organel</span>
     </div>
 
-    <!-- Organelle Quick-Select Strip (Horizontal Scrollable Chips) -->
-    <div class="cq-ar-organelle-strip" id="ar-organelle-strip">
-      <!-- Populated dynamically via JS according to active model -->
+    <!-- Floating Action Pill (Station Drawer Trigger & Reset View) -->
+    <div class="cq-ar-floating-bar" id="ar-floating-bar">
+      <button type="button" class="cq-ar-stations-toggle-btn" id="ar-stations-toggle" aria-label="Buka Pilihan 8 Stesen">
+        <span class="material-symbols-outlined" style="font-size:18px">menu_book</span>
+        <span class="toggle-text">Stesen 1–8</span>
+        <span class="cq-ar-chip-count" id="ar-stn-done-count">0/8</span>
+      </button>
+      <button type="button" class="cq-ar-recenter-pill-btn" id="ar-recenter-btn" title="Pusatkan Model AR ke Tengah Skrin">
+        <span class="material-symbols-outlined" style="font-size:18px">center_focus_strong</span>
+        <span class="pill-text">Pusat</span>
+      </button>
     </div>
 
-    <!-- Selected Organelle Bottom Sheet Card -->
+    <!-- Slide-out Station Panel / Drawer (Opens from Right on iPad Landscape) -->
+    <aside class="cq-ar-stations-drawer" id="ar-stations-drawer" aria-label="Panel 8 Stesen Pembelajaran">
+      <div class="cq-ar-drawer-header">
+        <div class="cq-ar-drawer-title-group">
+          <span class="material-symbols-outlined" style="font-size:22px; color:#2dd4bf;">biotech</span>
+          <div>
+            <h3>8 Stesen Pembelajaran</h3>
+            <span>Ketik stesen untuk teroka organel & kuiz</span>
+          </div>
+        </div>
+        <button type="button" class="cq-modal-close" id="ar-drawer-close-btn" aria-label="Tutup Panel Stesen" style="position:static; width:34px; height:34px;">
+          <span class="material-symbols-outlined" style="font-size:20px">close</span>
+        </button>
+      </div>
+      <div class="cq-ar-drawer-list" id="ar-drawer-list">
+        <!-- Populated via JS with 8 stations -->
+      </div>
+    </aside>
+
+    <!-- Selected Organelle Bottom Card (Compact, Responsive, Minimizable) -->
     <div class="cq-ar-organelle-card" id="ar-organelle-card" style="display:none">
-      <div class="cq-ar-card-header">
+      <div class="cq-ar-card-header" id="ar-card-header">
         <div class="cq-ar-card-title-group">
           <span class="cq-ar-card-icon" id="ar-card-icon">🧬</span>
           <div>
@@ -441,28 +505,35 @@
             <span class="cq-ar-card-badge" id="ar-card-badge">Stesen 1 • Sains Tingkatan 1</span>
           </div>
         </div>
-        <button type="button" class="cq-modal-close" id="ar-card-close-btn" aria-label="Tutup Maklumat Organel" style="position:static; width:32px; height:32px; font-size:16px;">
-          <span class="material-symbols-outlined" style="font-size:18px">close</span>
-        </button>
+        <div class="cq-ar-card-ctrls">
+          <button type="button" class="cq-card-icon-btn" id="ar-card-minimize-btn" title="Minimumkan / Buka Penuh" aria-label="Minimumkan">
+            <span class="material-symbols-outlined" id="ar-card-min-icon">expand_more</span>
+          </button>
+          <button type="button" class="cq-card-icon-btn" id="ar-card-close-btn" title="Tutup Maklumat Organel" aria-label="Tutup">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
       </div>
 
-      <p class="cq-ar-card-desc" id="ar-card-desc">
-        Pusat kawalan sel yang mengandungi bahan genetik (DNA). Mengawal semua aktiviti penting sel.
-      </p>
+      <div class="cq-ar-card-body" id="ar-card-body">
+        <p class="cq-ar-card-desc" id="ar-card-desc">
+          Pusat kawalan sel yang mengandungi bahan genetik (DNA). Mengawal semua aktiviti penting sel.
+        </p>
 
-      <div class="cq-ar-card-actions">
-        <button type="button" class="cq-ar-card-btn primary" id="ar-card-quiz-btn">
-          <span class="material-symbols-outlined" style="font-size:18px">quiz</span>
-          <span>Jawab Soalan Kuiz</span>
-        </button>
-        <button type="button" class="cq-ar-card-btn secondary" id="ar-card-speech-btn">
-          <span class="material-symbols-outlined" style="font-size:18px">volume_up</span>
-          <span>Dengar Penerangan</span>
-        </button>
-        <button type="button" class="cq-ar-card-btn secondary" id="ar-card-focus-btn">
-          <span class="material-symbols-outlined" style="font-size:18px">center_focus_strong</span>
-          <span>Fokus Organel</span>
-        </button>
+        <div class="cq-ar-card-actions">
+          <button type="button" class="cq-ar-card-btn primary" id="ar-card-quiz-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">quiz</span>
+            <span>Jawab Kuiz</span>
+          </button>
+          <button type="button" class="cq-ar-card-btn secondary" id="ar-card-speech-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">volume_up</span>
+            <span>Dengar</span>
+          </button>
+          <button type="button" class="cq-ar-card-btn secondary" id="ar-card-focus-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">center_focus_strong</span>
+            <span>Fokus</span>
+          </button>
+        </div>
       </div>
     </div>
 
