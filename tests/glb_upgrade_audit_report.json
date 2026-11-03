@@ -1,0 +1,852 @@
+{
+  "tests": [
+    {
+      "id": "Ujian 1",
+      "name": "Stesen 1 memaparkan nucleus.glb dengan jelas",
+      "passed": true,
+      "detail": "glbKey=nucleus, url=../models/nucleus.glb, scale=0.34944, fittedSize=[0.903,0.853,0.996]"
+    },
+    {
+      "id": "Ujian 2",
+      "name": "Stesen 2 memaparkan plasma_membrane.glb dengan jelas",
+      "passed": true,
+      "detail": "glbKey=membrane, url=../models/plasma_membrane.glb, scale=0.01772, fittedSize=[1.415,0.477,1.026]"
+    },
+    {
+      "id": "Ujian 3",
+      "name": "Stesen 4 memaparkan mitochondria.glb dengan jelas",
+      "passed": true,
+      "detail": "glbKey=mitochondria, url=../models/mitochondria.glb, scale=0.04093, fittedSize=[1.276,0.576,0.862]"
+    },
+    {
+      "id": "Ujian 4",
+      "name": "Stesen 3, 5, 6, 7 kekal menggunakan model sedia ada tanpa rosak (& Stesen 8 + Pameran ER berfungsi)",
+      "passed": true,
+      "detail": "Stesen 3/5/6/7 procedural intact (meshes=14,18,2,7); Stesen 8 & Pameran ER=true"
+    },
+    {
+      "id": "Ujian 5",
+      "name": "Semua model berada tepat di atas meja pameran (tidak menembusi meja y=0.94 & tidak terapung tinggi)",
+      "passed": true,
+      "detail": "S1:minY=1.11,baseY=1.54 | S2:minY=1.11,baseY=1.35 | S3:minY=1.13,baseY=1.49 | S4:minY=1.11,baseY=1.4 | S5:minY=1.13,baseY=1.22 | S6:minY=1.13,baseY=1.41 | S7:minY=1.13,baseY=1.55 | S8:minY=1.05,baseY=1.42"
+    },
+    {
+      "id": "Ujian 6",
+      "name": "Model tidak terlalu besar atau terlalu kecil (Auto-Scale THREE.Box3 mengikut bentuk)",
+      "passed": true,
+      "detail": "S1:size=[0.903,0.853,0.996] | S2:size=[1.415,0.477,1.026] | S3:size=[0.72,0.72,0.72] | S4:size=[1.276,0.576,0.862] | S5:size=[0.76,0.18,0.76] | S6:size=[0.62,0.56,0.62] | S7:size=[0.92,0.84,0.84] | S8:size=[1.65,0.84,0.64]"
+    },
+    {
+      "id": "Ujian 7",
+      "name": "Warna & tekstur PBR model GLB kelihatan jelas (sRGBEncoding, ACESFilmicToneMapping, HemisphereLight)",
+      "passed": true,
+      "detail": "sRGB=true, ACES=true, HemiLight=true, DirLights=2"
+    },
+    {
+      "id": "Ujian 8",
+      "name": "Klik / ketik (raycasting) pada child mesh model GLB membuka penerangan organel & audio berfungsi",
+      "passed": true,
+      "detail": "S1=Nukleus, S2=Membran Sel, S4=Mitokondrion, allChildMeshesTagged=true"
+    },
+    {
+      "id": "Ujian 9",
+      "name": "Soalan kuiz setiap stesen masih berfungsi, markah & lencana dikemas kini",
+      "passed": true,
+      "detail": "Lencana S1/S2/S4 diperoleh, Markah terkumpul=300"
+    },
+    {
+      "id": "Ujian 10",
+      "name": "Mod Kamera AR memaparkan model GLB dengan betul dalam world space (tidak melekat pada kamera)",
+      "passed": true,
+      "detail": "WorldAR Active=true, Kiri(270°)=mitochondria, Kanan(90°)=nucleus, GLBsInWorldSpace=5/5"
+    },
+    {
+      "id": "Ujian 11",
+      "name": "Aplikasi kekal responsif pada saiz skrin iPad & draw calls dioptimumkan (Batching)",
+      "passed": true,
+      "detail": "DrawCalls=24, Triangles=523088, MembraneMeshes=38->5, ERMeshes=4"
+    },
+    {
+      "id": "Ujian 12",
+      "name": "Tiada ralat console berkaitan path fail, 404 atau GLTFLoader",
+      "passed": true,
+      "detail": "ConsoleErrors=0, HTTP404s=0"
+    }
+  ],
+  "auditData": {
+    "stationsReport": [
+      {
+        "stationNumber": 1,
+        "stationId": "stn-1-nucleus",
+        "title": "Nukleus",
+        "isGLBMounted": true,
+        "glbKey": "nucleus",
+        "scaleFactor": 0.34944,
+        "fittedSize": [
+          0.903,
+          0.853,
+          0.996
+        ],
+        "tableTopY": 0.97,
+        "fittedMinY": 1.11,
+        "fittedMaxY": 1.963,
+        "baseY": 1.5367388294293418,
+        "meshCount": 8,
+        "hasStandardMat": true,
+        "hasTextures": true,
+        "allMeshesHaveStationMeta": true
+      },
+      {
+        "stationNumber": 2,
+        "stationId": "stn-2-membrane",
+        "title": "Membran Sel",
+        "isGLBMounted": true,
+        "glbKey": "membrane",
+        "scaleFactor": 0.01772,
+        "fittedSize": [
+          1.415,
+          0.477,
+          1.026
+        ],
+        "tableTopY": 0.97,
+        "fittedMinY": 1.11,
+        "fittedMaxY": 1.587,
+        "baseY": 1.3484805325473577,
+        "meshCount": 5,
+        "hasStandardMat": true,
+        "hasTextures": false,
+        "allMeshesHaveStationMeta": true
+      },
+      {
+        "stationNumber": 3,
+        "stationId": "stn-3-cytoplasm",
+        "title": "Sitoplasma",
+        "isGLBMounted": false,
+        "glbKey": null,
+        "scaleFactor": 1,
+        "fittedSize": [
+          0.72,
+          0.72,
+          0.72
+        ],
+        "tableTopY": 0.97,
+        "fittedMinY": 1.13,
+        "fittedMaxY": 1.85,
+        "baseY": 1.4900000143051146,
+        "meshCount": 14,
+        "hasStandardMat": true,
+        "hasTextures": false,
+        "allMeshesHaveStationMeta": true
+      },
+      {
+        "stationNumber": 4,
+        "stationId": "stn-4-mitochondria",
+        "title": "Mitokondrion",
+        "isGLBMounted": true,
+        "glbKey": "mitochondria",
+        "scaleFactor": 0.04093,
+        "fittedSize": [
+          1.276,
+          0.576,
+          0.862
+        ],
+        "tableTopY": 0.97,
+        "fittedMinY": 1.11,
+        "fittedMaxY": 1.686,
+        "baseY": 1.3982091906572331,
+        "meshCount": 5,
+        "hasStandardMat": true,
+        "hasTextures": true,
+        "allMeshesHaveStationMeta": true
+      },
+      {
+        "stationNumber": 5,
+        "stationId": "stn-5-chloroplast",
+        "title": "Kloroplas",
+        "isGLBMounted": false,
+        "glbKey": null,
+        "scaleFactor": 1,
+        "fittedSize": [
+          0.76,
+          0.18,
+          0.76
+        ],
+        "tableTopY": 0.97,
+        "fittedMinY": 1.13,
+        "fittedMaxY": 1.31,
+        "baseY": 1.2200000035762786,
+        "meshCount": 18,
+        "hasStandardMat": true,
+        "hasTextures": false,
+        "allMeshesHaveStationMeta": true
+      },
+      {
+        "stationNumber": 6,
+        "stationId": "stn-6-cellwall",
+        "title": "Dinding Sel",
+        "isGLBMounted": false,
+        "glbKey": null,
+        "scaleFactor": 1,
+        "fittedSize": [
+          0.62,
+          0.56,
+          0.62
+        ],
+        "tableTopY": 0.97,
+        "fittedMinY": 1.13,
+        "fittedMaxY": 1.69,
+        "baseY": 1.4100000011920928,
+        "meshCount": 2,
+        "hasStandardMat": true,
+        "hasTextures": false,
+        "allMeshesHaveStationMeta": true
+      },
+      {
+        "stationNumber": 7,
+        "stationId": "stn-7-vacuole",
+        "title": "Vakuol",
+        "isGLBMounted": false,
+        "glbKey": null,
+        "scaleFactor": 1,
+        "fittedSize": [
+          0.92,
+          0.84,
+          0.84
+        ],
+        "tableTopY": 0.97,
+        "fittedMinY": 1.13,
+        "fittedMaxY": 1.97,
+        "baseY": 1.549999986886978,
+        "meshCount": 7,
+        "hasStandardMat": true,
+        "hasTextures": false,
+        "allMeshesHaveStationMeta": true
+      },
+      {
+        "stationNumber": 8,
+        "stationId": "stn-8-comparison",
+        "title": "Sel Haiwan vs Sel Tumbuhan",
+        "isGLBMounted": true,
+        "glbKey": "animal+plant",
+        "scaleFactor": 1,
+        "fittedSize": [
+          1.65,
+          0.84,
+          0.64
+        ],
+        "tableTopY": 0.97,
+        "fittedMinY": 1.05,
+        "fittedMaxY": 1.93,
+        "baseY": 1.42,
+        "meshCount": 20,
+        "hasStandardMat": true,
+        "hasTextures": true,
+        "allMeshesHaveStationMeta": true
+      }
+    ],
+    "glbDiag": {
+      "animal": {
+        "key": "animal",
+        "label": "Sel Haiwan",
+        "stationNumber": 8,
+        "stationId": "stn-8-comparison",
+        "url": "../models/animal_cell_final.glb",
+        "usedFallbackUrl": false,
+        "loaded": true,
+        "status": "OK",
+        "loadMs": 1148,
+        "rawMin": [
+          -3.284,
+          -2.897,
+          -3.09
+        ],
+        "rawMax": [
+          2.705,
+          1.089,
+          3.963
+        ],
+        "rawSize": [
+          5.989,
+          3.986,
+          7.052
+        ],
+        "rawCenter": [
+          -0.29,
+          -0.904,
+          0.437
+        ],
+        "rawMeshCount": 15,
+        "batchedMeshCount": 15,
+        "materialCount": 13,
+        "textureCount": 0,
+        "vertexCount": 69785,
+        "triangleCount": 99042,
+        "mounts": {
+          "3d": {
+            "targetSize": 0.72,
+            "scaleFactor": 0.10209,
+            "fittedSize": [
+              0.767,
+              0.52,
+              0.889
+            ],
+            "localPos": [
+              -0.46,
+              0.08,
+              0
+            ],
+            "worldPos": [
+              7.334,
+              1.518,
+              5.54
+            ],
+            "tableTopY": null,
+            "fittedMinY": null,
+            "fittedMaxY": null
+          }
+        }
+      },
+      "plant": {
+        "key": "plant",
+        "label": "Sel Tumbuhan",
+        "stationNumber": 8,
+        "stationId": "stn-8-comparison",
+        "url": "../models/plantcellnew.glb",
+        "usedFallbackUrl": false,
+        "loaded": true,
+        "status": "OK",
+        "loadMs": 1561,
+        "rawMin": [
+          -35.145,
+          -1.446,
+          -30.456
+        ],
+        "rawMax": [
+          37.075,
+          41.771,
+          31.504
+        ],
+        "rawSize": [
+          72.22,
+          43.218,
+          61.96
+        ],
+        "rawCenter": [
+          0.965,
+          20.162,
+          0.524
+        ],
+        "rawMeshCount": 2,
+        "batchedMeshCount": 2,
+        "materialCount": 2,
+        "textureCount": 2,
+        "vertexCount": 139278,
+        "triangleCount": 46426,
+        "mounts": {
+          "3d": {
+            "targetSize": 0.76,
+            "scaleFactor": 0.01052,
+            "fittedSize": [
+              0.819,
+              0.55,
+              0.798
+            ],
+            "localPos": [
+              0.46,
+              0.08,
+              0
+            ],
+            "worldPos": [
+              7.352,
+              1.507,
+              6.46
+            ],
+            "tableTopY": null,
+            "fittedMinY": null,
+            "fittedMaxY": null
+          }
+        }
+      },
+      "nucleus": {
+        "key": "nucleus",
+        "label": "Nukleus",
+        "stationNumber": 1,
+        "stationId": "stn-1-nucleus",
+        "url": "../models/nucleus.glb",
+        "usedFallbackUrl": false,
+        "loaded": true,
+        "status": "OK",
+        "loadMs": 1739,
+        "rawMin": [
+          -1.14,
+          -1.207,
+          -1.316
+        ],
+        "rawMax": [
+          1.14,
+          1.207,
+          1.316
+        ],
+        "rawSize": [
+          2.279,
+          2.414,
+          2.633
+        ],
+        "rawCenter": [
+          0,
+          0,
+          0
+        ],
+        "rawMeshCount": 8,
+        "batchedMeshCount": 8,
+        "materialCount": 5,
+        "textureCount": 4,
+        "vertexCount": 306069,
+        "triangleCount": 104398,
+        "mounts": {
+          "3d": {
+            "targetSize": 0.92,
+            "scaleFactor": 0.34944,
+            "fittedSize": [
+              0.903,
+              0.853,
+              0.996
+            ],
+            "localPos": [
+              0,
+              1.537,
+              0.16
+            ],
+            "worldPos": [
+              -7.34,
+              1.537,
+              6
+            ],
+            "tableTopY": 0.97,
+            "fittedMinY": 1.11,
+            "fittedMaxY": 1.963
+          },
+          "mini": {
+            "targetSize": 0.3,
+            "scaleFactor": 0.11395,
+            "fittedSize": [
+              0.295,
+              0.278,
+              0.325
+            ],
+            "localPos": [
+              0,
+              0.32,
+              0
+            ],
+            "worldPos": [
+              1.25,
+              0.33,
+              0
+            ],
+            "tableTopY": null,
+            "fittedMinY": null,
+            "fittedMaxY": null
+          }
+        }
+      },
+      "er": {
+        "key": "er",
+        "label": "Retikulum Endoplasma",
+        "stationNumber": 9,
+        "stationId": "exhibit-er",
+        "url": "../models/endoplasmic_reticulum_opt.glb",
+        "usedFallbackUrl": false,
+        "loaded": true,
+        "status": "OK",
+        "loadMs": 761,
+        "rawMin": [
+          -11.83,
+          -2.551,
+          -5.633
+        ],
+        "rawMax": [
+          2.877,
+          1.251,
+          5.555
+        ],
+        "rawSize": [
+          14.706,
+          3.803,
+          11.188
+        ],
+        "rawCenter": [
+          -4.477,
+          -0.65,
+          -0.039
+        ],
+        "rawMeshCount": 4,
+        "batchedMeshCount": 4,
+        "materialCount": 4,
+        "textureCount": 0,
+        "vertexCount": 761166,
+        "triangleCount": 1482304,
+        "mounts": {
+          "3d": {
+            "targetSize": 1.15,
+            "scaleFactor": 0.0782,
+            "fittedSize": [
+              1.261,
+              0.529,
+              1.078
+            ],
+            "localPos": [
+              0,
+              1.345,
+              0.12
+            ],
+            "worldPos": [
+              0,
+              1.345,
+              -5.08
+            ],
+            "tableTopY": 0.94,
+            "fittedMinY": 1.08,
+            "fittedMaxY": 1.609
+          }
+        }
+      },
+      "mitochondria": {
+        "key": "mitochondria",
+        "label": "Mitokondrion",
+        "stationNumber": 4,
+        "stationId": "stn-4-mitochondria",
+        "url": "../models/mitochondria.glb",
+        "usedFallbackUrl": false,
+        "loaded": true,
+        "status": "OK",
+        "loadMs": 1930,
+        "rawMin": [
+          -2.102,
+          -2.33,
+          -5.369
+        ],
+        "rawMax": [
+          26.237,
+          8.843,
+          5.367
+        ],
+        "rawSize": [
+          28.338,
+          11.172,
+          10.736
+        ],
+        "rawCenter": [
+          12.067,
+          3.256,
+          -0.001
+        ],
+        "rawMeshCount": 5,
+        "batchedMeshCount": 5,
+        "materialCount": 5,
+        "textureCount": 1,
+        "vertexCount": 319691,
+        "triangleCount": 522764,
+        "mounts": {
+          "3d": {
+            "targetSize": 1.16,
+            "scaleFactor": 0.04093,
+            "fittedSize": [
+              1.276,
+              0.576,
+              0.862
+            ],
+            "localPos": [
+              0,
+              1.398,
+              0.16
+            ],
+            "worldPos": [
+              -7.34,
+              1.398,
+              -6
+            ],
+            "tableTopY": 0.97,
+            "fittedMinY": 1.11,
+            "fittedMaxY": 1.686
+          },
+          "mini": {
+            "targetSize": 0.36,
+            "scaleFactor": 0.0127,
+            "fittedSize": [
+              0.396,
+              0.179,
+              0.267
+            ],
+            "localPos": [
+              0,
+              0.32,
+              0
+            ],
+            "worldPos": [
+              -0.884,
+              0.33,
+              0.884
+            ],
+            "tableTopY": null,
+            "fittedMinY": null,
+            "fittedMaxY": null
+          }
+        }
+      },
+      "membrane": {
+        "key": "membrane",
+        "label": "Membran Sel",
+        "stationNumber": 2,
+        "stationId": "stn-2-membrane",
+        "url": "../models/plasma_membrane.glb",
+        "usedFallbackUrl": false,
+        "loaded": true,
+        "status": "OK",
+        "loadMs": 2827,
+        "rawMin": [
+          -9.273,
+          -8.45,
+          -32.549
+        ],
+        "rawMax": [
+          62.963,
+          8.294,
+          7.396
+        ],
+        "rawSize": [
+          72.236,
+          16.744,
+          39.945
+        ],
+        "rawCenter": [
+          26.845,
+          -0.078,
+          -12.577
+        ],
+        "rawMeshCount": 38,
+        "batchedMeshCount": 5,
+        "materialCount": 5,
+        "textureCount": 0,
+        "vertexCount": 1668452,
+        "triangleCount": 688084,
+        "mounts": {
+          "3d": {
+            "targetSize": 1.28,
+            "scaleFactor": 0.01772,
+            "fittedSize": [
+              1.415,
+              0.477,
+              1.026
+            ],
+            "localPos": [
+              0,
+              1.348,
+              0.16
+            ],
+            "worldPos": [
+              -7.34,
+              1.348,
+              2
+            ],
+            "tableTopY": 0.97,
+            "fittedMinY": 1.11,
+            "fittedMaxY": 1.587
+          },
+          "mini": {
+            "targetSize": 0.38,
+            "scaleFactor": 0.00526,
+            "fittedSize": [
+              0.42,
+              0.142,
+              0.305
+            ],
+            "localPos": [
+              0,
+              0.32,
+              0
+            ],
+            "worldPos": [
+              0.884,
+              0.33,
+              0.884
+            ],
+            "tableTopY": null,
+            "fittedMinY": null,
+            "fittedMaxY": null
+          }
+        }
+      }
+    },
+    "erMounted": true,
+    "erUserData": {
+      "stationId": "exhibit-er",
+      "stationNumber": 9,
+      "stationIndex": -2,
+      "id": "er",
+      "organelleId": "er",
+      "glbKey": "er",
+      "isMiniStation": false,
+      "pickable": true,
+      "isGLBModel": true,
+      "baseY": 1.3445847259514125,
+      "tableTopY": 0.94,
+      "clearanceY": 0.14,
+      "fittedMinY": 1.08,
+      "fittedMaxY": 1.609,
+      "isGLBMounted": true,
+      "scaleFactor": 0.0782,
+      "fittedSize": [
+        1.261,
+        0.529,
+        1.078
+      ]
+    },
+    "lighting": {
+      "outputEncoding": 3001,
+      "sRGBEncodingConst": 3001,
+      "toneMapping": 4,
+      "ACESConst": 4,
+      "toneMappingExposure": 1.12,
+      "hasHemisphereLight": true,
+      "directionalLightCount": 2
+    }
+  },
+  "interactionResults": {
+    "1": {
+      "hitOk": true,
+      "modalOpen": true,
+      "modalTitle": "Nukleus",
+      "speechTriggered": true,
+      "scoreBefore": 0,
+      "scoreAfter": 100,
+      "badgeEarned": true
+    },
+    "2": {
+      "hitOk": true,
+      "modalOpen": true,
+      "modalTitle": "Membran Sel",
+      "speechTriggered": true,
+      "scoreBefore": 100,
+      "scoreAfter": 200,
+      "badgeEarned": true
+    },
+    "4": {
+      "hitOk": true,
+      "modalOpen": true,
+      "modalTitle": "Mitokondrion",
+      "speechTriggered": true,
+      "scoreBefore": 200,
+      "scoreAfter": 300,
+      "badgeEarned": true
+    }
+  },
+  "arResults": {
+    "mode": "camera-ar",
+    "worldActive": true,
+    "arStnSummary": [
+      {
+        "slotNumber": 1,
+        "stationKey": "mitochondria",
+        "label": "Mitokondrion",
+        "isGLBMounted": true,
+        "glbKey": "mitochondria",
+        "fittedSize": [
+          1.705,
+          0.77,
+          1.151
+        ],
+        "inWorldSpace": true
+      },
+      {
+        "slotNumber": 2,
+        "stationKey": "nucleus",
+        "label": "Nukleus",
+        "isGLBMounted": true,
+        "glbKey": "nucleus",
+        "fittedSize": [
+          1.325,
+          1.252,
+          1.462
+        ],
+        "inWorldSpace": true
+      },
+      {
+        "slotNumber": 3,
+        "stationKey": "animal",
+        "label": "Sel Haiwan",
+        "isGLBMounted": true,
+        "glbKey": "animal",
+        "fittedSize": [
+          1.652,
+          1.119,
+          1.913
+        ],
+        "inWorldSpace": true
+      },
+      {
+        "slotNumber": 4,
+        "stationKey": "plant",
+        "label": "Sel Tumbuhan",
+        "isGLBMounted": true,
+        "glbKey": "plant",
+        "fittedSize": [
+          1.724,
+          1.158,
+          1.68
+        ],
+        "inWorldSpace": true
+      },
+      {
+        "slotNumber": 5,
+        "stationKey": "membrane",
+        "label": "Membran Sel",
+        "isGLBMounted": true,
+        "glbKey": "membrane",
+        "fittedSize": [
+          1.824,
+          0.615,
+          1.322
+        ],
+        "inWorldSpace": true
+      },
+      {
+        "slotNumber": 6,
+        "stationKey": "chloroplast",
+        "label": "Kloroplas",
+        "isGLBMounted": false,
+        "glbKey": null,
+        "fittedSize": null,
+        "inWorldSpace": true
+      },
+      {
+        "slotNumber": 7,
+        "stationKey": "cytoplasm",
+        "label": "Sitoplasma",
+        "isGLBMounted": false,
+        "glbKey": null,
+        "fittedSize": null,
+        "inWorldSpace": true
+      },
+      {
+        "slotNumber": 8,
+        "stationKey": "vacuole",
+        "label": "Vakuol",
+        "isGLBMounted": false,
+        "glbKey": null,
+        "fittedSize": null,
+        "inWorldSpace": true
+      }
+    ],
+    "leftActive": "mitochondria",
+    "rightActive": "nucleus"
+  },
+  "perfStats": {
+    "drawCalls": 24,
+    "triangles": 523088,
+    "geometries": 246,
+    "textures": 23
+  },
+  "consoleErrors": [],
+  "failed404s": []
+}

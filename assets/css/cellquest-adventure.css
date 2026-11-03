@@ -1684,26 +1684,30 @@ body.cq-ar-mode {
    RESPONSIVE DESIGN: IPAD (LANDSCAPE / PORTRAIT) & MOBILE
    ============================================================================== */
 
-/* iPad Landscape / Medium Desktops (1024px and below) */
-@media (max-width: 1180px) {
+/* iPad Landscape / Medium Desktops (1260px and below) */
+@media (max-width: 1260px) {
   .cq-ar-topbar {
-    gap: 8px;
+    gap: 6px;
+  }
+  .cq-ar-status-badge {
+    padding: 6px 10px;
+    font-size: 11px;
   }
   .cq-ar-stat-chip {
-    padding: 5px 9px;
+    padding: 5px 8px;
     font-size: 11px;
   }
   .cq-ar-model-btn {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 6px 10px;
+    font-size: 11.5px;
   }
   .cq-ar-organelle-card {
     width: 340px;
   }
 }
 
-/* iPad Portrait / Tablet (900px and below) */
-@media (max-width: 900px) {
+/* iPad Landscape / Portrait & Compact Desktops (1380px and below) */
+@media (max-width: 1380px) {
   .cq-ar-topbar {
     flex-wrap: wrap;
     justify-content: space-between;
@@ -1714,7 +1718,7 @@ body.cq-ar-mode {
     margin-top: 6px;
   }
   .cq-ar-floating-bar {
-    top: max(124px, calc(env(safe-area-inset-top) + 112px));
+    top: max(108px, calc(env(safe-area-inset-top) + 96px));
   }
   .cq-ar-stations-drawer {
     width: 320px;

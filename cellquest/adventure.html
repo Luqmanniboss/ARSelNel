@@ -20,6 +20,7 @@
   <script src="../assets/js/auth-guard.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="../assets/js/vendor/aruco-posit.js"></script>
 </head>
 <body>
 
@@ -149,8 +150,12 @@
 
       <div class="cq-station-badge-chip" id="stn-number-chip">STESEN 1 • NUKLEUS</div>
       
-      <div class="cq-station-header">
+      <div class="cq-station-header" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
         <h2 id="stn-title">Nukleus</h2>
+        <button type="button" id="stn-speech-btn" class="cq-btn-secondary" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; font-size:12px; border-radius:999px; cursor:pointer;">
+          <span class="material-symbols-outlined" style="font-size:16px">volume_up</span>
+          <span>Dengar Penerangan</span>
+        </button>
       </div>
 
       <!-- 3D Interactive Organelle Preview Box inside Modal -->
@@ -259,24 +264,41 @@
           <span class="cq-mode-icon">🖥️</span>
           <h3>1. Mod Jelajah 3D</h3>
           <p>Terokai keseluruhan makmal 3D menggunakan papan kekunci (WASD), tetikus atau joystick telefon. 8 stesen penuh, soalan kuiz dan lencana tanpa memerlukan akses kamera.</p>
-          <span class="cq-mode-tag">Semua Laptop, Komputer & Telefon • Tanpa Kamera</span>
+          <span class="cq-mode-tag">Semua Laptop, Komputer &amp; Telefon • Tanpa Kamera</span>
         </div>
 
-        <!-- Option 2: Live Camera Interactive AR Mode -->
-        <div class="cq-mode-card" id="choose-camera-ar-btn">
-          <span class="cq-mode-icon">📷</span>
-          <h3>2. Mod Kamera AR Interaktif</h3>
-          <p>Buka kamera telefon anda! Lihat model <strong>Sel Haiwan</strong>, <strong>Sel Tumbuhan</strong> atau <strong>Makmal Mini ARSelNel</strong> terapung di atas meja/bilik sebenar anda. Putar, zum & sentuh organel.</p>
-          <span class="cq-mode-tag camera-tag">Kamera Sebenar • Pusing & Zum Sentuhan</span>
+        <!-- Option 2 (Mod C): World-Locked Orientation AR Mode (iPad Safari compatible) -->
+        <div class="cq-mode-card" id="choose-camera-ar-btn" style="border: 2px solid #0d9488; position: relative;">
+          <span style="position: absolute; top: -10px; right: 12px; background: #0d9488; color: #fff; font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 20px;">MOD C • DISYORKAN iPad Safari</span>
+          <span class="cq-mode-icon">🧭</span>
+          <h3>2. Mod C: AR Orientasi Dunia ⭐</h3>
+          <p>Pandang <strong>Kiri</strong> → Mitokondrion, <strong>Kanan</strong> → Nukleus, <strong>Depan</strong> → Sel Haiwan, <strong>Belakang</strong> → Sel Tumbuhan! 8 stesen berasingan mengelilingi anda dengan kamera sebenar &amp; giroskop.</p>
+          <span class="cq-mode-tag camera-tag">Kamera + Sensor Orientasi • Hanya Menjejak Sudut Pandangan</span>
         </div>
 
-        <!-- Option 3: Real WebXR Spatial AR Mode -->
+        <!-- Option 3 (Mod B): Printable Marker AR Mode (iPad Safari 6DOF Pose Tracking) -->
+        <div class="cq-mode-card" id="choose-world-ar-btn" data-mode="marker-ar" style="border: 2px solid #f59e0b; position: relative;">
+          <span style="position: absolute; top: -10px; right: 12px; background: #f59e0b; color: #0f172a; font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 20px;">MOD B • MARKER 6DOF iPad</span>
+          <span class="cq-mode-icon">🃏</span>
+          <h3>3. Mod B: Marker AR (8 Kad Penanda)</h3>
+          <p>Susun 8 kad penanda AR boleh cetak di atas meja! Apabila kamera mengesan kad (cth. Mitokondrion di kiri, Nukleus di kanan), model 3D muncul tepat pada pose 3D kad tersebut.</p>
+          <span class="cq-mode-tag" style="background:rgba(245,158,11,0.18);color:#fde047;border:1px solid #f59e0b;">Penjejakan Pose Kad 6DOF • iPad Safari &amp; Semua Kamera</span>
+        </div>
+
+        <!-- Option 4 (Mod A): Real WebXR Spatial AR Mode -->
         <div class="cq-mode-card" id="choose-ar-btn">
           <span class="cq-mode-icon">✨</span>
-          <h3>3. Mod AR Spasial (WebXR)</h3>
-          <p>Realiti Terimbuh dengan penjejakan kedudukan fizikal 6DOF & pengesanan permukaan meja/lantai sebenar (hit-test). Model kekal melekat pada meja fizikal apabila telefon bergerak.</p>
-          <span class="cq-mode-tag ar-tag">WebXR Immersive-AR • Google ARCore</span>
+          <h3>4. Mod A: Spatial AR (WebXR)</h3>
+          <p>Penjejakan ruang fizikal 6DOF sebenar, pengesanan permukaan (hit-test) &amp; anchor dunia. 8 stesen organel kekal terkunci dalam ruang fizikal apabila anda bergerak.</p>
+          <span class="cq-mode-tag ar-tag">WebXR Immersive-AR • Peranti Sokongan ARCore</span>
         </div>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top: 12px;">
+        <a href="markers.html" target="_blank" rel="noopener" class="cq-btn-secondary" style="text-decoration:none; padding: 8px 16px; font-size: 12px;">
+          <span class="material-symbols-outlined" style="font-size:16px">print</span>
+          <span>Buka &amp; Cetak 8 Kad Penanda AR (Mod B)</span>
+        </a>
       </div>
 
       <!-- AR Placement sub-options (for WebXR AR) -->
@@ -400,18 +422,26 @@
         </div>
       </div>
 
-      <!-- Center: Model Switcher (Sel Haiwan / Sel Tumbuhan / Makmal Mini) -->
+      <!-- Center: AR Mode & Model Switcher -->
       <div class="cq-ar-top-center">
-        <div class="cq-ar-model-tabs" id="ar-model-tabs" role="tablist" aria-label="Pilih Model AR">
-          <button type="button" class="cq-ar-model-btn active" id="ar-btn-animal" data-ar-model="animal" role="tab" aria-selected="true">
+        <div class="cq-ar-model-tabs" id="ar-model-tabs" role="tablist" aria-label="Pilih Mod &amp; Model AR">
+          <button type="button" class="cq-ar-model-btn active" id="ar-btn-world" data-ar-model="world" role="tab" aria-selected="true" title="Mod C: 8 Stesen Sekeliling (Orientasi)">
+            <span class="tab-emoji">🧭</span>
+            <span class="tab-label">8 Stesen AR</span>
+          </button>
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-marker" data-ar-model="marker" role="tab" aria-selected="false" title="Mod B: Penjejakan 8 Kad Penanda AR">
+            <span class="tab-emoji">🃏</span>
+            <span class="tab-label">Kad Marker</span>
+          </button>
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-animal" data-ar-model="animal" role="tab" aria-selected="false" title="Fokus Stesen 3: Sel Haiwan">
             <span class="tab-emoji">🐾</span>
             <span class="tab-label">Sel Haiwan</span>
           </button>
-          <button type="button" class="cq-ar-model-btn" id="ar-btn-plant" data-ar-model="plant" role="tab" aria-selected="false">
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-plant" data-ar-model="plant" role="tab" aria-selected="false" title="Fokus Stesen 4: Sel Tumbuhan">
             <span class="tab-emoji">🌿</span>
             <span class="tab-label">Sel Tumbuhan</span>
           </button>
-          <button type="button" class="cq-ar-model-btn" id="ar-btn-minilab" data-ar-model="minilab" role="tab" aria-selected="false">
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-minilab" data-ar-model="minilab" role="tab" aria-selected="false" title="Paparan Diorama Makmal Mini">
             <span class="tab-emoji">🏛️</span>
             <span class="tab-label">Makmal Mini</span>
           </button>
@@ -463,17 +493,25 @@
       <span>👆 1 Jari: Pusing • 🤏 2 Jari: Zum/Alih • 🎯 Ketik Model: Pilih Organel</span>
     </div>
 
-    <!-- Floating Action Pill (Station Drawer Trigger & Reset View) -->
+    <!-- Floating Action Pill (Station Drawer Trigger, Calibrate, Posture & Print Markers) -->
     <div class="cq-ar-floating-bar" id="ar-floating-bar">
       <button type="button" class="cq-ar-stations-toggle-btn" id="ar-stations-toggle" aria-label="Buka Pilihan 8 Stesen">
         <span class="material-symbols-outlined" style="font-size:18px">menu_book</span>
         <span class="toggle-text">Stesen 1–8</span>
         <span class="cq-ar-chip-count" id="ar-stn-done-count">0/8</span>
       </button>
-      <button type="button" class="cq-ar-recenter-pill-btn" id="ar-recenter-btn" title="Pusatkan Model AR ke Tengah Skrin">
-        <span class="material-symbols-outlined" style="font-size:18px">center_focus_strong</span>
-        <span class="pill-text">Pusat</span>
+      <button type="button" class="cq-ar-recenter-pill-btn" id="ar-recenter-btn" title="Kalibrasi Arah Hadapan (0°)">
+        <span class="material-symbols-outlined" style="font-size:18px">explore</span>
+        <span class="pill-text" id="ar-recenter-text">Kalibrasi</span>
       </button>
+      <button type="button" class="cq-ar-recenter-pill-btn" id="ar-posture-btn" title="Tukar Mod Duduk / Berdiri">
+        <span class="material-symbols-outlined" style="font-size:18px" id="ar-posture-icon">chair</span>
+        <span class="pill-text" id="ar-posture-text">Duduk</span>
+      </button>
+      <a href="markers.html" target="_blank" rel="noopener" class="cq-ar-recenter-pill-btn" id="ar-print-markers-btn" style="text-decoration:none; display:none;" title="Buka &amp; Cetak 8 Kad Penanda AR">
+        <span class="material-symbols-outlined" style="font-size:18px">print</span>
+        <span class="pill-text">8 Kad AR</span>
+      </a>
     </div>
 
     <!-- Slide-out Station Panel / Drawer (Opens from Right on iPad Landscape) -->

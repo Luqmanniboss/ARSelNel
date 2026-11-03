@@ -1,0 +1,4548 @@
+/**
+ * ==============================================================================
+ * CellQuest AR Adventure — Misi Jelajah Dunia Sel
+ * 3D Engine, Virtual Room Walkthrough, Interactive Stations & WebXR AR
+ * ==============================================================================
+ */
+
+(function () {
+  'use strict';
+
+  // 1. DATA STESEN PEMBELAJARAN KSSM (DEFAULT / INITIAL SEED)
+  const DEFAULT_STATIONS = [
+    {
+      id: 'stn-1-nucleus',
+      number: 1,
+      title: 'Nukleus',
+      organelle: 'Nukleus',
+      color: '#8b5cf6',
+      colorHex: 0x8b5cf6,
+      icon: '🧬',
+      description: 'Nukleus merupakan pusat kawalan sel yang paling utama. Di dalamnya tersimpan asid deoksiribonukleik (DNA) yang membawa maklumat genetik bagi mengawal semua proses biologi dan sintesis protein sel.',
+      question: 'Apakah fungsi utama nukleus?',
+      options: [
+        'A. Menghasilkan tenaga',
+        'B. Mengawal aktiviti sel',
+        'C. Menghasilkan makanan',
+        'D. Melindungi dinding sel'
+      ],
+      correct: 1, // B
+      explanation: 'Jawapan Tepat: B. Nukleus mengawal semua aktiviti sel. Menghasilkan tenaga dilakukan oleh mitokondrion, manakala menghasilkan makanan dilakukan oleh kloroplas melalui fotosintesis.',
+      pos: { x: -7.5, z: 6, rotY: Math.PI / 2 }
+    },
+    {
+      id: 'stn-2-membrane',
+      number: 2,
+      title: 'Membran Sel',
+      organelle: 'Membran Sel',
+      color: '#3b82f6',
+      colorHex: 0x3b82f6,
+      icon: '🛡️',
+      description: 'Lapisan nipis dan fleksibel yang mengelilingi protoplasma sel. Membran ini bersifat telap memilih (separa telap) dan bertindak seperti pengawal keselamatan pintu gerbang sel.',
+      question: 'Apakah fungsi membran sel?',
+      options: [
+        'A. Mengawal pergerakan bahan masuk dan keluar dari sel',
+        'B. Menghasilkan cahaya',
+        'C. Menyimpan klorofil',
+        'D. Membina dinding sel'
+      ],
+      correct: 0, // A
+      explanation: 'Jawapan Tepat: A. Membran sel mengawal pergerakan bahan masuk dan keluar dari sel supaya nutrien penting dapat diserap dan bahan kumuh dapat disingkirkan.',
+      pos: { x: -7.5, z: 2, rotY: Math.PI / 2 }
+    },
+    {
+      id: 'stn-3-cytoplasm',
+      number: 3,
+      title: 'Sitoplasma',
+      organelle: 'Sitoplasma',
+      color: '#eab308',
+      colorHex: 0xeab308,
+      icon: '💧',
+      description: 'Bahan seperti jeli yang merangkumi ruang di antara membran sel dan membran nukleus. Mengandungi 70-80% air, ion terlarut, dan pelbagai enzim kimia penting.',
+      question: 'Apakah sitoplasma?',
+      options: [
+        'A. Lapisan luar dinding sel',
+        'B. Struktur yang mengandungi klorofil',
+        'C. Bahan seperti jeli tempat banyak tindak balas kimia berlaku',
+        'D. Bahagian yang menghasilkan cahaya'
+      ],
+      correct: 2, // C
+      explanation: 'Jawapan Tepat: C. Sitoplasma ialah bahan seperti jeli di mana organel sel terapung dan merupakan medium berlakunya pelbagai tindak balas kimia serta metabolisme sel.',
+      pos: { x: -7.5, z: -2, rotY: Math.PI / 2 }
+    },
+    {
+      id: 'stn-4-mitochondria',
+      number: 4,
+      title: 'Mitokondrion',
+      organelle: 'Mitokondrion',
+      color: '#f97316',
+      colorHex: 0xf97316,
+      icon: '⚡',
+      description: 'Organel berbentuk silinder bujur yang dikenali sebagai "Pusat Tenaga Sel". Mitokondrion mempunyai dua lapisan membran; membran dalamnya berlipat-lipat membentuk krista.',
+      question: 'Apakah fungsi mitokondrion?',
+      options: [
+        'A. Mengawal pembahagian cahaya',
+        'B. Menyimpan pigmen hijau',
+        'C. Membentuk dinding sel',
+        'D. Menjalankan respirasi sel untuk membebaskan tenaga'
+      ],
+      correct: 3, // D
+      explanation: 'Jawapan Tepat: D. Mitokondrion menjalankan respirasi sel dengan menguraikan molekul glukosa dan oksigen untuk membebaskan tenaga kimia (ATP) bagi kegunaan sel hidup.',
+      pos: { x: -7.5, z: -6, rotY: Math.PI / 2 }
+    },
+    {
+      id: 'stn-5-chloroplast',
+      number: 5,
+      title: 'Kloroplas',
+      organelle: 'Kloroplas',
+      color: '#22c55e',
+      colorHex: 0x22c55e,
+      icon: '🌿',
+      description: 'Organel hijau berbentuk cakera kanta cembung yang mengandungi pigmen klorofil. Hanya dijumpai pada sel tumbuhan hijau dan fitoplankton untuk fotosintesis.',
+      question: 'Mengapakah kloroplas penting kepada sel tumbuhan?',
+      options: [
+        'A. Mengawal semua aktiviti sel',
+        'B. Menjalankan fotosintesis',
+        'C. Menghasilkan protein sahaja',
+        'D. Mengawal pergerakan bahan'
+      ],
+      correct: 1, // B
+      explanation: 'Jawapan Tepat: B. Kloroplas mengandungi pigmen hijau (klorofil) yang menyerap tenaga cahaya matahari untuk menjalankan proses fotosintesis bagi menghasilkan makanan (glukosa).',
+      pos: { x: 7.5, z: -6, rotY: -Math.PI / 2 }
+    },
+    {
+      id: 'stn-6-cellwall',
+      number: 6,
+      title: 'Dinding Sel',
+      organelle: 'Dinding Sel',
+      color: '#92400e',
+      colorHex: 0x92400e,
+      icon: '🧱',
+      description: 'Lapisan tegar yang tebal di bahagian paling luar sel tumbuhan. Terbina daripada gentian selulosa yang kuat, telap sepenuhnya kepada air dan bahan larut.',
+      question: 'Apakah fungsi dinding sel tumbuhan?',
+      options: [
+        'A. Memberikan sokongan dan mengekalkan bentuk sel',
+        'B. Menghasilkan tenaga',
+        'C. Mengawal aktiviti sel',
+        'D. Menjalankan respirasi'
+      ],
+      correct: 0, // A
+      explanation: 'Jawapan Tepat: A. Dinding sel memberikan kekuatan mekanikal, sokongan struktur, dan mengekalkan bentuk tetap pada sel tumbuhan serta melindunginya daripada pecah.',
+      pos: { x: 7.5, z: -2, rotY: -Math.PI / 2 }
+    },
+    {
+      id: 'stn-7-vacuole',
+      number: 7,
+      title: 'Vakuol',
+      organelle: 'Vakuol',
+      color: '#06b6d4',
+      colorHex: 0x06b6d4,
+      icon: '🫧',
+      description: 'Kantung bermembran (tonoplas) yang besar dalam sel tumbuhan matang berisi cecair sap sel. Sel haiwan biasanya mempunyai vakuol kecil dan sementara atau tiada langsung.',
+      question: 'Apakah fungsi utama vakuol besar dalam sel tumbuhan?',
+      options: [
+        'A. Menghasilkan cahaya',
+        'B. Mengawal aktiviti sel',
+        'C. Menyimpan sap sel dan membantu mengekalkan kesegahan sel',
+        'D. Menghasilkan klorofil'
+      ],
+      correct: 2, // C
+      explanation: 'Jawapan Tepat: C. Vakuol pusat menyimpan sap sel (air, mineral dan gula terlarut). Apabila vakuol penuh, ia mengenakan tekanan turgor untuk mengekalkan kesegahan sel tumbuhan.',
+      pos: { x: 7.5, z: 2, rotY: -Math.PI / 2 }
+    },
+    {
+      id: 'stn-8-comparison',
+      number: 8,
+      title: 'Sel Haiwan vs Sel Tumbuhan',
+      organelle: 'Perbandingan Sel',
+      color: '#ec4899',
+      colorHex: 0xec4899,
+      icon: '⚖️',
+      description: 'Sel tumbuhan mempunyai dinding sel, kloroplas dan vakuol pusat besar dengan bentuk tetap. Sel haiwan tidak mempunyai dinding sel mahupun kloroplas, mempunyai vakuol kecil, dan bentuknya tidak tetap.',
+      question: 'Antara berikut, struktur manakah terdapat pada sel tumbuhan biasa tetapi tiada pada sel haiwan?',
+      options: [
+        'A. Membran sel',
+        'B. Sitoplasma',
+        'C. Nukleus',
+        'D. Dinding sel'
+      ],
+      correct: 3, // D
+      explanation: 'Jawapan Tepat: D. Dinding sel dan kloroplas hanya terdapat pada sel tumbuhan biasa. Nukleus, membran sel, dan sitoplasma hadir pada kedua-dua sel haiwan dan sel tumbuhan.',
+      pos: { x: 7.5, z: 6, rotY: -Math.PI / 2 }
+    }
+  ];
+
+  // 2. AUDIO SYNTHESIZER (WEB AUDIO API - ZERO ASSET DEPENDENCY)
+  const SoundFX = {
+    ctx: null,
+    muted: false,
+    init() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) this.ctx = new AudioContext();
+      } catch (_) {}
+    },
+    ensure() {
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+    },
+    playTone(freq, type = 'sine', duration = 0.2, gainVal = 0.15) {
+      if (this.muted || !this.ctx) return;
+      this.ensure();
+      try {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      } catch (_) {}
+    },
+    correct() {
+      if (this.muted) return;
+      this.playTone(523.25, 'triangle', 0.15, 0.2); // C5
+      setTimeout(() => this.playTone(659.25, 'triangle', 0.15, 0.2), 100); // E5
+      setTimeout(() => this.playTone(783.99, 'triangle', 0.25, 0.25), 200); // G5
+      setTimeout(() => this.playTone(1046.50, 'triangle', 0.4, 0.3), 320); // C6
+    },
+    incorrect() {
+      if (this.muted) return;
+      this.playTone(311.13, 'sawtooth', 0.2, 0.15);
+      setTimeout(() => this.playTone(277.18, 'sawtooth', 0.35, 0.15), 180);
+    },
+    interact() {
+      if (this.muted) return;
+      this.playTone(440, 'sine', 0.1, 0.1);
+      setTimeout(() => this.playTone(880, 'sine', 0.12, 0.12), 80);
+    },
+    victory() {
+      if (this.muted) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+      notes.forEach((f, idx) => {
+        setTimeout(() => this.playTone(f, 'triangle', 0.3, 0.25), idx * 120);
+      });
+    }
+  };
+
+  // 3. GAME STATE
+  const State = {
+    stations: JSON.parse(JSON.stringify(DEFAULT_STATIONS)),
+    activeStationIndex: -1,
+    nearbyStationIndex: -1,
+    completedStations: new Set(),
+    score: 0,
+    startTime: Date.now(),
+    timerInterval: null,
+    durationSeconds: 0,
+    attemptsCount: {},
+    isPaused: false,
+    isCompleted: false,
+    mode: '3d', // '3d' | 'camera-ar' | 'ar'
+    user: null
+  };
+
+  // 4. THREE.JS ENGINE COMPONENTS
+  let scene, camera, renderer;
+  let labEnvironmentGroup = null; // Group containing the full 3D lab room for AR scaling
+  let player = {
+    x: 0,
+    y: 1.6, // Eye height
+    z: 8.5, // Start near entrance door (z=8.5)
+    rotY: 0, // In Three.js, rotY=0 looks down -Z towards room center (z=0) & exit door (z=-10.8)!
+    pitch: 0,
+    speed: 0.12,
+    turnSpeed: 0.035,
+    keys: { forward: false, backward: false, left: false, right: false }
+  };
+  let stationMeshes = [];
+  let exitDoorMeshes = null;
+  let animatedObjects = [];
+  let reticleMesh = null;
+  let xrSession = null;
+  let xrRefSpace = null;
+  let xrHitTestSource = null;
+
+  // ------------------------------------------------------------------------------
+  // REAL AUGMENTED REALITY (CAMERA PASSTHROUGH & 3D CELL OVERLAY) ENGINE STATE
+  // ------------------------------------------------------------------------------
+  let arObjectGroup = null;
+  let arAnimalHolder = null;
+  let arPlantHolder = null;
+  let arMiniLabHolder = null;
+  let arPickableObjects = [];
+  const arState = {
+    activeModel: 'animal', // 'animal' | 'plant' | 'minilab'
+    selectedOrganelle: null,
+    autoRotate: true,
+    scale: 1.0,
+    isPlaced: false
+  };
+  const arRaycaster = new THREE.Raycaster();
+  const arPointer = new THREE.Vector2();
+
+  // ==============================================================================
+  // AR WORLD-LOCKED EXPLORATION SYSTEM — Stesen berasingan dalam dunia AR
+  // ==============================================================================
+  // Setiap stesen AR diletakkan pada sudut berbeza relatif kepada titik mula.
+  // Dalam Mod Orientasi: sudut adalah relatif kepada arah hadapan kamera semasa sesi dimulakan.
+  // Dalam Mod WebXR Spasial: koordinat dalam ruang XR sebenar.
+
+  // Susun atur 8 stesen AR dunia (angle dalam darjah, 0°=depan, 90°=kanan, 180°=belakang, 270°=kiri)
+  const AR_WORLD_STATIONS = [
+    { id: 'stn-4-mitochondria', stationKey: 'mitochondria', stationNumber: 4, angleDeg: 270, radius: 8.0, height: 0.0, label: 'Mitokondrion', color: 0xf97316, icon: '⚡' },
+    { id: 'stn-1-nucleus',      stationKey: 'nucleus',      stationNumber: 1, angleDeg: 90,  radius: 8.0, height: 0.0, label: 'Nukleus',     color: 0x8b5cf6, icon: '🧬' },
+    { id: 'stn-8-comparison',   stationKey: 'animal',       stationNumber: 8, angleDeg: 0,   radius: 8.0, height: 0.0, label: 'Sel Haiwan',  color: 0x3b82f6, icon: '🐾' },
+    { id: 'stn-6-cell-wall',    stationKey: 'plant',        stationNumber: 6, angleDeg: 180, radius: 8.0, height: 0.0, label: 'Sel Tumbuhan',color: 0x22c55e, icon: '🌿' },
+    { id: 'stn-2-membrane',     stationKey: 'membrane',     stationNumber: 2, angleDeg: 315, radius: 7.0, height: 0.0, label: 'Membran Sel', color: 0x3b82f6, icon: '🛡️' },
+    { id: 'stn-5-chloroplast',  stationKey: 'chloroplast',  stationNumber: 5, angleDeg: 45,  radius: 7.0, height: 0.0, label: 'Kloroplas',   color: 0x22c55e, icon: '🌿' },
+    { id: 'stn-3-cytoplasm',    stationKey: 'cytoplasm',    stationNumber: 3, angleDeg: 225, radius: 7.0, height: 0.0, label: 'Sitoplasma',  color: 0xeab308, icon: '💧' },
+    { id: 'stn-7-vacuole',      stationKey: 'vacuole',      stationNumber: 7, angleDeg: 135, radius: 7.0, height: 0.0, label: 'Vakuol',      color: 0x06b6d4, icon: '🫧' }
+  ];
+
+  // World-locked AR state — dikekalkan sepanjang sesi
+  const arWorldState = {
+    active: false,               // Adakah Mod Penerokaan Dunia AR aktif?
+    baseHeadingDeg: 0,           // Arah hadapan kalibrasi (dalam darjah kompas)
+    currentHeadingDeg: 0,        // Arah semasa kamera (dari DeviceOrientation alpha)
+    hasCalibrated: false,        // Sudahkah pengguna kalibrasi arah?
+    stationGroups: [],           // Array THREE.Group untuk setiap stesen
+    stationVisibility: new Array(8).fill(false),  // Status nampak setiap stesen
+    activeStation: null,         // Stesen yang sedang dalam pandangan
+    compassEl: null,             // Elemen kompas HTML
+    detectedBanner: null,        // Banner "Stesen Ditemui!"
+    fovThresholdDeg: 30,         // Sudut pandang untuk stesen dianggap "dalam pandangan"
+    lastDetectedIdx: -1          // Indeks stesen terakhir yang dikesan
+  };
+
+  // DOM untuk AR Penerokaan Dunia
+  const arWorldDOM = {};
+
+  // KSSM Tingkatan 1 Bab 2 Organelle Facts & Biology Specifications
+  const ORGANELLE_DATA = {
+    nucleus: {
+      stationNumber: 1,
+      name: 'Nukleus',
+      icon: '🧬',
+      colorHex: 0x8b5cf6,
+      color: '#8b5cf6',
+      description: 'Pusat kawalan sel yang mengandungi bahan genetik (DNA). Mengawal semua proses dan aktiviti sel.',
+      fact: 'Nukleus terdapat dalam kedua-dua sel haiwan dan sel tumbuhan.'
+    },
+    membrane: {
+      stationNumber: 2,
+      name: 'Membran Sel',
+      icon: '🛡️',
+      colorHex: 0x3b82f6,
+      color: '#3b82f6',
+      description: 'Lapisan luar separa telap yang mengawal pergerakan bahan masuk dan keluar dari sel.',
+      fact: 'Membran sel bersifat telap memilih dan terdapat pada sel haiwan dan tumbuhan.'
+    },
+    cytoplasm: {
+      stationNumber: 3,
+      name: 'Sitoplasma',
+      icon: '💧',
+      colorHex: 0xeab308,
+      color: '#eab308',
+      description: 'Bahan seperti jeli yang mengisi ruang sel. Medium berlakunya tindak balas biokimia dan metabolisme sel.',
+      fact: 'Semua organel sel terapung di dalam sitoplasma.'
+    },
+    mitochondria: {
+      stationNumber: 4,
+      name: 'Mitokondrion',
+      icon: '⚡',
+      colorHex: 0xf97316,
+      color: '#f97316',
+      description: 'Pusat penjanaan tenaga sel ("Powerhouse"). Menjalankan respirasi sel untuk membebaskan tenaga kimia (ATP).',
+      fact: 'Bentuknya bujur dengan lipatan krista di dalamnya.'
+    },
+    chloroplast: {
+      stationNumber: 5,
+      name: 'Kloroplas',
+      icon: '🌿',
+      colorHex: 0x22c55e,
+      color: '#22c55e',
+      description: 'Mengandungi klorofil untuk menyerap tenaga cahaya matahari bagi menjalankan proses fotosintesis.',
+      fact: 'Hanya terdapat pada sel tumbuhan hijau, TIDAK terdapat pada sel haiwan.'
+    },
+    wall: {
+      stationNumber: 6,
+      name: 'Dinding Sel',
+      icon: '🧱',
+      colorHex: 0x92400e,
+      color: '#92400e',
+      description: 'Lapisan tegar selulosa di bahagian paling luar sel tumbuhan yang memberikan sokongan, kekuatan dan bentuk tetap.',
+      fact: 'Dinding sel telap sepenuhnya dan hanya wujud pada sel tumbuhan.'
+    },
+    vacuole: {
+      stationNumber: 7,
+      name: 'Vakuol',
+      icon: '🫧',
+      colorHex: 0x06b6d4,
+      color: '#06b6d4',
+      description: 'Kantung bermembran berisi cecair sap sel. Pada sel tumbuhan matang, vakuol bersaiz besar untuk mengekalkan kesegahan.',
+      fact: 'Sel tumbuhan mempunyai vakuol pusat besar; sel haiwan mempunyai vakuol kecil dan sementara.'
+    },
+    centrioles: {
+      stationNumber: 8,
+      name: 'Sentriol',
+      icon: '🧭',
+      colorHex: 0xfacc15,
+      color: '#facc15',
+      description: 'Sepasang struktur silinder yang membantu pembentukan gentian gelendong semasa pembahagian sel haiwan.',
+      fact: 'Hanya hadir dalam sel haiwan.'
+    },
+    lysosome: {
+      stationNumber: 8,
+      name: 'Lisosom',
+      icon: '✨',
+      colorHex: 0xec4899,
+      color: '#ec4899',
+      description: 'Vesikel mengandungi enzim pencernaan untuk menguraikan zarah makanan atau bahan sel usang.',
+      fact: 'Bertindak sebagai sistem pelupusan sel haiwan.'
+    }
+  };
+
+  const ANIMAL_MESH_MAP = {
+    CellBody_Inner: 'cytoplasm',
+    CellBody_Outer: 'membrane',
+    Centrioles_01: 'centrioles',
+    Centrioles_02: 'centrioles',
+    EndoplasmicReticulum: 'er',
+    GolgiApparatus: 'golgi',
+    Lysosome_01: 'lysosome',
+    Lysosome_02: 'lysosome',
+    Mitochondria_OuterMembrane: 'mitochondria',
+    Mitochondrion: 'mitochondria',
+    Nucleus: 'nucleus',
+    Nucleus_Cutaway: 'nucleus',
+    Nucleus_Inner: 'nucleus',
+    Nucleus_Outer: 'nucleus',
+    Sphere001: 'vacuole',
+    'Sphere.001': 'vacuole'
+  };
+
+  const PLANT_HOTSPOTS = [
+    { id: 'wall', pos: [1.32, 0.45, 0.82], radius: 0.28 },
+    { id: 'membrane', pos: [1.18, 0.15, 0.72], radius: 0.24 },
+    { id: 'vacuole', pos: [-0.05, 0.18, -0.05], radius: 0.44 },
+    { id: 'nucleus', pos: [0.72, 0.36, -0.48], radius: 0.32 },
+    { id: 'chloroplast', pos: [-0.82, 0.48, 0.65], radius: 0.28 },
+    { id: 'chloroplast', pos: [-0.75, -0.35, -0.55], radius: 0.26 },
+    { id: 'mitochondria', pos: [0.55, -0.32, 0.25], radius: 0.24 },
+    { id: 'mitochondria', pos: [-0.60, -0.28, 0.20], radius: 0.22 },
+    { id: 'cytoplasm', pos: [-0.58, 0.12, 0.58], radius: 0.26 }
+  ];
+
+  // Mobile Joystick & Touch Controls State
+  const joystickState = {
+    active: false,
+    touchId: null,
+    x: 0, // -1 (left) to +1 (right)
+    y: 0  // -1 (backward) to +1 (forward)
+  };
+  const touchLookState = {
+    active: false,
+    touchId: null,
+    prevX: 0,
+    prevY: 0
+  };
+
+  // Camera & Device Orientation (Gyro) State
+  let cameraStream = null;
+  const gyroState = {
+    supported: false,
+    active: false,
+    initialAlpha: null,
+    alpha: 0,
+    beta: 0,
+    gamma: 0,
+    baseRotY: 0
+  };
+  let arScaleMode = 'mini'; // 'mini' | 'room'
+
+  // Modal 3D Organelle Preview Engine
+  let previewScene = null;
+  let previewCamera = null;
+  let previewRenderer = null;
+  let previewModelGroup = null;
+  let previewAnimId = null;
+
+  // DOM Elements
+  const DOM = {};
+
+  // ==============================================================================
+  // INITIALIZATION & SETUP
+  // ==============================================================================
+
+  async function init() {
+    cacheDOM();
+    SoundFX.init();
+    bindEvents();
+    loadUser();
+    await loadCMSStations();
+    setupThree();
+    buildLaboratoryRoom();
+    buildStations();
+    buildARSystem();
+    buildMiniBadgeStrip();
+    initStationPreview();
+    startTimer();
+    hideLoadingScreen();
+    animate();
+
+    // Check URL search params for quick mode launch (e.g. ?mode=ar, ?mode=camera, ?mode=how)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'ar') {
+      openModeDialog();
+    } else if (urlParams.get('mode') === 'camera') {
+      selectMode('camera-ar');
+    } else if (urlParams.get('mode') === 'how') {
+      openHowToPlayDialog();
+    }
+  }
+
+  function cacheDOM() {
+    DOM.loadingScreen = document.getElementById('loading-screen');
+    DOM.canvasContainer = document.getElementById('canvas-container');
+    DOM.cameraFeed = document.getElementById('ar-camera-feed');
+    DOM.hudModePill = document.getElementById('hud-mode-pill');
+    DOM.hudModeIcon = document.getElementById('hud-mode-icon');
+    DOM.hudModeText = document.getElementById('hud-mode-text');
+    DOM.gyroResetBtn = document.getElementById('gyro-reset-btn');
+    DOM.badgeCount = document.getElementById('hud-badge-count');
+    DOM.score = document.getElementById('hud-score');
+    DOM.timer = document.getElementById('hud-timer');
+    DOM.badgeStrip = document.getElementById('hud-badge-strip');
+    DOM.promptContainer = document.getElementById('prompt-container');
+    DOM.promptTitle = document.getElementById('prompt-title');
+    DOM.promptIcon = document.getElementById('prompt-icon');
+    DOM.promptActionBtn = document.getElementById('prompt-action-btn');
+    DOM.mobileInteractBtn = document.getElementById('mobile-interact-btn');
+    DOM.soundToggleBtn = document.getElementById('sound-toggle-btn');
+    DOM.soundIcon = document.getElementById('sound-icon');
+    DOM.pauseBtn = document.getElementById('pause-btn');
+    DOM.helpBtn = document.getElementById('help-btn');
+    DOM.modeSelectBtn = document.getElementById('mode-select-btn');
+
+    // Modals
+    DOM.stationModal = document.getElementById('station-modal');
+    DOM.stationNumberChip = document.getElementById('stn-number-chip');
+    DOM.stationTitle = document.getElementById('stn-title');
+    DOM.stationDesc = document.getElementById('stn-description');
+    DOM.stnPreviewHost = document.getElementById('stn-preview-host');
+    DOM.stnPreviewCanvas = document.getElementById('stn-preview-canvas');
+    DOM.quizQuestion = document.getElementById('quiz-question');
+    DOM.quizOptions = document.getElementById('quiz-options');
+    DOM.quizFeedback = document.getElementById('quiz-feedback');
+    DOM.quizModalActions = document.getElementById('quiz-modal-actions');
+    DOM.closeStationBtn = document.getElementById('close-station-btn');
+
+    // How to play dialog
+    DOM.howToModal = document.getElementById('howto-modal');
+    DOM.startPlayingBtn = document.getElementById('start-playing-btn');
+    DOM.closeHowToBtn = document.getElementById('close-howto-btn');
+
+    // Mode Selector Modal
+    DOM.modeModal = document.getElementById('mode-modal');
+    DOM.choose3dBtn = document.getElementById('choose-3d-btn');
+    DOM.chooseCameraArBtn = document.getElementById('choose-camera-ar-btn');
+    DOM.chooseArBtn = document.getElementById('choose-ar-btn');
+    DOM.closeModeBtn = document.getElementById('close-mode-btn');
+    DOM.arScaleChooser = document.getElementById('ar-scale-chooser');
+    DOM.scaleMiniBtn = document.getElementById('scale-mini-btn');
+    DOM.scaleRoomBtn = document.getElementById('scale-room-btn');
+
+    // Camera Fallback Modal
+    DOM.cameraFallbackModal = document.getElementById('camera-fallback-modal');
+    DOM.cameraFallbackTitle = document.getElementById('camera-fallback-title');
+    DOM.cameraFallbackMsg = document.getElementById('camera-fallback-msg');
+    DOM.retryCameraBtn = document.getElementById('retry-camera-btn');
+    DOM.fallbackTo3dBtn = document.getElementById('fallback-to-3d-btn');
+
+    // Victory Certificate Modal
+    DOM.victoryModal = document.getElementById('victory-modal');
+    DOM.certStudentName = document.getElementById('cert-student-name');
+    DOM.certScore = document.getElementById('cert-score');
+    DOM.certTime = document.getElementById('cert-time');
+    DOM.certDate = document.getElementById('cert-date');
+    DOM.downloadCertBtn = document.getElementById('download-cert-btn');
+    DOM.restartGameBtn = document.getElementById('restart-game-btn');
+    DOM.closeVictoryBtn = document.getElementById('close-victory-btn');
+
+    // AR HUD Overlay & Interactive Controls
+    DOM.arOverlay = document.getElementById('ar-overlay');
+    DOM.arStatusBadge = document.getElementById('ar-status-badge');
+    DOM.arBadgeIcon = document.getElementById('ar-badge-icon');
+    DOM.arBadgeText = document.getElementById('ar-badge-text');
+    DOM.arModelTabs = document.getElementById('ar-model-tabs');
+    DOM.arBtnAnimal = document.getElementById('ar-btn-animal');
+    DOM.arBtnPlant = document.getElementById('ar-btn-plant');
+    DOM.arBtnMinilab = document.getElementById('ar-btn-minilab');
+    DOM.arAutorotateBtn = document.getElementById('ar-autorotate-btn');
+    DOM.arResetViewBtn = document.getElementById('ar-reset-view-btn');
+    DOM.arChangeModeBtn = document.getElementById('ar-change-mode-btn');
+    DOM.arExitBtn = document.getElementById('ar-exit-btn');
+    DOM.arHintBanner = document.getElementById('ar-hint-banner');
+    DOM.arOrganelleStrip = document.getElementById('ar-organelle-strip');
+    DOM.arOrganelleCard = document.getElementById('ar-organelle-card');
+    DOM.arCardIcon = document.getElementById('ar-card-icon');
+    DOM.arCardTitle = document.getElementById('ar-card-title');
+    DOM.arCardBadge = document.getElementById('ar-card-badge');
+    DOM.arCardDesc = document.getElementById('ar-card-desc');
+    DOM.arCardQuizBtn = document.getElementById('ar-card-quiz-btn');
+    DOM.arCardSpeechBtn = document.getElementById('ar-card-speech-btn');
+    DOM.arCardFocusBtn = document.getElementById('ar-card-focus-btn');
+    DOM.arCardCloseBtn = document.getElementById('ar-card-close-btn');
+
+    // Spatial WebXR Tools
+    DOM.arSpatialTools = document.getElementById('ar-spatial-tools');
+    DOM.arPlaceBtn = document.getElementById('ar-place-btn');
+    DOM.arSmallerBtn = document.getElementById('ar-smaller-btn');
+    DOM.arLargerBtn = document.getElementById('ar-larger-btn');
+    DOM.arRotateBtn = document.getElementById('ar-rotate-btn');
+    DOM.arRepositionBtn = document.getElementById('ar-reposition-btn');
+
+    // Mobile Virtual Joystick & Touch Zone
+    DOM.virtualJoystick = document.getElementById('virtual-joystick');
+    DOM.joystickBase = document.getElementById('joystick-base');
+    DOM.joystickThumb = document.getElementById('joystick-thumb');
+    DOM.touchZone = document.getElementById('touch-look-zone');
+    DOM.crosshair = document.getElementById('crosshair');
+
+    // Walkthrough HUD container
+    DOM.walkthroughHud = document.getElementById('cq-walkthrough-hud');
+
+    // New AR HUD, Drawer & Window Controls
+    DOM.arTopBar = document.getElementById('ar-topbar');
+    DOM.arBackBtn = document.getElementById('ar-back-btn');
+    DOM.arSoundBtn = document.getElementById('ar-sound-btn');
+    DOM.arSoundIcon = document.getElementById('ar-sound-icon');
+    DOM.arHelpBtn = document.getElementById('ar-help-btn');
+    DOM.arHudScore = document.getElementById('ar-hud-score');
+    DOM.arHudBadges = document.getElementById('ar-hud-badges');
+    DOM.arHudTimer = document.getElementById('ar-hud-timer');
+    DOM.arStationsToggle = document.getElementById('ar-stations-toggle');
+    DOM.arStnDoneCount = document.getElementById('ar-stn-done-count');
+    DOM.arRecenterBtn = document.getElementById('ar-recenter-btn');
+    DOM.arStationsDrawer = document.getElementById('ar-stations-drawer');
+    DOM.arDrawerCloseBtn = document.getElementById('ar-drawer-close-btn');
+    DOM.arDrawerList = document.getElementById('ar-drawer-list');
+    DOM.arCardMinimizeBtn = document.getElementById('ar-card-minimize-btn');
+    DOM.arCardMinIcon = document.getElementById('ar-card-min-icon');
+    DOM.arCardHeader = document.getElementById('ar-card-header');
+    DOM.arCardBody = document.getElementById('ar-card-body');
+  }
+
+  function loadUser() {
+    try {
+      if (window.AuthGuard && typeof window.AuthGuard.getUser === 'function') {
+        State.user = window.AuthGuard.getUser();
+      } else if (window.ARSupabase && typeof window.ARSupabase.getUser === 'function') {
+        State.user = window.ARSupabase.getUser();
+      }
+    } catch (_) {}
+  }
+
+  // Sync station configuration from Supabase if published
+  async function loadCMSStations() {
+    if (!window.ARSupabase || !window.ARSupabase.client) return;
+    try {
+      const { data, error } = await window.ARSupabase.client
+        .from('cellquest_adventure_config')
+        .select('*')
+        .eq('is_active', true)
+        .order('station_number', { ascending: true });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        data.forEach(item => {
+          const idx = State.stations.findIndex(s => s.number === item.station_number || s.id === item.id);
+          if (idx >= 0) {
+            State.stations[idx].title = item.title || State.stations[idx].title;
+            State.stations[idx].organelle = item.organelle || State.stations[idx].organelle;
+            State.stations[idx].description = item.description || State.stations[idx].description;
+            State.stations[idx].question = item.question_text || State.stations[idx].question;
+            State.stations[idx].options = [item.option_a, item.option_b, item.option_c, item.option_d];
+            const letterMap = { A: 0, B: 1, C: 2, D: 3 };
+            State.stations[idx].correct = letterMap[item.correct_option] ?? State.stations[idx].correct;
+            State.stations[idx].explanation = item.explanation || State.stations[idx].explanation;
+            if (item.color) {
+              State.stations[idx].color = item.color;
+              State.stations[idx].colorHex = parseInt(item.color.replace('#', '0x'), 16);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('CMS station sync warning:', e);
+    }
+  }
+
+  function hideLoadingScreen() {
+    if (DOM.loadingScreen) {
+      setTimeout(() => {
+        DOM.loadingScreen.classList.add('done');
+      }, 350);
+    }
+  }
+
+  // ==============================================================================
+  // THREE.JS SCENE SETUP
+  // ==============================================================================
+
+  function setupThree() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a161e);
+    scene.fog = new THREE.FogExp2(0x0a161e, 0.025);
+
+    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(player.x, player.y, player.z);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.xr.enabled = true; // Enable WebXR on renderer
+
+    DOM.canvasContainer.appendChild(renderer.domElement);
+
+    // Dedicated Root Group for AR Models (Animal Cell, Plant Cell & Mini Lab)
+    arObjectGroup = new THREE.Group();
+    arObjectGroup.visible = false;
+    scene.add(arObjectGroup);
+
+    // Ambient and Directional Soft Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xdcfce7, 0.7);
+    dirLight.position.set(5, 12, 7);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    scene.add(dirLight);
+
+    // Warm laboratory accent point lights
+    const warmLight1 = new THREE.PointLight(0x38bdf8, 1.2, 18);
+    warmLight1.position.set(-4, 4, 0);
+    scene.add(warmLight1);
+
+    const warmLight2 = new THREE.PointLight(0x2dd4bf, 1.2, 18);
+    warmLight2.position.set(4, 4, 0);
+    scene.add(warmLight2);
+  }
+
+  // ==============================================================================
+  // 3D LAB ROOM ENVIRONMENT (CARTOON SCI-FI LAB)
+  // ==============================================================================
+
+  function buildLaboratoryRoom() {
+    const labGroup = new THREE.Group();
+
+    // 1. Glossy Tiled Lab Floor (18m wide x 22m long)
+    const floorGeo = new THREE.PlaneGeometry(18, 22);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0x132630,
+      roughness: 0.25,
+      metalness: 0.2
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    labGroup.add(floor);
+
+    // Subtle Hexagonal / Grid Accent Lines on Floor
+    const gridHelper = new THREE.GridHelper(20, 20, 0x2dd4bf, 0x1e3a47);
+    gridHelper.position.y = 0.01;
+    labGroup.add(gridHelper);
+
+    // 2. Ceiling with Skylights
+    const ceilingGeo = new THREE.PlaneGeometry(18, 22);
+    const ceilingMat = new THREE.MeshStandardMaterial({
+      color: 0x0c1a22,
+      roughness: 0.8
+    });
+    const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
+    ceiling.position.y = 5;
+    ceiling.rotation.x = Math.PI / 2;
+    labGroup.add(ceiling);
+
+    // Glowing Ceiling Light Strips
+    for (let z = -8; z <= 8; z += 4) {
+      const stripGeo = new THREE.BoxGeometry(10, 0.1, 0.4);
+      const stripMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+      const strip = new THREE.Mesh(stripGeo, stripMat);
+      strip.position.set(0, 4.95, z);
+      labGroup.add(strip);
+    }
+
+    // 3. Walls (Left, Right, Front/Exit, Back/Entrance)
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: 0x162c38,
+      roughness: 0.5,
+      metalness: 0.1
+    });
+
+    // Left Wall (X = -9)
+    const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(0.4, 5, 22), wallMat);
+    wallLeft.position.set(-9, 2.5, 0);
+    labGroup.add(wallLeft);
+
+    // Right Wall (X = 9)
+    const wallRight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 5, 22), wallMat);
+    wallRight.position.set(9, 2.5, 0);
+    labGroup.add(wallRight);
+
+    // Glowing Baseboard Trims
+    const trimMat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf });
+    const trimLeft = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.15, 22), trimMat);
+    trimLeft.position.set(-8.95, 0.075, 0);
+    labGroup.add(trimLeft);
+
+    const trimRight = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.15, 22), trimMat);
+    trimRight.position.set(8.95, 0.075, 0);
+    labGroup.add(trimRight);
+
+    // Back Wall (Entrance - Z = 11)
+    const wallBack = new THREE.Mesh(new THREE.BoxGeometry(18, 5, 0.4), wallMat);
+    wallBack.position.set(0, 2.5, 11);
+    labGroup.add(wallBack);
+
+    // Entrance Door Frame & Signboard
+    const entranceFrame = new THREE.Mesh(
+      new THREE.BoxGeometry(4.5, 3.5, 0.5),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 })
+    );
+    entranceFrame.position.set(0, 1.75, 10.8);
+    labGroup.add(entranceFrame);
+
+    const entranceSign = createTextPlane('PINTU MASUK • MAKMAL SEL', '#2dd4bf', 3.5, 0.7);
+    entranceSign.position.set(0, 3.8, 10.7);
+    entranceSign.rotation.y = Math.PI;
+    labGroup.add(entranceSign);
+
+    // Front Wall (Exit / "Pintu Pakar Sel" - Z = -11)
+    const wallFront = new THREE.Mesh(new THREE.BoxGeometry(18, 5, 0.4), wallMat);
+    wallFront.position.set(0, 2.5, -11);
+    labGroup.add(wallFront);
+
+    // Exit Door Structure ("Pintu Pakar Sel")
+    buildExitDoor(labGroup);
+
+    // 4. Central Research Table & Holographic ARSelNel Display Monument
+    buildCenterpiece(labGroup);
+
+    // 5. Scientific Wall Posters (KSSM Animal & Plant Cell Charts)
+    buildPosters(labGroup);
+
+    labEnvironmentGroup = labGroup;
+    if (walkthroughStationsGroup && walkthroughStationsGroup.parent !== labGroup) {
+      labGroup.add(walkthroughStationsGroup);
+    }
+    scene.add(labGroup);
+  }
+
+  // Build the glowing Exit Door that opens when all 8 badges are earned
+  function buildExitDoor(parent) {
+    const doorGroup = new THREE.Group();
+    doorGroup.position.set(0, 0, -10.8);
+
+    // Outer sci-fi frame
+    const frameGeo = new THREE.BoxGeometry(5.2, 4.2, 0.6);
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x0e2530, metalness: 0.6, roughness: 0.3 });
+    const frame = new THREE.Mesh(frameGeo, frameMat);
+    frame.position.y = 2.1;
+    doorGroup.add(frame);
+
+    // Door panels (Left & Right sliding doors)
+    const panelMat = new THREE.MeshStandardMaterial({
+      color: 0x1f3c4d,
+      metalness: 0.4,
+      roughness: 0.2
+    });
+
+    const leftDoor = new THREE.Mesh(new THREE.BoxGeometry(2, 3.6, 0.2), panelMat);
+    leftDoor.position.set(-1.05, 1.8, 0);
+    doorGroup.add(leftDoor);
+
+    const rightDoor = new THREE.Mesh(new THREE.BoxGeometry(2, 3.6, 0.2), panelMat);
+    rightDoor.position.set(1.05, 1.8, 0);
+    doorGroup.add(rightDoor);
+
+    // Holographic Lock Shield / Energy Field
+    const shieldGeo = new THREE.PlaneGeometry(4.2, 3.6);
+    const shieldMat = new THREE.MeshBasicMaterial({
+      color: 0xef4444, // Red initially when locked
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide
+    });
+    const shield = new THREE.Mesh(shieldGeo, shieldMat);
+    shield.position.set(0, 1.8, 0.15);
+    doorGroup.add(shield);
+
+    // Exit Signboard
+    const exitSign = createTextPlane('🔒 PINTU PAKAR SEL (KUMPUL 8 LENCANA)', '#ef4444', 4.5, 0.7);
+    exitSign.position.set(0, 4.4, 0.2);
+    doorGroup.add(exitSign);
+
+    exitDoorMeshes = {
+      group: doorGroup,
+      leftDoor,
+      rightDoor,
+      shield,
+      exitSign,
+      unlocked: false
+    };
+
+    parent.add(doorGroup);
+  }
+
+  // Central Table & Floating 3D Holographic ARSelNel Logo Monument
+  function buildCenterpiece(parent) {
+    const centerGroup = new THREE.Group();
+    centerGroup.position.set(0, 0, 0);
+
+    // 1. Octagonal research table base
+    const tableGeo = new THREE.CylinderGeometry(2.4, 2.7, 0.9, 8);
+    const tableMat = new THREE.MeshStandardMaterial({
+      color: 0x132733,
+      metalness: 0.35,
+      roughness: 0.25
+    });
+    const table = new THREE.Mesh(tableGeo, tableMat);
+    table.position.y = 0.45;
+    table.castShadow = true;
+    table.receiveShadow = true;
+    centerGroup.add(table);
+
+    // Glowing Neon Rim around table
+    const rimGeo = new THREE.TorusGeometry(2.5, 0.06, 8, 32);
+    const rimMat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf });
+    const rim = new THREE.Mesh(rimGeo, rimMat);
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = 0.92;
+    centerGroup.add(rim);
+
+    // Hologram Emitter Platform in Center of table
+    const emitterGeo = new THREE.CylinderGeometry(1.0, 1.15, 0.16, 24);
+    const emitterMat = new THREE.MeshStandardMaterial({ color: 0x091720, metalness: 0.8, roughness: 0.2 });
+    const emitter = new THREE.Mesh(emitterGeo, emitterMat);
+    emitter.position.y = 0.98;
+    centerGroup.add(emitter);
+
+    // Concentric Pulsing Hologram Energy Rings on Emitter Base
+    const holoRing1 = new THREE.Mesh(
+      new THREE.RingGeometry(0.4, 0.55, 32),
+      new THREE.MeshBasicMaterial({ color: 0x2dd4bf, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
+    );
+    holoRing1.rotation.x = -Math.PI / 2;
+    holoRing1.position.y = 1.07;
+    centerGroup.add(holoRing1);
+
+    const holoRing2 = new THREE.Mesh(
+      new THREE.RingGeometry(0.7, 0.85, 32),
+      new THREE.MeshBasicMaterial({ color: 0x008080, side: THREE.DoubleSide, transparent: true, opacity: 0.5 })
+    );
+    holoRing2.rotation.x = -Math.PI / 2;
+    holoRing2.position.y = 1.065;
+    centerGroup.add(holoRing2);
+
+    // Hologram Light Pillar beam
+    const beamGeo = new THREE.CylinderGeometry(0.9, 1.2, 2.4, 24, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0x2dd4bf,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.DoubleSide
+    });
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    beam.position.y = 2.2;
+    centerGroup.add(beam);
+
+    // 2. Floating Animated 3D ARSelNel Brand Monument
+    const brandGroup = new THREE.Group();
+    brandGroup.position.set(0, 2.4, 0);
+
+    // 2.1 Hexagonal Cell Border (Based on assets/home/logo.svg)
+    const hexShape = new THREE.Shape();
+    const hexR = 0.95;
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3 - Math.PI / 6;
+      const x = Math.cos(a) * hexR;
+      const y = Math.sin(a) * hexR;
+      if (i === 0) hexShape.moveTo(x, y);
+      else hexShape.lineTo(x, y);
+    }
+    hexShape.closePath();
+
+    // Extrude outer hexagonal frame
+    const extrudeSettings = {
+      depth: 0.14,
+      bevelEnabled: true,
+      bevelSegments: 3,
+      steps: 1,
+      bevelSize: 0.03,
+      bevelThickness: 0.03
+    };
+    const hexGeo = new THREE.ExtrudeGeometry(hexShape, extrudeSettings);
+    hexGeo.center();
+    const hexMat = new THREE.MeshStandardMaterial({
+      color: 0x008080,
+      metalness: 0.6,
+      roughness: 0.25,
+      emissive: 0x004040
+    });
+    const hexMesh = new THREE.Mesh(hexGeo, hexMat);
+    brandGroup.add(hexMesh);
+
+    // Glowing Neon Hexagon Edge Outline
+    const hexEdgeGeo = new THREE.EdgesGeometry(hexGeo);
+    const hexEdgeMat = new THREE.LineBasicMaterial({ color: 0x2dd4bf, linewidth: 2 });
+    const hexEdges = new THREE.LineSegments(hexEdgeGeo, hexEdgeMat);
+    brandGroup.add(hexEdges);
+
+    // 2.2 Inner Translucent Cytoplasm Membrane Disc (#76d6d5 from logo.svg)
+    const innerDiscGeo = new THREE.CircleGeometry(0.68, 32);
+    const innerDiscMat = new THREE.MeshStandardMaterial({
+      color: 0x76d6d5,
+      transparent: true,
+      opacity: 0.78,
+      roughness: 0.1,
+      metalness: 0.1,
+      side: THREE.DoubleSide
+    });
+    const innerDisc = new THREE.Mesh(innerDiscGeo, innerDiscMat);
+    innerDisc.position.z = 0.01;
+    brandGroup.add(innerDisc);
+
+    // 2.3 Center Glowing Nucleus Core (#002020 / #2dd4bf from logo.svg)
+    const nucCoreGeo = new THREE.SphereGeometry(0.28, 24, 24);
+    const nucCoreMat = new THREE.MeshStandardMaterial({
+      color: 0x002020,
+      emissive: 0x2dd4bf,
+      emissiveIntensity: 0.7,
+      roughness: 0.2
+    });
+    const nucCore = new THREE.Mesh(nucCoreGeo, nucCoreMat);
+    brandGroup.add(nucCore);
+
+    // Dedicated Point Light for ARSelNel Core Glow
+    const coreLight = new THREE.PointLight(0x2dd4bf, 1.6, 8);
+    coreLight.position.set(0, 0, 0.2);
+    brandGroup.add(coreLight);
+
+    // 2.4 4 Crosshair Membrane Markers (#006565 from logo.svg)
+    const crossMat = new THREE.MeshStandardMaterial({ color: 0x006565, metalness: 0.5, roughness: 0.3 });
+    const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.3, 0.06), crossMat);
+    const crossH = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.06, 0.06), crossMat);
+    crossV.position.z = 0.04;
+    crossH.position.z = 0.04;
+    brandGroup.add(crossV);
+    brandGroup.add(crossH);
+
+    // 2.5 Orbiting Dual Holographic Gimbal Rings (Turquoise & Cyan)
+    const ring1Geo = new THREE.TorusGeometry(1.42, 0.025, 8, 48);
+    const ring1Mat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
+    ring1.rotation.x = Math.PI / 4;
+    brandGroup.add(ring1);
+
+    const ring2Geo = new THREE.TorusGeometry(1.28, 0.025, 8, 48);
+    const ring2Mat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf });
+    const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+    ring2.rotation.y = Math.PI / 4;
+    brandGroup.add(ring2);
+
+    // 2.6 Floating 3D Text Plaques for Identity ("ARSelNel" & "Science Adventure")
+    const titlePlaque = createBrandTextPlane('ARSelNel', 'SCIENCE ADVENTURE', 2.8, 0.85);
+    titlePlaque.position.set(0, -1.25, 0);
+    brandGroup.add(titlePlaque);
+
+    // 2.7 Floating Ambient Spark Particles (24 particles orbiting & floating)
+    const particleGroup = new THREE.Group();
+    const particleCount = 24;
+    const particleMeshes = [];
+    const pMat = new THREE.MeshBasicMaterial({ color: 0x5eead4, transparent: true, opacity: 0.85 });
+
+    for (let p = 0; p < particleCount; p++) {
+      const pMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.04 + Math.random() * 0.03), pMat);
+      const angle = (p / particleCount) * Math.PI * 2;
+      const radius = 1.0 + Math.random() * 0.9;
+      const pY = -0.8 + Math.random() * 1.8;
+      pMesh.position.set(Math.cos(angle) * radius, pY, Math.sin(angle) * radius);
+      pMesh.userData = { angle, radius, speed: 0.4 + Math.random() * 0.6, yBase: pY };
+      particleGroup.add(pMesh);
+      particleMeshes.push(pMesh);
+    }
+    brandGroup.add(particleGroup);
+
+    centerGroup.add(brandGroup);
+
+    // Register rotation & floating animation
+    animatedObjects.push({
+      update(t) {
+        // Slow majestic rotation of ARSelNel 3D emblem
+        brandGroup.rotation.y = t * 0.45;
+        brandGroup.position.y = 2.4 + Math.sin(t * 1.5) * 0.09;
+
+        // Gimbal rings counter-rotation
+        ring1.rotation.z = t * 0.6;
+        ring2.rotation.x = -t * 0.55;
+
+        // Hologram pulse
+        holoRing1.material.opacity = 0.55 + Math.sin(t * 3) * 0.25;
+
+        // Particle floating simulation
+        particleMeshes.forEach((pm) => {
+          pm.userData.angle += 0.015 * pm.userData.speed;
+          pm.position.x = Math.cos(pm.userData.angle) * pm.userData.radius;
+          pm.position.z = Math.sin(pm.userData.angle) * pm.userData.radius;
+          pm.position.y = pm.userData.yBase + Math.sin(t * 2 + pm.userData.angle) * 0.15;
+        });
+      }
+    });
+
+    // Laboratory Accessories (Microscopes and Bubbling Flasks)
+    buildLabProps(centerGroup);
+
+    parent.add(centerGroup);
+  }
+
+  // Lab props: Cartoon Microscope & Flasks on table
+  function buildLabProps(parent) {
+    // Microscope
+    const microGroup = new THREE.Group();
+    microGroup.position.set(1.4, 0.95, 0.8);
+    microGroup.rotation.y = -Math.PI / 4;
+
+    const microBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.2, 0.25, 0.05, 12),
+      new THREE.MeshStandardMaterial({ color: 0x334155 })
+    );
+    microGroup.add(microBase);
+
+    const microArm = new THREE.Mesh(
+      new THREE.BoxGeometry(0.08, 0.4, 0.08),
+      new THREE.MeshStandardMaterial({ color: 0x0f766e })
+    );
+    microArm.position.set(0, 0.22, -0.1);
+    microGroup.add(microArm);
+
+    const eyepiece = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.05, 0.3, 8),
+      new THREE.MeshStandardMaterial({ color: 0x64748b })
+    );
+    eyepiece.position.set(0, 0.42, 0.02);
+    eyepiece.rotation.x = Math.PI / 6;
+    microGroup.add(eyepiece);
+
+    parent.add(microGroup);
+
+    // Colorful Chemical Flasks
+    const flaskColors = [0xec4899, 0x10b981, 0x06b6d4];
+    flaskColors.forEach((col, idx) => {
+      const flask = new THREE.Mesh(
+        new THREE.ConeGeometry(0.12, 0.26, 12),
+        new THREE.MeshStandardMaterial({
+          color: col,
+          transparent: true,
+          opacity: 0.85,
+          roughness: 0.1
+        })
+      );
+      const angle = (idx * 0.4) - 2.2;
+      flask.position.set(Math.cos(angle) * 1.6, 1.08, Math.sin(angle) * 1.6);
+      parent.add(flask);
+    });
+  }
+
+  // Wall posters: KSSM Animal Cell and Plant Cell
+  function buildPosters(parent) {
+    // Animal Cell Poster on Back Wall Left
+    const animalPoster = createPosterPlane(
+      '🔬 CARTA SEL HAIWAN KSSM',
+      ['• Nukleus (Kawal aktiviti)', '• Membran Sel (Separuh telap)', '• Sitoplasma (Tindak balas)', '• Tiada Dinding Sel / Kloroplas'],
+      '#3b82f6'
+    );
+    animalPoster.position.set(-5, 2.8, 10.7);
+    animalPoster.rotation.y = Math.PI;
+    parent.add(animalPoster);
+
+    // Plant Cell Poster on Back Wall Right
+    const plantPoster = createPosterPlane(
+      '🌿 CARTA SEL TUMBUHAN KSSM',
+      ['• Dinding Sel (Sokongan tetap)', '• Kloroplas (Fotosintesis)', '• Vakuol Besar (Kesegahan)', '• Nukleus & Sitoplasma'],
+      '#10b981'
+    );
+    plantPoster.position.set(5, 2.8, 10.7);
+    plantPoster.rotation.y = Math.PI;
+    parent.add(plantPoster);
+  }
+
+  // ==============================================================================
+  // 8 INTERACTIVE STATIONS CREATION
+  // ==============================================================================
+
+  let walkthroughStationsGroup = null;
+
+  function buildStations() {
+    stationMeshes = [];
+
+    if (!walkthroughStationsGroup) {
+      walkthroughStationsGroup = new THREE.Group();
+      walkthroughStationsGroup.name = 'WalkthroughStationsGroup';
+      if (labEnvironmentGroup) {
+        labEnvironmentGroup.add(walkthroughStationsGroup);
+      } else {
+        scene.add(walkthroughStationsGroup);
+      }
+    }
+    walkthroughStationsGroup.clear();
+
+    State.stations.forEach((stn, index) => {
+      const stnGroup = new THREE.Group();
+      stnGroup.position.set(stn.pos.x, 0, stn.pos.z);
+      stnGroup.rotation.y = stn.pos.rotY;
+
+      // 1. Futuristic Kiosk Pedestal
+      const baseGeo = new THREE.BoxGeometry(2.2, 0.9, 1.2);
+      const baseMat = new THREE.MeshStandardMaterial({
+        color: 0x11232e,
+        metalness: 0.3,
+        roughness: 0.4
+      });
+      const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+      baseMesh.position.y = 0.45;
+      baseMesh.castShadow = true;
+      stnGroup.add(baseMesh);
+
+      // Neon Accent Base Stripe matching station color
+      const stripeGeo = new THREE.BoxGeometry(2.25, 0.12, 1.25);
+      const stripeMat = new THREE.MeshBasicMaterial({ color: stn.colorHex });
+      const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+      stripe.position.y = 0.88;
+      stnGroup.add(stripe);
+
+      // 2. Glowing Billboard Interactive Screen above Pedestal
+      const screenGeo = new THREE.BoxGeometry(2.0, 1.1, 0.1);
+      const screenMat = new THREE.MeshStandardMaterial({
+        color: 0x09141b,
+        metalness: 0.5,
+        roughness: 0.2
+      });
+      const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+      screenMesh.position.set(0, 2.2, 0);
+      stnGroup.add(screenMesh);
+
+      // Station Screen Label Canvas Texture
+      const textCanvas = createStationCanvas(stn.number, stn.title, stn.color);
+      const textTexture = new THREE.CanvasTexture(textCanvas);
+      const screenFaceGeo = new THREE.PlaneGeometry(1.9, 1.0);
+      const screenFaceMat = new THREE.MeshBasicMaterial({ map: textTexture });
+      const screenFace = new THREE.Mesh(screenFaceGeo, screenFaceMat);
+      screenFace.position.set(0, 2.2, 0.06);
+      stnGroup.add(screenFace);
+
+      // 3. Floating 3D Stylized Representation of the Organelle
+      const organelleMesh = buildStylizedOrganelle(stn.number, stn.colorHex);
+      organelleMesh.position.set(0, 1.3, 0);
+      stnGroup.add(organelleMesh);
+
+      // 4. Floating Badge Indicator Beacon (? -> ✓)
+      const badgeBeacon = createBeaconMesh(stn.colorHex);
+      badgeBeacon.position.set(0, 3.1, 0);
+      stnGroup.add(badgeBeacon);
+
+      // Pulsing Station Glow Halo
+      const haloGeo = new THREE.RingGeometry(0.7, 0.95, 32);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: stn.colorHex,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.6
+      });
+      const halo = new THREE.Mesh(haloGeo, haloMat);
+      halo.rotation.x = -Math.PI / 2;
+      halo.position.set(0, 0.02, 0.6);
+      stnGroup.add(halo);
+
+      walkthroughStationsGroup.add(stnGroup);
+
+      // Register animated elements
+      animatedObjects.push({
+        update(t) {
+          organelleMesh.rotation.y = t * 1.2;
+          organelleMesh.position.y = 1.3 + Math.sin(t * 2 + index) * 0.06;
+          badgeBeacon.rotation.y = t * 1.5;
+        }
+      });
+
+      stationMeshes.push({
+        index,
+        data: stn,
+        group: stnGroup,
+        beacon: badgeBeacon,
+        screenFace,
+        halo,
+        organelleMesh,
+        worldPos: new THREE.Vector3(stn.pos.x, 1.5, stn.pos.z)
+      });
+    });
+  }
+
+  // Create biologically detailed, recognizable 3D representation for each of the 8 stations
+  function buildStylizedOrganelle(number, colorHex) {
+    const group = new THREE.Group();
+
+    if (number === 1) {
+      // ========================================================================
+      // STESEN 1: NUKLEUS (Double-membrane sphere with 90° cutaway, nucleolus & pores)
+      // ========================================================================
+      // Outer purple nuclear envelope (cutaway exposing interior)
+      const envelopeGeo = new THREE.SphereGeometry(0.38, 24, 24, 0, Math.PI * 1.5, 0, Math.PI);
+      const envelopeMat = new THREE.MeshStandardMaterial({
+        color: 0x8b5cf6,
+        roughness: 0.35,
+        metalness: 0.15,
+        side: THREE.DoubleSide
+      });
+      const envelopeMesh = new THREE.Mesh(envelopeGeo, envelopeMat);
+      group.add(envelopeMesh);
+
+      // Inner dense nucleolus core in glowing magenta
+      const nucleolusGeo = new THREE.SphereGeometry(0.16, 16, 16);
+      const nucleolusMat = new THREE.MeshStandardMaterial({
+        color: 0xd946ef,
+        emissive: 0x86198f,
+        roughness: 0.2
+      });
+      const nucleolus = new THREE.Mesh(nucleolusGeo, nucleolusMat);
+      group.add(nucleolus);
+
+      // Chromatin network threads (entangled DNA loops)
+      const chromatinGeo = new THREE.TorusGeometry(0.24, 0.02, 8, 24);
+      const chromatinMat = new THREE.MeshStandardMaterial({ color: 0xc084fc, roughness: 0.3 });
+      const chrom1 = new THREE.Mesh(chromatinGeo, chromatinMat);
+      chrom1.rotation.x = Math.PI / 3;
+      group.add(chrom1);
+
+      const chrom2 = new THREE.Mesh(chromatinGeo, chromatinMat);
+      chrom2.rotation.y = Math.PI / 3;
+      group.add(chrom2);
+
+      // Nuclear pores (Golden dots arrayed on the outer envelope)
+      const poreGeo = new THREE.SphereGeometry(0.025, 8, 8);
+      const poreMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+      for (let i = 0; i < 8; i++) {
+        const pore = new THREE.Mesh(poreGeo, poreMat);
+        const theta = 0.3 + (i * 0.4);
+        const phi = 0.5 + (i * 0.7);
+        pore.position.set(
+          0.385 * Math.sin(phi) * Math.cos(theta),
+          0.385 * Math.cos(phi),
+          0.385 * Math.sin(phi) * Math.sin(theta)
+        );
+        group.add(pore);
+      }
+    } else if (number === 2) {
+      // ========================================================================
+      // STESEN 2: MEMBRAN SEL (Phospholipid bilayer segment with transmembrane protein pore)
+      // ========================================================================
+      const headMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2, metalness: 0.1 });
+      const tailMat = new THREE.MeshBasicMaterial({ color: 0x60a5fa });
+
+      // Dual layers of spherical phospholipid heads with hydrophobic tails
+      for (let row = -2; row <= 2; row++) {
+        for (let col = -2; col <= 2; col++) {
+          // Leave central slot open for channel protein
+          if (Math.abs(row) <= 1 && Math.abs(col) <= 1) continue;
+
+          // Upper hydrophilic head
+          const headTop = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), headMat);
+          headTop.position.set(row * 0.12, 0.16, col * 0.12);
+          group.add(headTop);
+
+          // Lower hydrophilic head
+          const headBottom = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), headMat);
+          headBottom.position.set(row * 0.12, -0.16, col * 0.12);
+          group.add(headBottom);
+
+          // Connecting tail lines
+          const tailGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.24, 4);
+          const tail = new THREE.Mesh(tailGeo, tailMat);
+          tail.position.set(row * 0.12, 0, col * 0.12);
+          group.add(tail);
+        }
+      }
+
+      // Transmembrane Channel Protein (Green barrel embedded in bilayer)
+      const channelGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.42, 16, 1, true);
+      const channelMat = new THREE.MeshStandardMaterial({
+        color: 0x10b981,
+        emissive: 0x064e3b,
+        roughness: 0.3,
+        side: THREE.DoubleSide
+      });
+      const channelMesh = new THREE.Mesh(channelGeo, channelMat);
+      group.add(channelMesh);
+
+      // Translucent protective field halo
+      const shieldRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.48, 0.025, 8, 32),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+      );
+      shieldRing.rotation.x = Math.PI / 2;
+      group.add(shieldRing);
+    } else if (number === 3) {
+      // ========================================================================
+      // STESEN 3: SITOPLASMA (Translucent amber cellular jelly with cytoskeleton)
+      // ========================================================================
+      // Jellied droplet medium
+      const jellyGeo = new THREE.SphereGeometry(0.36, 24, 24);
+      const jellyMat = new THREE.MeshStandardMaterial({
+        color: 0xfacc15,
+        transparent: true,
+        opacity: 0.55,
+        roughness: 0.1,
+        metalness: 0.1
+      });
+      const jellyMesh = new THREE.Mesh(jellyGeo, jellyMat);
+      group.add(jellyMesh);
+
+      // Cytoskeletal microfilaments lattice inside
+      const fiberMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+      for (let f = 0; f < 5; f++) {
+        const fiber = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.55, 6), fiberMat);
+        fiber.rotation.set((f * Math.PI) / 4, (f * Math.PI) / 3, (f * Math.PI) / 6);
+        group.add(fiber);
+      }
+
+      // Suspended nutrient granules / metabolic vesicles
+      const granMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8 });
+      for (let g = 0; g < 8; g++) {
+        const granule = new THREE.Mesh(new THREE.DodecahedronGeometry(0.04), granMat);
+        const a = (g / 8) * Math.PI * 2;
+        granule.position.set(Math.cos(a) * 0.22, (g % 3 - 1) * 0.12, Math.sin(a) * 0.22);
+        group.add(granule);
+      }
+    } else if (number === 4) {
+      // ========================================================================
+      // STESEN 4: MITOKONDRION (Capsule with outer cutaway revealing inner cristae)
+      // ========================================================================
+      // Outer transparent orange capsule
+      const outerMitoGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.52, 16);
+      const outerMitoMat = new THREE.MeshStandardMaterial({
+        color: 0xf97316,
+        transparent: true,
+        opacity: 0.65,
+        roughness: 0.2
+      });
+      const outerMito = new THREE.Mesh(outerMitoGeo, outerMitoMat);
+      outerMito.rotation.z = Math.PI / 3;
+      group.add(outerMito);
+
+      // Inner folded cristae ridges (Zigzag folded inner membrane shelves)
+      const cristaeMat = new THREE.MeshStandardMaterial({
+        color: 0xfb923c,
+        emissive: 0x7c2d12,
+        roughness: 0.3
+      });
+      for (let c = -3; c <= 3; c++) {
+        const crista = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.03, 0.14), cristaeMat);
+        crista.position.set((c * 0.06) * Math.cos(Math.PI / 3), -(c * 0.06) * Math.sin(Math.PI / 3), 0);
+        crista.rotation.z = Math.PI / 3;
+        group.add(crista);
+      }
+
+      // ATP energy spark particles
+      const atpMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+      for (let a = 0; a < 4; a++) {
+        const spark = new THREE.Mesh(new THREE.TetrahedronGeometry(0.03), atpMat);
+        spark.position.set((a - 1.5) * 0.08, (a % 2 - 0.5) * 0.08, 0.08);
+        group.add(spark);
+      }
+    } else if (number === 5) {
+      // ========================================================================
+      // STESEN 5: KLOROPLAS (Biconvex green disc with stacked thylakoid grana & stroma)
+      // ========================================================================
+      // Outer translucent green membrane disc
+      const chloroGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.18, 20);
+      const chloroMat = new THREE.MeshStandardMaterial({
+        color: 0x16a34a,
+        transparent: true,
+        opacity: 0.6,
+        roughness: 0.25
+      });
+      const chloroMesh = new THREE.Mesh(chloroGeo, chloroMat);
+      group.add(chloroMesh);
+
+      // Stacked thylakoids (grana stacks of green coin-like discs)
+      const thylaMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.3 });
+      const granumPositions = [
+        [-0.16, -0.1], [0.16, -0.1], [0, 0.16], [-0.08, 0.06]
+      ];
+
+      granumPositions.forEach(([gx, gz]) => {
+        for (let l = 0; l < 4; l++) {
+          const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.025, 12), thylaMat);
+          disc.position.set(gx, -0.05 + (l * 0.035), gz);
+          group.add(disc);
+        }
+      });
+
+      // Stroma lamellae interconnecting rods
+      const lamellaMat = new THREE.MeshBasicMaterial({ color: 0x86efac });
+      const lam1 = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.015, 0.015), lamellaMat);
+      lam1.position.y = 0.02;
+      group.add(lam1);
+    } else if (number === 6) {
+      // ========================================================================
+      // STESEN 6: DINDING SEL (Rigid hexagonal & rectangular cellulose cell wall)
+      // ========================================================================
+      // Rigid rectangular cell framework block
+      const wallBoxGeo = new THREE.BoxGeometry(0.56, 0.56, 0.56);
+      const wallBoxMat = new THREE.MeshStandardMaterial({
+        color: 0x92400e,
+        roughness: 0.45,
+        metalness: 0.1
+      });
+      const wallBox = new THREE.Mesh(wallBoxGeo, wallBoxMat);
+      group.add(wallBox);
+
+      // Cellulose microfibril ribbed frame edges
+      const edgeGeo = new THREE.EdgesGeometry(wallBoxGeo);
+      const edgeMat = new THREE.LineBasicMaterial({ color: 0xfef08a, linewidth: 3 });
+      const edges = new THREE.LineSegments(edgeGeo, edgeMat);
+      group.add(edges);
+
+      // Middle lamella layer plate
+      const lamellaPlate = new THREE.Mesh(
+        new THREE.BoxGeometry(0.62, 0.04, 0.62),
+        new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.3 })
+      );
+      group.add(lamellaPlate);
+    } else if (number === 7) {
+      // ========================================================================
+      // STESEN 7: VAKUOL (Large crystal-clear turgid water sap bubble with tonoplast)
+      // ========================================================================
+      // Main central fluid vacuole bubble
+      const vacuoleGeo = new THREE.SphereGeometry(0.42, 24, 24);
+      const vacuoleMat = new THREE.MeshStandardMaterial({
+        color: 0x06b6d4,
+        transparent: true,
+        opacity: 0.72,
+        roughness: 0.05,
+        metalness: 0.15
+      });
+      const vacuoleMesh = new THREE.Mesh(vacuoleGeo, vacuoleMat);
+      group.add(vacuoleMesh);
+
+      // Tonoplast membrane boundary ring
+      const tonoRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.44, 0.02, 8, 32),
+        new THREE.MeshBasicMaterial({ color: 0x67e8f9 })
+      );
+      tonoRing.rotation.x = Math.PI / 3;
+      group.add(tonoRing);
+
+      // Internal cell sap droplets
+      const dropMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.8 });
+      for (let d = 0; d < 5; d++) {
+        const drop = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), dropMat);
+        const da = (d / 5) * Math.PI * 2;
+        drop.position.set(Math.cos(da) * 0.2, (d - 2) * 0.08, Math.sin(da) * 0.2);
+        group.add(drop);
+      }
+    } else {
+      // ========================================================================
+      // STESEN 8: PERBANDINGAN SEL HAIWAN VS SEL TUMBUHAN
+      // (Flexible round animal cell vs rigid angular hexagonal plant cell)
+      // ========================================================================
+      const compGroup = new THREE.Group();
+
+      // Left: Animal Cell (Round, flexible membrane, nucleus, mitochondria)
+      const animalGroup = new THREE.Group();
+      animalGroup.position.set(-0.35, 0, 0);
+
+      const animMembrane = new THREE.Mesh(
+        new THREE.SphereGeometry(0.28, 20, 20),
+        new THREE.MeshStandardMaterial({ color: 0xec4899, transparent: true, opacity: 0.75, roughness: 0.2 })
+      );
+      animalGroup.add(animMembrane);
+
+      const animNucleus = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 12, 12),
+        new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.3 })
+      );
+      animNucleus.position.set(0.04, 0.04, 0);
+      animalGroup.add(animNucleus);
+
+      const animMito = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.03, 0.03, 0.09, 8),
+        new THREE.MeshStandardMaterial({ color: 0xf97316 })
+      );
+      animMito.position.set(-0.12, -0.06, 0.08);
+      animMito.rotation.z = Math.PI / 4;
+      animalGroup.add(animMito);
+
+      const animLabel = createTextPlane('SEL HAIWAN', '#f472b6', 0.9, 0.28);
+      animLabel.position.set(0, -0.42, 0);
+      animalGroup.add(animLabel);
+      compGroup.add(animalGroup);
+
+      // Right: Plant Cell (Rigid hexagonal/angular, thick cell wall, large vacuole, chloroplasts)
+      const plantGroup = new THREE.Group();
+      plantGroup.position.set(0.35, 0, 0);
+
+      // Rigid thick cell wall (hexagonal prism)
+      const plantWall = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.32, 0.36, 6),
+        new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.35, metalness: 0.1 })
+      );
+      plantGroup.add(plantWall);
+
+      // Large central vacuole inside
+      const plantVacuole = new THREE.Mesh(
+        new THREE.SphereGeometry(0.14, 12, 12),
+        new THREE.MeshStandardMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.85 })
+      );
+      plantVacuole.position.set(-0.04, 0, 0);
+      plantGroup.add(plantVacuole);
+
+      // Green chloroplasts
+      for (let ch = 0; ch < 3; ch++) {
+        const chloro = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8),
+          new THREE.MeshStandardMaterial({ color: 0x22c55e })
+        );
+        const ca = (ch * Math.PI * 2) / 3;
+        chloro.position.set(Math.cos(ca) * 0.18, 0.06, Math.sin(ca) * 0.18);
+        plantGroup.add(chloro);
+      }
+
+      // Nucleus pushed to side
+      const plantNucleus = new THREE.Mesh(
+        new THREE.SphereGeometry(0.09, 12, 12),
+        new THREE.MeshStandardMaterial({ color: 0x8b5cf6 })
+      );
+      plantNucleus.position.set(0.14, -0.04, 0.06);
+      plantGroup.add(plantNucleus);
+
+      const plantLabel = createTextPlane('SEL TUMBUHAN', '#4ade80', 1.0, 0.28);
+      plantLabel.position.set(0, -0.42, 0);
+      plantGroup.add(plantLabel);
+      compGroup.add(plantGroup);
+
+      group.add(compGroup);
+    }
+
+    return group;
+  }
+
+  // Create Brand Identity Text Plaque for ARSelNel Center Monument (Front & Back non-mirrored)
+  function createBrandTextPlane(title, subtitle, width, height) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d');
+
+    // Rounded glowing glass panel
+    ctx.fillStyle = 'rgba(9, 23, 32, 0.92)';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(6, 6, 500, 148, 20) : ctx.fillRect(6, 6, 500, 148);
+    ctx.fill();
+
+    // Glowing cyan border
+    ctx.strokeStyle = '#2dd4bf';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+
+    // Brand Title: ARSelNel
+    ctx.fillStyle = '#2dd4bf';
+    ctx.font = '900 52px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, 256, 55);
+
+    // Subtitle
+    ctx.fillStyle = '#facc15';
+    ctx.font = '800 24px Nunito, sans-serif';
+    ctx.fillText(`★  ${subtitle}  ★`, 256, 115);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const plaqueGroup = new THREE.Group();
+    const planeGeo = new THREE.PlaneGeometry(width, height);
+    const planeMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide, transparent: true });
+
+    // Front Face
+    const frontPlane = new THREE.Mesh(planeGeo, planeMat);
+    frontPlane.position.z = 0.01;
+    plaqueGroup.add(frontPlane);
+
+    // Back Face (Rotated 180° so text is never mirrored/backwards!)
+    const backPlane = new THREE.Mesh(planeGeo, planeMat);
+    backPlane.rotation.y = Math.PI;
+    backPlane.position.z = -0.01;
+    plaqueGroup.add(backPlane);
+
+    return plaqueGroup;
+  }
+
+  // Floating Badge Beacon on top of station
+  function createBeaconMesh(colorHex) {
+    const group = new THREE.Group();
+    const octGeo = new THREE.OctahedronGeometry(0.24, 0);
+    const octMat = new THREE.MeshStandardMaterial({
+      color: 0xfacc15, // Yellow '?' initially
+      emissive: 0x713f12,
+      roughness: 0.2
+    });
+    const oct = new THREE.Mesh(octGeo, octMat);
+    group.add(oct);
+    return group;
+  }
+
+  // Station canvas texture for display screen
+  function createStationCanvas(number, title, colorStr) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Gradient background
+    const grad = ctx.createLinearGradient(0, 0, 512, 256);
+    grad.addColorStop(0, '#0c1d27');
+    grad.addColorStop(1, '#050c11');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 256);
+
+    // Glowing border
+    ctx.strokeStyle = colorStr;
+    ctx.lineWidth = 14;
+    ctx.strokeRect(7, 7, 498, 242);
+
+    // Number Badge
+    ctx.fillStyle = colorStr;
+    ctx.beginPath();
+    ctx.arc(60, 60, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(number), 60, 60);
+
+    // Kicker
+    ctx.fillStyle = colorStr;
+    ctx.font = 'bold 22px Nunito, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`STESEN ${number} • KSSM T1`, 115, 50);
+
+    // Station Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 36px Nunito, sans-serif';
+    ctx.fillText(title, 115, 90);
+
+    // Instruction Banner
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.roundRect ? ctx.roundRect(30, 140, 452, 80, 16) : ctx.fillRect(30, 140, 452, 80);
+    ctx.fill();
+
+    ctx.fillStyle = '#facc15';
+    ctx.font = 'bold 26px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔍 DEKATI & KETIK UNTUK TEROKA', 256, 185);
+
+    return canvas;
+  }
+
+  // Create Text Plane Helper
+  function createTextPlane(text, colorStr, width, height) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.fillRect(0, 0, 512, 128);
+
+    ctx.strokeStyle = colorStr;
+    ctx.lineWidth = 8;
+    ctx.strokeRect(4, 4, 504, 120);
+
+    ctx.fillStyle = colorStr;
+    ctx.font = 'bold 32px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 256, 64);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(width, height),
+      new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
+    );
+    return plane;
+  }
+
+  // Create Educational Poster Plane Helper
+  function createPosterPlane(title, bullets, headerColor) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 360;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#0f1f2c';
+    ctx.fillRect(0, 0, 512, 360);
+
+    // Header banner
+    ctx.fillStyle = headerColor;
+    ctx.fillRect(0, 0, 512, 64);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 26px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, 256, 32);
+
+    // Bullet points
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '600 20px Nunito, sans-serif';
+    ctx.textAlign = 'left';
+    bullets.forEach((b, i) => {
+      ctx.fillText(b, 30, 110 + (i * 44));
+    });
+
+    // Border
+    ctx.strokeStyle = headerColor;
+    ctx.lineWidth = 6;
+    ctx.strokeRect(3, 3, 506, 354);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.6, 2.5),
+      new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
+    );
+    return plane;
+  }
+
+  // Mini Badge Strip at Top of HUD
+  function buildMiniBadgeStrip() {
+    if (!DOM.badgeStrip) return;
+    DOM.badgeStrip.innerHTML = '';
+    State.stations.forEach(s => {
+      const badge = document.createElement('div');
+      badge.className = 'cq-mini-badge';
+      badge.id = `mini-badge-${s.number}`;
+      badge.textContent = s.number;
+      badge.title = `Stesen ${s.number}: ${s.title}`;
+      DOM.badgeStrip.appendChild(badge);
+    });
+  }
+
+  // ==============================================================================
+  // INPUT HANDLING & MOVEMENT (KEYBOARD & TOUCH)
+  // ==============================================================================
+
+  // ==============================================================================
+  // INPUT HANDLING & MOVEMENT (KEYBOARD & TOUCH)
+  // ==============================================================================
+
+  function bindEvents() {
+    // 1. Keyboard Controls (WASD / Arrows)
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+
+    // 2. Desktop Mouse Drag Look (Pan camera when dragging canvas)
+    let isMouseDragging = false;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+
+    DOM.canvasContainer.addEventListener('mousedown', (e) => {
+      if (State.isPaused || DOM.stationModal.classList.contains('open')) return;
+      isMouseDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isMouseDragging || State.isPaused || DOM.stationModal.classList.contains('open')) return;
+      const deltaX = e.clientX - prevMouseX;
+      const deltaY = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+
+      player.rotY -= deltaX * 0.0035;
+      player.pitch = Math.max(-0.75, Math.min(0.75, player.pitch - deltaY * 0.003));
+    });
+
+    window.addEventListener('mouseup', () => { isMouseDragging = false; });
+
+    // 3. Mobile Right-Side Touch Look Zone (Pan camera with right thumb)
+    if (DOM.touchZone) {
+      DOM.touchZone.addEventListener('touchstart', (e) => {
+        if (State.isPaused || DOM.stationModal.classList.contains('open')) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          if (!touchLookState.active) {
+            touchLookState.active = true;
+            touchLookState.touchId = t.identifier;
+            touchLookState.prevX = t.clientX;
+            touchLookState.prevY = t.clientY;
+            break;
+          }
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!touchLookState.active) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          if (t.identifier === touchLookState.touchId) {
+            e.preventDefault();
+            const deltaX = t.clientX - touchLookState.prevX;
+            const deltaY = t.clientY - touchLookState.prevY;
+            touchLookState.prevX = t.clientX;
+            touchLookState.prevY = t.clientY;
+
+            player.rotY -= deltaX * 0.0045;
+            player.pitch = Math.max(-0.75, Math.min(0.75, player.pitch - deltaY * 0.0035));
+            break;
+          }
+        }
+      }, { passive: false });
+
+      const endTouchLook = (e) => {
+        if (!touchLookState.active) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === touchLookState.touchId) {
+            touchLookState.active = false;
+            touchLookState.touchId = null;
+            break;
+          }
+        }
+      };
+      window.addEventListener('touchend', endTouchLook, { passive: true });
+      window.addEventListener('touchcancel', endTouchLook, { passive: true });
+    }
+
+    // 4. Mobile Analog Virtual Joystick (Left bottom)
+    setupVirtualJoystick();
+
+    // 5. Dedicated Mobile Quick Interact Button
+    if (DOM.mobileInteractBtn) {
+      const handleMobileInteract = (e) => {
+        e.preventDefault();
+        if (State.nearbyStationIndex >= 0 && !DOM.stationModal.classList.contains('open')) {
+          openStationModal(State.nearbyStationIndex);
+        }
+      };
+      DOM.mobileInteractBtn.addEventListener('click', handleMobileInteract);
+      DOM.mobileInteractBtn.addEventListener('touchstart', handleMobileInteract, { passive: false });
+    }
+
+    // 6. HUD Buttons
+    if (DOM.promptActionBtn) {
+      DOM.promptActionBtn.addEventListener('click', () => {
+        if (State.nearbyStationIndex >= 0) {
+          openStationModal(State.nearbyStationIndex);
+        }
+      });
+    }
+
+    if (DOM.soundToggleBtn) DOM.soundToggleBtn.addEventListener('click', toggleSound);
+    if (DOM.pauseBtn) DOM.pauseBtn.addEventListener('click', togglePause);
+    if (DOM.helpBtn) DOM.helpBtn.addEventListener('click', openHowToPlayDialog);
+    if (DOM.modeSelectBtn) DOM.modeSelectBtn.addEventListener('click', openModeDialog);
+    if (DOM.gyroResetBtn) DOM.gyroResetBtn.addEventListener('click', resetGyroOrientation);
+    if (DOM.closeStationBtn) DOM.closeStationBtn.addEventListener('click', closeStationModal);
+    if (DOM.closeHowToBtn) DOM.closeHowToBtn.addEventListener('click', closeHowToPlayDialog);
+    if (DOM.startPlayingBtn) DOM.startPlayingBtn.addEventListener('click', closeHowToPlayDialog);
+
+    // 7. Mode Selector Options
+    if (DOM.choose3dBtn) {
+      DOM.choose3dBtn.addEventListener('click', () => selectMode('3d'));
+    }
+    if (DOM.chooseCameraArBtn) {
+      DOM.chooseCameraArBtn.addEventListener('click', () => selectMode('camera-ar'));
+    }
+    if (DOM.chooseArBtn) {
+      DOM.chooseArBtn.addEventListener('click', () => selectMode('ar'));
+    }
+    if (DOM.closeModeBtn) DOM.closeModeBtn.addEventListener('click', closeModeDialog);
+
+    // 8. AR Placement Scale Switcher
+    if (DOM.scaleMiniBtn && DOM.scaleRoomBtn) {
+      DOM.scaleMiniBtn.addEventListener('click', () => {
+        arScaleMode = 'mini';
+        DOM.scaleMiniBtn.classList.add('active');
+        DOM.scaleRoomBtn.classList.remove('active');
+        if (labEnvironmentGroup && State.mode === 'ar') {
+          labEnvironmentGroup.scale.set(0.12, 0.12, 0.12);
+        }
+      });
+      DOM.scaleRoomBtn.addEventListener('click', () => {
+        arScaleMode = 'room';
+        DOM.scaleRoomBtn.classList.add('active');
+        DOM.scaleMiniBtn.classList.remove('active');
+        if (labEnvironmentGroup && State.mode === 'ar') {
+          labEnvironmentGroup.scale.set(1.0, 1.0, 1.0);
+        }
+      });
+    }
+
+    // 9. Camera Fallback Modal Buttons
+    if (DOM.retryCameraBtn) {
+      DOM.retryCameraBtn.addEventListener('click', () => {
+        if (DOM.cameraFallbackModal) DOM.cameraFallbackModal.classList.remove('open');
+        selectMode('camera-ar');
+      });
+    }
+    if (DOM.fallbackTo3dBtn) {
+      DOM.fallbackTo3dBtn.addEventListener('click', () => {
+        if (DOM.cameraFallbackModal) DOM.cameraFallbackModal.classList.remove('open');
+        selectMode('3d');
+      });
+    }
+
+    // 10. Victory Modal
+    if (DOM.closeVictoryBtn) DOM.closeVictoryBtn.addEventListener('click', closeVictoryModal);
+    if (DOM.restartGameBtn) DOM.restartGameBtn.addEventListener('click', restartGame);
+    if (DOM.downloadCertBtn) DOM.downloadCertBtn.addEventListener('click', printOrSaveCertificate);
+
+    // 11. AR Interface & WebXR Buttons
+    if (DOM.arBackBtn) DOM.arBackBtn.addEventListener('click', () => selectMode('3d'));
+    if (DOM.arExitBtn) DOM.arExitBtn.addEventListener('click', () => selectMode('3d'));
+    if (DOM.arBtnAnimal) DOM.arBtnAnimal.addEventListener('click', () => switchARModel('animal'));
+    if (DOM.arBtnPlant) DOM.arBtnPlant.addEventListener('click', () => switchARModel('plant'));
+    if (DOM.arBtnMinilab) DOM.arBtnMinilab.addEventListener('click', () => switchARModel('minilab'));
+    if (DOM.arSoundBtn) DOM.arSoundBtn.addEventListener('click', toggleSound);
+    if (DOM.arHelpBtn) DOM.arHelpBtn.addEventListener('click', openHowToPlayDialog);
+    if (DOM.arStationsToggle) DOM.arStationsToggle.addEventListener('click', () => toggleStationsDrawer());
+    if (DOM.arDrawerCloseBtn) DOM.arDrawerCloseBtn.addEventListener('click', () => toggleStationsDrawer(false));
+    if (DOM.arRecenterBtn) DOM.arRecenterBtn.addEventListener('click', resetARView);
+    if (DOM.arResetViewBtn) DOM.arResetViewBtn.addEventListener('click', resetARView);
+    if (DOM.arCardMinimizeBtn) {
+      DOM.arCardMinimizeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleOrganelleCardMinimize();
+      });
+    }
+    if (DOM.arCardHeader) {
+      DOM.arCardHeader.addEventListener('click', (e) => {
+        if (e.target.closest('.cq-card-icon-btn')) return;
+        if (DOM.arOrganelleCard && DOM.arOrganelleCard.classList.contains('minimized')) {
+          toggleOrganelleCardMinimize(false);
+        }
+      });
+    }
+    if (DOM.arAutorotateBtn) {
+      DOM.arAutorotateBtn.addEventListener('click', () => {
+        arState.autoRotate = !arState.autoRotate;
+        alertToast(arState.autoRotate ? '🔄 Putaran Automatik Dihidupkan' : '⏸️ Putaran Automatik Dijeda');
+      });
+    }
+    if (DOM.arChangeModeBtn) {
+      DOM.arChangeModeBtn.addEventListener('click', openModeDialog);
+    }
+    if (DOM.arCardCloseBtn) {
+      DOM.arCardCloseBtn.addEventListener('click', () => {
+        if (DOM.arOrganelleCard) DOM.arOrganelleCard.style.display = 'none';
+      });
+    }
+    if (DOM.arSmallerBtn) {
+      DOM.arSmallerBtn.addEventListener('click', () => {
+        if (arObjectGroup) {
+          arObjectGroup.scale.multiplyScalar(0.85);
+          alertToast('− Saiz Model Dikecilkan');
+        }
+      });
+    }
+    if (DOM.arLargerBtn) {
+      DOM.arLargerBtn.addEventListener('click', () => {
+        if (arObjectGroup) {
+          arObjectGroup.scale.multiplyScalar(1.18);
+          alertToast('＋ Saiz Model Dibesarkan');
+        }
+      });
+    }
+    if (DOM.arRotateBtn) {
+      DOM.arRotateBtn.addEventListener('click', () => {
+        if (arObjectGroup) {
+          arObjectGroup.rotation.y += Math.PI / 4;
+        }
+      });
+    }
+    if (DOM.arRepositionBtn) {
+      DOM.arRepositionBtn.addEventListener('click', () => {
+        arState.isPlaced = false;
+        alertToast('🔄 Halakan kamera ke permukaan meja/lantai');
+      });
+    }
+
+    // Stop pointer/touch propagation on all AR overlay cards & drawer so canvas doesn't receive drag/tap
+    const uiShields = [
+      DOM.arTopBar,
+      DOM.arStationsDrawer,
+      DOM.arOrganelleCard,
+      document.getElementById('ar-floating-bar')
+    ];
+    uiShields.forEach(el => {
+      if (!el) return;
+      ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click'].forEach(evt => {
+        el.addEventListener(evt, e => e.stopPropagation(), { passive: true });
+      });
+    });
+    if (DOM.arLargerBtn) {
+      DOM.arLargerBtn.addEventListener('click', () => {
+        if (arObjectGroup) {
+          arObjectGroup.scale.multiplyScalar(1.18);
+          alertToast('＋ Saiz Model Dibesarkan');
+        }
+      });
+    }
+    if (DOM.arRotateBtn) {
+      DOM.arRotateBtn.addEventListener('click', () => {
+        if (arObjectGroup) {
+          arObjectGroup.rotation.y += Math.PI / 4;
+        }
+      });
+    }
+    if (DOM.arRepositionBtn) {
+      DOM.arRepositionBtn.addEventListener('click', () => {
+        arState.isPlaced = false;
+        alertToast('🔄 Halakan kamera ke permukaan meja/lantai');
+      });
+    }
+
+    // 12. Window Resize & Orientation Change
+    window.addEventListener('resize', onWindowResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', onWindowResize);
+    }
+    window.addEventListener('orientationchange', () => {
+      setTimeout(onWindowResize, 200);
+    });
+  }
+
+  // Virtual Analog Joystick Controller Implementation
+  function setupVirtualJoystick() {
+    if (!DOM.virtualJoystick || !DOM.joystickBase || !DOM.joystickThumb) return;
+
+    const base = DOM.joystickBase;
+    const thumb = DOM.joystickThumb;
+    const maxRadius = 42; // Maximum pixel distance knob can move from center
+
+    const updateJoystickPosition = (clientX, clientY) => {
+      const rect = base.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxRadius) {
+        dx = (dx / dist) * maxRadius;
+        dy = (dy / dist) * maxRadius;
+      }
+
+      thumb.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+      // Normalized coordinates:
+      // dx > 0 = strafe right (+1), dx < 0 = strafe left (-1)
+      // dy < 0 = forward (+1) because screen Y is down, dy > 0 = backward (-1)
+      joystickState.x = dx / maxRadius;
+      joystickState.y = -dy / maxRadius;
+      joystickState.active = (Math.abs(joystickState.x) > 0.08 || Math.abs(joystickState.y) > 0.08);
+    };
+
+    const resetJoystick = () => {
+      joystickState.active = false;
+      joystickState.touchId = null;
+      joystickState.x = 0;
+      joystickState.y = 0;
+      thumb.style.transition = 'transform 0.15s ease-out';
+      thumb.style.transform = 'translate(-50%, -50%)';
+      setTimeout(() => { thumb.style.transition = ''; }, 160);
+    };
+
+    // Touch events
+    base.addEventListener('touchstart', (e) => {
+      if (e.changedTouches.length > 0 && !joystickState.touchId) {
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        joystickState.touchId = t.identifier;
+        thumb.style.transition = '';
+        updateJoystickPosition(t.clientX, t.clientY);
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!joystickState.touchId) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.identifier === joystickState.touchId) {
+          e.preventDefault();
+          updateJoystickPosition(t.clientX, t.clientY);
+          break;
+        }
+      }
+    }, { passive: false });
+
+    const handleTouchEnd = (e) => {
+      if (!joystickState.touchId) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === joystickState.touchId) {
+          resetJoystick();
+          break;
+        }
+      }
+    };
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    // Pointer events (Desktop mouse testing support)
+    base.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button === 0) {
+        base.setPointerCapture(e.pointerId);
+        thumb.style.transition = '';
+        updateJoystickPosition(e.clientX, e.clientY);
+      }
+    });
+
+    base.addEventListener('pointermove', (e) => {
+      if (base.hasPointerCapture && base.hasPointerCapture(e.pointerId)) {
+        updateJoystickPosition(e.clientX, e.clientY);
+      }
+    });
+
+    const handlePointerUp = (e) => {
+      if (base.hasPointerCapture && base.hasPointerCapture(e.pointerId)) {
+        base.releasePointerCapture(e.pointerId);
+        resetJoystick();
+      }
+    };
+    base.addEventListener('pointerup', handlePointerUp);
+    base.addEventListener('pointercancel', handlePointerUp);
+  }
+
+  function onKeyDown(e) {
+    if (State.isPaused) return;
+
+    if (e.code === 'KeyW' || e.code === 'ArrowUp') player.keys.forward = true;
+    if (e.code === 'KeyS' || e.code === 'ArrowDown') player.keys.backward = true;
+    if (e.code === 'KeyA' || e.code === 'ArrowLeft') player.keys.left = true;
+    if (e.code === 'KeyD' || e.code === 'ArrowRight') player.keys.right = true;
+
+    // Press 'E' or Space to interact with station
+    if (e.code === 'KeyE' || e.code === 'Space') {
+      if (State.nearbyStationIndex >= 0 && !DOM.stationModal.classList.contains('open')) {
+        openStationModal(State.nearbyStationIndex);
+      }
+    }
+  }
+
+  function onKeyUp(e) {
+    if (e.code === 'KeyW' || e.code === 'ArrowUp') player.keys.forward = false;
+    if (e.code === 'KeyS' || e.code === 'ArrowDown') player.keys.backward = false;
+    if (e.code === 'KeyA' || e.code === 'ArrowLeft') player.keys.left = false;
+    if (e.code === 'KeyD' || e.code === 'ArrowRight') player.keys.right = false;
+  }
+
+  function onWindowResize() {
+    if (!camera || !renderer) return;
+    const width = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+
+    // Auto-reframe active AR model on orientation change / resize so model stays centered
+    if ((State.mode === 'camera-ar' || State.mode === 'ar') && typeof frameARObject === 'function') {
+      let activeHolder = arMiniLabHolder;
+      if (arState && arState.activeModel === 'animal') activeHolder = arAnimalHolder;
+      else if (arState && arState.activeModel === 'plant') activeHolder = arPlantHolder;
+      if (activeHolder) frameARObject(activeHolder);
+    }
+
+    if (previewRenderer && DOM.stnPreviewCanvas) {
+      const rect = DOM.stnPreviewCanvas.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        previewCamera.aspect = rect.width / rect.height;
+        previewCamera.updateProjectionMatrix();
+        previewRenderer.setSize(rect.width, rect.height);
+      }
+    }
+  }
+
+  // ==============================================================================
+  // MATHEMATICALLY CORRECT CAMERA-RELATIVE MOVEMENT & COLLISION
+  // ==============================================================================
+
+  function updatePlayerMovement() {
+    if (State.isPaused || DOM.stationModal.classList.contains('open')) return;
+
+    // In Three.js standard coordinates, the camera looks down -Z when rotY = 0.
+    // Horizontal Forward Unit Vector (where the camera is looking):
+    // forwardX = -sin(rotY), forwardZ = -cos(rotY)
+    // Horizontal Strafe Right Unit Vector (90 deg clockwise to the right):
+    // rightX = cos(rotY), rightZ = -sin(rotY)
+    const forwardX = -Math.sin(player.rotY);
+    const forwardZ = -Math.cos(player.rotY);
+    const rightX = Math.cos(player.rotY);
+    const rightZ = -Math.sin(player.rotY);
+
+    let inputFwd = 0;
+    let inputStr = 0;
+
+    // Keyboard inputs
+    if (player.keys.forward) inputFwd += 1;
+    if (player.keys.backward) inputFwd -= 1;
+    if (player.keys.right) inputStr += 1;
+    if (player.keys.left) inputStr -= 1;
+
+    // Virtual Joystick inputs (smooth analog blending)
+    if (joystickState.active) {
+      inputFwd += joystickState.y; // Positive is forward
+      inputStr += joystickState.x; // Positive is right
+    }
+
+    // Combine direction vectors
+    let moveX = (inputFwd * forwardX) + (inputStr * rightX);
+    let moveZ = (inputFwd * forwardZ) + (inputStr * rightZ);
+
+    // Normalize diagonal or composite movement so diagonal is not faster
+    const inputMagnitude = Math.hypot(moveX, moveZ);
+    if (inputMagnitude > 0) {
+      const scale = (Math.min(inputMagnitude, 1.0) / inputMagnitude) * player.speed;
+      moveX *= scale;
+      moveZ *= scale;
+    }
+
+    // Candidate new player coordinates
+    const nextX = player.x + moveX;
+    const nextZ = player.z + moveZ;
+
+    // 1. Room Boundary Collision (Walls at -8.2 to 8.2 and -10.2 to 10.2)
+    const minX = -8.2;
+    const maxX = 8.2;
+    const minZ = -10.2;
+    const maxZ = 10.2;
+
+    let validX = Math.max(minX, Math.min(maxX, nextX));
+    let validZ = Math.max(minZ, Math.min(maxZ, nextZ));
+
+    // 2. Central ARSelNel Research Monument Collision (Radius 2.6m)
+    const distToCenter = Math.hypot(validX, validZ);
+    if (distToCenter < 2.6) {
+      const angle = Math.atan2(validZ, validX);
+      validX = Math.cos(angle) * 2.6;
+      validZ = Math.sin(angle) * 2.6;
+    }
+
+    player.x = validX;
+    player.z = validZ;
+
+    // In WebXR immersive-ar mode with real physical tracking, WebXR sets camera pose.
+    // In standard 3D and Camera AR modes, update Three.js camera from player coordinates:
+    if (!renderer.xr.isPresenting) {
+      camera.position.set(player.x, player.y, player.z);
+
+      // If DeviceOrientation Gyro is active, blend gyro orientation
+      if (gyroState.active && State.mode === 'camera-ar') {
+        const radYaw = THREE.MathUtils.degToRad(gyroState.alpha - (gyroState.initialAlpha || 0));
+        camera.rotation.set(player.pitch, player.rotY - radYaw, 0, 'YXZ');
+      } else {
+        camera.rotation.set(player.pitch, player.rotY, 0, 'YXZ');
+      }
+    }
+
+    // 3. Proximity detection to 8 stations
+    checkStationProximity();
+
+    // 4. Proximity detection to unlocked exit door ("Pintu Pakar Sel")
+    if (exitDoorMeshes && exitDoorMeshes.unlocked && Math.abs(player.x) < 2.2 && player.z < -9.0) {
+      if (!State.isCompleted) {
+        completeMission();
+      }
+    }
+  }
+
+  // Check proximity to stations (~3.2 meters threshold)
+  function checkStationProximity() {
+    let closestIndex = -1;
+    let closestDist = Infinity;
+
+    stationMeshes.forEach(stn => {
+      const dist = Math.hypot(player.x - stn.data.pos.x, player.z - stn.data.pos.z);
+      if (dist < 3.2 && dist < closestDist) {
+        closestDist = dist;
+        closestIndex = stn.index;
+      }
+    });
+
+    if (closestIndex !== State.nearbyStationIndex) {
+      State.nearbyStationIndex = closestIndex;
+      updatePromptUI();
+    }
+  }
+
+  function updatePromptUI() {
+    if (State.nearbyStationIndex >= 0) {
+      const stn = State.stations[State.nearbyStationIndex];
+      const isDone = State.completedStations.has(stn.number);
+
+      DOM.promptContainer.style.setProperty('--station-color', stn.color);
+      DOM.promptContainer.style.setProperty('--station-glow', `${stn.color}66`);
+      DOM.promptIcon.textContent = isDone ? '✓' : stn.number;
+      DOM.promptTitle.textContent = isDone ? `${stn.title} (Selesai)` : `Stesen ${stn.number}: ${stn.title}`;
+      DOM.promptActionBtn.innerHTML = `<span>${isDone ? 'Ulang Kaji' : 'Teroka'}</span><span class="cq-prompt-key">E</span>`;
+      DOM.promptContainer.classList.add('active');
+
+      if (DOM.mobileInteractBtn) {
+        DOM.mobileInteractBtn.classList.add('visible');
+      }
+
+      SoundFX.interact();
+    } else {
+      DOM.promptContainer.classList.remove('active');
+      if (DOM.mobileInteractBtn) {
+        DOM.mobileInteractBtn.classList.remove('visible');
+      }
+    }
+  }
+
+  // ==============================================================================
+  // 3D INTERACTIVE ORGANELLE PREVIEW BOX IN MODAL
+  // ==============================================================================
+
+  function initStationPreview() {
+    if (!DOM.stnPreviewCanvas) return;
+
+    previewScene = new THREE.Scene();
+    previewCamera = new THREE.PerspectiveCamera(40, 2, 0.1, 50);
+    previewCamera.position.set(0, 0.4, 2.2);
+    previewCamera.lookAt(0, 0, 0);
+
+    previewRenderer = new THREE.WebGLRenderer({
+      canvas: DOM.stnPreviewCanvas,
+      antialias: true,
+      alpha: true
+    });
+    previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Studio Lights for preview
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
+    previewScene.add(ambLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0xdcfce7, 1.2);
+    dirLight1.position.set(2, 4, 3);
+    previewScene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.7);
+    dirLight2.position.set(-2, -2, -2);
+    previewScene.add(dirLight2);
+
+    // Interactive Drag to Rotate Preview Model
+    let isPreviewDragging = false;
+    let prevX = 0;
+    let prevY = 0;
+    const host = DOM.stnPreviewHost || DOM.stnPreviewCanvas;
+
+    const onStart = (clientX, clientY) => {
+      isPreviewDragging = true;
+      prevX = clientX;
+      prevY = clientY;
+    };
+    const onMove = (clientX, clientY) => {
+      if (!isPreviewDragging || !previewModelGroup) return;
+      const dx = clientX - prevX;
+      const dy = clientY - prevY;
+      prevX = clientX;
+      prevY = clientY;
+
+      previewModelGroup.rotation.y += dx * 0.015;
+      previewModelGroup.rotation.x = Math.max(-0.6, Math.min(0.6, previewModelGroup.rotation.x + dy * 0.015));
+    };
+
+    host.addEventListener('mousedown', (e) => onStart(e.clientX, e.clientY));
+    window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', () => { isPreviewDragging = false; });
+
+    host.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) onStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) onMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    window.addEventListener('touchend', () => { isPreviewDragging = false; }, { passive: true });
+  }
+
+  function updateStationPreview(stn) {
+    if (!previewScene) return;
+
+    // Remove existing preview model
+    if (previewModelGroup) {
+      previewScene.remove(previewModelGroup);
+      previewModelGroup = null;
+    }
+
+    // Build dedicated preview representation of the organelle
+    previewModelGroup = buildStylizedOrganelle(stn.number, stn.colorHex);
+    previewModelGroup.scale.set(1.4, 1.4, 1.4);
+    previewScene.add(previewModelGroup);
+
+    // Resize preview renderer to match container
+    const rect = DOM.stnPreviewCanvas.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      previewCamera.aspect = rect.width / rect.height;
+      previewCamera.updateProjectionMatrix();
+      previewRenderer.setSize(rect.width, rect.height);
+    }
+
+    // Render loop for modal preview
+    cancelAnimationFrame(previewAnimId);
+    function animatePreview() {
+      if (DOM.stationModal.classList.contains('open')) {
+        previewAnimId = requestAnimationFrame(animatePreview);
+        if (previewModelGroup) {
+          previewModelGroup.rotation.y += 0.008; // Gentle auto-rotation
+        }
+        previewRenderer.render(previewScene, previewCamera);
+      }
+    }
+    animatePreview();
+  }
+
+  // ==============================================================================
+  // STATION MODAL & QUIZ CHALLENGE
+  // ==============================================================================
+
+  function openStationModal(index) {
+    State.activeStationIndex = index;
+    const stn = State.stations[index];
+
+    DOM.stationModal.style.setProperty('--current-color', stn.color);
+    DOM.stationNumberChip.textContent = `STESEN ${stn.number} • ${stn.organelle.toUpperCase()}`;
+    DOM.stationNumberChip.style.background = `${stn.color}22`;
+    DOM.stationNumberChip.style.color = stn.color;
+    DOM.stationTitle.textContent = stn.title;
+    DOM.stationDesc.textContent = stn.description;
+
+    DOM.quizQuestion.textContent = stn.question;
+    renderQuizOptions(stn);
+
+    // Update 3D Interactive Preview Box
+    updateStationPreview(stn);
+
+    DOM.quizFeedback.style.display = 'none';
+    DOM.stationModal.classList.add('open');
+
+    SoundFX.interact();
+  }
+
+  function closeStationModal() {
+    DOM.stationModal.classList.remove('open');
+    cancelAnimationFrame(previewAnimId);
+    State.activeStationIndex = -1;
+  }
+
+  function renderQuizOptions(stn) {
+    DOM.quizOptions.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D'];
+
+    stn.options.forEach((optText, optIdx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cq-quiz-opt';
+      btn.innerHTML = `<span class="cq-opt-letter">${letters[optIdx]}</span><span>${optText.replace(/^[A-D]\.\s*/, '')}</span>`;
+      btn.addEventListener('click', () => handleQuizAnswer(stn, optIdx, btn));
+      DOM.quizOptions.appendChild(btn);
+    });
+  }
+
+  function handleQuizAnswer(stn, selectedIdx, optBtn) {
+    // Disable all options after clicking
+    const allBtns = DOM.quizOptions.querySelectorAll('.cq-quiz-opt');
+    allBtns.forEach(b => b.disabled = true);
+
+    State.attemptsCount[stn.number] = (State.attemptsCount[stn.number] || 0) + 1;
+    const attemptNum = State.attemptsCount[stn.number];
+
+    const isCorrect = selectedIdx === stn.correct;
+
+    if (isCorrect) {
+      optBtn.classList.add('correct');
+      SoundFX.correct();
+
+      // Points calculation: 1st try = 100, 2nd try = 70, 3rd+ = 50
+      let points = 50;
+      if (attemptNum === 1) points = 100;
+      else if (attemptNum === 2) points = 70;
+
+      if (!State.completedStations.has(stn.number)) {
+        State.completedStations.add(stn.number);
+        State.score += points;
+        markStationCompleted(stn.number);
+      }
+
+      DOM.quizFeedback.className = 'cq-feedback-box correct';
+      DOM.quizFeedback.innerHTML = `
+        <strong>🎉 TAHNIAH! JAWAPAN TEPAT!</strong>
+        <p style="margin-top: 6px;">${stn.explanation}</p>
+        <div class="cq-feedback-badge-reward">
+          <span style="font-size: 24px;">🎖️</span>
+          <span>+${points} Mata Diperoleh! Lencana Stesen ${stn.number} Diterima!</span>
+        </div>
+      `;
+      DOM.quizFeedback.style.display = 'block';
+
+      // Check if all 8 stations completed!
+      if (State.completedStations.size === 8) {
+        unlockExitDoor();
+      }
+    } else {
+      optBtn.classList.add('incorrect');
+      SoundFX.incorrect();
+
+      // Highlight correct button
+      if (allBtns[stn.correct]) {
+        allBtns[stn.correct].classList.add('correct');
+      }
+
+      DOM.quizFeedback.className = 'cq-feedback-box incorrect';
+      DOM.quizFeedback.innerHTML = `
+        <strong>❌ KURANG TEPAT, SILA BACA PENERANGAN DI BAWAH:</strong>
+        <p style="margin-top: 6px;">${stn.explanation}</p>
+        <div style="margin-top: 10px;">
+          <button type="button" class="cq-btn-secondary" id="retry-question-btn" style="padding: 6px 14px; font-size: 13px;">
+            🔄 Cuba Semula Soalan
+          </button>
+        </div>
+      `;
+      DOM.quizFeedback.style.display = 'block';
+
+      const retryBtn = document.getElementById('retry-question-btn');
+      if (retryBtn) {
+        retryBtn.addEventListener('click', () => {
+          renderQuizOptions(stn);
+          DOM.quizFeedback.style.display = 'none';
+        });
+      }
+    }
+
+    updateHUD();
+  }
+
+  // Station completed visual feedback in 3D world, AR mini lab & HUD
+  function markStationCompleted(stationNumber) {
+    const stnMesh = stationMeshes.find(s => s.data.number === stationNumber);
+    if (stnMesh) {
+      stnMesh.halo.material.color.setHex(0x10b981);
+      stnMesh.beacon.children[0].material.color.setHex(0x10b981);
+      stnMesh.beacon.children[0].material.emissive.setHex(0x064e3b);
+    }
+
+    const miniBadge = document.getElementById(`mini-badge-${stationNumber}`);
+    if (miniBadge) {
+      miniBadge.classList.add('completed');
+      miniBadge.textContent = '✓';
+    }
+
+    // Also update mini lab AR beacon if present
+    if (arMiniLabHolder && arMiniLabHolder.children[0]?.userData?.stationMeshesMini) {
+      const miniStn = arMiniLabHolder.children[0].userData.stationMeshesMini.find(m => m.stationNumber === stationNumber);
+      if (miniStn && miniStn.beacon) {
+        miniStn.beacon.children[0]?.material?.color?.setHex?.(0x10b981);
+        miniStn.beacon.children[0]?.material?.emissive?.setHex?.(0x064e3b);
+      }
+    }
+
+    // Refresh AR Organelle Strip
+    if (arState.activeModel) {
+      renderAROrganelleStrip(arState.activeModel);
+    }
+
+    // Update active AR card badge if open
+    if (DOM.arCardBadge && State.completedStations.has(stationNumber)) {
+      DOM.arCardBadge.textContent = `Lencana Stesen ${stationNumber} Selesai ✓`;
+      DOM.arCardBadge.classList.add('completed');
+    }
+  }
+
+  // Unlock Exit Door when all 8 stations are cleared
+  function unlockExitDoor() {
+    if (!exitDoorMeshes || exitDoorMeshes.unlocked) return;
+    exitDoorMeshes.unlocked = true;
+
+    exitDoorMeshes.shield.material.color.setHex(0x10b981);
+    exitDoorMeshes.shield.material.opacity = 0.2;
+    exitDoorMeshes.exitSign.material.color?.setHex?.(0x10b981);
+
+    animatedObjects.push({
+      progress: 0,
+      update() {
+        if (this.progress < 1.4) {
+          this.progress += 0.02;
+          exitDoorMeshes.leftDoor.position.x = -1.05 - this.progress;
+          exitDoorMeshes.rightDoor.position.x = 1.05 + this.progress;
+        }
+      }
+    });
+
+    SoundFX.victory();
+    alertToast('🌟 TAHNIAH! Semua 8 Lencana Diperoleh! Pintu Pakar Sel Kini Terbuka!');
+  }
+
+  function alertToast(msg) {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed; top: 110px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, #0d9488, #10b981); color: #fff;
+      padding: 12px 22px; border-radius: 999px; font-weight: 800; font-size: 14px;
+      z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); pointer-events: none;
+      animation: fadeIn 0.4s ease; text-align: center; max-width: 90vw;
+    `;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.5s';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 500);
+    }, 4000);
+  }
+
+  // ==============================================================================
+  // VICTORY CELEBRATION & DIGITAL CERTIFICATE
+  // ==============================================================================
+
+  async function completeMission() {
+    if (State.isCompleted) return;
+    State.isCompleted = true;
+    clearInterval(State.timerInterval);
+
+    SoundFX.victory();
+
+    const studentName = (State.user && (State.user.name || State.user.nickname)) 
+      ? (State.user.name || State.user.nickname) 
+      : 'Saintis Muda';
+
+    DOM.certStudentName.textContent = studentName;
+    DOM.certScore.textContent = `${State.score} Mata`;
+    DOM.certTime.textContent = formatTime(State.durationSeconds);
+    DOM.certDate.textContent = new Date().toLocaleDateString('ms-MY', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+
+    DOM.victoryModal.classList.add('open');
+    await saveLearningRecord();
+  }
+
+  async function saveLearningRecord() {
+    const totalQuestions = State.stations.length;
+    const correctCount = State.completedStations.size;
+
+    const recordData = {
+      id: `cq_adv_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      quiz_id: 'cellquest-ar-adventure',
+      quizId: 'cellquest-ar-adventure',
+      game_id: 'cellquest-ar-adventure',
+      score: State.score,
+      correct: correctCount,
+      correct_answers: correctCount,
+      total: totalQuestions,
+      total_questions: totalQuestions,
+      duration_seconds: State.durationSeconds,
+      durationSeconds: State.durationSeconds,
+      completedAt: new Date().toISOString(),
+      meta: {
+        game_title: 'CellQuest AR Adventure — Misi Jelajah Dunia Sel',
+        badges_collected: correctCount,
+        attempts: State.attemptsCount,
+        mode: State.mode
+      }
+    };
+
+    try {
+      if (window.ARSupabase && typeof window.ARSupabase.saveGameRecord === 'function') {
+        const res = await window.ARSupabase.saveGameRecord(recordData);
+        console.log('Record saved successfully:', res);
+      } else {
+        const list = JSON.parse(localStorage.getItem('cellquest_adventure_records') || '[]');
+        list.push(recordData);
+        localStorage.setItem('cellquest_adventure_records', JSON.stringify(list));
+      }
+    } catch (err) {
+      console.warn('Failed to save record to Supabase, cached locally:', err);
+    }
+  }
+
+  function printOrSaveCertificate() {
+    window.print();
+  }
+
+  function closeVictoryModal() {
+    DOM.victoryModal.classList.remove('open');
+  }
+
+  function restartGame() {
+    State.completedStations.clear();
+    State.score = 0;
+    State.durationSeconds = 0;
+    State.attemptsCount = {};
+    State.isCompleted = false;
+    player.x = 0;
+    player.z = 8.5;
+    player.rotY = 0; // Look down -Z towards lab center
+
+    buildMiniBadgeStrip();
+    stationMeshes.forEach(stn => {
+      stn.halo.material.color.setHex(stn.data.colorHex);
+      stn.beacon.children[0].material.color.setHex(0xfacc15);
+      stn.beacon.children[0].material.emissive.setHex(0x713f12);
+    });
+
+    if (exitDoorMeshes) {
+      exitDoorMeshes.unlocked = false;
+      exitDoorMeshes.shield.material.color.setHex(0xef4444);
+      exitDoorMeshes.leftDoor.position.x = -1.05;
+      exitDoorMeshes.rightDoor.position.x = 1.05;
+    }
+
+    startTimer();
+    updateHUD();
+    closeVictoryModal();
+  }
+
+  // ==============================================================================
+  // MODE SELECTION: MOD JELAJAH 3D, MOD KAMERA INTERAKTIF, MOD AR SPASIAL (WEBXR)
+  // ==============================================================================
+
+  // ==============================================================================
+  // MODE SELECTION: MOD 1 (JELAJAH 3D), MOD 2 (KAMERA AR), MOD 3 (AR SPASIAL WEBXR)
+  // ==============================================================================
+
+  function openModeDialog() {
+    DOM.modeModal.classList.add('open');
+    if (DOM.arScaleChooser) {
+      DOM.arScaleChooser.style.display = 'block';
+    }
+  }
+
+  function closeModeDialog() {
+    DOM.modeModal.classList.remove('open');
+  }
+
+  async function selectMode(mode) {
+    closeModeDialog();
+
+    // 1. Cleanup existing active mode
+    if (State.mode === 'camera-ar' && mode !== 'camera-ar') {
+      stopInteractiveCamera();
+    }
+    if (State.mode === 'ar' && mode !== 'ar') {
+      await exitARSession();
+    }
+
+    State.mode = mode;
+
+    if (mode === '3d') {
+      // ----------------------------------------------------------------------
+      // MOD 1: MOD JELAJAH 3D (MAKMAL MAYA PENUH TANPA KAMERA)
+      // ----------------------------------------------------------------------
+      stopInteractiveCamera();
+      document.body.classList.remove('cq-ar-mode');
+
+      // Restore 3D lab environment & fog
+      scene.background = new THREE.Color(0x0a161e);
+      scene.fog = new THREE.FogExp2(0x0a161e, 0.025);
+      renderer.setClearColor(0x0a161e, 1);
+      renderer.xr.enabled = false;
+
+      // Show full room & walkthrough stations, hide AR objects
+      if (labEnvironmentGroup) labEnvironmentGroup.visible = true;
+      if (walkthroughStationsGroup) walkthroughStationsGroup.visible = true;
+      if (arObjectGroup) arObjectGroup.visible = false;
+
+      // Restore 3D walkthrough HUD items
+      if (DOM.walkthroughHud) DOM.walkthroughHud.style.display = 'flex';
+      if (DOM.badgeStrip) DOM.badgeStrip.style.display = 'flex';
+      if (DOM.arOverlay) DOM.arOverlay.style.display = 'none';
+      if (DOM.arStationsDrawer) DOM.arStationsDrawer.classList.remove('open');
+      if (DOM.arOrganelleCard) DOM.arOrganelleCard.style.display = 'none';
+
+      if (DOM.crosshair) DOM.crosshair.style.display = 'flex';
+      if (DOM.touchZone) DOM.touchZone.style.display = 'block';
+      if (DOM.virtualJoystick) DOM.virtualJoystick.style.display = 'block';
+
+      if (DOM.hudModeIcon) DOM.hudModeIcon.textContent = '🖥️';
+      if (DOM.hudModeText) DOM.hudModeText.textContent = 'Mod Jelajah 3D';
+      if (DOM.gyroResetBtn) DOM.gyroResetBtn.style.display = 'none';
+
+      // Restore player first-person camera
+      camera.position.set(player.x, player.y, player.z);
+      camera.rotation.set(player.pitch, player.rotY, 0, 'YXZ');
+
+      alertToast('🖥️ Mod Jelajah 3D Aktif: Terokai makmal menggunakan kekunci atau joystick.');
+    } else if (mode === 'camera-ar') {
+      // ----------------------------------------------------------------------
+      // MOD 2: MOD KAMERA AR INTERAKTIF (REAL CAMERA PASSTHROUGH & 3D OVERLAY)
+      // ----------------------------------------------------------------------
+      await startInteractiveCamera();
+    } else if (mode === 'ar') {
+      // ----------------------------------------------------------------------
+      // MOD 3: MOD AR SPASIAL (WEBXR IMMERSIVE-AR WITH SURFACE HIT-TEST)
+      // ----------------------------------------------------------------------
+      await startWebXRAR();
+    }
+  }
+
+  // ------------------------------------------------------------------------------
+  // 6.2 MOD 2: KAMERA AR INTERAKTIF (MOBILE CAMERA AR OVERLAY)
+  // ------------------------------------------------------------------------------
+  async function startInteractiveCamera() {
+    const isSecure = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isSecure) {
+      showCameraErrorModal('Sambungan Selamat Diperlukan (HTTPS)', 'Akses kamera pada telefon pintar memerlukan sambungan selamat (HTTPS) atau localhost.');
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showCameraErrorModal('Kamera Tidak Disokong', 'Pelayar web ini tidak menyokong fungsi capaian kamera getUserMedia.');
+      return;
+    }
+
+    try {
+      let stream = null;
+      try {
+        // Prefer rear camera (environment) on mobile phones & tablets
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+      } catch (camErr) {
+        console.warn('Specific environment camera constraint failed, retrying with basic video constraint:', camErr);
+        stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+      }
+
+      cameraStream = stream;
+      if (DOM.cameraFeed) {
+        DOM.cameraFeed.srcObject = stream;
+        DOM.cameraFeed.style.display = 'block';
+        try {
+          await DOM.cameraFeed.play();
+        } catch (playErr) {
+          console.warn('Camera feed play warning:', playErr);
+        }
+      }
+
+      // Add cq-ar-mode class to body for background transparency
+      document.body.classList.add('cq-ar-mode');
+
+      // 1. Transparent WebGL background so camera feed is visible behind
+      scene.background = null;
+      scene.fog = null;
+      renderer.setClearColor(0x000000, 0);
+
+      // 2. Hide virtual 3D room walls, ceiling and floor so camera feed is completely unobstructed!
+      if (labEnvironmentGroup) labEnvironmentGroup.visible = false;
+      if (walkthroughStationsGroup) walkthroughStationsGroup.visible = false;
+
+      // 3. Hide walkthrough HUD & controls
+      if (DOM.walkthroughHud) DOM.walkthroughHud.style.display = 'none';
+      if (DOM.badgeStrip) DOM.badgeStrip.style.display = 'none';
+      if (DOM.crosshair) DOM.crosshair.style.display = 'none';
+      if (DOM.touchZone) DOM.touchZone.style.display = 'none';
+      if (DOM.virtualJoystick) DOM.virtualJoystick.style.display = 'none';
+      if (DOM.promptContainer) DOM.promptContainer.classList.remove('active');
+      if (DOM.mobileInteractBtn) DOM.mobileInteractBtn.classList.remove('visible');
+
+      // 4. Show AR HUD Overlay & update elements
+      if (DOM.arOverlay) DOM.arOverlay.style.display = 'flex';
+      if (DOM.arSpatialTools) DOM.arSpatialTools.style.display = 'none';
+      if (DOM.arStatusBadge) {
+        if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '📷';
+        if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod Kamera AR';
+      }
+
+      // Sync stats & drawer
+      updateHUD();
+      renderARStationsDrawer();
+
+      // 5. Show AR Object Group & position camera in front of it
+      if (arObjectGroup) {
+        arObjectGroup.visible = true;
+        arObjectGroup.position.set(0, 0, 0);
+        arObjectGroup.rotation.set(0, 0, 0);
+        arObjectGroup.scale.set(1.0, 1.0, 1.0);
+      }
+
+      // 6. Switch to active AR model & frame it
+      switchARModel(arState.activeModel || 'minilab');
+
+      // 7. Setup Device Orientation (Gyro) if available
+      setupDeviceOrientation();
+
+      if (DOM.hudModeIcon) DOM.hudModeIcon.textContent = '📷';
+      if (DOM.hudModeText) DOM.hudModeText.textContent = 'Mod Kamera AR';
+      if (DOM.gyroResetBtn) DOM.gyroResetBtn.style.display = 'flex';
+
+      alertToast('📷 Mod Kamera AR Aktif: Persekitaran sebenar dibuka! Seret untuk memutar model.');
+    } catch (err) {
+      console.warn('Camera AR initialization error:', err);
+      let errMsg = 'Kebenaran capaian kamera ditolak oleh pelayar atau peranti tidak mempunyai kamera aktif.';
+      if (err.name === 'NotAllowedError') {
+        errMsg = 'Kebenaran kamera telah ditolak. Sila benarkan akses kamera dalam tetapan pelayar anda untuk mod ini.';
+      } else if (err.name === 'NotFoundError') {
+        errMsg = 'Tiada sensor kamera dikesan pada peranti ini.';
+      } else if (err.name === 'NotReadableError') {
+        errMsg = 'Kamera sedang digunakan oleh aplikasi lain.';
+      }
+      showCameraErrorModal('Kebenaran Kamera Diperlukan', errMsg);
+    }
+  }
+
+  function stopInteractiveCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => {
+        try { track.stop(); } catch (_) {}
+      });
+      cameraStream = null;
+    }
+    if (DOM.cameraFeed) {
+      DOM.cameraFeed.srcObject = null;
+      DOM.cameraFeed.style.display = 'none';
+    }
+    document.body.classList.remove('cq-ar-mode');
+    gyroState.active = false;
+  }
+
+  function showCameraErrorModal(title, message) {
+    if (DOM.cameraFallbackTitle) DOM.cameraFallbackTitle.textContent = title;
+    if (DOM.cameraFallbackMsg) DOM.cameraFallbackMsg.textContent = message;
+    if (DOM.cameraFallbackModal) DOM.cameraFallbackModal.classList.add('open');
+  }
+
+  // Device Orientation (Gyroscope) handling
+  function setupDeviceOrientation() {
+    if (typeof DeviceOrientationEvent === 'undefined') return;
+
+    const onOrientation = (e) => {
+      if (e.alpha === null) return;
+      if (gyroState.initialAlpha === null) {
+        gyroState.initialAlpha = e.alpha;
+      }
+      gyroState.alpha = e.alpha;
+      gyroState.beta = e.beta;
+      gyroState.gamma = e.gamma;
+      gyroState.active = true;
+    };
+
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(response => {
+          if (response === 'granted') {
+            window.addEventListener('deviceorientation', onOrientation);
+          }
+        })
+        .catch(() => {});
+    } else {
+      window.addEventListener('deviceorientation', onOrientation);
+    }
+  }
+
+  function resetGyroOrientation() {
+    gyroState.initialAlpha = gyroState.alpha;
+    if (arObjectGroup) {
+      arObjectGroup.rotation.set(0, 0, 0);
+    }
+    alertToast('🔄 Orientasi Giroskop Ditetapkan Semula');
+  }
+
+  // ------------------------------------------------------------------------------
+  // 6.1 MOD 3: AR SPASIAL (WEBXR IMMERSIVE-AR WITH SURFACE HIT-TEST)
+  // ------------------------------------------------------------------------------
+  async function startWebXRAR() {
+    if (!navigator.xr || typeof navigator.xr.isSessionSupported !== 'function') {
+      showARUnsupportedNotice('Pelayar anda tidak menyokong WebXR AR Spasial. Mod Kamera Interaktif dibuka sebagai alternatif.');
+      selectMode('camera-ar');
+      return;
+    }
+
+    let isSupported = false;
+    try {
+      isSupported = await navigator.xr.isSessionSupported('immersive-ar');
+    } catch (_) {
+      isSupported = false;
+    }
+
+    if (!isSupported) {
+      showARUnsupportedNotice('Peranti anda tidak mempunyai penderia AR Spasial WebXR (ARCore). Beralih ke Mod Kamera Interaktif.');
+      selectMode('camera-ar');
+      return;
+    }
+
+    try {
+      const session = await navigator.xr.requestSession('immersive-ar', {
+        requiredFeatures: ['local', 'hit-test']
+      });
+
+      xrSession = session;
+      renderer.xr.enabled = true;
+      await renderer.xr.setSession(session);
+
+      xrRefSpace = await session.requestReferenceSpace('local');
+      const viewerSpace = await session.requestReferenceSpace('viewer');
+      xrHitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+
+      document.body.classList.add('cq-ar-mode');
+      scene.background = null;
+      scene.fog = null;
+      renderer.setClearColor(0x000000, 0);
+
+      // Hide 3D virtual room and walkthrough stations
+      if (labEnvironmentGroup) labEnvironmentGroup.visible = false;
+      if (walkthroughStationsGroup) walkthroughStationsGroup.visible = false;
+
+      // Hide walkthrough HUD & controls
+      if (DOM.walkthroughHud) DOM.walkthroughHud.style.display = 'none';
+      if (DOM.badgeStrip) DOM.badgeStrip.style.display = 'none';
+      if (DOM.crosshair) DOM.crosshair.style.display = 'none';
+      if (DOM.touchZone) DOM.touchZone.style.display = 'none';
+      if (DOM.virtualJoystick) DOM.virtualJoystick.style.display = 'none';
+
+      // Show AR HUD overlay with spatial placement tools
+      if (DOM.arOverlay) DOM.arOverlay.style.display = 'flex';
+      if (DOM.arSpatialTools) DOM.arSpatialTools.style.display = 'flex';
+      if (DOM.arStatusBadge) {
+        if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '✨';
+        if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod AR Spasial WebXR';
+      }
+
+      // Sync stats & drawer
+      updateHUD();
+      renderARStationsDrawer();
+
+      setupARReticle();
+
+      if (arObjectGroup) {
+        arObjectGroup.visible = true;
+        arObjectGroup.position.set(0, -0.2, -1.2);
+        arObjectGroup.scale.set(0.35, 0.35, 0.35);
+      }
+      switchARModel(arState.activeModel || 'animal');
+
+      session.addEventListener('end', () => {
+        xrSession = null;
+        xrHitTestSource = null;
+        if (reticleMesh) reticleMesh.visible = false;
+        selectMode('3d');
+      });
+
+      alertToast('✨ Mod AR Spasial Aktif: Halakan telefon ke meja/lantai untuk mengesan permukaan.');
+    } catch (err) {
+      console.warn('WebXR AR session request failed:', err);
+      showARUnsupportedNotice('Sesi WebXR AR tidak dapat dimulakan. Beralih ke Mod Kamera Interaktif.');
+      selectMode('camera-ar');
+    }
+  }
+
+  function setupARReticle() {
+    if (!reticleMesh) {
+      const ringGeo = new THREE.RingGeometry(0.12, 0.16, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf, side: THREE.DoubleSide });
+      reticleMesh = new THREE.Mesh(ringGeo, ringMat);
+      reticleMesh.rotation.x = -Math.PI / 2;
+      reticleMesh.visible = false;
+      scene.add(reticleMesh);
+    }
+
+    if (DOM.arPlaceBtn) {
+      DOM.arPlaceBtn.onclick = () => {
+        if (reticleMesh && reticleMesh.visible && arObjectGroup) {
+          const pos = new THREE.Vector3();
+          const quat = new THREE.Quaternion();
+          const scl = new THREE.Vector3();
+          reticleMesh.matrix.decompose(pos, quat, scl);
+
+          arObjectGroup.position.copy(pos);
+          arObjectGroup.quaternion.copy(quat);
+          arState.isPlaced = true;
+          reticleMesh.visible = false;
+          alertToast('📍 Model berjaya diletakkan di atas permukaan meja!');
+        }
+      };
+    }
+  }
+
+  function showARUnsupportedNotice(reason) {
+    alertToast(`⚠️ ${reason}`);
+  }
+
+  async function exitARSession() {
+    if (xrSession) {
+      try { await xrSession.end(); } catch (_) {}
+      xrSession = null;
+    }
+    DOM.arOverlay.style.display = 'none';
+    renderer.xr.enabled = false;
+  }
+
+  // ==============================================================================
+  // 6.3 AR 3D MODEL SYSTEM: ANIMAL CELL, PLANT CELL & MAKMAL MINI ARSELNEL
+  // ==============================================================================
+
+  const CELL_MODELS = {
+    animal: '../models/animal_cell_final.glb',
+    plant: '../models/plantcellnew.glb'
+  };
+
+  const cachedGltfScenes = {
+    animal: null,
+    plant: null
+  };
+
+  function buildARSystem() {
+    // 1. Dedicated Root Group for AR Models
+    if (!arObjectGroup) {
+      arObjectGroup = new THREE.Group();
+      arObjectGroup.visible = false;
+      scene.add(arObjectGroup);
+    }
+
+    // 2. Holders for the 3 distinct AR models
+    arAnimalHolder = new THREE.Group();
+    arAnimalHolder.name = 'AR_Animal_Cell';
+    arObjectGroup.add(arAnimalHolder);
+
+    arPlantHolder = new THREE.Group();
+    arPlantHolder.name = 'AR_Plant_Cell';
+    arPlantHolder.visible = false;
+    arObjectGroup.add(arPlantHolder);
+
+    arMiniLabHolder = new THREE.Group();
+    arMiniLabHolder.name = 'AR_Mini_Lab';
+    arMiniLabHolder.visible = false;
+    arObjectGroup.add(arMiniLabHolder);
+
+    // 3. Build the 8-station interactive Makmal Mini ARSelNel
+    const miniLabMesh = buildMiniLabGroup();
+    arMiniLabHolder.add(miniLabMesh);
+
+    // 4. Load real GLB models (with procedural fallback for instant display)
+    loadAnimalCellGLB(arAnimalHolder);
+    loadPlantCellGLB(arPlantHolder);
+
+    // 5. Setup touch gestures and mouse interaction on canvas
+    setupARGestures();
+  }
+
+  // Helper: Create Glowing Station Number Badge for Mini Lab Pedestals (1 to 8)
+  function createStationNumberBadge(number, colorHex) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+
+    const hexColor = typeof colorHex === 'number'
+      ? '#' + colorHex.toString(16).padStart(6, '0')
+      : (colorHex || '#2dd4bf');
+
+    // Circular background
+    ctx.beginPath();
+    ctx.arc(64, 64, 56, 0, Math.PI * 2);
+    ctx.fillStyle = hexColor;
+    ctx.fill();
+
+    // Glowing border
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+
+    // Station number
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 68px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(number), 64, 67);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const badgeGeo = new THREE.CircleGeometry(0.12, 24);
+    const badgeMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true });
+    const badgeMesh = new THREE.Mesh(badgeGeo, badgeMat);
+    return badgeMesh;
+  }
+
+  // Helper: Miniature 3D Animal Cell for Makmal Mini Diorama
+  function buildMiniAnimalModel() {
+    const group = new THREE.Group();
+
+    // Outer membrane & cytoplasm with cutaway
+    const outerGeo = new THREE.SphereGeometry(0.24, 24, 18, 0, Math.PI * 1.5, 0, Math.PI);
+    const outerMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.5,
+      roughness: 0.2
+    });
+    const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+    group.add(outerMesh);
+
+    // Glowing Nucleus
+    const nucleus = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x8b5cf6, emissive: 0x6d28d9, emissiveIntensity: 0.7 })
+    );
+    nucleus.position.set(0.04, 0.04, 0.04);
+    group.add(nucleus);
+
+    // Folded Mitochondria (red pills)
+    const mitoMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.3 });
+    const m1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.06, 8), mitoMat);
+    m1.position.set(-0.09, -0.04, 0.08);
+    m1.rotation.z = 0.6;
+    group.add(m1);
+
+    const m2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.05, 8), mitoMat);
+    m2.position.set(0.09, -0.08, 0.04);
+    m2.rotation.x = 0.8;
+    group.add(m2);
+
+    // Floating Pill Label: "Sel Haiwan"
+    const labelMesh = createTextPlane('🐾 Sel Haiwan', '#38bdf8', 0.65, 0.2);
+    labelMesh.position.set(0, 0.32, 0);
+    group.add(labelMesh);
+
+    return group;
+  }
+
+  // Helper: Miniature 3D Plant Cell for Makmal Mini Diorama
+  function buildMiniPlantModel() {
+    const group = new THREE.Group();
+
+    // Rigid Hexagonal/Prismatic Plant Cell Wall
+    const wallGeo = new THREE.BoxGeometry(0.42, 0.32, 0.3);
+    const wallEdges = new THREE.EdgesGeometry(wallGeo);
+    const wallLine = new THREE.LineSegments(
+      wallEdges,
+      new THREE.LineBasicMaterial({ color: 0x4ade80, linewidth: 2 })
+    );
+    group.add(wallLine);
+
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: 0x14532d,
+      transparent: true,
+      opacity: 0.35,
+      roughness: 0.3
+    });
+    const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+    group.add(wallMesh);
+
+    // Large Blue Central Vacuole
+    const vacuole = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.2, 0.16),
+      new THREE.MeshStandardMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.65 })
+    );
+    vacuole.position.set(-0.04, 0, 0);
+    group.add(vacuole);
+
+    // Green Chloroplast discs
+    const chloroMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.2 });
+    for (let i = 0; i < 3; i++) {
+      const c = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.02, 8), chloroMat);
+      const angle = (i * Math.PI * 2) / 3;
+      c.position.set(Math.cos(angle) * 0.12, 0.06, Math.sin(angle) * 0.09);
+      group.add(c);
+    }
+
+    // Nucleus pushed to the side
+    const nucleus = new THREE.Mesh(
+      new THREE.SphereGeometry(0.06, 12, 12),
+      new THREE.MeshStandardMaterial({ color: 0x8b5cf6, emissive: 0x5b21b6, emissiveIntensity: 0.6 })
+    );
+    nucleus.position.set(0.12, 0.04, 0.05);
+    group.add(nucleus);
+
+    // Floating Pill Label: "Sel Tumbuhan"
+    const labelMesh = createTextPlane('🌿 Sel Tumbuhan', '#4ade80', 0.68, 0.2);
+    labelMesh.position.set(0, 0.32, 0);
+    group.add(labelMesh);
+
+    return group;
+  }
+
+  // Build the 8-station Tabletop Makmal Mini ARSelNel Diorama
+  function buildMiniLabGroup() {
+    const miniLab = new THREE.Group();
+    miniLab.name = 'MiniLabDiorama';
+
+    // 1. Sleek Tabletop Circular/Octagonal Pedestal
+    const baseGeo = new THREE.CylinderGeometry(1.6, 1.76, 0.2, 24);
+    const baseMat = new THREE.MeshStandardMaterial({
+      color: 0x0c1921,
+      roughness: 0.3,
+      metalness: 0.4
+    });
+    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    baseMesh.position.y = -0.1;
+    baseMesh.receiveShadow = true;
+    miniLab.add(baseMesh);
+
+    // Glowing Neon Turquoise Outer Rim
+    const rimGeo = new THREE.TorusGeometry(1.65, 0.03, 8, 48);
+    const rimMat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf });
+    const rim = new THREE.Mesh(rimGeo, rimMat);
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = 0.005;
+    miniLab.add(rim);
+
+    // Inner Concentric Cyan Accent Ring
+    const innerRimGeo = new THREE.TorusGeometry(0.95, 0.018, 8, 36);
+    const innerRimMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const innerRim = new THREE.Mesh(innerRimGeo, innerRimMat);
+    innerRim.rotation.x = Math.PI / 2;
+    innerRim.position.y = 0.008;
+    miniLab.add(innerRim);
+
+    // Futuristic Hexagonal grid on tabletop
+    const miniGrid = new THREE.GridHelper(3.0, 10, 0x2dd4bf, 0x133e4d);
+    miniGrid.position.y = 0.01;
+    miniLab.add(miniGrid);
+
+    // 2. Central ARSelNel Holographic Monument
+    const centerEmblem = new THREE.Group();
+    centerEmblem.position.set(0, 0.35, 0);
+
+    // Extruded hexagonal border
+    const hexShape = new THREE.Shape();
+    const hexR = 0.48;
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3 - Math.PI / 6;
+      const x = Math.cos(a) * hexR;
+      const y = Math.sin(a) * hexR;
+      if (i === 0) hexShape.moveTo(x, y);
+      else hexShape.lineTo(x, y);
+    }
+    hexShape.closePath();
+
+    const hexGeo = new THREE.ExtrudeGeometry(hexShape, { depth: 0.06, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02 });
+    hexGeo.center();
+    const hexMesh = new THREE.Mesh(hexGeo, new THREE.MeshStandardMaterial({ color: 0x008080, metalness: 0.7, roughness: 0.2 }));
+    centerEmblem.add(hexMesh);
+
+    // Central glowing nucleus core
+    const coreSphere = new THREE.Mesh(
+      new THREE.SphereGeometry(0.14, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x002020, emissive: 0x2dd4bf, emissiveIntensity: 0.95 })
+    );
+    coreSphere.position.set(0, 0, 0.05);
+    centerEmblem.add(coreSphere);
+
+    // Orbiting Gimbal Rings
+    const ring1 = new THREE.Mesh(
+      new THREE.TorusGeometry(0.62, 0.016, 8, 32),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+    );
+    ring1.rotation.x = Math.PI / 3;
+    centerEmblem.add(ring1);
+
+    const ring2 = new THREE.Mesh(
+      new THREE.TorusGeometry(0.56, 0.016, 8, 32),
+      new THREE.MeshBasicMaterial({ color: 0x2dd4bf })
+    );
+    ring2.rotation.y = Math.PI / 3;
+    centerEmblem.add(ring2);
+
+    // Two-sided non-mirrored brand plaque
+    const brandPlaque = createBrandTextPlane('ARSelNel', 'MAKMAL MINI SAINS', 1.35, 0.42);
+    brandPlaque.position.set(0, 0.68, 0);
+    centerEmblem.add(brandPlaque);
+
+    miniLab.add(centerEmblem);
+
+    // 3. Miniature Sel Haiwan & Sel Tumbuhan on the platform
+    const miniAnimal = buildMiniAnimalModel();
+    miniAnimal.position.set(-0.62, 0.20, 0);
+    miniAnimal.userData = {
+      isMiniAnimal: true,
+      organelleId: 'nucleus',
+      pickable: true
+    };
+    miniLab.add(miniAnimal);
+
+    // Pickable collider for mini animal cell
+    const animalCollider = new THREE.Mesh(
+      new THREE.SphereGeometry(0.3, 12, 12),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+    );
+    animalCollider.position.set(-0.62, 0.20, 0);
+    animalCollider.userData = {
+      isMiniAnimal: true,
+      organelleId: 'nucleus',
+      pickable: true
+    };
+    miniLab.add(animalCollider);
+    arPickableObjects.push(animalCollider);
+
+    const miniPlant = buildMiniPlantModel();
+    miniPlant.position.set(0.62, 0.20, 0);
+    miniPlant.userData = {
+      isMiniPlant: true,
+      organelleId: 'chloroplast',
+      pickable: true
+    };
+    miniLab.add(miniPlant);
+
+    // Pickable collider for mini plant cell
+    const plantCollider = new THREE.Mesh(
+      new THREE.BoxGeometry(0.46, 0.36, 0.34),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+    );
+    plantCollider.position.set(0.62, 0.20, 0);
+    plantCollider.userData = {
+      isMiniPlant: true,
+      organelleId: 'chloroplast',
+      pickable: true
+    };
+    miniLab.add(plantCollider);
+    arPickableObjects.push(plantCollider);
+
+    // 4. 8 Orbital Mini Learning Stations (numbered 1 to 8 around perimeter)
+    const stationMeshesMini = [];
+    const radius = 1.25;
+
+    State.stations.forEach((stn, i) => {
+      const angle = (i / 8) * Math.PI * 2;
+      const sx = Math.cos(angle) * radius;
+      const sz = Math.sin(angle) * radius;
+
+      const miniStnGroup = new THREE.Group();
+      miniStnGroup.position.set(sx, 0.01, sz);
+
+      // Station mini pedestal
+      const pedGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.16, 16);
+      const pedMat = new THREE.MeshStandardMaterial({ color: 0x11232e, roughness: 0.4 });
+      const pedMesh = new THREE.Mesh(pedGeo, pedMat);
+      pedMesh.position.y = 0.08;
+      miniStnGroup.add(pedMesh);
+
+      // Glowing trim matching station color
+      const trimGeo = new THREE.TorusGeometry(0.19, 0.014, 8, 20);
+      const trimMat = new THREE.MeshBasicMaterial({ color: stn.colorHex });
+      const miniTrim = new THREE.Mesh(trimGeo, trimMat);
+      miniTrim.rotation.x = Math.PI / 2;
+      miniTrim.position.y = 0.16;
+      miniStnGroup.add(miniTrim);
+
+      // Distinct Glowing Station Number Badge (1 to 8) tilted at 45°
+      const numBadge = createStationNumberBadge(stn.number, stn.colorHex);
+      numBadge.position.set(0, 0.17, 0.14);
+      numBadge.rotation.x = -Math.PI / 4;
+      numBadge.rotation.y = angle;
+      miniStnGroup.add(numBadge);
+
+      // Mini Stylized Organelle Model
+      const organelleMini = buildStylizedOrganelle(stn.number, stn.colorHex);
+      organelleMini.scale.set(0.34, 0.34, 0.34);
+      organelleMini.position.set(0, 0.32, 0);
+      miniStnGroup.add(organelleMini);
+
+      // Floating Mini Beacon (? or ✓)
+      const beaconMini = createBeaconMesh(stn.colorHex);
+      beaconMini.scale.set(0.32, 0.32, 0.32);
+      beaconMini.position.set(0, 0.62, 0);
+      miniStnGroup.add(beaconMini);
+
+      // Floating Selection Label (Hidden initially, appears on select)
+      const labelMesh = createTextPlane(`Stesen ${stn.number}: ${stn.title}`, stn.color || '#2dd4bf', 1.0, 0.24);
+      labelMesh.position.set(0, 0.82, 0);
+      labelMesh.visible = false;
+      miniStnGroup.add(labelMesh);
+
+      // Pickable collider mesh covering the station for raycasting
+      const clickGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.8, 12);
+      const clickMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false });
+      const clickMesh = new THREE.Mesh(clickGeo, clickMat);
+      clickMesh.position.y = 0.38;
+      clickMesh.userData = {
+        isMiniStation: true,
+        stationNumber: stn.number,
+        stationIndex: i,
+        organelleId: stn.id,
+        pickable: true
+      };
+      miniStnGroup.add(clickMesh);
+      arPickableObjects.push(clickMesh);
+
+      miniLab.add(miniStnGroup);
+
+      animatedObjects.push({
+        update(t) {
+          organelleMini.rotation.y = t * 1.1 + i;
+          beaconMini.rotation.y = t * 1.4;
+          // Keep selection label facing viewer camera
+          if (labelMesh.visible && camera) {
+            labelMesh.quaternion.copy(camera.quaternion);
+          }
+        }
+      });
+
+      stationMeshesMini.push({
+        stationNumber: stn.number,
+        group: miniStnGroup,
+        beacon: beaconMini,
+        label: labelMesh
+      });
+    });
+
+    // 5. Soft Turquoise/Emerald Localized Lighting
+    const miniLight = new THREE.PointLight(0x2dd4bf, 0.85, 5);
+    miniLight.position.set(0, 1.2, 0);
+    miniLab.add(miniLight);
+
+    animatedObjects.push({
+      update(t) {
+        ring1.rotation.z = t * 0.7;
+        ring2.rotation.x = -t * 0.6;
+        centerEmblem.rotation.y = t * 0.35;
+        miniAnimal.rotation.y = t * 0.4;
+        miniPlant.rotation.y = -t * 0.4;
+      }
+    });
+
+    miniLab.userData = { stationMeshesMini };
+    return miniLab;
+  }
+
+  // Load Animal Cell GLB Model
+  function loadAnimalCellGLB(holder) {
+    // Show instant procedural model while GLB downloads
+    buildProceduralAnimalCell(holder);
+
+    if (cachedGltfScenes.animal) {
+      setupAnimalCellInstance(cachedGltfScenes.animal, holder);
+      return;
+    }
+
+    if (typeof THREE.GLTFLoader === 'undefined') return;
+
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+      CELL_MODELS.animal,
+      gltf => {
+        cachedGltfScenes.animal = gltf.scene;
+        setupAnimalCellInstance(gltf.scene, holder);
+      },
+      undefined,
+      err => {
+        console.warn('Animal cell GLB load notice, using procedural animal cell:', err);
+      }
+    );
+  }
+
+  function setupAnimalCellInstance(sourceScene, holder) {
+    holder.clear();
+    const instance = sourceScene.clone(true);
+
+    const bounds = new THREE.Box3().setFromObject(instance);
+    const size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    const targetSize = 2.4;
+    const fit = targetSize / maxDim;
+
+    const subHolder = new THREE.Group();
+    subHolder.scale.setScalar(fit);
+    subHolder.position.copy(center).multiplyScalar(-fit);
+    subHolder.add(instance);
+    holder.add(subHolder);
+
+    instance.traverse(node => {
+      if (!node.isMesh) return;
+
+      let id = '';
+      for (let p = node; p && p !== instance.parent; p = p.parent) {
+        if (ANIMAL_MESH_MAP[p.name]) {
+          id = ANIMAL_MESH_MAP[p.name];
+          break;
+        }
+      }
+      if (!id && ANIMAL_MESH_MAP[node.name]) {
+        id = ANIMAL_MESH_MAP[node.name];
+      }
+
+      node.userData = {
+        ...node.userData,
+        id,
+        pickable: !!id,
+        organelleId: id
+      };
+
+      const cloneM = m => {
+        const c = m.clone();
+        c.side = THREE.DoubleSide;
+        return c;
+      };
+      node.material = Array.isArray(node.material) ? node.material.map(cloneM) : cloneM(node.material);
+      if (id) {
+        arPickableObjects.push(node);
+      }
+    });
+  }
+
+  // High quality procedural Animal Cell fallback
+  function buildProceduralAnimalCell(holder) {
+    holder.clear();
+    const cellGroup = new THREE.Group();
+
+    // 1. Outer Membrane & Cytoplasm with 90° Cutaway
+    const outerGeo = new THREE.SphereGeometry(1.2, 32, 24, 0, Math.PI * 1.5, 0, Math.PI);
+    const outerMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.45,
+      roughness: 0.1,
+      metalness: 0.1,
+      side: THREE.DoubleSide
+    });
+    const membraneMesh = new THREE.Mesh(outerGeo, outerMat);
+    membraneMesh.userData = { id: 'membrane', pickable: true };
+    cellGroup.add(membraneMesh);
+    arPickableObjects.push(membraneMesh);
+
+    // Inner Cytoplasm Jellied Core
+    const cytoGeo = new THREE.SphereGeometry(1.15, 28, 20, 0, Math.PI * 1.5, 0, Math.PI);
+    const cytoMat = new THREE.MeshStandardMaterial({
+      color: 0x7dd3fc,
+      transparent: true,
+      opacity: 0.35,
+      roughness: 0.2,
+      side: THREE.DoubleSide
+    });
+    const cytoMesh = new THREE.Mesh(cytoGeo, cytoMat);
+    cytoMesh.userData = { id: 'cytoplasm', pickable: true };
+    cellGroup.add(cytoMesh);
+    arPickableObjects.push(cytoMesh);
+
+    // 2. Central Nucleus with Cutaway
+    const nucGeo = new THREE.SphereGeometry(0.42, 24, 20, 0, Math.PI * 1.5, 0, Math.PI);
+    const nucMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.3, side: THREE.DoubleSide });
+    const nucMesh = new THREE.Mesh(nucGeo, nucMat);
+    nucMesh.position.set(-0.1, 0.2, -0.1);
+    nucMesh.userData = { id: 'nucleus', pickable: true };
+    cellGroup.add(nucMesh);
+    arPickableObjects.push(nucMesh);
+
+    // Dense Nucleolus core
+    const nucCore = new THREE.Mesh(
+      new THREE.SphereGeometry(0.18, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0xd946ef, emissive: 0x86198f, roughness: 0.2 })
+    );
+    nucCore.position.set(-0.1, 0.2, -0.1);
+    nucCore.userData = { id: 'nucleus', pickable: true };
+    cellGroup.add(nucCore);
+    arPickableObjects.push(nucCore);
+
+    // 3. Mitochondria (4 sausage shapes with cristae)
+    const mitoPositions = [
+      [0.65, -0.35, 0.2],
+      [-0.55, -0.45, 0.3],
+      [0.5, 0.45, -0.4],
+      [-0.6, 0.4, 0.35]
+    ];
+    mitoPositions.forEach((pos, idx) => {
+      const mito = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.12, 0.12, 0.35, 12),
+        new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.35 })
+      );
+      mito.position.set(...pos);
+      mito.rotation.set(idx, idx * 0.5, idx * 0.3);
+      mito.userData = { id: 'mitochondria', pickable: true };
+      cellGroup.add(mito);
+      arPickableObjects.push(mito);
+    });
+
+    // 4. Vacuoles (small spheres)
+    const vacPositions = [[0.65, 0.3, 0.45], [-0.7, -0.2, -0.45]];
+    vacPositions.forEach(pos => {
+      const vac = new THREE.Mesh(
+        new THREE.SphereGeometry(0.14, 16, 16),
+        new THREE.MeshStandardMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.75 })
+      );
+      vac.position.set(...pos);
+      vac.userData = { id: 'vacuole', pickable: true };
+      cellGroup.add(vac);
+      arPickableObjects.push(vac);
+    });
+
+    // 5. Centrioles & Lysosomes
+    const cenMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.08, 0.26, 10),
+      new THREE.MeshStandardMaterial({ color: 0xfacc15 })
+    );
+    cenMesh.position.set(-0.4, -0.5, 0.1);
+    cenMesh.userData = { id: 'centrioles', pickable: true };
+    cellGroup.add(cenMesh);
+    arPickableObjects.push(cenMesh);
+
+    const lysoMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 12, 12),
+      new THREE.MeshStandardMaterial({ color: 0xec4899 })
+    );
+    lysoMesh.position.set(0.3, -0.5, -0.4);
+    lysoMesh.userData = { id: 'lysosome', pickable: true };
+    cellGroup.add(lysoMesh);
+    arPickableObjects.push(lysoMesh);
+
+    holder.add(cellGroup);
+  }
+
+  // Load Plant Cell GLB Model
+  function loadPlantCellGLB(holder) {
+    buildProceduralPlantCell(holder);
+
+    if (cachedGltfScenes.plant) {
+      setupPlantCellInstance(cachedGltfScenes.plant, holder);
+      return;
+    }
+
+    if (typeof THREE.GLTFLoader === 'undefined') return;
+
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+      CELL_MODELS.plant,
+      gltf => {
+        cachedGltfScenes.plant = gltf.scene;
+        setupPlantCellInstance(gltf.scene, holder);
+      },
+      undefined,
+      err => {
+        console.warn('Plant cell GLB load notice, using procedural plant cell:', err);
+      }
+    );
+  }
+
+  function setupPlantCellInstance(sourceScene, holder) {
+    holder.clear();
+    const instance = sourceScene.clone(true);
+
+    const bounds = new THREE.Box3().setFromObject(instance);
+    const size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    const targetSize = 2.4;
+    const fit = targetSize / maxDim;
+
+    const subHolder = new THREE.Group();
+    subHolder.scale.setScalar(fit);
+    subHolder.position.copy(center).multiplyScalar(-fit);
+    subHolder.add(instance);
+    holder.add(subHolder);
+
+    instance.traverse(node => {
+      if (!node.isMesh) return;
+      if (node.name === 'Labels') {
+        node.visible = false;
+      }
+      const cloneM = m => {
+        const c = m.clone();
+        c.side = THREE.DoubleSide;
+        if (c.map) c.map.encoding = THREE.sRGBEncoding;
+        return c;
+      };
+      node.material = Array.isArray(node.material) ? node.material.map(cloneM) : cloneM(node.material);
+    });
+
+    PLANT_HOTSPOTS.forEach(spot => {
+      const hitGeo = new THREE.SphereGeometry(spot.radius, 16, 12);
+      const hitMat = new THREE.MeshBasicMaterial({
+        color: ORGANELLE_DATA[spot.id] ? ORGANELLE_DATA[spot.id].colorHex : 0x10b981,
+        transparent: true,
+        opacity: 0.001,
+        depthWrite: false
+      });
+      const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+      hitMesh.position.set(...spot.pos);
+      hitMesh.userData = {
+        id: spot.id,
+        organelleId: spot.id,
+        pickable: true
+      };
+      subHolder.add(hitMesh);
+      arPickableObjects.push(hitMesh);
+    });
+  }
+
+  // High quality procedural Plant Cell fallback
+  function buildProceduralPlantCell(holder) {
+    holder.clear();
+    const plantGroup = new THREE.Group();
+
+    // 1. Rigid Hexagonal Prism Cell Wall
+    const wallGeo = new THREE.BoxGeometry(2.3, 1.7, 1.4);
+    const wallEdges = new THREE.EdgesGeometry(wallGeo);
+    const wallLine = new THREE.LineSegments(wallEdges, new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 2 }));
+    plantGroup.add(wallLine);
+
+    const wallMesh = new THREE.Mesh(
+      wallGeo,
+      new THREE.MeshStandardMaterial({ color: 0x064e3b, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+    );
+    wallMesh.userData = { id: 'wall', pickable: true };
+    plantGroup.add(wallMesh);
+    arPickableObjects.push(wallMesh);
+
+    // 2. Inner Plasma Membrane
+    const memGeo = new THREE.BoxGeometry(2.18, 1.58, 1.28);
+    const memMesh = new THREE.Mesh(
+      memGeo,
+      new THREE.MeshStandardMaterial({ color: 0x34d399, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+    );
+    memMesh.userData = { id: 'membrane', pickable: true };
+    plantGroup.add(memMesh);
+    arPickableObjects.push(memMesh);
+
+    // 3. Huge Central Vacuole (Key distinctive feature of plant cell)
+    const vacGeo = new THREE.SphereGeometry(0.55, 24, 20);
+    vacGeo.scale(1.2, 0.85, 0.9);
+    const vacMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.65, roughness: 0.1 });
+    const vacMesh = new THREE.Mesh(vacGeo, vacMat);
+    vacMesh.position.set(-0.25, 0, 0);
+    vacMesh.userData = { id: 'vacuole', pickable: true };
+    plantGroup.add(vacMesh);
+    arPickableObjects.push(vacMesh);
+
+    // 4. Plant Nucleus (Pushed to the side by large vacuole)
+    const nucMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.32, 20, 20),
+      new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.3 })
+    );
+    nucMesh.position.set(0.65, 0.25, 0.1);
+    nucMesh.userData = { id: 'nucleus', pickable: true };
+    plantGroup.add(nucMesh);
+    arPickableObjects.push(nucMesh);
+
+    // 5. Chloroplasts (Green lenses containing thylakoids)
+    const chloroPositions = [
+      [-0.6, 0.5, 0.35],
+      [0.45, -0.45, 0.35],
+      [-0.75, -0.4, -0.2],
+      [0.65, 0.45, -0.3],
+      [-0.1, 0.55, -0.35]
+    ];
+    chloroPositions.forEach(pos => {
+      const chloro = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.18, 0.18, 0.08, 16),
+        new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.25 })
+      );
+      chloro.position.set(...pos);
+      chloro.rotation.x = Math.PI / 4;
+      chloro.userData = { id: 'chloroplast', pickable: true };
+      plantGroup.add(chloro);
+      arPickableObjects.push(chloro);
+    });
+
+    // 6. Mitochondria
+    const mito = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, 0.3, 12),
+      new THREE.MeshStandardMaterial({ color: 0xf97316 })
+    );
+    mito.position.set(0.4, -0.35, -0.25);
+    mito.rotation.set(0.4, 0.6, 0.2);
+    mito.userData = { id: 'mitochondria', pickable: true };
+    plantGroup.add(mito);
+    arPickableObjects.push(mito);
+
+    holder.add(plantGroup);
+  }
+
+  // ==============================================================================
+  // AR MODEL SWITCHING, CAMERA FRAMING & STATIONS DRAWER
+  // ==============================================================================
+
+  // Switch between Animal Cell, Plant Cell and Makmal Mini
+  function switchARModel(modelType) {
+    arState.activeModel = modelType;
+
+    if (DOM.arBtnAnimal) DOM.arBtnAnimal.classList.toggle('active', modelType === 'animal');
+    if (DOM.arBtnPlant) DOM.arBtnPlant.classList.toggle('active', modelType === 'plant');
+    if (DOM.arBtnMinilab) DOM.arBtnMinilab.classList.toggle('active', modelType === 'minilab');
+
+    if (arAnimalHolder) arAnimalHolder.visible = (modelType === 'animal');
+    if (arPlantHolder) arPlantHolder.visible = (modelType === 'plant');
+    if (arMiniLabHolder) arMiniLabHolder.visible = (modelType === 'minilab');
+
+    // Rebuild pickable objects array for active model
+    arPickableObjects = [];
+    let activeHolder = null;
+    if (modelType === 'animal' && arAnimalHolder) {
+      activeHolder = arAnimalHolder;
+      arAnimalHolder.traverse(n => { if (n.userData && n.userData.pickable) arPickableObjects.push(n); });
+    } else if (modelType === 'plant' && arPlantHolder) {
+      activeHolder = arPlantHolder;
+      arPlantHolder.traverse(n => { if (n.userData && n.userData.pickable) arPickableObjects.push(n); });
+    } else if (modelType === 'minilab' && arMiniLabHolder) {
+      activeHolder = arMiniLabHolder;
+      arMiniLabHolder.traverse(n => { if (n.userData && n.userData.pickable) arPickableObjects.push(n); });
+    }
+
+    // Auto-frame active model with aspect-ratio awareness
+    if (activeHolder) {
+      frameARObject(activeHolder);
+    }
+
+    // Close organelle card when switching model
+    if (DOM.arOrganelleCard) DOM.arOrganelleCard.style.display = 'none';
+
+    // If stations drawer is open, re-render to reflect new model context
+    if (DOM.arStationsDrawer && DOM.arStationsDrawer.classList.contains('open')) {
+      renderARStationsDrawer();
+    }
+
+    const modelNames = {
+      animal: '🐾 Model Sel Haiwan 3D Aktif',
+      plant: '🌿 Model Sel Tumbuhan 3D Aktif',
+      minilab: '🏛️ Makmal Mini ARSelNel 3D Aktif'
+    };
+    alertToast(modelNames[modelType] || 'Model Ditukar');
+  }
+
+  // Aspect-ratio aware framing for AR Models (prevents clipping on iPad portrait/landscape)
+  function frameARObject(targetObject) {
+    if (!targetObject || !camera) return;
+
+    if (arObjectGroup) {
+      arObjectGroup.position.set(0, 0, 0);
+      arObjectGroup.rotation.set(0.12, 0, 0);
+      arObjectGroup.scale.set(1.0, 1.0, 1.0);
+    }
+
+    // Compute precise bounding box
+    const bbox = new THREE.Box3().setFromObject(targetObject);
+    const size = new THREE.Vector3();
+    bbox.getSize(size);
+
+    const maxDim = Math.max(size.x, size.y, size.z, 1.2);
+    const fovRad = (camera.fov * Math.PI) / 180;
+    let dist = Math.abs(maxDim / 2 / Math.tan(fovRad / 2));
+
+    // iPad / Tablet aspect ratio compensation (e.g. portrait aspect < 1.0)
+    const aspect = camera.aspect || (window.innerWidth / window.innerHeight);
+    if (aspect < 1.0) {
+      dist = dist / aspect;
+    }
+
+    // 35% comfortable padding so model doesn't touch HUD or edges
+    dist = Math.max(2.6, dist * 1.35);
+
+    camera.position.set(0, maxDim * 0.28, dist);
+    camera.lookAt(0, 0, 0);
+  }
+
+  // Reset AR Model view to default center, rotation and scale
+  function resetARView() {
+    if (arObjectGroup) {
+      arObjectGroup.position.set(0, 0, 0);
+      arObjectGroup.rotation.set(0.12, 0, 0);
+      arObjectGroup.scale.set(1.0, 1.0, 1.0);
+    }
+    arState.autoRotate = false;
+
+    let activeHolder = arMiniLabHolder;
+    if (arState.activeModel === 'animal') activeHolder = arAnimalHolder;
+    else if (arState.activeModel === 'plant') activeHolder = arPlantHolder;
+
+    if (activeHolder) {
+      frameARObject(activeHolder);
+    }
+
+    SoundFX.interact();
+    alertToast('🎯 Paparan AR Disetkan Semula');
+  }
+
+  // Toggle Stations Drawer (Slide-out panel for 8 stations)
+  function toggleStationsDrawer(forceOpen) {
+    if (!DOM.arStationsDrawer) return;
+    const shouldOpen = (typeof forceOpen === 'boolean') 
+      ? forceOpen 
+      : !DOM.arStationsDrawer.classList.contains('open');
+
+    DOM.arStationsDrawer.classList.toggle('open', shouldOpen);
+    if (DOM.arStationsToggle) DOM.arStationsToggle.classList.toggle('active', shouldOpen);
+
+    if (shouldOpen) {
+      renderARStationsDrawer();
+      SoundFX.interact();
+    }
+  }
+
+  // Render 8 Learning Stations in Slide-out Drawer
+  function renderARStationsDrawer() {
+    if (DOM.arStnDoneCount) {
+      DOM.arStnDoneCount.textContent = `${State.completedStations.size}/8`;
+    }
+    if (!DOM.arDrawerList) return;
+    DOM.arDrawerList.innerHTML = '';
+
+    State.stations.forEach(stn => {
+      const isDone = State.completedStations.has(stn.number);
+      const isSelected = arState.selectedOrganelle === stn.id;
+
+      const stationColor = stn.color || '#0d9488';
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = `cq-drawer-station-card ${isSelected ? 'active' : ''} ${isDone ? 'completed' : ''}`;
+      item.innerHTML = `
+        <div class="cq-drawer-stn-num" style="background: ${stationColor}25; border: 1.5px solid ${stationColor}; color: ${stationColor};">${stn.number}</div>
+        <div class="cq-drawer-stn-info">
+          <strong>${stn.icon || '📍'} Stesen ${stn.number}: ${stn.title}</strong>
+          <span>${stn.organelle || 'Eksplorasi Organel'}</span>
+        </div>
+        <div class="cq-drawer-stn-status ${isDone ? 'done' : ''}">
+          ${isDone ? '✓ Lencana' : 'Belum'}
+        </div>
+      `;
+
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectAROrganelle(stn.id, stn.number);
+        toggleStationsDrawer(false);
+      });
+
+      DOM.arDrawerList.appendChild(item);
+    });
+  }
+
+  // Toggle Minimize / Expand state of Organelle Card
+  function toggleOrganelleCardMinimize(forceMin) {
+    if (!DOM.arOrganelleCard) return;
+    const shouldMin = (typeof forceMin === 'boolean')
+      ? forceMin
+      : !DOM.arOrganelleCard.classList.contains('minimized');
+
+    DOM.arOrganelleCard.classList.toggle('minimized', shouldMin);
+    if (DOM.arCardMinIcon) {
+      DOM.arCardMinIcon.textContent = shouldMin ? 'expand_less' : 'expand_more';
+    }
+    SoundFX.interact();
+  }
+
+  // Select an organelle in AR, display card & pulse highlight
+  function selectAROrganelle(organelleId, stationNumber) {
+    arState.selectedOrganelle = organelleId;
+
+    const info = ORGANELLE_DATA[organelleId] || {};
+    const stnIdx = (stationNumber ? stationNumber - 1 : (info.stationNumber ? info.stationNumber - 1 : 0));
+    const stnData = State.stations[stnIdx] || State.stations[0];
+
+    const organelleName = info.name || stnData.organelle || stnData.title;
+    const organelleIcon = info.icon || stnData.icon || '🧬';
+    const organelleDesc = info.description || stnData.description;
+    const isCompleted = State.completedStations.has(stnData.number);
+
+    // In Makmal Mini, update mini station label plane visibility:
+    // Only show label for the selected mini station, hide all others!
+    if (arState.activeModel === 'minilab' && arMiniLabHolder) {
+      arMiniLabHolder.traverse(m => {
+        if (m.userData && m.userData.isStationLabel) {
+          m.visible = (m.userData.stationNumber === stnData.number);
+        }
+      });
+    }
+
+    if (DOM.arOrganelleCard) {
+      if (DOM.arCardIcon) DOM.arCardIcon.textContent = organelleIcon;
+      if (DOM.arCardTitle) DOM.arCardTitle.textContent = organelleName;
+      if (DOM.arCardBadge) {
+        DOM.arCardBadge.textContent = isCompleted 
+          ? `Lencana Stesen ${stnData.number} Selesai ✓` 
+          : `Stesen ${stnData.number} • Sains Tingkatan 1`;
+        DOM.arCardBadge.classList.toggle('completed', isCompleted);
+      }
+      if (DOM.arCardDesc) DOM.arCardDesc.textContent = organelleDesc;
+
+      // Ensure card is expanded when new organelle is selected
+      toggleOrganelleCardMinimize(false);
+      DOM.arOrganelleCard.style.display = 'block';
+
+      if (DOM.arCardSpeechBtn) {
+        DOM.arCardSpeechBtn.onclick = (e) => {
+          e.stopPropagation();
+          speakExplanation(`${organelleName}. ${organelleDesc}`);
+        };
+      }
+      if (DOM.arCardQuizBtn) {
+        DOM.arCardQuizBtn.onclick = (e) => {
+          e.stopPropagation();
+          openStationModal(stnIdx);
+        };
+      }
+      if (DOM.arCardFocusBtn) {
+        DOM.arCardFocusBtn.onclick = (e) => {
+          e.stopPropagation();
+          pulseHighlightMesh(organelleId);
+        };
+      }
+    }
+
+    // Refresh active item styling in stations drawer
+    if (DOM.arDrawerList) {
+      DOM.arDrawerList.querySelectorAll('.cq-drawer-station-card').forEach((item, idx) => {
+        item.classList.toggle('active', (idx + 1) === stnData.number);
+      });
+    }
+
+    pulseHighlightMesh(organelleId);
+    SoundFX.interact();
+  }
+
+  // Pulse glowing highlight on clicked 3D organelle
+  function pulseHighlightMesh(organelleId) {
+    let targetMeshes = [];
+    if (arState.activeModel === 'animal' && arAnimalHolder) {
+      arAnimalHolder.traverse(m => {
+        if (m.isMesh && m.userData && m.userData.id === organelleId) targetMeshes.push(m);
+      });
+    } else if (arState.activeModel === 'plant' && arPlantHolder) {
+      arPlantHolder.traverse(m => {
+        if (m.isMesh && m.userData && m.userData.id === organelleId) targetMeshes.push(m);
+      });
+    } else if (arState.activeModel === 'minilab' && arMiniLabHolder) {
+      const stationNum = ORGANELLE_DATA[organelleId]?.stationNumber;
+      arMiniLabHolder.traverse(m => {
+        if (m.isMesh && m.userData && (m.userData.stationNumber === stationNum || m.userData.organelleId === organelleId)) {
+          targetMeshes.push(m);
+        }
+      });
+    }
+
+    targetMeshes.forEach(m => {
+      if (m.material && m.material.emissive) {
+        const origColor = m.material.emissive.getHex();
+        const origIntensity = m.material.emissiveIntensity || 0;
+        m.material.emissive.setHex(0x2dd4bf);
+        m.material.emissiveIntensity = 1.5;
+
+        setTimeout(() => {
+          if (m.material && m.material.emissive) {
+            m.material.emissive.setHex(origColor);
+            m.material.emissiveIntensity = origIntensity;
+          }
+        }, 1200);
+      }
+    });
+  }
+
+  // Web Speech API Text-to-Speech in Bahasa Melayu
+  function speakExplanation(text) {
+    if (!('speechSynthesis' in window)) {
+      SoundFX.interact();
+      alertToast('🔊 ' + text);
+      return;
+    }
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ms-MY';
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      const voices = window.speechSynthesis.getVoices();
+      const malayVoice = voices.find(v => v.lang.startsWith('ms') || v.lang.startsWith('id'));
+      if (malayVoice) utterance.voice = malayVoice;
+      window.speechSynthesis.speak(utterance);
+      SoundFX.interact();
+    } catch (_) {
+      SoundFX.interact();
+    }
+  }
+
+  // Setup Touch Orbit, Pinch Zoom, Pan & Raycast Click Gestures for AR Mode
+  function setupARGestures() {
+    if (!renderer || !renderer.domElement) return;
+    const dom = renderer.domElement;
+
+    // Active pointers map for accurate multi-touch tracking
+    const activePointers = new Map();
+    let initialPinchDist = 0;
+    let initialPinchCenter = { x: 0, y: 0 };
+    let initialScale = 1.0;
+    let initialPos = new THREE.Vector3();
+    let lastTapTime = 0;
+
+    dom.addEventListener('pointerdown', e => {
+      if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
+      
+      // Do not capture if target is an overlay UI element
+      if (e.target !== dom) return;
+
+      activePointers.set(e.pointerId, {
+        startX: e.clientX,
+        startY: e.clientY,
+        currentX: e.clientX,
+        currentY: e.clientY,
+        startTime: Date.now()
+      });
+
+      if (activePointers.size === 1 && arObjectGroup) {
+        arState.autoRotate = false;
+      } else if (activePointers.size === 2 && arObjectGroup) {
+        const pts = Array.from(activePointers.values());
+        initialPinchDist = Math.hypot(pts[0].currentX - pts[1].currentX, pts[0].currentY - pts[1].currentY);
+        initialPinchCenter = {
+          x: (pts[0].currentX + pts[1].currentX) / 2,
+          y: (pts[0].currentY + pts[1].currentY) / 2
+        };
+        initialScale = arObjectGroup.scale.x;
+        initialPos.copy(arObjectGroup.position);
+      }
+    });
+
+    dom.addEventListener('pointermove', e => {
+      if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
+      if (!activePointers.has(e.pointerId)) return;
+
+      const p = activePointers.get(e.pointerId);
+      const prevX = p.currentX;
+      const prevY = p.currentY;
+      p.currentX = e.clientX;
+      p.currentY = e.clientY;
+
+      if (!arObjectGroup) return;
+
+      if (activePointers.size === 1) {
+        // 1 Pointer: Orbit Rotate around Y & X axis
+        const dx = e.clientX - prevX;
+        const dy = e.clientY - prevY;
+
+        arObjectGroup.rotation.y += dx * 0.007;
+        arObjectGroup.rotation.x = Math.max(-1.1, Math.min(1.1, arObjectGroup.rotation.x + dy * 0.007));
+      } else if (activePointers.size === 2) {
+        // 2 Pointers: Pinch Zoom & Two-Finger Pan
+        const pts = Array.from(activePointers.values());
+        const currentDist = Math.hypot(pts[0].currentX - pts[1].currentX, pts[0].currentY - pts[1].currentY);
+
+        if (initialPinchDist > 0) {
+          const scaleFactor = currentDist / initialPinchDist;
+          const nextScale = Math.max(0.35, Math.min(2.8, initialScale * scaleFactor));
+          arObjectGroup.scale.setScalar(nextScale);
+        }
+
+        // Two-finger Pan
+        const currentCenter = {
+          x: (pts[0].currentX + pts[1].currentX) / 2,
+          y: (pts[0].currentY + pts[1].currentY) / 2
+        };
+        const panDx = (currentCenter.x - initialPinchCenter.x) * 0.003;
+        const panDy = (currentCenter.y - initialPinchCenter.y) * 0.003;
+        arObjectGroup.position.x = initialPos.x + panDx;
+        arObjectGroup.position.y = Math.max(-1.5, Math.min(1.5, initialPos.y - panDy));
+      }
+    });
+
+    const onPointerEnd = e => {
+      if (!activePointers.has(e.pointerId)) return;
+      const p = activePointers.get(e.pointerId);
+      const dist = Math.hypot(e.clientX - p.startX, e.clientY - p.startY);
+      const duration = Date.now() - p.startTime;
+
+      activePointers.delete(e.pointerId);
+
+      // Tap / Click Detection (< 10px move, < 400ms duration)
+      if (dist < 10 && duration < 400 && (State.mode === 'camera-ar' || State.mode === 'ar')) {
+        handleARTap(e.clientX, e.clientY);
+      }
+
+      if (activePointers.size === 1) {
+        // Switch back to single-finger tracking smoothly
+        const remaining = activePointers.values().next().value;
+        remaining.startX = remaining.currentX;
+        remaining.startY = remaining.currentY;
+      }
+    };
+
+    dom.addEventListener('pointerup', onPointerEnd);
+    dom.addEventListener('pointercancel', onPointerEnd);
+
+    // Mouse wheel zoom for desktop
+    dom.addEventListener('wheel', e => {
+      if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
+      e.preventDefault();
+      if (!arObjectGroup) return;
+      const factor = e.deltaY < 0 ? 1.08 : 0.92;
+      const nextScale = Math.max(0.35, Math.min(2.8, arObjectGroup.scale.x * factor));
+      arObjectGroup.scale.setScalar(nextScale);
+    }, { passive: false });
+  }
+
+  // Handle Raycast Tap in AR scene
+  function handleARTap(clientX, clientY) {
+    if (!renderer || !camera || !arPickableObjects.length) return;
+    const dom = renderer.domElement;
+    const rect = dom.getBoundingClientRect();
+
+    arPointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    arPointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    arRaycaster.setFromCamera(arPointer, camera);
+
+    const hits = arRaycaster.intersectObjects(arPickableObjects, true);
+    if (hits.length > 0) {
+      // Find top-most hit object with userData
+      let hitObj = null;
+      for (const h of hits) {
+        if (h.object && h.object.userData && (h.object.userData.isMiniStation || h.object.userData.id)) {
+          hitObj = h.object;
+          break;
+        }
+      }
+      if (!hitObj) hitObj = hits[0].object;
+
+      if (hitObj && hitObj.userData) {
+        if (hitObj.userData.isMiniStation) {
+          const stnNum = hitObj.userData.stationNumber;
+          const stn = State.stations[stnNum - 1];
+          if (stn) selectAROrganelle(stn.id, stnNum);
+        } else if (hitObj.userData.id === 'mini_animal') {
+          switchARModel('animal');
+        } else if (hitObj.userData.id === 'mini_plant') {
+          switchARModel('plant');
+        } else if (hitObj.userData.id) {
+          const orgId = hitObj.userData.id;
+          const info = ORGANELLE_DATA[orgId];
+          selectAROrganelle(orgId, info?.stationNumber);
+        }
+      }
+    }
+  }
+
+  // ==============================================================================
+  // HOW TO PLAY DIALOG (CARA BERMAIN)
+  // ==============================================================================
+
+  function openHowToPlayDialog() {
+    DOM.howToModal.classList.add('open');
+  }
+
+  function closeHowToPlayDialog() {
+    DOM.howToModal.classList.remove('open');
+  }
+
+  // ==============================================================================
+  // HUD, TIMER & UTILITIES
+  // ==============================================================================
+
+  function updateHUD() {
+    if (DOM.badgeCount) DOM.badgeCount.textContent = `${State.completedStations.size}/8`;
+    if (DOM.score) DOM.score.textContent = String(State.score);
+    if (DOM.arHudBadges) DOM.arHudBadges.textContent = `${State.completedStations.size}/8`;
+    if (DOM.arHudScore) DOM.arHudScore.textContent = String(State.score);
+    if (DOM.arStnDoneCount) DOM.arStnDoneCount.textContent = `${State.completedStations.size}/8`;
+  }
+
+  function startTimer() {
+    clearInterval(State.timerInterval);
+    State.startTime = Date.now();
+    State.timerInterval = setInterval(() => {
+      if (!State.isPaused && !State.isCompleted) {
+        State.durationSeconds++;
+        const formatted = formatTime(State.durationSeconds);
+        if (DOM.timer) DOM.timer.textContent = formatted;
+        if (DOM.arHudTimer) DOM.arHudTimer.textContent = formatted;
+      }
+    }, 1000);
+  }
+
+  function formatTime(totalSec) {
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  function toggleSound() {
+    SoundFX.muted = !SoundFX.muted;
+    if (DOM.soundIcon) {
+      DOM.soundIcon.textContent = SoundFX.muted ? 'volume_off' : 'volume_up';
+    }
+    if (DOM.arSoundIcon) {
+      DOM.arSoundIcon.textContent = SoundFX.muted ? 'volume_off' : 'volume_up';
+    }
+  }
+
+  function togglePause() {
+    State.isPaused = !State.isPaused;
+    if (State.isPaused) {
+      alertToast('⏸️ Permainan Dijeda');
+    } else {
+      alertToast('▶️ Permainan Disambung');
+    }
+  }
+
+  // ==============================================================================
+  // MAIN ANIMATION LOOP
+  // ==============================================================================
+
+  const clock = new THREE.Clock();
+
+  function animate() {
+    renderer.setAnimationLoop(renderLoop);
+  }
+
+  function renderLoop(timestamp, frame) {
+    const delta = clock.getDelta();
+    const elapsedTime = clock.getElapsedTime();
+
+    // 1. Update Mode Specific Logic
+    if (State.mode === '3d') {
+      updatePlayerMovement();
+    } else {
+      // In AR modes, apply gentle auto-rotation if enabled
+      if (arState.autoRotate && arObjectGroup && arObjectGroup.visible) {
+        arObjectGroup.rotation.y += delta * 0.35;
+      }
+
+      // Handle WebXR hit-test in immersive-ar session
+      if (frame && xrHitTestSource && xrRefSpace) {
+        const hitTestResults = frame.getHitTestResults(xrHitTestSource);
+        if (hitTestResults.length > 0) {
+          const hitPose = hitTestResults[0].getPose(xrRefSpace);
+          if (hitPose && reticleMesh) {
+            reticleMesh.visible = !arState.isPlaced;
+            reticleMesh.matrix.fromArray(hitPose.transform.matrix);
+            reticleMesh.matrixAutoUpdate = false;
+          }
+        } else if (reticleMesh) {
+          reticleMesh.visible = false;
+        }
+      }
+    }
+
+    // 2. Update Animated 3D Objects
+    animatedObjects.forEach(obj => {
+      if (typeof obj.update === 'function') obj.update(elapsedTime, delta);
+    });
+
+    // 3. Render Three.js Scene
+    renderer.render(scene, camera);
+  }
+
+  // Run initialization when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();

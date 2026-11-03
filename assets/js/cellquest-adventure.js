@@ -285,6 +285,75 @@
   const arRaycaster = new THREE.Raycaster();
   const arPointer = new THREE.Vector2();
 
+  // ==============================================================================
+  // AR WORLD-LOCKED EXPLORATION SYSTEM — Stesen berasingan dalam dunia AR
+  // ==============================================================================
+  // Setiap stesen AR diletakkan pada sudut berbeza relatif kepada titik mula.
+  // Dalam Mod Orientasi: sudut adalah relatif kepada arah hadapan kamera semasa sesi dimulakan.
+  // Dalam Mod WebXR Spasial: koordinat dalam ruang XR sebenar.
+
+  // Susun atur 8 stesen AR dunia (angle dalam darjah, 0°=depan, 90°=kanan, 180°=belakang, 270°=kiri)
+  // Stesen 1..8 mengikut arah cadangan:
+  // Kiri -> Stesen 1 (Mitokondrion), Kanan -> Stesen 2 (Nukleus), Depan -> Stesen 3 (Sel Haiwan),
+  // Belakang -> Stesen 4 (Sel Tumbuhan), Kiri depan -> Stesen 5 (Membran Sel), Kanan depan -> Stesen 6 (Kloroplas),
+  // Kiri belakang -> Stesen 7 (Sitoplasma), Kanan belakang -> Stesen 8 (Vakuol).
+  const AR_WORLD_STATIONS = [
+    { id: 'stn-4-mitochondria', slotNumber: 1, markerId: 0, directionName: 'Kiri',          stationKey: 'mitochondria', stationNumber: 4, angleDeg: 270, radius: 5.5, height: 1.45, spatialOffset: [-1.45, 0.0,  0.0],  label: 'Mitokondrion', color: 0xf97316, icon: '⚡' },
+    { id: 'stn-1-nucleus',      slotNumber: 2, markerId: 1, directionName: 'Kanan',         stationKey: 'nucleus',      stationNumber: 1, angleDeg: 90,  radius: 5.5, height: 1.45, spatialOffset: [ 1.45, 0.0,  0.0],  label: 'Nukleus',      color: 0x8b5cf6, icon: '🧬' },
+    { id: 'stn-8-comparison',   slotNumber: 3, markerId: 2, directionName: 'Depan',         stationKey: 'animal',       stationNumber: 8, angleDeg: 0,   radius: 5.5, height: 1.45, spatialOffset: [ 0.0,  0.0, -1.45], label: 'Sel Haiwan',   color: 0x3b82f6, icon: '🐾' },
+    { id: 'stn-6-cellwall',     slotNumber: 4, markerId: 3, directionName: 'Belakang',      stationKey: 'plant',        stationNumber: 6, angleDeg: 180, radius: 5.5, height: 1.45, spatialOffset: [ 0.0,  0.0,  1.45], label: 'Sel Tumbuhan', color: 0x22c55e, icon: '🌿' },
+    { id: 'stn-2-membrane',     slotNumber: 5, markerId: 4, directionName: 'Kiri Depan',    stationKey: 'membrane',     stationNumber: 2, angleDeg: 315, radius: 5.2, height: 1.45, spatialOffset: [-1.05, 0.0, -1.05], label: 'Membran Sel',  color: 0x3b82f6, icon: '🛡️' },
+    { id: 'stn-5-chloroplast',  slotNumber: 6, markerId: 5, directionName: 'Kanan Depan',   stationKey: 'chloroplast',  stationNumber: 5, angleDeg: 45,  radius: 5.2, height: 1.45, spatialOffset: [ 1.05, 0.0, -1.05], label: 'Kloroplas',    color: 0x22c55e, icon: '🌿' },
+    { id: 'stn-3-cytoplasm',    slotNumber: 7, markerId: 6, directionName: 'Kiri Belakang', stationKey: 'cytoplasm',    stationNumber: 3, angleDeg: 225, radius: 5.2, height: 1.45, spatialOffset: [-1.05, 0.0,  1.05], label: 'Sitoplasma',   color: 0xeab308, icon: '💧' },
+    { id: 'stn-7-vacuole',      slotNumber: 8, markerId: 7, directionName: 'Kanan Belakang',stationKey: 'vacuole',      stationNumber: 7, angleDeg: 135, radius: 5.2, height: 1.45, spatialOffset: [ 1.05, 0.0,  1.05], label: 'Vakuol',       color: 0x06b6d4, icon: '🫧' }
+  ];
+
+  // World-locked AR state — dikekalkan sepanjang sesi
+  const arWorldState = {
+    active: false,               // Adakah Mod Penerokaan Dunia AR aktif?
+    subMode: 'orientation',      // 'orientation' (Mod C) | 'marker' (Mod B) | 'spatial' (Mod A)
+    baseHeadingDeg: 0,           // Arah hadapan kalibrasi (dalam darjah kompas)
+    currentHeadingDeg: 0,        // Arah semasa kamera (dari DeviceOrientation alpha atau manual yaw)
+    currentPitchDeg: 0,          // Pitch semasa kamera (dari DeviceOrientation beta atau manual pitch)
+    manualYawDeg: 0,             // Kawalan pusing manual / duduk (darjah)
+    manualPitchDeg: 0,           // Kawalan dongak manual (darjah)
+    hasCalibrated: false,        // Sudahkah pengguna kalibrasi arah?
+    sensorReceived: false,       // Adakah peristiwa DeviceOrientation sebenar diterima?
+    isSimulationFallback: false, // Label jujur jika sensor tiada (Mod Simulasi Manual)
+    postureMode: 'seated',       // 'seated' (Duduk) | 'standing' (Berdiri)
+    stationGroups: [],           // Array THREE.Group untuk setiap stesen dalam world space
+    stationVisibility: new Array(8).fill(false),
+    activeStation: null,         // Stesen yang sedang dalam pandangan
+    focusedStationIdx: -1,       // Indeks stesen yang sedang difokus/diperbesar
+    focusedStationScale: 1.0,    // Skala zum pemeriksaan bagi stesen aktif
+    compassEl: null,             // Elemen kompas/radar HTML
+    detectedBanner: null,        // Banner "Stesen Ditemui!"
+    trackingBannerEl: null,      // Banner status tracking & arahan pemulihan
+    fovThresholdDeg: 32,         // Sudut pandang untuk stesen dianggap "dalam medan pandangan"
+    lastDetectedIdx: -1,         // Indeks stesen terakhir yang dikesan
+    spatialOrigin: new THREE.Vector3(0, 0, -1.5), // Pusat ruang bagi Mod A (Spatial AR)
+    spatialAnchors: []           // Senarai WebXR XRAnchor jika disokong
+  };
+
+  // Marker AR (Mod B — iPad Safari 6DOF Fiducial Tracking) state
+  const arMarkerState = {
+    active: false,
+    detector: null,
+    posit: null,
+    procCanvas: null,
+    procCtx: null,
+    markerSizeMeters: 0.14,      // 14cm fizikal saiz kad penanda
+    anchors: [],                 // 8 THREE.Group yang dikemas kini dengan pose 6DOF marker
+    trackedMap: {},              // markerId -> { lastSeen, pose, visible, error }
+    activeMarkerIds: [],         // Senarai markerId yang sah pada frame semasa
+    simulatedMarkerId: null,     // Untuk ujian makmal / simulasi kad pada desktop
+    simulatedPoseOffset: { x: 0, y: 0, z: -0.65, rotY: 0 },
+    lastDetectTime: 0
+  };
+
+  // DOM untuk AR Penerokaan Dunia
+  const arWorldDOM = {};
+
   // KSSM Tingkatan 1 Bab 2 Organelle Facts & Biology Specifications
   const ORGANELLE_DATA = {
     nucleus: {
@@ -367,6 +436,24 @@
       color: '#ec4899',
       description: 'Vesikel mengandungi enzim pencernaan untuk menguraikan zarah makanan atau bahan sel usang.',
       fact: 'Bertindak sebagai sistem pelupusan sel haiwan.'
+    },
+    animal: {
+      stationNumber: 8,
+      name: 'Sel Haiwan',
+      icon: '🐾',
+      colorHex: 0x3b82f6,
+      color: '#3b82f6',
+      description: 'Sel haiwan mempunyai membran sel, sitoplasma, nukleus dan mitokondrion. Ia tidak mempunyai dinding sel mahupun kloroplas, menyebabkan bentuknya tidak tetap.',
+      fact: 'Sel haiwan mempunyai sentriol tetapi tiada vakuol pusat yang besar.'
+    },
+    plant: {
+      stationNumber: 6,
+      name: 'Sel Tumbuhan',
+      icon: '🌿',
+      colorHex: 0x22c55e,
+      color: '#22c55e',
+      description: 'Sel tumbuhan mempunyai dinding sel selulosa yang tegar, kloroplas untuk fotosintesis, dan vakuol pusat yang besar untuk mengekalkan kesegahan sel.',
+      fact: 'Bentuk sel tumbuhan adalah tetap kerana disokong oleh dinding sel.'
     }
   };
 
@@ -458,12 +545,14 @@
     hideLoadingScreen();
     animate();
 
-    // Check URL search params for quick mode launch (e.g. ?mode=ar, ?mode=camera, ?mode=how)
+    // Check URL search params for quick mode launch (e.g. ?mode=ar, ?mode=camera, ?mode=marker-ar, ?mode=how)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'ar') {
       openModeDialog();
-    } else if (urlParams.get('mode') === 'camera') {
+    } else if (urlParams.get('mode') === 'camera' || urlParams.get('mode') === 'world-ar') {
       selectMode('camera-ar');
+    } else if (urlParams.get('mode') === 'marker-ar') {
+      selectMode('marker-ar');
     } else if (urlParams.get('mode') === 'how') {
       openHowToPlayDialog();
     }
@@ -514,6 +603,7 @@
     DOM.modeModal = document.getElementById('mode-modal');
     DOM.choose3dBtn = document.getElementById('choose-3d-btn');
     DOM.chooseCameraArBtn = document.getElementById('choose-camera-ar-btn');
+    DOM.chooseWorldArBtn = document.getElementById('choose-world-ar-btn');
     DOM.chooseArBtn = document.getElementById('choose-ar-btn');
     DOM.closeModeBtn = document.getElementById('close-mode-btn');
     DOM.arScaleChooser = document.getElementById('ar-scale-chooser');
@@ -543,6 +633,8 @@
     DOM.arBadgeIcon = document.getElementById('ar-badge-icon');
     DOM.arBadgeText = document.getElementById('ar-badge-text');
     DOM.arModelTabs = document.getElementById('ar-model-tabs');
+    DOM.arBtnWorld = document.getElementById('ar-btn-world');
+    DOM.arBtnMarker = document.getElementById('ar-btn-marker');
     DOM.arBtnAnimal = document.getElementById('ar-btn-animal');
     DOM.arBtnPlant = document.getElementById('ar-btn-plant');
     DOM.arBtnMinilab = document.getElementById('ar-btn-minilab');
@@ -592,6 +684,11 @@
     DOM.arStationsToggle = document.getElementById('ar-stations-toggle');
     DOM.arStnDoneCount = document.getElementById('ar-stn-done-count');
     DOM.arRecenterBtn = document.getElementById('ar-recenter-btn');
+    DOM.arRecenterText = document.getElementById('ar-recenter-text');
+    DOM.arPostureBtn = document.getElementById('ar-posture-btn');
+    DOM.arPostureIcon = document.getElementById('ar-posture-icon');
+    DOM.arPostureText = document.getElementById('ar-posture-text');
+    DOM.arPrintMarkersBtn = document.getElementById('ar-print-markers-btn');
     DOM.arStationsDrawer = document.getElementById('ar-stations-drawer');
     DOM.arDrawerCloseBtn = document.getElementById('ar-drawer-close-btn');
     DOM.arDrawerList = document.getElementById('ar-drawer-list');
@@ -665,13 +762,14 @@
     camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(player.x, player.y, player.z);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.12;
     renderer.xr.enabled = true; // Enable WebXR on renderer
 
     DOM.canvasContainer.appendChild(renderer.domElement);
@@ -681,16 +779,24 @@
     arObjectGroup.visible = false;
     scene.add(arObjectGroup);
 
-    // Ambient and Directional Soft Lighting
+    // Ambient, Hemisphere & Directional PBR Studio Lighting (prevents dark/dull GLB models)
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xdcfce7, 0.7);
+    const hemiLight = new THREE.HemisphereLight(0xf0fdfa, 0x1e293b, 0.95);
+    hemiLight.position.set(0, 12, 0);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
     dirLight.position.set(5, 12, 7);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 1024;
     dirLight.shadow.mapSize.height = 1024;
     scene.add(dirLight);
+
+    const fillDirLight = new THREE.DirectionalLight(0xe0f2fe, 0.65);
+    fillDirLight.position.set(-6, 9, -6);
+    scene.add(fillDirLight);
 
     // Warm laboratory accent point lights
     const warmLight1 = new THREE.PointLight(0x38bdf8, 1.2, 18);
@@ -804,6 +910,9 @@
 
     // 5. Scientific Wall Posters (KSSM Animal & Plant Cell Charts)
     buildPosters(labGroup);
+
+    // 6. Pameran Tambahan: Retikulum Endoplasma (Supplementary Exhibit using endoplasmic_reticulum.glb)
+    buildSupplementaryERExhibit(labGroup);
 
     labEnvironmentGroup = labGroup;
     if (walkthroughStationsGroup && walkthroughStationsGroup.parent !== labGroup) {
@@ -1151,6 +1260,585 @@
   }
 
   // ==============================================================================
+  // HIGH-QUALITY GLB ORGANELLE LOADER, CACHE, CLONER & THREE.BOX3 AUTO-FIT ENGINE
+  // ==============================================================================
+
+  const STATION_GLB_MAP = {
+    nucleus: {
+      key: 'nucleus',
+      stationNumber: 1,
+      stationId: 'stn-1-nucleus',
+      label: 'Nukleus',
+      url: '../models/nucleus.glb',
+      fallbackUrl: '../models/nucleus_opt.glb',
+      targetSize3D: 0.92,
+      targetSizeARWorld: 1.35,
+      targetSizePreview: 1.35,
+      targetSizeMini: 0.30,
+      rot: [0.16, -0.35, 0],
+      tableClearanceY: 0.14
+    },
+    membrane: {
+      key: 'membrane',
+      stationNumber: 2,
+      stationId: 'stn-2-membrane',
+      label: 'Membran Sel',
+      url: '../models/plasma_membrane.glb',
+      fallbackUrl: '../models/plasma_membrane_opt.glb',
+      targetSize3D: 1.28,
+      targetSizeARWorld: 1.65,
+      targetSizePreview: 1.55,
+      targetSizeMini: 0.38,
+      rot: [0.22, 0.25, 0],
+      tableClearanceY: 0.14
+    },
+    mitochondria: {
+      key: 'mitochondria',
+      stationNumber: 4,
+      stationId: 'stn-4-mitochondria',
+      label: 'Mitokondrion',
+      url: '../models/mitochondria.glb',
+      fallbackUrl: '../models/mitochondria.glb',
+      targetSize3D: 1.16,
+      targetSizeARWorld: 1.55,
+      targetSizePreview: 1.48,
+      targetSizeMini: 0.36,
+      rot: [0.24, -0.30, 0.10],
+      tableClearanceY: 0.14
+    },
+    animal: {
+      key: 'animal',
+      stationNumber: 8,
+      stationId: 'stn-8-comparison',
+      label: 'Sel Haiwan',
+      url: '../models/animal_cell_final.glb',
+      fallbackUrl: '../models/animal_cell_final.glb',
+      targetSize3D: 0.72,
+      targetSizeARWorld: 1.55,
+      targetSizePreview: 0.95,
+      targetSizeMini: 0.32,
+      rot: [0.18, -0.25, 0],
+      tableClearanceY: 0.20
+    },
+    plant: {
+      key: 'plant',
+      stationNumber: 8,
+      stationId: 'stn-8-comparison',
+      label: 'Sel Tumbuhan',
+      url: '../models/plantcellnew.glb',
+      fallbackUrl: '../models/plantcellnew.glb',
+      targetSize3D: 0.76,
+      targetSizeARWorld: 1.60,
+      targetSizePreview: 0.98,
+      targetSizeMini: 0.32,
+      rot: [0.18, 0.25, 0],
+      tableClearanceY: 0.20
+    },
+    er: {
+      key: 'er',
+      stationNumber: 9,
+      stationId: 'exhibit-er',
+      label: 'Retikulum Endoplasma',
+      url: '../models/endoplasmic_reticulum_opt.glb',
+      fallbackUrl: '../models/endoplasmic_reticulum.glb',
+      targetSize3D: 1.15,
+      targetSizeARWorld: 1.45,
+      targetSizePreview: 1.40,
+      targetSizeMini: 0.32,
+      rot: [0.26, 0.20, 0],
+      tableClearanceY: 0.14
+    }
+  };
+
+  const cachedOrganelleGLBs = {};
+  const pendingGLBPromises = {};
+  const glbDiagnostics = {};
+  let erExhibitGroup = null;
+
+  // Gabungkan mesh yang berkongsi material yang sama untuk mengurangkan draw calls pada iPad/mudah alih
+  // sambil mengekalkan 100% bentuk, warna PBR dan tekstur asal model GLB
+  function batchOptimizeGLBScene(sourceScene) {
+    sourceScene.updateMatrixWorld(true);
+    const meshes = [];
+    sourceScene.traverse(node => {
+      if (node.isMesh && node.geometry) {
+        if (node.name === 'Labels') {
+          node.visible = false;
+          return;
+        }
+        meshes.push(node);
+      }
+    });
+
+    // Hanya gabungkan jika model mempunyai banyak pecahan mesh (> 16 mesh, cth: plasma_membrane 38 mesh / ER 10,008 mesh)
+    if (meshes.length <= 16) {
+      return sourceScene;
+    }
+
+    const byMaterial = new Map();
+    meshes.forEach(m => {
+      const mat = Array.isArray(m.material) ? m.material[0] : m.material;
+      const key = mat ? mat.uuid : 'default';
+      if (!byMaterial.has(key)) {
+        byMaterial.set(key, { material: mat, list: [] });
+      }
+      byMaterial.get(key).list.push(m);
+    });
+
+    const batchedGroup = new THREE.Group();
+    batchedGroup.name = (sourceScene.name || 'GLBScene') + '_Batched';
+
+    byMaterial.forEach(({ material, list }) => {
+      let totalVerts = 0;
+      let totalIndices = 0;
+      let hasUV = false;
+
+      const worldGeos = list.map(mesh => {
+        const g = mesh.geometry.clone();
+        g.applyMatrix4(mesh.matrixWorld);
+        if (!g.attributes.normal) g.computeVertexNormals();
+        const pos = g.attributes.position;
+        totalVerts += pos.count;
+        if (g.attributes.uv) hasUV = true;
+        if (g.index) {
+          totalIndices += g.index.count;
+        } else {
+          totalIndices += pos.count;
+        }
+        return g;
+      });
+
+      const mergedPos = new Float32Array(totalVerts * 3);
+      const mergedNorm = new Float32Array(totalVerts * 3);
+      const mergedUV = hasUV ? new Float32Array(totalVerts * 2) : null;
+      const mergedIdx = new Uint32Array(totalIndices);
+
+      let vOffset = 0;
+      let iOffset = 0;
+
+      worldGeos.forEach(g => {
+        const pos = g.attributes.position;
+        const norm = g.attributes.normal;
+        const uv = g.attributes.uv;
+        const count = pos.count;
+
+        mergedPos.set(pos.array, vOffset * 3);
+        if (norm && norm.array.length === count * 3) {
+          mergedNorm.set(norm.array, vOffset * 3);
+        }
+        if (hasUV && uv && uv.array.length === count * 2) {
+          mergedUV.set(uv.array, vOffset * 2);
+        }
+
+        if (g.index) {
+          const idxArr = g.index.array;
+          for (let k = 0; k < idxArr.length; k++) {
+            mergedIdx[iOffset + k] = idxArr[k] + vOffset;
+          }
+          iOffset += idxArr.length;
+        } else {
+          for (let k = 0; k < count; k++) {
+            mergedIdx[iOffset + k] = vOffset + k;
+          }
+          iOffset += count;
+        }
+        vOffset += count;
+        g.dispose();
+      });
+
+      const mergedGeo = new THREE.BufferGeometry();
+      mergedGeo.setAttribute('position', new THREE.BufferAttribute(mergedPos, 3));
+      mergedGeo.setAttribute('normal', new THREE.BufferAttribute(mergedNorm, 3));
+      if (mergedUV) {
+        mergedGeo.setAttribute('uv', new THREE.BufferAttribute(mergedUV, 2));
+      }
+      mergedGeo.setIndex(new THREE.BufferAttribute(mergedIdx, 1));
+      mergedGeo.computeBoundingBox();
+      mergedGeo.computeBoundingSphere();
+
+      const batchedMesh = new THREE.Mesh(mergedGeo, material);
+      batchedMesh.name = (material && material.name) ? `Batched_${material.name}` : 'Batched_OrganelleMesh';
+      batchedGroup.add(batchedMesh);
+    });
+
+    return batchedGroup;
+  }
+
+  // Muat turun & cache model GLB secara asynchronous dengan semakan ralat & statistik penuh
+  function loadAndCacheOrganelleGLB(key) {
+    const cfg = STATION_GLB_MAP[key];
+    if (!cfg) return Promise.reject(new Error(`Tiada konfigurasi GLB untuk kunci: ${key}`));
+
+    if (cachedOrganelleGLBs[key]) {
+      return Promise.resolve(cachedOrganelleGLBs[key]);
+    }
+    if (pendingGLBPromises[key]) {
+      return pendingGLBPromises[key];
+    }
+    if (typeof THREE.GLTFLoader === 'undefined') {
+      return Promise.reject(new Error('THREE.GLTFLoader tidak tersedia'));
+    }
+
+    const loader = new THREE.GLTFLoader();
+    const t0 = performance.now();
+
+    const tryLoadUrl = (urlToLoad, isFallback) => new Promise((resolve, reject) => {
+      loader.load(
+        urlToLoad,
+        gltf => {
+          if (!gltf || !gltf.scene) {
+            reject(new Error(`Fail GLB kosong atau tidak sah: ${urlToLoad}`));
+            return;
+          }
+
+          let rawMeshCount = 0;
+          let vertexCount = 0;
+          let triangleCount = 0;
+          const matSet = new Set();
+          const texSet = new Set();
+
+          gltf.scene.traverse(node => {
+            if (!node.isMesh) return;
+            if (node.name === 'Labels') {
+              node.visible = false;
+              return;
+            }
+            rawMeshCount++;
+            const g = node.geometry;
+            if (g && g.attributes && g.attributes.position) {
+              vertexCount += g.attributes.position.count;
+              triangleCount += g.index ? (g.index.count / 3) : (g.attributes.position.count / 3);
+            }
+            const mats = Array.isArray(node.material) ? node.material : [node.material];
+            mats.forEach(m => {
+              if (!m) return;
+              matSet.add(m.uuid);
+              m.side = THREE.DoubleSide;
+              ['map', 'emissiveMap'].forEach(tKey => {
+                if (m[tKey]) {
+                  m[tKey].encoding = THREE.sRGBEncoding;
+                  texSet.add(m[tKey].uuid);
+                }
+              });
+              ['normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'].forEach(tKey => {
+                if (m[tKey]) texSet.add(m[tKey].uuid);
+              });
+            });
+          });
+
+          const rawBox = new THREE.Box3().setFromObject(gltf.scene);
+          const rawSize = rawBox.getSize(new THREE.Vector3());
+          const rawCenter = rawBox.getCenter(new THREE.Vector3());
+
+          const optimizedScene = batchOptimizeGLBScene(gltf.scene);
+          let finalMeshCount = 0;
+          optimizedScene.traverse(n => { if (n.isMesh && n.visible !== false) finalMeshCount++; });
+
+          const loadMs = Math.round(performance.now() - t0);
+          cachedOrganelleGLBs[key] = optimizedScene;
+          if (key === 'animal') cachedGltfScenes.animal = optimizedScene;
+          if (key === 'plant') cachedGltfScenes.plant = optimizedScene;
+
+          glbDiagnostics[key] = {
+            ...(glbDiagnostics[key] || {}),
+            key,
+            label: cfg.label,
+            stationNumber: cfg.stationNumber,
+            stationId: cfg.stationId,
+            url: urlToLoad,
+            usedFallbackUrl: !!isFallback,
+            loaded: true,
+            status: 'OK',
+            loadMs,
+            rawMin: [+rawBox.min.x.toFixed(3), +rawBox.min.y.toFixed(3), +rawBox.min.z.toFixed(3)],
+            rawMax: [+rawBox.max.x.toFixed(3), +rawBox.max.y.toFixed(3), +rawBox.max.z.toFixed(3)],
+            rawSize: [+rawSize.x.toFixed(3), +rawSize.y.toFixed(3), +rawSize.z.toFixed(3)],
+            rawCenter: [+rawCenter.x.toFixed(3), +rawCenter.y.toFixed(3), +rawCenter.z.toFixed(3)],
+            rawMeshCount,
+            batchedMeshCount: finalMeshCount,
+            materialCount: matSet.size,
+            textureCount: texSet.size,
+            vertexCount,
+            triangleCount: Math.round(triangleCount)
+          };
+
+          resolve(optimizedScene);
+        },
+        undefined,
+        err => reject(err)
+      );
+    });
+
+    pendingGLBPromises[key] = tryLoadUrl(cfg.url, false).catch(err => {
+      if (cfg.fallbackUrl && cfg.fallbackUrl !== cfg.url) {
+        return tryLoadUrl(cfg.fallbackUrl, true);
+      }
+      glbDiagnostics[key] = {
+        key,
+        label: cfg.label,
+        url: cfg.url,
+        loaded: false,
+        status: 'FALLBACK_PROCEDURAL',
+        error: String(err && err.message ? err.message : err)
+      };
+      throw err;
+    });
+
+    return pendingGLBPromises[key];
+  }
+
+  // Clone scene GLB yang telah di-cache, auto-center & auto-scale menggunakan THREE.Box3,
+  // serta letakkan tepat di atas meja pameran tanpa menembusi meja atau terapung terlalu tinggi.
+  function mountGLBIntoContainer(containerGroup, key, modeType, meta = {}) {
+    const cfg = STATION_GLB_MAP[key];
+    if (!cfg || !containerGroup) return Promise.resolve(false);
+
+    const applyMetadataToTree = (rootObj, isGLB) => {
+      const mergedMeta = {
+        stationId: meta.stationId || cfg.stationId,
+        stationNumber: meta.stationNumber || cfg.stationNumber,
+        stationIndex: typeof meta.stationIndex === 'number' ? meta.stationIndex : (cfg.stationNumber - 1),
+        id: meta.organelleId || key,
+        organelleId: meta.organelleId || key,
+        glbKey: key,
+        isMiniStation: !!meta.isMiniStation,
+        pickable: true,
+        isGLBModel: !!isGLB
+      };
+      rootObj.userData = { ...rootObj.userData, ...mergedMeta };
+      rootObj.traverse(child => {
+        if (child.isMesh) {
+          child.userData = { ...child.userData, ...mergedMeta };
+          if (meta.registerARPickable && !arPickableObjects.includes(child)) {
+            arPickableObjects.push(child);
+          }
+        }
+      });
+    };
+
+    // Tandakan metadata pada fallback sedia ada sementara menunggu GLB selesai dimuatkan
+    applyMetadataToTree(containerGroup, false);
+
+    return loadAndCacheOrganelleGLB(key)
+      .then(cachedScene => {
+        // Clone struktur scene & clone material supaya highlight emissive pada satu stesen tidak menjejaskan stesen lain
+        const clonedScene = cachedScene.clone(true);
+        clonedScene.traverse(node => {
+          if (!node.isMesh) return;
+          if (node.name === 'Labels') {
+            node.visible = false;
+            return;
+          }
+          const cloneMat = m => {
+            if (!m) return m;
+            const c = m.clone();
+            c.side = THREE.DoubleSide;
+            if (c.map) c.map.encoding = THREE.sRGBEncoding;
+            if (c.emissiveMap) c.emissiveMap.encoding = THREE.sRGBEncoding;
+            return c;
+          };
+          node.material = Array.isArray(node.material) ? node.material.map(cloneMat) : cloneMat(node.material);
+          node.castShadow = (modeType === '3d');
+          node.receiveShadow = (modeType === '3d');
+        });
+
+        // 1. Kira THREE.Box3 asal & auto-center pada (0, 0, 0)
+        clonedScene.updateMatrixWorld(true);
+        const rawBox = new THREE.Box3().setFromObject(clonedScene);
+        const rawSize = rawBox.getSize(new THREE.Vector3());
+        const rawCenter = rawBox.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) || 1;
+
+        let targetSize = cfg.targetSize3D || 1.05;
+        if (modeType === 'ar-world') targetSize = cfg.targetSizeARWorld || 1.45;
+        else if (modeType === 'preview') targetSize = cfg.targetSizePreview || 1.40;
+        else if (modeType === 'mini') targetSize = cfg.targetSizeMini || 0.34;
+        if (typeof meta.customTargetSize === 'number') targetSize = meta.customTargetSize;
+
+        const scaleFactor = targetSize / maxDim;
+
+        const centerWrap = new THREE.Group();
+        centerWrap.name = `GLBCentered_${key}`;
+        clonedScene.position.set(
+          -rawCenter.x * scaleFactor,
+          -rawCenter.y * scaleFactor,
+          -rawCenter.z * scaleFactor
+        );
+        clonedScene.scale.setScalar(scaleFactor);
+        centerWrap.add(clonedScene);
+
+        const pivotWrap = new THREE.Group();
+        pivotWrap.name = `GLBPivot_${key}`;
+        const rot = meta.rot || cfg.rot || [0, 0, 0];
+        pivotWrap.rotation.set(rot[0] || 0, rot[1] || 0, rot[2] || 0);
+        pivotWrap.add(centerWrap);
+
+        // 2. Kira THREE.Box3 dalam ruang tempatan (SEBELUM dimasukkan ke dalam containerGroup yang mempunyai transform dunia!)
+        pivotWrap.updateMatrixWorld(true);
+        const fittedBox = new THREE.Box3().setFromObject(pivotWrap);
+        const fittedSize = fittedBox.getSize(new THREE.Vector3());
+        const fittedCenter = fittedBox.getCenter(new THREE.Vector3());
+
+        // Centerkan semula paksi X, Y, Z tepat pada (0, 0, 0) tempatan selepas putaran
+        pivotWrap.position.set(-fittedCenter.x, -fittedCenter.y, -fittedCenter.z);
+
+        // Bersihkan model prosedur lama dan gantikan dengan model GLB beresolusi tinggi
+        containerGroup.clear();
+        containerGroup.add(pivotWrap);
+
+        if (meta.alignOnTable) {
+          const tableTopY = typeof meta.tableTopY === 'number' ? meta.tableTopY : 0.97;
+          const clearanceY = typeof meta.clearanceY === 'number' ? meta.clearanceY : (cfg.tableClearanceY || 0.14);
+          const halfHeight = fittedSize.y / 2;
+          const targetCenterY = tableTopY + clearanceY + halfHeight;
+          containerGroup.position.y = targetCenterY;
+          containerGroup.userData.baseY = targetCenterY;
+          containerGroup.userData.tableTopY = tableTopY;
+          containerGroup.userData.clearanceY = clearanceY;
+          containerGroup.userData.fittedMinY = +(targetCenterY - halfHeight).toFixed(3);
+          containerGroup.userData.fittedMaxY = +(targetCenterY + halfHeight).toFixed(3);
+        }
+
+        containerGroup.userData.isGLBMounted = true;
+        containerGroup.userData.glbKey = key;
+        containerGroup.userData.scaleFactor = +scaleFactor.toFixed(5);
+        containerGroup.userData.fittedSize = [+fittedSize.x.toFixed(3), +fittedSize.y.toFixed(3), +fittedSize.z.toFixed(3)];
+
+        applyMetadataToTree(containerGroup, true);
+
+        // Simpan diagnostik per-mod untuk laporan & ujian automatik
+        if (glbDiagnostics[key]) {
+          if (!glbDiagnostics[key].mounts) glbDiagnostics[key].mounts = {};
+          const worldPos = new THREE.Vector3();
+          containerGroup.getWorldPosition(worldPos);
+          glbDiagnostics[key].mounts[modeType] = {
+            targetSize,
+            scaleFactor: +scaleFactor.toFixed(5),
+            fittedSize: [+fittedSize.x.toFixed(3), +fittedSize.y.toFixed(3), +fittedSize.z.toFixed(3)],
+            localPos: [+containerGroup.position.x.toFixed(3), +containerGroup.position.y.toFixed(3), +containerGroup.position.z.toFixed(3)],
+            worldPos: [+worldPos.x.toFixed(3), +worldPos.y.toFixed(3), +worldPos.z.toFixed(3)],
+            tableTopY: meta.tableTopY || null,
+            fittedMinY: containerGroup.userData.fittedMinY || null,
+            fittedMaxY: containerGroup.userData.fittedMaxY || null
+          };
+        }
+
+        return true;
+      })
+      .catch(err => {
+        console.warn(`Fallback prosedur digunakan untuk ${key} (${modeType}):`, err);
+        return false;
+      });
+  }
+
+  // Laraskan kedudukan model prosedur (Stesen 3, 5, 6, 7) di atas meja menggunakan THREE.Box3
+  function alignProceduralOnTable(containerGroup, tableTopY, clearanceY, meta = {}) {
+    containerGroup.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(containerGroup);
+    const size = box.getSize(new THREE.Vector3());
+    const halfH = (size.y || 0.6) / 2;
+    const targetY = tableTopY + clearanceY + halfH;
+    containerGroup.position.y = targetY;
+    containerGroup.userData = {
+      ...containerGroup.userData,
+      stationId: meta.stationId,
+      stationNumber: meta.stationNumber,
+      stationIndex: meta.stationIndex,
+      id: meta.organelleId,
+      organelleId: meta.organelleId,
+      pickable: true,
+      isGLBMounted: false,
+      baseY: targetY,
+      tableTopY,
+      clearanceY,
+      fittedSize: [+size.x.toFixed(3), +size.y.toFixed(3), +size.z.toFixed(3)],
+      fittedMinY: +(targetY - halfH).toFixed(3),
+      fittedMaxY: +(targetY + halfH).toFixed(3)
+    };
+    containerGroup.traverse(child => {
+      if (child.isMesh) {
+        child.userData = {
+          ...child.userData,
+          stationId: meta.stationId,
+          stationNumber: meta.stationNumber,
+          stationIndex: meta.stationIndex,
+          id: meta.organelleId,
+          organelleId: meta.organelleId,
+          pickable: true
+        };
+      }
+    });
+  }
+
+  // Pameran Tambahan: Retikulum Endoplasma (menggunakan models/endoplasmic_reticulum.glb tanpa mengganggu 8 stesen utama)
+  function buildSupplementaryERExhibit(parent) {
+    const erGroup = new THREE.Group();
+    erGroup.name = 'SupplementaryExhibit_EndoplasmicReticulum';
+    erGroup.position.set(0, 0, -5.2);
+    erGroup.userData = {
+      stationId: 'exhibit-er',
+      organelleId: 'er',
+      isSupplementaryExhibit: true,
+      title: 'Retikulum Endoplasma',
+      description: 'Pameran Tambahan Sains Sel: Retikulum Endoplasma ialah rangkaian membran berlipat yang bersambung dengan membran nukleus. Ia berfungsi mengangkut protein (Retikulum Endoplasma Kasar yang mempunyai ribosom) serta mensintesis lipid (Retikulum Endoplasma Licin).'
+    };
+
+    // Meja Pameran Tambahan
+    const baseMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(1.75, 0.9, 1.1),
+      new THREE.MeshStandardMaterial({ color: 0x11232e, metalness: 0.35, roughness: 0.35 })
+    );
+    baseMesh.position.y = 0.45;
+    baseMesh.castShadow = true;
+    erGroup.add(baseMesh);
+
+    const stripe = new THREE.Mesh(
+      new THREE.BoxGeometry(1.80, 0.10, 1.15),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+    );
+    stripe.position.y = 0.89;
+    erGroup.add(stripe);
+
+    const plaque = createTextPlane('🧬 PAMERAN TAMBAHAN: RETIKULUM ENDOPLASMA', '#38bdf8', 1.85, 0.38);
+    plaque.position.set(0, 2.28, -0.28);
+    erGroup.add(plaque);
+
+    const erContainer = new THREE.Group();
+    erContainer.position.set(0, 1.38, 0.12);
+    // Fallback prosedur sementara GLB dimuatkan secara malas (lazy load)
+    const fallbackER = new THREE.Mesh(
+      new THREE.TorusKnotGeometry(0.28, 0.08, 48, 12),
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3 })
+    );
+    erContainer.add(fallbackER);
+    erGroup.add(erContainer);
+
+    // Lazy-load endoplasmic_reticulum selepas stesen utama dimulakan supaya permulaan pantas pada iPad
+    setTimeout(() => {
+      mountGLBIntoContainer(erContainer, 'er', '3d', {
+        stationId: 'exhibit-er',
+        stationNumber: 9,
+        stationIndex: -2,
+        organelleId: 'er',
+        alignOnTable: true,
+        tableTopY: 0.94,
+        clearanceY: 0.14
+      });
+    }, 150);
+
+    animatedObjects.push({
+      update(t) {
+        const baseY = erContainer.userData.baseY || 1.38;
+        erContainer.rotation.y = t * 0.35;
+        erContainer.position.y = baseY + Math.sin(t * 1.4) * 0.02;
+      }
+    });
+
+    erExhibitGroup = erGroup;
+    parent.add(erGroup);
+  }
+
+  // ==============================================================================
   // 8 INTERACTIVE STATIONS CREATION
   // ==============================================================================
 
@@ -1170,12 +1858,26 @@
     }
     walkthroughStationsGroup.clear();
 
+    const stationNumToGLBKey = {
+      1: 'nucleus',
+      2: 'membrane',
+      4: 'mitochondria'
+    };
+
     State.stations.forEach((stn, index) => {
       const stnGroup = new THREE.Group();
+      stnGroup.name = `Station_${stn.number}_${stn.id}`;
       stnGroup.position.set(stn.pos.x, 0, stn.pos.z);
       stnGroup.rotation.y = stn.pos.rotY;
+      stnGroup.userData = {
+        stationId: stn.id,
+        stationNumber: stn.number,
+        stationIndex: index,
+        organelleId: stn.id,
+        pickable: true
+      };
 
-      // 1. Futuristic Kiosk Pedestal
+      // 1. Futuristic Kiosk Pedestal (Top of pedestal stripe is at y = 0.94)
       const baseGeo = new THREE.BoxGeometry(2.2, 0.9, 1.2);
       const baseMat = new THREE.MeshStandardMaterial({
         color: 0x11232e,
@@ -1185,16 +1887,31 @@
       const baseMesh = new THREE.Mesh(baseGeo, baseMat);
       baseMesh.position.y = 0.45;
       baseMesh.castShadow = true;
+      baseMesh.receiveShadow = true;
       stnGroup.add(baseMesh);
 
-      // Neon Accent Base Stripe matching station color
+      // Neon Accent Base Stripe matching station color (top surface y = 0.88 + 0.06 = 0.94)
       const stripeGeo = new THREE.BoxGeometry(2.25, 0.12, 1.25);
       const stripeMat = new THREE.MeshBasicMaterial({ color: stn.colorHex });
       const stripe = new THREE.Mesh(stripeGeo, stripeMat);
       stripe.position.y = 0.88;
       stnGroup.add(stripe);
 
-      // 2. Glowing Billboard Interactive Screen above Pedestal
+      // Glowing Display Plinth Pad on top of the table for the 3D Organelle Model
+      const padGeo = new THREE.CylinderGeometry(0.56, 0.62, 0.03, 28);
+      const padMat = new THREE.MeshStandardMaterial({
+        color: 0x0b1924,
+        metalness: 0.6,
+        roughness: 0.25,
+        emissive: stn.colorHex,
+        emissiveIntensity: 0.18
+      });
+      const padMesh = new THREE.Mesh(padGeo, padMat);
+      padMesh.position.set(0, 0.955, 0.16);
+      stnGroup.add(padMesh);
+
+      // 2. Glowing Billboard Interactive Screen positioned slightly back & higher
+      // so the 3D GLB organelle model on the front-center of the table is never clipped or blocked!
       const screenGeo = new THREE.BoxGeometry(2.0, 1.1, 0.1);
       const screenMat = new THREE.MeshStandardMaterial({
         color: 0x09141b,
@@ -1202,7 +1919,7 @@
         roughness: 0.2
       });
       const screenMesh = new THREE.Mesh(screenGeo, screenMat);
-      screenMesh.position.set(0, 2.2, 0);
+      screenMesh.position.set(0, 2.38, -0.34);
       stnGroup.add(screenMesh);
 
       // Station Screen Label Canvas Texture
@@ -1211,20 +1928,96 @@
       const screenFaceGeo = new THREE.PlaneGeometry(1.9, 1.0);
       const screenFaceMat = new THREE.MeshBasicMaterial({ map: textTexture });
       const screenFace = new THREE.Mesh(screenFaceGeo, screenFaceMat);
-      screenFace.position.set(0, 2.2, 0.06);
+      screenFace.position.set(0, 2.38, -0.28);
+      screenFace.userData = {
+        stationId: stn.id,
+        stationNumber: stn.number,
+        stationIndex: index,
+        pickable: true
+      };
       stnGroup.add(screenFace);
 
-      // 3. Floating 3D Stylized Representation of the Organelle
+      // 3. 3D Organelle Exhibition Model (GLB for Stations 1, 2, 4 & Whole-Cell GLBs on Station 8; Procedural kept for 3, 5, 6, 7)
       const organelleMesh = buildStylizedOrganelle(stn.number, stn.colorHex);
-      organelleMesh.position.set(0, 1.3, 0);
+      organelleMesh.position.set(0, 1.38, 0.16);
       stnGroup.add(organelleMesh);
+
+      const glbKey = stationNumToGLBKey[stn.number];
+      if (glbKey) {
+        // Stesen 1 (nucleus.glb), Stesen 2 (plasma_membrane.glb), Stesen 4 (mitochondria.glb)
+        mountGLBIntoContainer(organelleMesh, glbKey, '3d', {
+          stationId: stn.id,
+          stationNumber: stn.number,
+          stationIndex: index,
+          organelleId: glbKey,
+          alignOnTable: true,
+          tableTopY: 0.97,
+          clearanceY: 0.14
+        });
+      } else if (stn.number === 8) {
+        // Stesen 8: Perbandingan Sel Haiwan (animal_cell_final.glb) & Sel Tumbuhan (plantcellnew.glb)
+        alignProceduralOnTable(organelleMesh, 0.97, 0.12, {
+          stationId: stn.id,
+          stationNumber: stn.number,
+          stationIndex: index,
+          organelleId: stn.id
+        });
+        const compGroup = organelleMesh.children[0];
+        if (compGroup && compGroup.children.length >= 2) {
+          const leftAnimalSlot = new THREE.Group();
+          leftAnimalSlot.position.set(-0.46, 0.08, 0);
+          const animLabel = createTextPlane('SEL HAIWAN', '#f472b6', 0.86, 0.24);
+          animLabel.position.set(-0.46, -0.36, 0.12);
+          animLabel.userData = { stationId: stn.id, stationNumber: stn.number, stationIndex: index, organelleId: 'animal', pickable: true };
+
+          const rightPlantSlot = new THREE.Group();
+          rightPlantSlot.position.set(0.46, 0.08, 0);
+          const plantLabel = createTextPlane('SEL TUMBUHAN', '#4ade80', 0.92, 0.24);
+          plantLabel.position.set(0.46, -0.36, 0.12);
+          plantLabel.userData = { stationId: stn.id, stationNumber: stn.number, stationIndex: index, organelleId: 'plant', pickable: true };
+
+          compGroup.clear();
+          compGroup.add(leftAnimalSlot, animLabel, rightPlantSlot, plantLabel);
+
+          mountGLBIntoContainer(leftAnimalSlot, 'animal', '3d', {
+            stationId: stn.id,
+            stationNumber: stn.number,
+            stationIndex: index,
+            organelleId: 'animal',
+            customTargetSize: 0.72,
+            alignOnTable: false
+          });
+          mountGLBIntoContainer(rightPlantSlot, 'plant', '3d', {
+            stationId: stn.id,
+            stationNumber: stn.number,
+            stationIndex: index,
+            organelleId: 'plant',
+            customTargetSize: 0.76,
+            alignOnTable: false
+          });
+          organelleMesh.position.y = 1.42;
+          organelleMesh.userData.isGLBMounted = true;
+          organelleMesh.userData.glbKey = 'animal+plant';
+          organelleMesh.userData.baseY = 1.42;
+          organelleMesh.userData.tableTopY = 0.97;
+          organelleMesh.userData.fittedMinY = 1.05;
+        }
+      } else {
+        // Stesen 3 (Sitoplasma), Stesen 5 (Kloroplas), Stesen 6 (Dinding Sel), Stesen 7 (Vakuol) -> Kekalkan model sedia ada
+        alignProceduralOnTable(organelleMesh, 0.97, 0.16, {
+          stationId: stn.id,
+          stationNumber: stn.number,
+          stationIndex: index,
+          organelleId: stn.id
+        });
+      }
 
       // 4. Floating Badge Indicator Beacon (? -> ✓)
       const badgeBeacon = createBeaconMesh(stn.colorHex);
-      badgeBeacon.position.set(0, 3.1, 0);
+      badgeBeacon.position.set(0, 3.18, -0.30);
       stnGroup.add(badgeBeacon);
 
-      // Pulsing Station Glow Halo
+      // Pulsing Station Glow Halo on Floor
       const haloGeo = new THREE.RingGeometry(0.7, 0.95, 32);
       const haloMat = new THREE.MeshBasicMaterial({
         color: stn.colorHex,
@@ -1237,14 +2030,50 @@
       halo.position.set(0, 0.02, 0.6);
       stnGroup.add(halo);
 
+      // Generous invisible raycast collider box around the organelle model & kiosk top for effortless click/tap on iPad/desktop
+      const stationHitBox = new THREE.Mesh(
+        new THREE.BoxGeometry(1.85, 1.45, 1.25),
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+      );
+      stationHitBox.position.set(0, 1.45, 0.12);
+      stationHitBox.userData = {
+        stationId: stn.id,
+        stationNumber: stn.number,
+        stationIndex: index,
+        organelleId: stn.id,
+        pickable: true
+      };
+      stnGroup.add(stationHitBox);
+
       walkthroughStationsGroup.add(stnGroup);
 
-      // Register animated elements
+      // 5. Pameran Animasi Lembut (putaran perlahan, floating sangat minimum, highlight & sedikit pembesaran apabila dihampiri/dipilih,
+      // serta berhenti berputar apabila murid sedang memeriksa model dalam modal stesen)
+      let currentHoverScale = 1.0;
       animatedObjects.push({
         update(t) {
-          organelleMesh.rotation.y = t * 1.2;
-          organelleMesh.position.y = 1.3 + Math.sin(t * 2 + index) * 0.06;
-          badgeBeacon.rotation.y = t * 1.5;
+          const isModalInspectingThis = DOM.stationModal && DOM.stationModal.classList.contains('open') && State.activeStationIndex === index;
+          const isNearby = (State.nearbyStationIndex === index) || isModalInspectingThis;
+
+          // Berhenti berputar ketika murid sedang memeriksa stesen secara interaktif
+          if (!isModalInspectingThis) {
+            organelleMesh.rotation.y += 0.0065; // Putaran pameran yang lembut & tenang (~0.39 rad/s)
+          }
+
+          // Floating yang sangat minimum (±0.022m) supaya model tidak menembusi meja atau terapung terlalu tinggi
+          const baseY = organelleMesh.userData.baseY || 1.38;
+          organelleMesh.position.y = baseY + (isModalInspectingThis ? 0 : Math.sin(t * 1.5 + index) * 0.022);
+
+          // Highlight & sedikit pembesaran (1.08x) apabila murid menghampiri atau memilih stesen
+          const targetScale = isNearby ? 1.08 : 1.0;
+          currentHoverScale += (targetScale - currentHoverScale) * 0.12;
+          organelleMesh.scale.setScalar(currentHoverScale);
+
+          if (padMesh.material) {
+            padMesh.material.emissiveIntensity = isNearby ? 0.55 : 0.18;
+          }
+          halo.material.opacity = isNearby ? (0.85 + Math.sin(t * 4) * 0.15) : 0.55;
+          badgeBeacon.rotation.y = t * 1.2;
         }
       });
 
@@ -1255,6 +2084,7 @@
         beacon: badgeBeacon,
         screenFace,
         halo,
+        padMesh,
         organelleMesh,
         worldPos: new THREE.Vector3(stn.pos.x, 1.5, stn.pos.z)
       });
@@ -1824,14 +2654,18 @@
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
 
-    // 2. Desktop Mouse Drag Look (Pan camera when dragging canvas)
+    // 2. Desktop Mouse Drag Look & 3D Station Raycast Click/Tap
     let isMouseDragging = false;
+    let mouseDownX = 0;
+    let mouseDownY = 0;
     let prevMouseX = 0;
     let prevMouseY = 0;
 
     DOM.canvasContainer.addEventListener('mousedown', (e) => {
       if (State.isPaused || DOM.stationModal.classList.contains('open')) return;
       isMouseDragging = true;
+      mouseDownX = e.clientX;
+      mouseDownY = e.clientY;
       prevMouseX = e.clientX;
       prevMouseY = e.clientY;
     });
@@ -1847,7 +2681,35 @@
       player.pitch = Math.max(-0.75, Math.min(0.75, player.pitch - deltaY * 0.003));
     });
 
-    window.addEventListener('mouseup', () => { isMouseDragging = false; });
+    window.addEventListener('mouseup', (e) => {
+      if (isMouseDragging && State.mode === '3d' && !State.isPaused && !DOM.stationModal.classList.contains('open')) {
+        const dragDist = Math.hypot(e.clientX - mouseDownX, e.clientY - mouseDownY);
+        if (dragDist < 10) {
+          handle3DStationRaycastTap(e.clientX, e.clientY);
+        }
+      }
+      isMouseDragging = false;
+    });
+
+    // Touch tap on 3D station models (iPad & mobile in 3D Walkthrough mode)
+    let touchStart3DX = 0;
+    let touchStart3DY = 0;
+    DOM.canvasContainer.addEventListener('touchstart', (e) => {
+      if (State.mode !== '3d' || State.isPaused || DOM.stationModal.classList.contains('open')) return;
+      if (e.changedTouches.length > 0) {
+        touchStart3DX = e.changedTouches[0].clientX;
+        touchStart3DY = e.changedTouches[0].clientY;
+      }
+    }, { passive: true });
+    DOM.canvasContainer.addEventListener('touchend', (e) => {
+      if (State.mode !== '3d' || State.isPaused || DOM.stationModal.classList.contains('open')) return;
+      if (e.changedTouches.length > 0) {
+        const t = e.changedTouches[0];
+        if (Math.hypot(t.clientX - touchStart3DX, t.clientY - touchStart3DY) < 12) {
+          handle3DStationRaycastTap(t.clientX, t.clientY);
+        }
+      }
+    }, { passive: true });
 
     // 3. Mobile Right-Side Touch Look Zone (Pan camera with right thumb)
     if (DOM.touchZone) {
@@ -1937,6 +2799,9 @@
     if (DOM.chooseCameraArBtn) {
       DOM.chooseCameraArBtn.addEventListener('click', () => selectMode('camera-ar'));
     }
+    if (DOM.chooseWorldArBtn) {
+      DOM.chooseWorldArBtn.addEventListener('click', () => selectMode('marker-ar'));
+    }
     if (DOM.chooseArBtn) {
       DOM.chooseArBtn.addEventListener('click', () => selectMode('ar'));
     }
@@ -1984,9 +2849,12 @@
     // 11. AR Interface & WebXR Buttons
     if (DOM.arBackBtn) DOM.arBackBtn.addEventListener('click', () => selectMode('3d'));
     if (DOM.arExitBtn) DOM.arExitBtn.addEventListener('click', () => selectMode('3d'));
+    if (DOM.arBtnWorld) DOM.arBtnWorld.addEventListener('click', () => switchARModel('world'));
+    if (DOM.arBtnMarker) DOM.arBtnMarker.addEventListener('click', () => selectMode('marker-ar'));
     if (DOM.arBtnAnimal) DOM.arBtnAnimal.addEventListener('click', () => switchARModel('animal'));
     if (DOM.arBtnPlant) DOM.arBtnPlant.addEventListener('click', () => switchARModel('plant'));
     if (DOM.arBtnMinilab) DOM.arBtnMinilab.addEventListener('click', () => switchARModel('minilab'));
+    if (DOM.arPostureBtn) DOM.arPostureBtn.addEventListener('click', toggleARPostureMode);
     if (DOM.arSoundBtn) DOM.arSoundBtn.addEventListener('click', toggleSound);
     if (DOM.arHelpBtn) DOM.arHelpBtn.addEventListener('click', openHowToPlayDialog);
     if (DOM.arStationsToggle) DOM.arStationsToggle.addEventListener('click', () => toggleStationsDrawer());
@@ -2230,8 +3098,8 @@
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
 
-    // Auto-reframe active AR model on orientation change / resize so model stays centered
-    if ((State.mode === 'camera-ar' || State.mode === 'ar') && typeof frameARObject === 'function') {
+    // Auto-reframe active AR model on orientation change / resize ONLY when in legacy diorama overlay
+    if ((State.mode === 'camera-ar' || State.mode === 'ar') && !arWorldState.active && !arMarkerState.active && typeof frameARObject === 'function') {
       let activeHolder = arMiniLabHolder;
       if (arState && arState.activeModel === 'animal') activeHolder = arAnimalHolder;
       else if (arState && arState.activeModel === 'plant') activeHolder = arPlantHolder;
@@ -2385,16 +3253,67 @@
     }
   }
 
+  // Raycasting 3D untuk memilih model organel (termasuk semua child mesh GLB) menggunakan metadata parent group
+  function handle3DStationRaycastTap(clientX, clientY) {
+    if (!renderer || !camera || State.mode !== '3d') return false;
+    const rect = renderer.domElement.getBoundingClientRect();
+    if (!rect.width || !rect.height) return false;
+
+    arPointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    arPointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    arRaycaster.setFromCamera(arPointer, camera);
+
+    const targets = [];
+    if (walkthroughStationsGroup) targets.push(walkthroughStationsGroup);
+    if (erExhibitGroup) targets.push(erExhibitGroup);
+    if (!targets.length) return false;
+
+    const hits = arRaycaster.intersectObjects(targets, true);
+    if (!hits.length) return false;
+
+    for (const hit of hits) {
+      let node = hit.object;
+      while (node) {
+        if (node.userData && node.userData.isSupplementaryExhibit) {
+          SoundFX.interact();
+          alertToast(`🧬 ${node.userData.title}: ${node.userData.description}`);
+          speakExplanation(`${node.userData.title}. ${node.userData.description}`);
+          return true;
+        }
+        if (node.userData && typeof node.userData.stationIndex === 'number' && node.userData.stationIndex >= 0) {
+          const stnIdx = node.userData.stationIndex;
+          State.nearbyStationIndex = stnIdx;
+          updatePromptUI();
+          openStationModal(stnIdx);
+          return true;
+        }
+        if (node.userData && node.userData.stationId) {
+          const foundIdx = State.stations.findIndex(s => s.id === node.userData.stationId);
+          if (foundIdx >= 0) {
+            State.nearbyStationIndex = foundIdx;
+            updatePromptUI();
+            openStationModal(foundIdx);
+            return true;
+          }
+        }
+        node = node.parent;
+      }
+    }
+    return false;
+  }
+
   // ==============================================================================
   // 3D INTERACTIVE ORGANELLE PREVIEW BOX IN MODAL
   // ==============================================================================
+
+  let isPreviewDraggingGlobal = false;
 
   function initStationPreview() {
     if (!DOM.stnPreviewCanvas) return;
 
     previewScene = new THREE.Scene();
     previewCamera = new THREE.PerspectiveCamera(40, 2, 0.1, 50);
-    previewCamera.position.set(0, 0.4, 2.2);
+    previewCamera.position.set(0, 0.35, 2.35);
     previewCamera.lookAt(0, 0, 0);
 
     previewRenderer = new THREE.WebGLRenderer({
@@ -2403,12 +3322,18 @@
       alpha: true
     });
     previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    previewRenderer.outputEncoding = THREE.sRGBEncoding;
+    previewRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+    previewRenderer.toneMappingExposure = 1.15;
 
-    // Studio Lights for preview
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
+    // Studio PBR Lights for preview
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.95);
     previewScene.add(ambLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xdcfce7, 1.2);
+    const hemiLight = new THREE.HemisphereLight(0xf0fdfa, 0x1e293b, 0.9);
+    previewScene.add(hemiLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.15);
     dirLight1.position.set(2, 4, 3);
     previewScene.add(dirLight1);
 
@@ -2417,18 +3342,17 @@
     previewScene.add(dirLight2);
 
     // Interactive Drag to Rotate Preview Model
-    let isPreviewDragging = false;
     let prevX = 0;
     let prevY = 0;
     const host = DOM.stnPreviewHost || DOM.stnPreviewCanvas;
 
     const onStart = (clientX, clientY) => {
-      isPreviewDragging = true;
+      isPreviewDraggingGlobal = true;
       prevX = clientX;
       prevY = clientY;
     };
     const onMove = (clientX, clientY) => {
-      if (!isPreviewDragging || !previewModelGroup) return;
+      if (!isPreviewDraggingGlobal || !previewModelGroup) return;
       const dx = clientX - prevX;
       const dy = clientY - prevY;
       prevX = clientX;
@@ -2440,7 +3364,7 @@
 
     host.addEventListener('mousedown', (e) => onStart(e.clientX, e.clientY));
     window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', () => { isPreviewDragging = false; });
+    window.addEventListener('mouseup', () => { isPreviewDraggingGlobal = false; });
 
     host.addEventListener('touchstart', (e) => {
       if (e.touches.length > 0) onStart(e.touches[0].clientX, e.touches[0].clientY);
@@ -2448,7 +3372,7 @@
     window.addEventListener('touchmove', (e) => {
       if (e.touches.length > 0) onMove(e.touches[0].clientX, e.touches[0].clientY);
     }, { passive: true });
-    window.addEventListener('touchend', () => { isPreviewDragging = false; }, { passive: true });
+    window.addEventListener('touchend', () => { isPreviewDraggingGlobal = false; }, { passive: true });
   }
 
   function updateStationPreview(stn) {
@@ -2460,10 +3384,35 @@
       previewModelGroup = null;
     }
 
-    // Build dedicated preview representation of the organelle
+    // Build dedicated preview representation of the organelle (fallback + GLB upgrade for Stations 1, 2, 4, 8)
     previewModelGroup = buildStylizedOrganelle(stn.number, stn.colorHex);
     previewModelGroup.scale.set(1.4, 1.4, 1.4);
     previewScene.add(previewModelGroup);
+
+    const previewGLBMap = { 1: 'nucleus', 2: 'membrane', 4: 'mitochondria' };
+    const glbKey = previewGLBMap[stn.number];
+    if (glbKey) {
+      previewModelGroup.scale.set(1, 1, 1);
+      mountGLBIntoContainer(previewModelGroup, glbKey, 'preview', {
+        stationId: stn.id,
+        stationNumber: stn.number,
+        organelleId: glbKey,
+        alignOnTable: false
+      });
+    } else if (stn.number === 8) {
+      previewModelGroup.scale.set(1, 1, 1);
+      const compGroup = previewModelGroup.children[0];
+      if (compGroup && compGroup.children.length >= 2) {
+        const leftAnimal = new THREE.Group();
+        leftAnimal.position.set(-0.52, 0.04, 0);
+        const rightPlant = new THREE.Group();
+        rightPlant.position.set(0.52, 0.04, 0);
+        compGroup.clear();
+        compGroup.add(leftAnimal, rightPlant);
+        mountGLBIntoContainer(leftAnimal, 'animal', 'preview', { customTargetSize: 0.90, alignOnTable: false });
+        mountGLBIntoContainer(rightPlant, 'plant', 'preview', { customTargetSize: 0.92, alignOnTable: false });
+      }
+    }
 
     // Resize preview renderer to match container
     const rect = DOM.stnPreviewCanvas.getBoundingClientRect();
@@ -2473,13 +3422,13 @@
       previewRenderer.setSize(rect.width, rect.height);
     }
 
-    // Render loop for modal preview
+    // Render loop for modal preview (pauses rotation while student drags to inspect)
     cancelAnimationFrame(previewAnimId);
     function animatePreview() {
       if (DOM.stationModal.classList.contains('open')) {
         previewAnimId = requestAnimationFrame(animatePreview);
-        if (previewModelGroup) {
-          previewModelGroup.rotation.y += 0.008; // Gentle auto-rotation
+        if (previewModelGroup && !isPreviewDraggingGlobal) {
+          previewModelGroup.rotation.y += 0.006; // Putaran pameran lembut
         }
         previewRenderer.render(previewScene, previewCamera);
       }
@@ -2502,14 +3451,22 @@
     DOM.stationTitle.textContent = stn.title;
     DOM.stationDesc.textContent = stn.description;
 
+    const stnSpeechBtn = document.getElementById('stn-speech-btn');
+    if (stnSpeechBtn) {
+      stnSpeechBtn.onclick = (e) => {
+        e.stopPropagation();
+        speakExplanation(`${stn.title}. ${stn.description}`);
+      };
+    }
+
     DOM.quizQuestion.textContent = stn.question;
     renderQuizOptions(stn);
 
-    // Update 3D Interactive Preview Box
-    updateStationPreview(stn);
-
     DOM.quizFeedback.style.display = 'none';
     DOM.stationModal.classList.add('open');
+
+    // Update 3D Interactive Preview Box SELEPAS modal dibuka supaya saiz kanvas > 0 dan gelung animasi berjalan
+    updateStationPreview(stn);
 
     SoundFX.interact();
   }
@@ -2631,9 +3588,45 @@
       }
     }
 
-    // Refresh AR Organelle Strip
-    if (arState.activeModel) {
-      renderAROrganelleStrip(arState.activeModel);
+    // Update 8 World-Locked AR Stations & Marker Anchors
+    arWorldState.stationGroups.forEach(group => {
+      if (group.userData && group.userData.stationConfig && group.userData.stationConfig.stationNumber === stationNumber) {
+        const cfg = group.userData.stationConfig;
+        if (group.userData.beacon && group.userData.beacon.children && group.userData.beacon.children[0]?.material) {
+          group.userData.beacon.children[0].material.color.setHex(0x10b981);
+        }
+        const oldLabel = group.userData.labelGroup;
+        if (oldLabel && cfg) {
+          const labelTitle = `Stesen ${cfg.slotNumber}: ${cfg.label}`;
+          const labelSub = `Arah ${cfg.directionName} • Ketik Untuk Teroka & Kuiz`;
+          const newLabel = buildStationLabel(labelTitle, labelSub, cfg.icon, cfg.color, cfg.stationNumber);
+          newLabel.position.copy(oldLabel.position);
+          group.remove(oldLabel);
+          group.add(newLabel);
+          group.userData.labelGroup = newLabel;
+        }
+      }
+    });
+
+    arMarkerState.anchors.forEach(anchor => {
+      if (anchor.userData && anchor.userData.stationConfig && anchor.userData.stationConfig.stationNumber === stationNumber) {
+        const cfg = anchor.userData.stationConfig;
+        const oldLabel = anchor.userData.labelGroup;
+        if (oldLabel && cfg) {
+          const labelTitle = `Kad #${cfg.markerId}: ${cfg.label}`;
+          const labelSub = `Stesen ${cfg.slotNumber} • Ketik Model Untuk Info & Kuiz`;
+          const newLabel = buildStationLabel(labelTitle, labelSub, cfg.icon, cfg.color, cfg.stationNumber);
+          newLabel.position.copy(oldLabel.position);
+          newLabel.scale.copy(oldLabel.scale);
+          anchor.remove(oldLabel);
+          anchor.add(newLabel);
+          anchor.userData.labelGroup = newLabel;
+        }
+      }
+    });
+
+    if (DOM.arStationsDrawer && DOM.arStationsDrawer.classList.contains('open')) {
+      renderARStationsDrawer();
     }
 
     // Update active AR card badge if open
@@ -2810,11 +3803,15 @@
     closeModeDialog();
 
     // 1. Cleanup existing active mode
-    if (State.mode === 'camera-ar' && mode !== 'camera-ar') {
-      stopInteractiveCamera();
-    }
-    if (State.mode === 'ar' && mode !== 'ar') {
-      await exitARSession();
+    if (State.mode !== mode) {
+      if (State.mode === 'camera-ar' || State.mode === 'marker-ar') {
+        stopARWorldExploration();
+        stopMarkerAR();
+        stopInteractiveCamera();
+      }
+      if (State.mode === 'ar') {
+        await exitARSession();
+      }
     }
 
     State.mode = mode;
@@ -2823,6 +3820,8 @@
       // ----------------------------------------------------------------------
       // MOD 1: MOD JELAJAH 3D (MAKMAL MAYA PENUH TANPA KAMERA)
       // ----------------------------------------------------------------------
+      stopARWorldExploration();
+      stopMarkerAR();
       stopInteractiveCamera();
       document.body.classList.remove('cq-ar-mode');
 
@@ -2859,47 +3858,55 @@
       alertToast('🖥️ Mod Jelajah 3D Aktif: Terokai makmal menggunakan kekunci atau joystick.');
     } else if (mode === 'camera-ar') {
       // ----------------------------------------------------------------------
-      // MOD 2: MOD KAMERA AR INTERAKTIF (REAL CAMERA PASSTHROUGH & 3D OVERLAY)
+      // MOD C: AR ORIENTASI DUNIA (8 STESEN BERASINGAN DI SEKELILING MURID)
       // ----------------------------------------------------------------------
-      await startInteractiveCamera();
+      await startARWorldExploration();
+    } else if (mode === 'marker-ar') {
+      // ----------------------------------------------------------------------
+      // MOD B: MARKER AR (8 KAD PENANDA 6DOF POSE TRACKING - IPAD SAFARI)
+      // ----------------------------------------------------------------------
+      await startMarkerAR();
     } else if (mode === 'ar') {
       // ----------------------------------------------------------------------
-      // MOD 3: MOD AR SPASIAL (WEBXR IMMERSIVE-AR WITH SURFACE HIT-TEST)
+      // MOD A: SPATIAL AR (WEBXR IMMERSIVE-AR DENGAN HIT-TEST & ANCHOR)
       // ----------------------------------------------------------------------
       await startWebXRAR();
     }
   }
 
   // ------------------------------------------------------------------------------
-  // 6.2 MOD 2: KAMERA AR INTERAKTIF (MOBILE CAMERA AR OVERLAY)
+  // 6.2 PENYEDIAAN STRIM KAMERA SEBENAR (DIGUNAKAN OLEH MOD B & MOD C)
   // ------------------------------------------------------------------------------
-  async function startInteractiveCamera() {
+  async function startInteractiveCamera(skipLegacyInit = false) {
     const isSecure = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     if (!isSecure) {
-      showCameraErrorModal('Sambungan Selamat Diperlukan (HTTPS)', 'Akses kamera pada telefon pintar memerlukan sambungan selamat (HTTPS) atau localhost.');
-      return;
+      showCameraErrorModal('Sambungan Selamat Diperlukan (HTTPS)', 'Akses kamera pada iPad/telefon pintar memerlukan sambungan selamat (HTTPS) atau localhost.');
+      return false;
     }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showCameraErrorModal('Kamera Tidak Disokong', 'Pelayar web ini tidak menyokong fungsi capaian kamera getUserMedia.');
-      return;
+      return false;
     }
 
     try {
-      let stream = null;
-      try {
-        // Prefer rear camera (environment) on mobile phones & tablets
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          }
-        });
-      } catch (camErr) {
-        console.warn('Specific environment camera constraint failed, retrying with basic video constraint:', camErr);
-        stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+      let stream = cameraStream;
+      const hasLiveTrack = stream && stream.getVideoTracks().some(t => t.readyState === 'live');
+      if (!hasLiveTrack) {
+        try {
+          // Prefer rear camera (environment) on iPad & mobile phones
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              facingMode: { ideal: 'environment' },
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          });
+        } catch (camErr) {
+          console.warn('Specific environment camera constraint failed, retrying with basic video constraint:', camErr);
+          stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+        }
       }
 
       cameraStream = stream;
@@ -2937,45 +3944,32 @@
       // 4. Show AR HUD Overlay & update elements
       if (DOM.arOverlay) DOM.arOverlay.style.display = 'flex';
       if (DOM.arSpatialTools) DOM.arSpatialTools.style.display = 'none';
-      if (DOM.arStatusBadge) {
-        if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '📷';
-        if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod Kamera AR';
-      }
 
       // Sync stats & drawer
       updateHUD();
       renderARStationsDrawer();
 
-      // 5. Show AR Object Group & position camera in front of it
-      if (arObjectGroup) {
-        arObjectGroup.visible = true;
-        arObjectGroup.position.set(0, 0, 0);
-        arObjectGroup.rotation.set(0, 0, 0);
-        arObjectGroup.scale.set(1.0, 1.0, 1.0);
+      if (!skipLegacyInit) {
+        // Default kepada Mod C: Penerokaan 8 Stesen Berasingan di sekeliling pengguna
+        if (arObjectGroup) arObjectGroup.visible = false;
       }
 
-      // 6. Switch to active AR model & frame it
-      switchARModel(arState.activeModel || 'minilab');
-
-      // 7. Setup Device Orientation (Gyro) if available
-      setupDeviceOrientation();
-
-      if (DOM.hudModeIcon) DOM.hudModeIcon.textContent = '📷';
-      if (DOM.hudModeText) DOM.hudModeText.textContent = 'Mod Kamera AR';
+      if (DOM.hudModeIcon) DOM.hudModeIcon.textContent = '🧭';
+      if (DOM.hudModeText) DOM.hudModeText.textContent = 'Mod AR Dunia';
       if (DOM.gyroResetBtn) DOM.gyroResetBtn.style.display = 'flex';
-
-      alertToast('📷 Mod Kamera AR Aktif: Persekitaran sebenar dibuka! Seret untuk memutar model.');
+      return true;
     } catch (err) {
       console.warn('Camera AR initialization error:', err);
       let errMsg = 'Kebenaran capaian kamera ditolak oleh pelayar atau peranti tidak mempunyai kamera aktif.';
       if (err.name === 'NotAllowedError') {
-        errMsg = 'Kebenaran kamera telah ditolak. Sila benarkan akses kamera dalam tetapan pelayar anda untuk mod ini.';
+        errMsg = 'Kebenaran kamera telah ditolak. Sila benarkan akses kamera dalam tetapan Safari / pelayar anda untuk mod ini.';
       } else if (err.name === 'NotFoundError') {
         errMsg = 'Tiada sensor kamera dikesan pada peranti ini.';
       } else if (err.name === 'NotReadableError') {
         errMsg = 'Kamera sedang digunakan oleh aplikasi lain.';
       }
       showCameraErrorModal('Kebenaran Kamera Diperlukan', errMsg);
+      return false;
     }
   }
 
@@ -3001,48 +3995,81 @@
   }
 
   // Device Orientation (Gyroscope) handling
-  function setupDeviceOrientation() {
-    if (typeof DeviceOrientationEvent === 'undefined') return;
+  let deviceOrientationBound = false;
+  function onDeviceOrientationEvent(e) {
+    if (e.alpha === null && e.beta === null) return;
+    const alpha = typeof e.alpha === 'number' ? e.alpha : 0;
+    const beta = typeof e.beta === 'number' ? e.beta : 90;
+    const gamma = typeof e.gamma === 'number' ? e.gamma : 0;
 
-    const onOrientation = (e) => {
-      if (e.alpha === null) return;
-      if (gyroState.initialAlpha === null) {
-        gyroState.initialAlpha = e.alpha;
+    if (gyroState.initialAlpha === null) {
+      gyroState.initialAlpha = alpha;
+    }
+    gyroState.alpha = alpha;
+    gyroState.beta = beta;
+    gyroState.gamma = gamma;
+    gyroState.active = true;
+    arWorldState.sensorReceived = true;
+    arWorldState.isSimulationFallback = false;
+
+    if (arWorldState.active && arWorldState.subMode === 'orientation') {
+      if (!arWorldState.hasCalibrated) {
+        arWorldState.baseHeadingDeg = alpha;
+        arWorldState.hasCalibrated = true;
       }
-      gyroState.alpha = e.alpha;
-      gyroState.beta = e.beta;
-      gyroState.gamma = e.gamma;
-      gyroState.active = true;
-    };
+      updateARWorldCamera(alpha, beta, gamma);
+    }
+  }
 
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission()
+  function setupDeviceOrientation() {
+    if (typeof DeviceOrientationEvent === 'undefined') {
+      arWorldState.isSimulationFallback = true;
+      return;
+    }
+    if (!deviceOrientationBound && typeof DeviceOrientationEvent.requestPermission !== 'function') {
+      window.addEventListener('deviceorientation', onDeviceOrientationEvent);
+      deviceOrientationBound = true;
+    }
+  }
+
+  function requestiOSOrientationPermission() {
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      return DeviceOrientationEvent.requestPermission()
         .then(response => {
           if (response === 'granted') {
-            window.addEventListener('deviceorientation', onOrientation);
+            if (!deviceOrientationBound) {
+              window.addEventListener('deviceorientation', onDeviceOrientationEvent);
+              deviceOrientationBound = true;
+            }
+            alertToast('📡 Sensor orientasi iPad/iOS diaktifkan!');
+            return true;
+          } else {
+            arWorldState.isSimulationFallback = true;
+            updateARTrackingStatusBanner('warning', '⚠️ Kebenaran sensor ditolak. Mod Simulasi Manual aktif (seret skrin untuk memusing pandangan).');
+            return false;
           }
         })
-        .catch(() => {});
-    } else {
-      window.addEventListener('deviceorientation', onOrientation);
+        .catch(() => {
+          arWorldState.isSimulationFallback = true;
+          return false;
+        });
     }
+    setupDeviceOrientation();
+    return Promise.resolve(true);
   }
 
   function resetGyroOrientation() {
-    gyroState.initialAlpha = gyroState.alpha;
-    if (arObjectGroup) {
-      arObjectGroup.rotation.set(0, 0, 0);
-    }
-    alertToast('🔄 Orientasi Giroskop Ditetapkan Semula');
+    calibrateARWorldHeading();
   }
 
   // ------------------------------------------------------------------------------
-  // 6.1 MOD 3: AR SPASIAL (WEBXR IMMERSIVE-AR WITH SURFACE HIT-TEST)
+  // 6.1 MOD A: SPATIAL AR (WEBXR IMMERSIVE-AR DENGAN HIT-TEST & ANCHOR DUNIA)
   // ------------------------------------------------------------------------------
   async function startWebXRAR() {
     if (!navigator.xr || typeof navigator.xr.isSessionSupported !== 'function') {
-      showARUnsupportedNotice('Pelayar anda tidak menyokong WebXR AR Spasial. Mod Kamera Interaktif dibuka sebagai alternatif.');
-      selectMode('camera-ar');
+      showARUnsupportedNotice('Pelayar ini (cth. iPad Safari) tidak menyokong WebXR immersive-ar. Membuka Mod C (AR Orientasi Dunia) sebagai alternatif.');
+      await selectMode('camera-ar');
       return;
     }
 
@@ -3054,15 +4081,20 @@
     }
 
     if (!isSupported) {
-      showARUnsupportedNotice('Peranti anda tidak mempunyai penderia AR Spasial WebXR (ARCore). Beralih ke Mod Kamera Interaktif.');
-      selectMode('camera-ar');
+      showARUnsupportedNotice('Peranti ini tidak menyokong sesi WebXR immersive-ar. Beralih ke Mod C (AR Orientasi Dunia).');
+      await selectMode('camera-ar');
       return;
     }
 
     try {
-      const session = await navigator.xr.requestSession('immersive-ar', {
-        requiredFeatures: ['local', 'hit-test']
-      });
+      const sessionInit = {
+        requiredFeatures: ['local', 'hit-test'],
+        optionalFeatures: ['anchors', 'dom-overlay']
+      };
+      if (DOM.arOverlay) {
+        sessionInit.domOverlay = { root: DOM.arOverlay };
+      }
+      const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
 
       xrSession = session;
       renderer.xr.enabled = true;
@@ -3077,9 +4109,10 @@
       scene.fog = null;
       renderer.setClearColor(0x000000, 0);
 
-      // Hide 3D virtual room and walkthrough stations
+      // Hide 3D virtual room, walkthrough stations, and centered overlay
       if (labEnvironmentGroup) labEnvironmentGroup.visible = false;
       if (walkthroughStationsGroup) walkthroughStationsGroup.visible = false;
+      if (arObjectGroup) arObjectGroup.visible = false;
 
       // Hide walkthrough HUD & controls
       if (DOM.walkthroughHud) DOM.walkthroughHud.style.display = 'none';
@@ -3091,23 +4124,29 @@
       // Show AR HUD overlay with spatial placement tools
       if (DOM.arOverlay) DOM.arOverlay.style.display = 'flex';
       if (DOM.arSpatialTools) DOM.arSpatialTools.style.display = 'flex';
+      if (DOM.arPrintMarkersBtn) DOM.arPrintMarkersBtn.style.display = 'none';
       if (DOM.arStatusBadge) {
         if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '✨';
-        if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod AR Spasial WebXR';
+        if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod A: Spatial AR (WebXR)';
+      }
+      if (DOM.arHintBanner) {
+        DOM.arHintBanner.innerHTML = '<span>✨ Halakan peranti ke lantai/meja dan tekan <strong>Letak 8 Stesen di Ruang Ini</strong> • Ketik organel untuk teroka</span>';
       }
 
-      // Sync stats & drawer
+      // Aktifkan 8 stesen world-locked untuk Mod A (Spatial AR)
+      arWorldState.active = true;
+      arWorldState.subMode = 'spatial';
+      arState.isPlaced = false;
+      buildARWorldStations();
+      buildARWorldCompass();
+      // Letakkan 8 stesen pada koordinat awal ruang XR (0, 0, -1.5) sehingga pengguna memilih titik permukaan hit-test
+      positionARWorldStationsSpatial(new THREE.Vector3(0, -0.25, -1.4), 0);
+
       updateHUD();
       renderARStationsDrawer();
-
       setupARReticle();
 
-      if (arObjectGroup) {
-        arObjectGroup.visible = true;
-        arObjectGroup.position.set(0, -0.2, -1.2);
-        arObjectGroup.scale.set(0.35, 0.35, 0.35);
-      }
-      switchARModel(arState.activeModel || 'animal');
+      updateARTrackingStatusBanner('ok', '✨ Spatial AR (WebXR) Aktif: Gerakkan kamera perlahan untuk mengesan permukaan & letakkan 8 stesen.');
 
       session.addEventListener('end', () => {
         xrSession = null;
@@ -3116,12 +4155,31 @@
         selectMode('3d');
       });
 
-      alertToast('✨ Mod AR Spasial Aktif: Halakan telefon ke meja/lantai untuk mengesan permukaan.');
+      alertToast('✨ Mod A (Spatial AR WebXR) Aktif: 8 stesen ditempatkan di sekeliling ruang fizikal anda.');
     } catch (err) {
       console.warn('WebXR AR session request failed:', err);
-      showARUnsupportedNotice('Sesi WebXR AR tidak dapat dimulakan. Beralih ke Mod Kamera Interaktif.');
-      selectMode('camera-ar');
+      showARUnsupportedNotice('Sesi WebXR AR tidak dapat dimulakan. Beralih ke Mod C (AR Orientasi Dunia).');
+      await selectMode('camera-ar');
     }
+  }
+
+  // Letakkan 8 stesen dalam koordinat dunia sebenar (Mod A Spatial WebXR)
+  function positionARWorldStationsSpatial(centerPos, headingRad = 0) {
+    arWorldState.spatialOrigin.copy(centerPos);
+    const cosH = Math.cos(headingRad);
+    const sinH = Math.sin(headingRad);
+
+    arWorldState.stationGroups.forEach((group) => {
+      const cfg = group.userData.stationConfig;
+      const [ox, oy, oz] = cfg.spatialOffset || [0, 0, -1.4];
+      const rx = ox * cosH - oz * sinH;
+      const rz = ox * sinH + oz * cosH;
+
+      group.position.set(centerPos.x + rx, centerPos.y + oy, centerPos.z + rz);
+      group.scale.setScalar(0.38);
+      group.visible = true;
+      group.lookAt(centerPos.x, group.position.y, centerPos.z);
+    });
   }
 
   function setupARReticle() {
@@ -3135,18 +4193,27 @@
     }
 
     if (DOM.arPlaceBtn) {
+      DOM.arPlaceBtn.textContent = '📍 Letak 8 Stesen AR di Ruang Ini';
       DOM.arPlaceBtn.onclick = () => {
-        if (reticleMesh && reticleMesh.visible && arObjectGroup) {
+        if (reticleMesh && reticleMesh.visible) {
           const pos = new THREE.Vector3();
           const quat = new THREE.Quaternion();
           const scl = new THREE.Vector3();
           reticleMesh.matrix.decompose(pos, quat, scl);
 
-          arObjectGroup.position.copy(pos);
-          arObjectGroup.quaternion.copy(quat);
+          const euler = new THREE.Euler().setFromQuaternion(quat, 'YXZ');
+          positionARWorldStationsSpatial(pos, euler.y);
           arState.isPlaced = true;
           reticleMesh.visible = false;
-          alertToast('📍 Model berjaya diletakkan di atas permukaan meja!');
+          updateARTrackingStatusBanner('ok', '📍 8 Stesen Organel dikunci pada koordinat dunia ruang fizikal anda!');
+          alertToast('📍 8 Stesen berjaya dikunci di sekeliling permukaan ruang ini!');
+        } else {
+          // Jika permukaan belum dikesan, letakkan relatif pada kedudukan semasa dalam world space
+          const camPos = new THREE.Vector3();
+          camera.getWorldPosition(camPos);
+          positionARWorldStationsSpatial(new THREE.Vector3(camPos.x, camPos.y - 0.35, camPos.z), 0);
+          arState.isPlaced = true;
+          alertToast('📍 8 Stesen ditempatkan di sekeliling kedudukan semasa anda (World Space).');
         }
       };
     }
@@ -3161,7 +4228,8 @@
       try { await xrSession.end(); } catch (_) {}
       xrSession = null;
     }
-    DOM.arOverlay.style.display = 'none';
+    stopARWorldExploration();
+    if (DOM.arOverlay) DOM.arOverlay.style.display = 'none';
     renderer.xr.enabled = false;
   }
 
@@ -3178,6 +4246,1050 @@
     animal: null,
     plant: null
   };
+
+  // ==============================================================================
+  // AR WORLD-LOCKED STATION BUILDER — Bina 8 stesen AR pada lokasi berasingan
+  // ==============================================================================
+
+  function buildARWorldStations() {
+    // Bersih stesen lama jika ada
+    arWorldState.stationGroups.forEach(g => { if (g.parent) g.parent.remove(g); });
+    arWorldState.stationGroups = [];
+
+    AR_WORLD_STATIONS.forEach((stnConfig, idx) => {
+      const stationGroup = new THREE.Group();
+      stationGroup.name = `ARWorldStation_${idx}_${stnConfig.stationKey}`;
+
+      // 1. Model 3D Organel terperinci (KSSM Tingkatan 1 + GLB Sel Haiwan/Tumbuhan)
+      const organelleModel = buildOrganelleModel(stnConfig.stationKey, stnConfig.color);
+      organelleModel.position.set(0, 0.15, 0);
+      stationGroup.add(organelleModel);
+
+      // 2. Papan nama stesen (melayang di atas model dengan arah & nombor stesen)
+      const labelTitle = `Stesen ${stnConfig.slotNumber}: ${stnConfig.label}`;
+      const labelSub = `Arah ${stnConfig.directionName} • Ketik Untuk Teroka & Kuiz`;
+      const labelGroup = buildStationLabel(labelTitle, labelSub, stnConfig.icon, stnConfig.color, stnConfig.stationNumber);
+      labelGroup.position.set(0, 1.35, 0);
+      stationGroup.add(labelGroup);
+
+      // 3. Pedestal hologram & gelang penanda di bawah model
+      const pedGeo = new THREE.CylinderGeometry(0.65, 0.8, 0.14, 24);
+      const pedMat = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        roughness: 0.35,
+        metalness: 0.4,
+        transparent: true,
+        opacity: 0.85
+      });
+      const pedestal = new THREE.Mesh(pedGeo, pedMat);
+      pedestal.position.y = -0.68;
+      stationGroup.add(pedestal);
+
+      const ringGeo = new THREE.RingGeometry(0.75, 0.95, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: stnConfig.color, side: THREE.DoubleSide, transparent: true, opacity: 0.75
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = -0.6;
+      stationGroup.add(ring);
+
+      // 4. Penanda Interaksi (Glowing Interactive Beacon di atas papan nama)
+      const beacon = createBeaconMesh(stnConfig.color);
+      beacon.scale.setScalar(0.65);
+      beacon.position.set(0, 1.95, 0);
+      stationGroup.add(beacon);
+
+      // 5. Tiang cahaya lembut (beam)
+      const beamGeo = new THREE.CylinderGeometry(0.06, 0.45, 2.6, 12);
+      const beamMat = new THREE.MeshBasicMaterial({
+        color: stnConfig.color, transparent: true, opacity: 0.12, depthWrite: false
+      });
+      const beam = new THREE.Mesh(beamGeo, beamMat);
+      beam.position.y = 0.55;
+      stationGroup.add(beam);
+
+      // 6. Sfera collider besar supaya mudah diketik pada skrin iPad/telefon
+      const hitCollider = new THREE.Mesh(
+        new THREE.SphereGeometry(1.15, 12, 12),
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+      );
+      hitCollider.position.set(0, 0.25, 0);
+      hitCollider.userData = {
+        id: stnConfig.stationKey,
+        stationNumber: stnConfig.stationNumber,
+        slotNumber: stnConfig.slotNumber,
+        pickable: true
+      };
+      stationGroup.add(hitCollider);
+
+      // Simpan metadata
+      stationGroup.userData = {
+        stationConfig: stnConfig,
+        stationIndex: idx,
+        organelleModel,
+        labelGroup,
+        beacon,
+        ring,
+        beam,
+        baseAngleDeg: stnConfig.angleDeg,
+        radius: stnConfig.radius
+      };
+
+      //PENTING: Letakkan terus dalam scene (WORLD SPACE), BUKAN camera.add()!
+      stationGroup.visible = false;
+      scene.add(stationGroup);
+      arWorldState.stationGroups.push(stationGroup);
+    });
+  }
+
+  // Kira koordinat world-space untuk 8 stesen berdasarkan sudut relatif kepada titik mula (0° = Depan)
+  function positionARWorldStations() {
+    const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
+    arWorldState.stationGroups.forEach((group, idx) => {
+      const cfg = group.userData.stationConfig;
+      // Dalam scene Three.js, arah hadapan kalibrasi (0°) ialah paksi -Z:
+      // 0° (Depan)   -> ( 0,    y, -R)
+      // 90° (Kanan)  -> (+R,    y,  0)
+      // 180° (Belakang) -> (0,  y, +R)
+      // 270° (Kiri)  -> (-R,    y,  0)
+      const rad = THREE.MathUtils.degToRad(cfg.angleDeg);
+      const stationX = Math.sin(rad) * cfg.radius;
+      const stationZ = -Math.cos(rad) * cfg.radius;
+      const stationY = eyeY - 0.15;
+
+      group.position.set(stationX, stationY, stationZ);
+      const isFocused = (arWorldState.focusedStationIdx === idx);
+      group.scale.setScalar(isFocused ? arWorldState.focusedStationScale : 1.0);
+      group.visible = true;
+
+      // Model menghadap ke arah titik pemerhati di pusat dunia (0, stationY, 0)
+      group.lookAt(0, stationY, 0);
+    });
+  }
+
+  // Bina model 3D pendidikan yang jelas & tepat untuk setiap stesen AR (menggunakan GLB berkualiti tinggi untuk Nukleus, Membran Sel, Mitokondrion, Sel Haiwan & Sel Tumbuhan)
+  function buildOrganelleModel(organelleKey, color) {
+    const group = new THREE.Group();
+    group.userData = { id: organelleKey, organelleId: organelleKey, pickable: true };
+
+    // 1. Model Penuh Sel Haiwan & Sel Tumbuhan (GLB + fallback prosedur)
+    if (organelleKey === 'animal') {
+      const holder = new THREE.Group();
+      buildProceduralAnimalCell(holder);
+      holder.scale.setScalar(0.55);
+      group.add(holder);
+      mountGLBIntoContainer(group, 'animal', 'ar-world', {
+        organelleId: 'animal',
+        stationId: 'stn-8-comparison',
+        stationNumber: 8,
+        alignOnTable: false
+      });
+      return group;
+    }
+
+    if (organelleKey === 'plant') {
+      const holder = new THREE.Group();
+      buildProceduralPlantCell(holder);
+      holder.scale.setScalar(0.55);
+      group.add(holder);
+      mountGLBIntoContainer(group, 'plant', 'ar-world', {
+        organelleId: 'plant',
+        stationId: 'stn-6-wall',
+        stationNumber: 6,
+        alignOnTable: false
+      });
+      return group;
+    }
+
+    // 2. Pemetaan organel kepada nombor stesen (buildStylizedOrganelle sebagai fallback segera)
+    const keyToNum = {
+      nucleus: 1,
+      membrane: 2,
+      cytoplasm: 3,
+      mitochondria: 4,
+      chloroplast: 5,
+      wall: 6,
+      vacuole: 7
+    };
+
+    const stnNum = keyToNum[organelleKey];
+    if (stnNum) {
+      const detailed = buildStylizedOrganelle(stnNum, color);
+      detailed.scale.setScalar(1.65);
+      detailed.traverse(n => {
+        if (n.isMesh) {
+          n.userData = { ...n.userData, id: organelleKey, organelleId: organelleKey, stationNumber: stnNum, pickable: true };
+        }
+      });
+      group.add(detailed);
+
+      // Naik taraf kepada model GLB untuk Nukleus (Stesen 1), Membran Sel (Stesen 2), dan Mitokondrion (Stesen 4)
+      if (STATION_GLB_MAP[organelleKey]) {
+        mountGLBIntoContainer(group, organelleKey, 'ar-world', {
+          organelleId: organelleKey,
+          stationId: STATION_GLB_MAP[organelleKey].stationId,
+          stationNumber: stnNum,
+          alignOnTable: false
+        });
+      }
+      return group;
+    }
+
+    const fallbackMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.55, 18, 14),
+      new THREE.MeshStandardMaterial({ color: color || 0x2dd4bf, roughness: 0.3 })
+    );
+    fallbackMesh.userData = { id: organelleKey, organelleId: organelleKey, pickable: true };
+    group.add(fallbackMesh);
+    return group;
+  }
+
+  // Bina papan nama stesen (floating label dengan status lencana)
+  function buildStationLabel(titleText, subText, icon, color, stationNumber) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 170;
+    const ctx = canvas.getContext('2d');
+
+    const isDone = State.completedStations.has(stationNumber);
+    const borderHex = isDone ? '#10b981' : ('#' + color.toString(16).padStart(6, '0'));
+
+    // Latar belakang kaca gelap
+    ctx.fillStyle = 'rgba(8, 15, 28, 0.9)';
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(6, 6, 628, 158, 22);
+      ctx.fill();
+    } else {
+      ctx.fillRect(6, 6, 628, 158);
+    }
+
+    // Sempadan warna stesen
+    ctx.strokeStyle = borderHex;
+    ctx.lineWidth = 5;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(6, 6, 628, 158, 22);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(6, 6, 628, 158);
+    }
+
+    // Tajuk utama
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 34px Nunito, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${icon} ${titleText} ${isDone ? '✓' : ''}`, 320, 62);
+
+    // Sub-teks arah & tindakan
+    ctx.fillStyle = isDone ? '#34d399' : '#5eead4';
+    ctx.font = '700 22px Nunito, Arial, sans-serif';
+    ctx.fillText(isDone ? '✓ Lencana Diperoleh • Ketik Untuk Ulang Kaji' : subText, 320, 118);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const labelMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.3, 0.62),
+      new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide })
+    );
+    labelMesh.userData = { isLabel: true, stationNumber };
+    return labelMesh;
+  }
+
+  // Kalibrasi arah hadapan — tetapkan arah pandangan semasa sebagai 0° (Depan = Stesen Sel Haiwan)
+  function calibrateARWorldHeading() {
+    if (gyroState.active && gyroState.alpha !== null) {
+      arWorldState.baseHeadingDeg = gyroState.alpha;
+    } else {
+      arWorldState.baseHeadingDeg = 0;
+    }
+    arWorldState.manualYawDeg = 0;
+    arWorldState.manualPitchDeg = 0;
+    arWorldState.currentHeadingDeg = 0;
+    arWorldState.currentPitchDeg = 0;
+    arWorldState.hasCalibrated = true;
+    arWorldState.focusedStationIdx = -1;
+    arWorldState.focusedStationScale = 1.0;
+
+    // Kekalkan 8 stesen pada koordinat dunia mengelilingi pengguna
+    positionARWorldStations();
+
+    // Tetapkan kedudukan kamera mengikut mod duduk/berdiri & pandang terus ke 0° (Depan)
+    const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
+    camera.position.set(0, eyeY, 0);
+    camera.rotation.set(0, 0, 0, 'YXZ');
+
+    checkARWorldStationVisibility();
+    updateARWorldCompass();
+    alertToast('🧭 Kalibrasi Selesai! Pandang Kiri (Mitokondrion), Kanan (Nukleus), Depan (Sel Haiwan) & Belakang (Sel Tumbuhan).');
+  }
+
+  // Tukar Mod Duduk / Berdiri (Keselamatan & Keselesaan Murid)
+  function toggleARPostureMode() {
+    arWorldState.postureMode = (arWorldState.postureMode === 'seated') ? 'standing' : 'seated';
+    const isSeated = (arWorldState.postureMode === 'seated');
+    if (DOM.arPostureIcon) DOM.arPostureIcon.textContent = isSeated ? 'chair' : 'accessibility_new';
+    if (DOM.arPostureText) DOM.arPostureText.textContent = isSeated ? 'Duduk' : 'Berdiri';
+
+    if (arWorldState.active && arWorldState.subMode === 'orientation') {
+      const eyeY = isSeated ? 1.25 : 1.6;
+      camera.position.set(0, eyeY, 0);
+      positionARWorldStations();
+      checkARWorldStationVisibility();
+    }
+    alertToast(isSeated
+      ? '🪑 Mod Duduk Aktif: Pusing kerusi atau seret skrin tanpa perlu berjalan.'
+      : '🧍 Mod Berdiri Aktif: Pusing badan dengan selamat di tempat anda.');
+  }
+
+  // Kemas kini kamera berdasarkan orientasi peranti + offset manual (Mod C — AR Orientasi Dunia)
+  function updateARWorldCamera(alphaDeg, betaDeg, gammaDeg) {
+    if (!arWorldState.active || arWorldState.subMode !== 'orientation') return;
+
+    // Dalam DeviceOrientation, apabila pengguna pusing ke kanan (ikut jam), alpha berkurang pada kebanyakan peranti
+    // Kita normalkan supaya currentHeadingDeg ialah sudut kompas ikut jam (0°=Depan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
+    let sensorHeadingCW = 0;
+    if (arWorldState.sensorReceived && typeof alphaDeg === 'number') {
+      sensorHeadingCW = (arWorldState.baseHeadingDeg - alphaDeg);
+    }
+
+    const totalHeadingDeg = ((sensorHeadingCW + arWorldState.manualYawDeg) % 360 + 360) % 360;
+    arWorldState.currentHeadingDeg = totalHeadingDeg;
+
+    // Dalam Three.js (YXZ): rotation.y = 0 pandang -Z (0° Depan).
+    // rotation.y = -90° (-PI/2) pandang +X (90° Kanan).
+    // rotation.y = +90° (+PI/2) pandang -X (270° Kiri).
+    const yawRad = -THREE.MathUtils.degToRad(totalHeadingDeg);
+
+    let sensorPitchDeg = 0;
+    if (arWorldState.sensorReceived && typeof betaDeg === 'number') {
+      sensorPitchDeg = Math.max(-45, Math.min(45, betaDeg - 80));
+    }
+    const totalPitchDeg = Math.max(-55, Math.min(55, sensorPitchDeg + arWorldState.manualPitchDeg));
+    arWorldState.currentPitchDeg = totalPitchDeg;
+    const pitchRad = THREE.MathUtils.degToRad(totalPitchDeg);
+
+    const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
+    camera.position.set(0, eyeY, 0);
+    camera.rotation.set(pitchRad, yawRad, 0, 'YXZ');
+
+    checkARWorldStationVisibility();
+    updateARWorldCompass();
+  }
+
+  // Fungsi pembantu untuk menghalakan pandangan ke arah sudut tertentu (digunakan oleh ujian, tab pantas & simulasi)
+  function lookAtARHeading(targetHeadingDeg, targetPitchDeg = 0) {
+    if (!arWorldState.active) return;
+    const calPrompt = document.getElementById('ar-world-calibration-ui');
+    if (calPrompt) calPrompt.style.display = 'none';
+    let sensorHeadingCW = 0;
+    if (arWorldState.sensorReceived && typeof gyroState.alpha === 'number') {
+      sensorHeadingCW = (arWorldState.baseHeadingDeg - gyroState.alpha);
+    }
+    arWorldState.manualYawDeg = targetHeadingDeg - sensorHeadingCW;
+    arWorldState.manualPitchDeg = targetPitchDeg;
+    updateARWorldCamera(gyroState.alpha || 0, gyroState.beta || 80, gyroState.gamma || 0);
+  }
+
+  // Semak stesen yang sedang dalam medan pandangan kamera (Frustum & Sudut Pandangan)
+  function checkARWorldStationVisibility() {
+    if (!arWorldState.active || !camera) return;
+    const camPos = new THREE.Vector3();
+    const camDir = new THREE.Vector3();
+    camera.getWorldPosition(camPos);
+    camera.getWorldDirection(camDir);
+
+    let closestInFOV = null;
+    let closestAngle = arWorldState.fovThresholdDeg;
+    let closestIdx = -1;
+
+    arWorldState.stationGroups.forEach((group, idx) => {
+      const stationDir = new THREE.Vector3();
+      stationDir.subVectors(group.position, camPos).normalize();
+
+      const dotProduct = camDir.dot(stationDir);
+      const angleDeg = THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, dotProduct))));
+
+      // Paparkan hanya stesen yang berada dalam medan pandangan aktif kamera (<= 34°)
+      // supaya stesen bersebelahan (45° jauhnya) tidak bertindih di tepi skrin lebar
+      const isVisibleInFrustum = angleDeg <= 34;
+      arWorldState.stationVisibility[idx] = isVisibleInFrustum;
+      group.visible = isVisibleInFrustum;
+
+      if (angleDeg < closestAngle) {
+        closestAngle = angleDeg;
+        closestInFOV = group;
+        closestIdx = idx;
+      }
+    });
+
+    arWorldState.activeStation = closestInFOV ? closestInFOV.userData.stationConfig : null;
+
+    // Animasi stesen yang dalam pandangan (bersinar)
+    arWorldState.stationGroups.forEach((group, idx) => {
+      const inFOV = (idx === closestIdx);
+      const ring = group.userData.ring;
+      const beam = group.userData.beam;
+      if (ring) {
+        ring.material.opacity = inFOV ? 1.0 : 0.4;
+        ring.scale.setScalar(inFOV ? 1.18 : 1.0);
+      }
+      if (beam) beam.material.opacity = inFOV ? 0.3 : 0.08;
+    });
+
+    // Tunjuk banner "Stesen <Nama> Ditemui!" apabila menghadap stesen
+    if (closestIdx !== arWorldState.lastDetectedIdx) {
+      arWorldState.lastDetectedIdx = closestIdx;
+      if (closestIdx >= 0 && closestInFOV) {
+        const cfg = closestInFOV.userData.stationConfig;
+        showARStationDetectedBanner(cfg);
+      } else {
+        hideARStationDetectedBanner();
+      }
+    }
+  }
+
+  // Paparkan banner "Stesen <Organel> Ditemui!" yang kemas & boleh diketik
+  function showARStationDetectedBanner(cfg) {
+    let banner = document.getElementById('ar-world-detected-banner');
+    if (!banner) {
+      banner = document.createElement('button');
+      banner.type = 'button';
+      banner.id = 'ar-world-detected-banner';
+      banner.style.cssText = `
+        position: fixed; bottom: max(88px, calc(env(safe-area-inset-bottom) + 80px)); left: 50%;
+        transform: translateX(-50%);
+        background: rgba(8, 15, 28, 0.92); border: 2px solid #2dd4bf;
+        border-radius: 999px; padding: 8px 20px;
+        font-family: 'Nunito', Arial, sans-serif; font-size: 14px; font-weight: 900;
+        color: #fff; z-index: 32; pointer-events: auto; cursor: pointer;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+        transition: opacity 0.25s, transform 0.25s;
+        white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
+      `;
+      if (!document.getElementById('ar-world-style')) {
+        const style = document.createElement('style');
+        style.id = 'ar-world-style';
+        style.textContent = `
+          #ar-world-compass-wrap {
+            position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: max(16px, env(safe-area-inset-left));
+            z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 4px;
+            pointer-events: auto;
+          }
+          #ar-world-compass {
+            width: 112px; height: 112px; border-radius: 50%;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5); cursor: pointer;
+          }
+          #ar-world-tracking-banner {
+            position: fixed; bottom: max(50px, calc(env(safe-area-inset-bottom) + 42px)); left: 50%;
+            transform: translateX(-50%); z-index: 29;
+            background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(45, 212, 191, 0.45);
+            border-radius: 999px; padding: 5px 14px; font-size: 11px; font-weight: 800;
+            color: #e2e8f0; pointer-events: auto; text-align: center; max-width: 92vw;
+          }
+          @media (max-width: 768px) {
+            #ar-world-compass { width: 92px; height: 92px; }
+            #ar-world-compass-wrap { bottom: max(14px, env(safe-area-inset-bottom)); left: 12px; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      document.body.appendChild(banner);
+    }
+    const hexColor = '#' + cfg.color.toString(16).padStart(6, '0');
+    banner.style.borderColor = hexColor;
+    banner.style.display = 'inline-flex';
+    banner.style.alignItems = 'center';
+    banner.style.gap = '8px';
+    banner.style.opacity = '1';
+    banner.innerHTML = `<span>${cfg.icon}</span><span>Stesen ${cfg.label} Ditemui!</span><span style="font-size:11px;padding:2px 8px;border-radius:999px;background:${hexColor}33;color:#5eead4;">Ketik Teroka</span>`;
+    banner.onclick = (e) => {
+      e.stopPropagation();
+      selectAROrganelle(cfg.stationKey, cfg.stationNumber);
+    };
+    arWorldState.detectedBanner = banner;
+  }
+
+  function hideARStationDetectedBanner() {
+    const banner = document.getElementById('ar-world-detected-banner');
+    if (banner) {
+      banner.style.opacity = '0';
+      banner.style.pointerEvents = 'none';
+    }
+  }
+
+  // Paparkan banner status tracking & arahan pemulihan yang jujur
+  function updateARTrackingStatusBanner(level, message) {
+    let el = document.getElementById('ar-world-tracking-banner');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'ar-world-tracking-banner';
+      document.body.appendChild(el);
+    }
+    if (!message) {
+      el.style.display = 'none';
+      return;
+    }
+    el.style.display = 'block';
+    if (level === 'lost' || level === 'warning') {
+      el.style.borderColor = '#f59e0b';
+      el.style.color = '#fde047';
+      el.style.background = 'rgba(28, 18, 8, 0.92)';
+    } else {
+      el.style.borderColor = 'rgba(45, 212, 191, 0.45)';
+      el.style.color = '#cbd5e1';
+      el.style.background = 'rgba(15, 23, 42, 0.85)';
+    }
+    el.innerHTML = message;
+    arWorldState.trackingBannerEl = el;
+  }
+
+  // Bina kompas / radar AR mini
+  function buildARWorldCompass() {
+    let wrap = document.getElementById('ar-world-compass-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'ar-world-compass-wrap';
+      const compass = document.createElement('canvas');
+      compass.id = 'ar-world-compass';
+      compass.width = 128;
+      compass.height = 128;
+      compass.title = 'Radar Stesen AR (Ketik titik stesen untuk pusing pantas dalam mod duduk)';
+      wrap.appendChild(compass);
+
+      // Klik pada titik kompas membolehkan murid dalam mod duduk berpusing terus ke arah stesen tersebut
+      compass.addEventListener('click', (e) => {
+        if (!arWorldState.active || arWorldState.subMode !== 'orientation') return;
+        const rect = compass.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 128 - 64;
+        const y = ((e.clientY - rect.top) / rect.height) * 128 - 64;
+        if (Math.hypot(x, y) < 14) return;
+        const clickRelRad = Math.atan2(x, -y);
+        const clickRelDeg = THREE.MathUtils.radToDeg(clickRelRad);
+        const newHeading = ((arWorldState.currentHeadingDeg + clickRelDeg) % 360 + 360) % 360;
+        lookAtARHeading(newHeading, 0);
+      });
+
+      document.body.appendChild(wrap);
+    }
+    wrap.style.display = 'flex';
+    arWorldState.compassEl = document.getElementById('ar-world-compass');
+  }
+
+  // Kemas kini paparan radar / kompas AR berdasarkan data tracking sebenar
+  function updateARWorldCompass() {
+    const canvas = arWorldState.compassEl;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cx = 64, cy = 64, r = 56;
+
+    ctx.clearRect(0, 0, 128, 128);
+
+    // Latar radar
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(8, 15, 28, 0.88)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(45, 212, 191, 0.7)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Gelang dalam radar
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Kon medan pandangan semasa (FOV cone di bahagian atas kompas)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r - 4, -Math.PI / 2 - 0.48, -Math.PI / 2 + 0.48);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(45, 212, 191, 0.18)';
+    ctx.fill();
+
+    const headingRad = THREE.MathUtils.degToRad(arWorldState.currentHeadingDeg || 0);
+
+    AR_WORLD_STATIONS.forEach((cfg, idx) => {
+      const stationAngleRad = THREE.MathUtils.degToRad(cfg.angleDeg);
+      const relAngle = stationAngleRad - headingRad;
+      const dotR = r - 14;
+      const dotX = cx + Math.sin(relAngle) * dotR;
+      const dotY = cy - Math.cos(relAngle) * dotR;
+
+      const isActive = (idx === arWorldState.lastDetectedIdx);
+      const isDone = State.completedStations.has(cfg.stationNumber);
+      const colorHex = isDone ? '#10b981' : ('#' + cfg.color.toString(16).padStart(6, '0'));
+
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, isActive ? 8 : 5.5, 0, Math.PI * 2);
+      ctx.fillStyle = colorHex;
+      ctx.fill();
+      if (isActive) {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Label ringkas arah utama pada radar
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(cfg.slotNumber), dotX, dotY);
+    });
+
+    // Titik pemerhati di tengah
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+
+    // Teks darjah semasa di bawah kompas
+    ctx.fillStyle = '#5eead4';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    const degTxt = Math.round(((arWorldState.currentHeadingDeg % 360) + 360) % 360) + '°';
+    ctx.fillText(degTxt, cx, cy + 16);
+  }
+
+  // Animasi stesen AR dunia (dipanggil setiap frame dalam renderLoop)
+  function animateARWorldStations(elapsedTime) {
+    if (!arWorldState.active) return;
+    const camPos = new THREE.Vector3();
+    camera.getWorldPosition(camPos);
+
+    arWorldState.stationGroups.forEach((group, idx) => {
+      if (!group.visible) return;
+      const organelle = group.userData.organelleModel;
+      if (organelle) {
+        organelle.position.y = 0.15 + Math.sin(elapsedTime * 1.3 + idx * 0.8) * 0.08;
+        if (arState.autoRotate) {
+          organelle.rotation.y = elapsedTime * 0.45 + idx * (Math.PI / 4);
+        }
+      }
+      if (group.userData.beacon) {
+        group.userData.beacon.rotation.y = elapsedTime * 1.5;
+      }
+      // Pastikan papan nama sentiasa menghadap kamera
+      group.children.forEach(child => {
+        if (child.userData && child.userData.isLabel) {
+          child.lookAt(camPos);
+        }
+      });
+    });
+
+    if (arWorldState.subMode === 'spatial') {
+      // Dalam Mod A (WebXR), kemas kini arah kompas & stesen dalam FOV daripada pose kamera XR sebenar
+      const camDir = new THREE.Vector3();
+      camera.getWorldDirection(camDir);
+      const headingDeg = ((THREE.MathUtils.radToDeg(Math.atan2(camDir.x, -camDir.z)) % 360) + 360) % 360;
+      arWorldState.currentHeadingDeg = headingDeg;
+      checkARWorldStationVisibility();
+      updateARWorldCompass();
+    }
+  }
+
+  // Mulakan Mod C — Penerokaan AR Dunia Berasaskan Orientasi (8 Stesen Berasingan)
+  async function startARWorldExploration() {
+    stopMarkerAR();
+    const camOk = await startInteractiveCamera(true);
+    if (!camOk) return;
+
+    arWorldState.active = true;
+    arWorldState.subMode = 'orientation';
+    arState.activeModel = 'world';
+
+    // PENTING: Sembunyikan arObjectGroup lama supaya tiada Makmal Mini berkumpul di tengah skrin!
+    if (arObjectGroup) arObjectGroup.visible = false;
+
+    // Kemas kini butang tab aktif
+    if (DOM.arBtnWorld) DOM.arBtnWorld.classList.add('active');
+    if (DOM.arBtnMarker) DOM.arBtnMarker.classList.remove('active');
+    if (DOM.arBtnAnimal) DOM.arBtnAnimal.classList.remove('active');
+    if (DOM.arBtnPlant) DOM.arBtnPlant.classList.remove('active');
+    if (DOM.arBtnMinilab) DOM.arBtnMinilab.classList.remove('active');
+    if (DOM.arPrintMarkersBtn) DOM.arPrintMarkersBtn.style.display = 'none';
+    if (DOM.arPostureBtn) DOM.arPostureBtn.style.display = 'inline-flex';
+    if (DOM.arRecenterText) DOM.arRecenterText.textContent = 'Kalibrasi';
+
+    // Bina 8 stesen AR di lokasi sudut berasingan dalam world space
+    buildARWorldStations();
+    buildARWorldCompass();
+
+    // Setup DeviceOrientation (untuk peranti yang tidak memerlukan klik izin iOS)
+    setupDeviceOrientation();
+
+    // Kalibrasi awal supaya murid terus melihat Stesen 3 (Sel Haiwan) di Depan (0°),
+    // pusing Kiri (270°) -> Mitokondrion, Kanan (90°) -> Nukleus, Belakang (180°) -> Sel Tumbuhan
+    calibrateARWorldHeading();
+
+    // Tunjuk dialog kalibrasi & kebenaran sensor iOS
+    showARWorldCalibrationUI();
+
+    if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '🧭';
+    if (DOM.arBadgeText) {
+      DOM.arBadgeText.textContent = arWorldState.sensorReceived
+        ? 'Mod C: AR Orientasi Dunia'
+        : 'Mod C: AR Orientasi (Sedia Kalibrasi)';
+    }
+    if (DOM.arHintBanner) {
+      DOM.arHintBanner.innerHTML = '<span>🧭 Pusing Peranti / Seret Skrin: <strong>Kiri</strong>=Mitokondrion • <strong>Kanan</strong>=Nukleus • <strong>Depan</strong>=Sel Haiwan • <strong>Belakang</strong>=Sel Tumbuhan</span>';
+    }
+
+    updateARTrackingStatusBanner(
+      'ok',
+      'ℹ️ Mod Orientasi menjejak arah pusingan (3DOF), bukan translasi berjalan fizikal. Pusing di tempat anda atau seret skrin.'
+    );
+  }
+
+  // Tunjuk UI Kalibrasi & Permintaan Sensor iOS Safari
+  function showARWorldCalibrationUI() {
+    let calUI = document.getElementById('ar-world-calibration-ui');
+    if (!calUI) {
+      calUI = document.createElement('div');
+      calUI.id = 'ar-world-calibration-ui';
+      calUI.style.cssText = `
+        position: fixed; bottom: max(22px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+        background: rgba(8, 15, 28, 0.96); border: 2px solid #2dd4bf;
+        border-radius: 18px; padding: 14px 20px; z-index: 38;
+        font-family: 'Nunito', Arial, sans-serif; color: #fff; text-align: center;
+        width: min(440px, 92vw); box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+        pointer-events: auto;
+      `;
+      document.body.appendChild(calUI);
+    }
+    calUI.style.display = 'block';
+    const needsIOSPerm = (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function');
+    calUI.innerHTML = `
+      <div style="font-size:14px; margin-bottom:6px; color:#2dd4bf; font-weight:900;">🧭 Kalibrasi Arah Dunia AR (Mod C)</div>
+      <div style="font-size:12px; margin-bottom:12px; color:#cbd5e1; line-height:1.45;">
+        Hadapkan iPad / kamera ke arah hadapan meja anda dan tekan <strong>Kalibrasi &amp; Aktifkan Sensor</strong>.<br>
+        <span style="color:#94a3b8; font-size:11px;">Kiri: Mitokondrion • Kanan: Nukleus • Depan: Sel Haiwan • Belakang: Sel Tumbuhan</span>
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+        <button type="button" id="ar-world-calibrate-btn" style="
+          background: linear-gradient(135deg, #0d9488, #10b981);
+          color: white; border: none; border-radius: 10px; padding: 9px 18px;
+          font-size: 13px; font-weight: 900; cursor: pointer;
+        ">${needsIOSPerm ? '📡 Aktifkan Sensor iPad & Kalibrasi' : '🧭 Tetapkan Arah Hadapan (0°)'}</button>
+        <button type="button" id="ar-world-close-cal-btn" style="
+          background: rgba(255,255,255,0.1); color: #cbd5e1;
+          border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 9px 14px;
+          font-size: 12px; font-weight: 800; cursor: pointer;
+        ">Mula Teroka</button>
+      </div>
+    `;
+
+    document.getElementById('ar-world-calibrate-btn').onclick = async (e) => {
+      e.stopPropagation();
+      await requestiOSOrientationPermission();
+      calibrateARWorldHeading();
+      calUI.style.display = 'none';
+    };
+    document.getElementById('ar-world-close-cal-btn').onclick = (e) => {
+      e.stopPropagation();
+      calUI.style.display = 'none';
+      if (!arWorldState.hasCalibrated) {
+        calibrateARWorldHeading();
+      }
+    };
+  }
+
+  // Hentikan Mod Penerokaan AR Dunia
+  function stopARWorldExploration() {
+    arWorldState.active = false;
+    arWorldState.hasCalibrated = false;
+    arWorldState.lastDetectedIdx = -1;
+    arWorldState.focusedStationIdx = -1;
+
+    arWorldState.stationGroups.forEach(g => { g.visible = false; });
+
+    const calUI = document.getElementById('ar-world-calibration-ui');
+    if (calUI) calUI.style.display = 'none';
+    const compassWrap = document.getElementById('ar-world-compass-wrap');
+    if (compassWrap) compassWrap.style.display = 'none';
+    const trackBanner = document.getElementById('ar-world-tracking-banner');
+    if (trackBanner) trackBanner.style.display = 'none';
+    hideARStationDetectedBanner();
+  }
+
+  // Handle ketukan (tap) pada stesen AR dunia atau stesen Marker AR
+  function handleARWorldTap(clientX, clientY) {
+    if (!renderer || !camera) return false;
+
+    const rect = renderer.domElement.getBoundingClientRect();
+    arPointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    arPointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    arRaycaster.setFromCamera(arPointer, camera);
+
+    const targetGroups = arMarkerState.active
+      ? arMarkerState.anchors
+      : (arWorldState.active ? arWorldState.stationGroups : []);
+
+    if (!targetGroups.length) return false;
+
+    const pickables = [];
+    targetGroups.forEach(group => {
+      if (!group.visible) return;
+      group.traverse(child => {
+        if (child.isMesh && child.userData && child.userData.pickable) {
+          pickables.push(child);
+        }
+      });
+    });
+
+    const hits = arRaycaster.intersectObjects(pickables, true);
+    if (hits.length > 0) {
+      let hitObj = hits[0].object;
+      let stationGroup = hitObj;
+      while (stationGroup && (!stationGroup.userData || !stationGroup.userData.stationConfig)) {
+        stationGroup = stationGroup.parent;
+      }
+      if (stationGroup && stationGroup.userData && stationGroup.userData.stationConfig) {
+        const cfg = stationGroup.userData.stationConfig;
+        arWorldState.focusedStationIdx = stationGroup.userData.stationIndex;
+        SoundFX.interact();
+        // Paparkan kad penerangan ringkas & butang kuiz dahulu (mengikut Aliran Murid langkah 7 -> 8 -> 9)
+        selectAROrganelle(cfg.stationKey, cfg.stationNumber);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ==============================================================================
+  // 6.4 MOD B: MARKER AR (8 KAD PENANDA AR BOLEH CETAK — IPAD SAFARI 6DOF POSE)
+  // ==============================================================================
+  function buildMarkerARAnchors() {
+    arMarkerState.anchors.forEach(a => { if (a.parent) a.parent.remove(a); });
+    arMarkerState.anchors = [];
+    arMarkerState.trackedMap = {};
+
+    AR_WORLD_STATIONS.forEach((stnConfig, idx) => {
+      const anchorGroup = new THREE.Group();
+      anchorGroup.name = `ARMarkerAnchor_${stnConfig.markerId}_${stnConfig.stationKey}`;
+
+      const organelleModel = buildOrganelleModel(stnConfig.stationKey, stnConfig.color);
+      organelleModel.scale.setScalar(0.28);
+      organelleModel.position.set(0, 0.14, 0);
+      anchorGroup.add(organelleModel);
+
+      const labelTitle = `Kad #${stnConfig.markerId}: ${stnConfig.label}`;
+      const labelSub = `Stesen ${stnConfig.slotNumber} • Ketik Model Untuk Info & Kuiz`;
+      const labelGroup = buildStationLabel(labelTitle, labelSub, stnConfig.icon, stnConfig.color, stnConfig.stationNumber);
+      labelGroup.scale.setScalar(0.28);
+      labelGroup.position.set(0, 0.42, 0);
+      anchorGroup.add(labelGroup);
+
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.18, 0.23, 32),
+        new THREE.MeshBasicMaterial({ color: stnConfig.color, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.01;
+      anchorGroup.add(ring);
+
+      const hitCollider = new THREE.Mesh(
+        new THREE.SphereGeometry(0.32, 12, 12),
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+      );
+      hitCollider.position.set(0, 0.18, 0);
+      hitCollider.userData = {
+        id: stnConfig.stationKey,
+        stationNumber: stnConfig.stationNumber,
+        pickable: true
+      };
+      anchorGroup.add(hitCollider);
+
+      anchorGroup.userData = {
+        stationConfig: stnConfig,
+        stationIndex: idx,
+        markerId: stnConfig.markerId,
+        organelleModel,
+        labelGroup,
+        ring
+      };
+
+      // PENTING: Sembunyikan apabila penanda belum dikesan (jangan biarkan terapung palsu!)
+      anchorGroup.visible = false;
+      scene.add(anchorGroup);
+      arMarkerState.anchors.push(anchorGroup);
+    });
+  }
+
+  async function startMarkerAR() {
+    stopARWorldExploration();
+    const camOk = await startInteractiveCamera(true);
+    if (!camOk) return;
+
+    arMarkerState.active = true;
+    arMarkerState.simulatedMarkerId = null;
+    arState.activeModel = 'marker';
+
+    if (arObjectGroup) arObjectGroup.visible = false;
+
+    if (DOM.arBtnWorld) DOM.arBtnWorld.classList.remove('active');
+    if (DOM.arBtnMarker) DOM.arBtnMarker.classList.add('active');
+    if (DOM.arBtnAnimal) DOM.arBtnAnimal.classList.remove('active');
+    if (DOM.arBtnPlant) DOM.arBtnPlant.classList.remove('active');
+    if (DOM.arBtnMinilab) DOM.arBtnMinilab.classList.remove('active');
+    if (DOM.arPrintMarkersBtn) DOM.arPrintMarkersBtn.style.display = 'inline-flex';
+    if (DOM.arPostureBtn) DOM.arPostureBtn.style.display = 'none';
+
+    if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '🃏';
+    if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod B: Marker AR (6DOF Kad)';
+    if (DOM.arHintBanner) {
+      DOM.arHintBanner.innerHTML = '<span>🃏 Halakan kamera ke <strong>Kad Penanda AR (#0–#7)</strong> di atas meja • Klik <strong>8 Kad AR</strong> di kiri untuk cetak</span>';
+    }
+
+    // Sediakan pengesan ArUco & penganggar pose 3D POSIT
+    if (window.AR && window.POS && !arMarkerState.detector) {
+      arMarkerState.detector = new window.AR.Detector({ dictionaryName: 'ARUCO_MIP_36h12', maxHammingDistance: 5 });
+      arMarkerState.procCanvas = document.createElement('canvas');
+      arMarkerState.procCanvas.width = 360;
+      arMarkerState.procCanvas.height = 270;
+      arMarkerState.procCtx = arMarkerState.procCanvas.getContext('2d', { willReadFrequently: true });
+      const focalLen = (360 / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+      arMarkerState.posit = new window.POS.Posit(arMarkerState.markerSizeMeters * 1000, focalLen);
+    }
+
+    // Kamera berada di origin (0,0,0) menghadap -Z; setiap anchor kad dikemas kini mengikut pose 6DOF kamera->marker
+    camera.position.set(0, 0, 0);
+    camera.rotation.set(0, 0, 0, 'YXZ');
+
+    buildMarkerARAnchors();
+    updateARTrackingStatusBanner(
+      'lost',
+      '🔍 Menunggu Kad Penanda AR (#0 Mitokondrion .. #7 Vakuol). Halakan kamera ke kad atau buka <a href="markers.html" target="_blank" style="color:#5eead4;text-decoration:underline;">Halaman 8 Kad Cetak</a>.'
+    );
+    alertToast('🃏 Mod B (Marker AR) Aktif: Halakan kamera ke Kad Penanda AR di atas meja.');
+  }
+
+  function stopMarkerAR() {
+    arMarkerState.active = false;
+    arMarkerState.activeMarkerIds = [];
+    arMarkerState.simulatedMarkerId = null;
+    arMarkerState.anchors.forEach(a => { a.visible = false; });
+    const trackBanner = document.getElementById('ar-world-tracking-banner');
+    if (trackBanner) trackBanner.style.display = 'none';
+    hideARStationDetectedBanner();
+  }
+
+  // Kemas kini penjejakan pose 6DOF kad penanda setiap frame
+  function updateMarkerARTracking(elapsedTime) {
+    if (!arMarkerState.active) return;
+
+    const detectedNow = new Set();
+
+    // 1. Jika dalam ujian / simulasi makmal (untuk pengesahan tanpa kad fizikal di hadapan webcam)
+    if (typeof arMarkerState.simulatedMarkerId === 'number' && arMarkerState.simulatedMarkerId >= 0) {
+      const mId = arMarkerState.simulatedMarkerId;
+      const anchor = arMarkerState.anchors.find(a => a.userData.markerId === mId);
+      if (anchor) {
+        detectedNow.add(mId);
+        const off = arMarkerState.simulatedPoseOffset;
+        anchor.position.set(off.x, off.y, off.z);
+        anchor.rotation.set(0.15, off.rotY, 0);
+        anchor.visible = true;
+      }
+    } else if (arMarkerState.detector && arMarkerState.posit && DOM.cameraFeed && DOM.cameraFeed.readyState >= 2) {
+      // 2. Pengesanan sebenar daripada frame video kamera (iPad Safari / Desktop Webcam)
+      const now = performance.now();
+      if (now - arMarkerState.lastDetectTime > 55) {
+        arMarkerState.lastDetectTime = now;
+        const cw = arMarkerState.procCanvas.width;
+        const ch = arMarkerState.procCanvas.height;
+        try {
+          arMarkerState.procCtx.drawImage(DOM.cameraFeed, 0, 0, cw, ch);
+          const imgData = arMarkerState.procCtx.getImageData(0, 0, cw, ch);
+          const markers = arMarkerState.detector.detect(imgData) || [];
+
+          markers.forEach(marker => {
+            const mId = marker.id;
+            const anchor = arMarkerState.anchors.find(a => a.userData.markerId === mId);
+            if (!anchor) return;
+
+            const centeredCorners = marker.corners.map(c => ({
+              x: c.x - (cw / 2),
+              y: (ch / 2) - c.y
+            }));
+
+            const pose = arMarkerState.posit.pose(centeredCorners);
+            if (pose && pose.bestTranslation && pose.bestRotation) {
+              detectedNow.add(mId);
+              const t = pose.bestTranslation; // dalam mm
+              const r = pose.bestRotation;    // matriks 3x3
+
+              // Tukar dari mm ke meter dalam ruang kamera Three.js (-Z ke hadapan)
+              const tx = (t[0] / 1000);
+              const ty = (t[1] / 1000);
+              const tz = -(t[2] / 1000);
+
+              anchor.position.lerp(new THREE.Vector3(tx, ty, Math.min(-0.25, tz)), 0.45);
+
+              const rotMat = new THREE.Matrix4();
+              rotMat.set(
+                r[0][0],  r[0][1],  r[0][2], 0,
+               -r[1][0], -r[1][1], -r[1][2], 0,
+               -r[2][0], -r[2][1], -r[2][2], 0,
+                0,        0,        0,       1
+              );
+              const targetQuat = new THREE.Quaternion().setFromRotationMatrix(rotMat);
+              anchor.quaternion.slerp(targetQuat, 0.45);
+              anchor.visible = true;
+
+              arMarkerState.trackedMap[mId] = {
+                lastSeen: now,
+                visible: true
+              };
+            }
+          });
+        } catch (_) {}
+      } else {
+        // Kekalkan keterlihatan antara sela pengesanan (grace period pendek 320ms)
+        const ts = performance.now();
+        Object.keys(arMarkerState.trackedMap).forEach(k => {
+          const item = arMarkerState.trackedMap[k];
+          if (item && (ts - item.lastSeen) <= 320) {
+            detectedNow.add(Number(k));
+          }
+        });
+      }
+    }
+
+    // 3. Sembunyikan model serta-merta apabila penanda hilang daripada pandangan (Ujian 7: Jangan biarkan terapung palsu!)
+    arMarkerState.activeMarkerIds = Array.from(detectedNow);
+    arMarkerState.anchors.forEach((anchor) => {
+      const mId = anchor.userData.markerId;
+      const isTracked = detectedNow.has(mId);
+      anchor.visible = isTracked;
+      if (isTracked && anchor.userData.organelleModel) {
+        anchor.userData.organelleModel.rotation.y = elapsedTime * 0.6;
+      }
+    });
+
+    if (arMarkerState.activeMarkerIds.length > 0) {
+      const firstId = arMarkerState.activeMarkerIds[0];
+      const anchor = arMarkerState.anchors.find(a => a.userData.markerId === firstId);
+      if (anchor) {
+        const cfg = anchor.userData.stationConfig;
+        showARStationDetectedBanner(cfg);
+        updateARTrackingStatusBanner(
+          'ok',
+          `✅ Penanda #${firstId} (${cfg.label}) dikesan! Model 3D terikat pada pose kad.`
+        );
+      }
+    } else {
+      hideARStationDetectedBanner();
+      updateARTrackingStatusBanner(
+        'lost',
+        '⚠️ Tiada penanda dikesan dalam pandangan kamera. Halakan kamera semula ke Kad Penanda AR (#0–#7) dengan pencahayaan jelas.'
+      );
+    }
+  }
 
   function buildARSystem() {
     // 1. Dedicated Root Group for AR Models
@@ -3518,11 +5630,25 @@
       numBadge.rotation.y = angle;
       miniStnGroup.add(numBadge);
 
-      // Mini Stylized Organelle Model
+      // Mini Organelle Model (GLB for Stations 1, 2, 4; Procedural for 3, 5, 6, 7, 8)
       const organelleMini = buildStylizedOrganelle(stn.number, stn.colorHex);
       organelleMini.scale.set(0.34, 0.34, 0.34);
       organelleMini.position.set(0, 0.32, 0);
       miniStnGroup.add(organelleMini);
+
+      const miniGLBMap = { 1: 'nucleus', 2: 'membrane', 4: 'mitochondria' };
+      if (miniGLBMap[stn.number]) {
+        organelleMini.scale.set(1, 1, 1);
+        mountGLBIntoContainer(organelleMini, miniGLBMap[stn.number], 'mini', {
+          stationId: stn.id,
+          stationNumber: stn.number,
+          stationIndex: i,
+          organelleId: stn.id,
+          isMiniStation: true,
+          registerARPickable: true,
+          alignOnTable: false
+        });
+      }
 
       // Floating Mini Beacon (? or ✓)
       const beaconMini = createBeaconMesh(stn.colorHex);
@@ -3937,13 +6063,71 @@
   // AR MODEL SWITCHING, CAMERA FRAMING & STATIONS DRAWER
   // ==============================================================================
 
-  // Switch between Animal Cell, Plant Cell and Makmal Mini
+  // Switch between 8 World-Locked AR Stations, Marker AR, Animal Cell, Plant Cell and Makmal Mini
   function switchARModel(modelType) {
+    if (modelType === 'marker') {
+      selectMode('marker-ar');
+      return;
+    }
+
+    if (modelType === 'world') {
+      arState.activeModel = 'world';
+      if (DOM.arBtnWorld) DOM.arBtnWorld.classList.add('active');
+      if (DOM.arBtnMarker) DOM.arBtnMarker.classList.remove('active');
+      if (DOM.arBtnAnimal) DOM.arBtnAnimal.classList.remove('active');
+      if (DOM.arBtnPlant) DOM.arBtnPlant.classList.remove('active');
+      if (DOM.arBtnMinilab) DOM.arBtnMinilab.classList.remove('active');
+
+      if (arObjectGroup) arObjectGroup.visible = false;
+      if (State.mode === 'marker-ar') {
+        selectMode('camera-ar');
+        return;
+      }
+      startARWorldExploration();
+      alertToast('🧭 Mod 8 Stesen AR Dunia Aktif: Pusing kiri, kanan, depan & belakang!');
+      return;
+    }
+
+    // Jika berada dalam Mod C (World-Locked AR) dan murid menekan Sel Haiwan atau Sel Tumbuhan,
+    // pusingkan pandangan ke stesen dunia tersebut (Depan 0° atau Belakang 180°) tanpa meruntuhkan 8 stesen dunia!
+    if (arWorldState.active && (modelType === 'animal' || modelType === 'plant')) {
+      arState.activeModel = modelType;
+      if (DOM.arBtnWorld) DOM.arBtnWorld.classList.remove('active');
+      if (DOM.arBtnMarker) DOM.arBtnMarker.classList.remove('active');
+      if (DOM.arBtnAnimal) DOM.arBtnAnimal.classList.toggle('active', modelType === 'animal');
+      if (DOM.arBtnPlant) DOM.arBtnPlant.classList.toggle('active', modelType === 'plant');
+      if (DOM.arBtnMinilab) DOM.arBtnMinilab.classList.remove('active');
+
+      if (arObjectGroup) arObjectGroup.visible = false;
+      arWorldState.stationGroups.forEach(g => { g.visible = true; });
+
+      if (modelType === 'animal') {
+        lookAtARHeading(0); // Depan (0°) -> Stesen 3: Sel Haiwan
+        selectAROrganelle('animal', 8);
+        alertToast('🐾 Menghadap Stesen 3: Sel Haiwan (Arah Depan 0°)');
+      } else {
+        lookAtARHeading(180); // Belakang (180°) -> Stesen 4: Sel Tumbuhan
+        selectAROrganelle('plant', 6);
+        alertToast('🌿 Menghadap Stesen 4: Sel Tumbuhan (Arah Belakang 180°)');
+      }
+      return;
+    }
+
+    // Jika pengguna memilih 'minilab' secara eksplisit (atau berada luar mod world AR)
     arState.activeModel = modelType;
 
+    if (DOM.arBtnWorld) DOM.arBtnWorld.classList.toggle('active', modelType === 'world');
+    if (DOM.arBtnMarker) DOM.arBtnMarker.classList.toggle('active', modelType === 'marker');
     if (DOM.arBtnAnimal) DOM.arBtnAnimal.classList.toggle('active', modelType === 'animal');
     if (DOM.arBtnPlant) DOM.arBtnPlant.classList.toggle('active', modelType === 'plant');
     if (DOM.arBtnMinilab) DOM.arBtnMinilab.classList.toggle('active', modelType === 'minilab');
+
+    if (modelType === 'minilab') {
+      // Sembunyikan 8 stesen keliling sementara apabila meninjau meja Makmal Mini
+      arWorldState.active = false;
+      arWorldState.stationGroups.forEach(g => { g.visible = false; });
+      if (arObjectGroup) arObjectGroup.visible = true;
+    }
 
     if (arAnimalHolder) arAnimalHolder.visible = (modelType === 'animal');
     if (arPlantHolder) arPlantHolder.visible = (modelType === 'plant');
@@ -4016,8 +6200,15 @@
     camera.lookAt(0, 0, 0);
   }
 
-  // Reset AR Model view to default center, rotation and scale
+  // Reset AR Model view or recalibrate World AR heading
   function resetARView() {
+    if (arWorldState.active) {
+      arWorldState.focusedStationScale = 1.0;
+      arWorldState.stationGroups.forEach(g => g.scale.setScalar(1.0));
+      calibrateARWorldHeading();
+      return;
+    }
+
     if (arObjectGroup) {
       arObjectGroup.position.set(0, 0, 0);
       arObjectGroup.rotation.set(0.12, 0, 0);
@@ -4061,19 +6252,21 @@
     if (!DOM.arDrawerList) return;
     DOM.arDrawerList.innerHTML = '';
 
-    State.stations.forEach(stn => {
-      const isDone = State.completedStations.has(stn.number);
-      const isSelected = arState.selectedOrganelle === stn.id;
+    // Susun mengikut 8 Stesen Dunia AR supaya murid tahu arah kompas & ID Kad Marker setiap stesen
+    AR_WORLD_STATIONS.forEach(worldCfg => {
+      const stn = State.stations[worldCfg.stationNumber - 1] || State.stations[0];
+      const isDone = State.completedStations.has(worldCfg.stationNumber);
+      const isSelected = arState.selectedOrganelle === worldCfg.stationKey || arState.selectedOrganelle === stn.id;
 
-      const stationColor = stn.color || '#0d9488';
+      const stationColor = stn.color || '#' + worldCfg.color.toString(16).padStart(6, '0');
       const item = document.createElement('button');
       item.type = 'button';
       item.className = `cq-drawer-station-card ${isSelected ? 'active' : ''} ${isDone ? 'completed' : ''}`;
       item.innerHTML = `
-        <div class="cq-drawer-stn-num" style="background: ${stationColor}25; border: 1.5px solid ${stationColor}; color: ${stationColor};">${stn.number}</div>
+        <div class="cq-drawer-stn-num" style="background: ${stationColor}25; border: 1.5px solid ${stationColor}; color: ${stationColor};">${worldCfg.slotNumber}</div>
         <div class="cq-drawer-stn-info">
-          <strong>${stn.icon || '📍'} Stesen ${stn.number}: ${stn.title}</strong>
-          <span>${stn.organelle || 'Eksplorasi Organel'}</span>
+          <strong>${worldCfg.icon || '📍'} Stesen ${worldCfg.slotNumber}: ${worldCfg.label}</strong>
+          <span>🧭 Arah: ${worldCfg.directionName} (${worldCfg.angleDeg}°) • Kad Marker #${worldCfg.markerId}</span>
         </div>
         <div class="cq-drawer-stn-status ${isDone ? 'done' : ''}">
           ${isDone ? '✓ Lencana' : 'Belum'}
@@ -4082,7 +6275,10 @@
 
       item.addEventListener('click', (e) => {
         e.stopPropagation();
-        selectAROrganelle(stn.id, stn.number);
+        if (arWorldState.active && arWorldState.subMode === 'orientation') {
+          lookAtARHeading(worldCfg.angleDeg);
+        }
+        selectAROrganelle(worldCfg.stationKey, worldCfg.stationNumber);
         toggleStationsDrawer(false);
       });
 
@@ -4111,14 +6307,14 @@
     const info = ORGANELLE_DATA[organelleId] || {};
     const stnIdx = (stationNumber ? stationNumber - 1 : (info.stationNumber ? info.stationNumber - 1 : 0));
     const stnData = State.stations[stnIdx] || State.stations[0];
+    const worldCfg = AR_WORLD_STATIONS.find(w => w.stationKey === organelleId || w.stationNumber === stnData.number);
 
-    const organelleName = info.name || stnData.organelle || stnData.title;
-    const organelleIcon = info.icon || stnData.icon || '🧬';
+    const organelleName = info.name || worldCfg?.label || stnData.organelle || stnData.title;
+    const organelleIcon = info.icon || worldCfg?.icon || stnData.icon || '🧬';
     const organelleDesc = info.description || stnData.description;
     const isCompleted = State.completedStations.has(stnData.number);
 
     // In Makmal Mini, update mini station label plane visibility:
-    // Only show label for the selected mini station, hide all others!
     if (arState.activeModel === 'minilab' && arMiniLabHolder) {
       arMiniLabHolder.traverse(m => {
         if (m.userData && m.userData.isStationLabel) {
@@ -4131,9 +6327,10 @@
       if (DOM.arCardIcon) DOM.arCardIcon.textContent = organelleIcon;
       if (DOM.arCardTitle) DOM.arCardTitle.textContent = organelleName;
       if (DOM.arCardBadge) {
+        const dirInfo = worldCfg ? ` • Arah ${worldCfg.directionName}` : '';
         DOM.arCardBadge.textContent = isCompleted 
-          ? `Lencana Stesen ${stnData.number} Selesai ✓` 
-          : `Stesen ${stnData.number} • Sains Tingkatan 1`;
+          ? `Lencana Stesen ${stnData.number} Selesai ✓${dirInfo}` 
+          : `Stesen ${worldCfg ? worldCfg.slotNumber : stnData.number}${dirInfo} • Sains Tingkatan 1`;
         DOM.arCardBadge.classList.toggle('completed', isCompleted);
       }
       if (DOM.arCardDesc) DOM.arCardDesc.textContent = organelleDesc;
@@ -4157,6 +6354,20 @@
       if (DOM.arCardFocusBtn) {
         DOM.arCardFocusBtn.onclick = (e) => {
           e.stopPropagation();
+          if (arWorldState.active && worldCfg) {
+            if (arWorldState.subMode === 'orientation') {
+              lookAtARHeading(worldCfg.angleDeg);
+            }
+            // Toggle zoom / scale inspection on the world-space station
+            const stnGroup = arWorldState.stationGroups.find(g => g.userData.stationConfig.stationKey === worldCfg.stationKey);
+            if (stnGroup) {
+              const nextScale = stnGroup.scale.x > 1.2 ? 1.0 : 1.45;
+              arWorldState.focusedStationScale = nextScale;
+              arWorldState.focusedStationIdx = stnGroup.userData.stationIndex;
+              stnGroup.scale.setScalar(nextScale);
+              alertToast(nextScale > 1.2 ? `🔍 Model ${worldCfg.label} Diperbesar (1.45x)` : `🔍 Saiz Model ${worldCfg.label} Asal (1.0x)`);
+            }
+          }
           pulseHighlightMesh(organelleId);
         };
       }
@@ -4165,7 +6376,8 @@
     // Refresh active item styling in stations drawer
     if (DOM.arDrawerList) {
       DOM.arDrawerList.querySelectorAll('.cq-drawer-station-card').forEach((item, idx) => {
-        item.classList.toggle('active', (idx + 1) === stnData.number);
+        const cfg = AR_WORLD_STATIONS[idx];
+        item.classList.toggle('active', cfg ? cfg.stationNumber === stnData.number : (idx + 1) === stnData.number);
       });
     }
 
@@ -4176,7 +6388,24 @@
   // Pulse glowing highlight on clicked 3D organelle
   function pulseHighlightMesh(organelleId) {
     let targetMeshes = [];
-    if (arState.activeModel === 'animal' && arAnimalHolder) {
+
+    if (arWorldState.active) {
+      arWorldState.stationGroups.forEach(group => {
+        if (group.userData && group.userData.stationConfig && group.userData.stationConfig.stationKey === organelleId) {
+          group.traverse(m => {
+            if (m.isMesh && m.material && m.material.emissive) targetMeshes.push(m);
+          });
+        }
+      });
+    } else if (arMarkerState.active) {
+      arMarkerState.anchors.forEach(anchor => {
+        if (anchor.userData && anchor.userData.stationConfig && anchor.userData.stationConfig.stationKey === organelleId) {
+          anchor.traverse(m => {
+            if (m.isMesh && m.material && m.material.emissive) targetMeshes.push(m);
+          });
+        }
+      });
+    } else if (arState.activeModel === 'animal' && arAnimalHolder) {
       arAnimalHolder.traverse(m => {
         if (m.isMesh && m.userData && m.userData.id === organelleId) targetMeshes.push(m);
       });
@@ -4233,23 +6462,19 @@
     }
   }
 
-  // Setup Touch Orbit, Pinch Zoom, Pan & Raycast Click Gestures for AR Mode
+  // Setup Touch Look-Around (World AR), Pinch Zoom Inspection & Raycast Tap Gestures
   function setupARGestures() {
     if (!renderer || !renderer.domElement) return;
     const dom = renderer.domElement;
 
-    // Active pointers map for accurate multi-touch tracking
     const activePointers = new Map();
     let initialPinchDist = 0;
     let initialPinchCenter = { x: 0, y: 0 };
     let initialScale = 1.0;
     let initialPos = new THREE.Vector3();
-    let lastTapTime = 0;
 
     dom.addEventListener('pointerdown', e => {
-      if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
-      
-      // Do not capture if target is an overlay UI element
+      if (State.mode !== 'camera-ar' && State.mode !== 'marker-ar' && State.mode !== 'ar') return;
       if (e.target !== dom) return;
 
       activePointers.set(e.pointerId, {
@@ -4260,22 +6485,26 @@
         startTime: Date.now()
       });
 
-      if (activePointers.size === 1 && arObjectGroup) {
+      if (activePointers.size === 1 && arObjectGroup && arObjectGroup.visible) {
         arState.autoRotate = false;
-      } else if (activePointers.size === 2 && arObjectGroup) {
+      } else if (activePointers.size === 2) {
         const pts = Array.from(activePointers.values());
         initialPinchDist = Math.hypot(pts[0].currentX - pts[1].currentX, pts[0].currentY - pts[1].currentY);
         initialPinchCenter = {
           x: (pts[0].currentX + pts[1].currentX) / 2,
           y: (pts[0].currentY + pts[1].currentY) / 2
         };
-        initialScale = arObjectGroup.scale.x;
-        initialPos.copy(arObjectGroup.position);
+        if (arWorldState.active) {
+          initialScale = arWorldState.focusedStationScale || 1.0;
+        } else if (arObjectGroup) {
+          initialScale = arObjectGroup.scale.x;
+          initialPos.copy(arObjectGroup.position);
+        }
       }
     });
 
     dom.addEventListener('pointermove', e => {
-      if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
+      if (State.mode !== 'camera-ar' && State.mode !== 'marker-ar' && State.mode !== 'ar') return;
       if (!activePointers.has(e.pointerId)) return;
 
       const p = activePointers.get(e.pointerId);
@@ -4284,17 +6513,38 @@
       p.currentX = e.clientX;
       p.currentY = e.clientY;
 
-      if (!arObjectGroup) return;
+      // MOD C (World-Locked AR Exploration):
+      // 1-finger drag rotates camera view 360° around the world; stations remain fixed in world coordinates!
+      if (arWorldState.active && (!arObjectGroup || !arObjectGroup.visible)) {
+        const calPrompt = document.getElementById('ar-world-calibration-ui');
+        if (calPrompt && calPrompt.style.display !== 'none') calPrompt.style.display = 'none';
+        if (activePointers.size === 1 && arWorldState.subMode === 'orientation') {
+          const dx = e.clientX - prevX;
+          const dy = e.clientY - prevY;
+          arWorldState.manualYawDeg = (arWorldState.manualYawDeg - dx * 0.28 + 360) % 360;
+          arWorldState.manualPitchDeg = Math.max(-40, Math.min(40, (arWorldState.manualPitchDeg || 0) - dy * 0.22));
+          updateARWorldCamera();
+        } else if (activePointers.size === 2 && initialPinchDist > 0) {
+          const pts = Array.from(activePointers.values());
+          const currentDist = Math.hypot(pts[0].currentX - pts[1].currentX, pts[0].currentY - pts[1].currentY);
+          const scaleFactor = currentDist / initialPinchDist;
+          const nextScale = Math.max(0.65, Math.min(2.2, initialScale * scaleFactor));
+          arWorldState.focusedStationScale = nextScale;
+          if (arWorldState.lastDetectedIdx >= 0 && arWorldState.stationGroups[arWorldState.lastDetectedIdx]) {
+            arWorldState.stationGroups[arWorldState.lastDetectedIdx].scale.setScalar(nextScale);
+          }
+        }
+        return;
+      }
+
+      if (!arObjectGroup || !arObjectGroup.visible) return;
 
       if (activePointers.size === 1) {
-        // 1 Pointer: Orbit Rotate around Y & X axis
         const dx = e.clientX - prevX;
         const dy = e.clientY - prevY;
-
         arObjectGroup.rotation.y += dx * 0.007;
         arObjectGroup.rotation.x = Math.max(-1.1, Math.min(1.1, arObjectGroup.rotation.x + dy * 0.007));
       } else if (activePointers.size === 2) {
-        // 2 Pointers: Pinch Zoom & Two-Finger Pan
         const pts = Array.from(activePointers.values());
         const currentDist = Math.hypot(pts[0].currentX - pts[1].currentX, pts[0].currentY - pts[1].currentY);
 
@@ -4304,7 +6554,6 @@
           arObjectGroup.scale.setScalar(nextScale);
         }
 
-        // Two-finger Pan
         const currentCenter = {
           x: (pts[0].currentX + pts[1].currentX) / 2,
           y: (pts[0].currentY + pts[1].currentY) / 2
@@ -4324,13 +6573,19 @@
 
       activePointers.delete(e.pointerId);
 
-      // Tap / Click Detection (< 10px move, < 400ms duration)
-      if (dist < 10 && duration < 400 && (State.mode === 'camera-ar' || State.mode === 'ar')) {
-        handleARTap(e.clientX, e.clientY);
+      // Tap / Click Detection (< 12px move, < 450ms duration)
+      if (dist < 12 && duration < 450 && (State.mode === 'camera-ar' || State.mode === 'marker-ar' || State.mode === 'ar')) {
+        if (arWorldState.active || arMarkerState.active) {
+          const hitWorld = handleARWorldTap(e.clientX, e.clientY);
+          if (!hitWorld && arObjectGroup && arObjectGroup.visible) {
+            handleARTap(e.clientX, e.clientY);
+          }
+        } else {
+          handleARTap(e.clientX, e.clientY);
+        }
       }
 
       if (activePointers.size === 1) {
-        // Switch back to single-finger tracking smoothly
         const remaining = activePointers.values().next().value;
         remaining.startX = remaining.currentX;
         remaining.startY = remaining.currentY;
@@ -4340,12 +6595,22 @@
     dom.addEventListener('pointerup', onPointerEnd);
     dom.addEventListener('pointercancel', onPointerEnd);
 
-    // Mouse wheel zoom for desktop
+    // Mouse wheel zoom for desktop inspection
     dom.addEventListener('wheel', e => {
-      if (State.mode !== 'camera-ar' && State.mode !== 'ar') return;
+      if (State.mode !== 'camera-ar' && State.mode !== 'marker-ar' && State.mode !== 'ar') return;
       e.preventDefault();
-      if (!arObjectGroup) return;
       const factor = e.deltaY < 0 ? 1.08 : 0.92;
+
+      if (arWorldState.active && (!arObjectGroup || !arObjectGroup.visible)) {
+        const nextScale = Math.max(0.65, Math.min(2.2, (arWorldState.focusedStationScale || 1.0) * factor));
+        arWorldState.focusedStationScale = nextScale;
+        if (arWorldState.lastDetectedIdx >= 0 && arWorldState.stationGroups[arWorldState.lastDetectedIdx]) {
+          arWorldState.stationGroups[arWorldState.lastDetectedIdx].scale.setScalar(nextScale);
+        }
+        return;
+      }
+
+      if (!arObjectGroup || !arObjectGroup.visible) return;
       const nextScale = Math.max(0.35, Math.min(2.8, arObjectGroup.scale.x * factor));
       arObjectGroup.scale.setScalar(nextScale);
     }, { passive: false });
@@ -4363,7 +6628,6 @@
 
     const hits = arRaycaster.intersectObjects(arPickableObjects, true);
     if (hits.length > 0) {
-      // Find top-most hit object with userData
       let hitObj = null;
       for (const h of hits) {
         if (h.object && h.object.userData && (h.object.userData.isMiniStation || h.object.userData.id)) {
@@ -4471,12 +6735,22 @@
     if (State.mode === '3d') {
       updatePlayerMovement();
     } else {
-      // In AR modes, apply gentle auto-rotation if enabled
+      // Animasi 8 stesen AR world-locked (Mod A Spatial & Mod C Orientasi)
+      if (arWorldState.active) {
+        animateARWorldStations(elapsedTime);
+      }
+
+      // Pengesanan penanda 6DOF (Mod B Marker AR)
+      if (arMarkerState.active) {
+        updateMarkerARTracking(elapsedTime);
+      }
+
+      // In tabletop Makmal Mini mode, apply gentle auto-rotation if enabled
       if (arState.autoRotate && arObjectGroup && arObjectGroup.visible) {
         arObjectGroup.rotation.y += delta * 0.35;
       }
 
-      // Handle WebXR hit-test in immersive-ar session
+      // Handle WebXR hit-test in immersive-ar session (Mod A Spatial AR)
       if (frame && xrHitTestSource && xrRefSpace) {
         const hitTestResults = frame.getHitTestResults(xrHitTestSource);
         if (hitTestResults.length > 0) {
@@ -4500,6 +6774,44 @@
     // 3. Render Three.js Scene
     renderer.render(scene, camera);
   }
+
+  // ==============================================================================
+  // PUBLIC DIAGNOSTIC & AUTOMATED VERIFICATION API (UJIAN 1 - UJIAN 12)
+  // ==============================================================================
+  window.CellQuestAR = {
+    getState: () => State,
+    getARState: () => arState,
+    getWorldState: () => arWorldState,
+    getMarkerState: () => arMarkerState,
+    getStationsConfig: () => AR_WORLD_STATIONS,
+    getStationMeshes: () => stationMeshes,
+    getERExhibit: () => erExhibitGroup,
+    getGLBDiagnostics: () => glbDiagnostics,
+    getStationGLBMap: () => STATION_GLB_MAP,
+    preloadAllGLBs: () => Promise.all(Object.keys(STATION_GLB_MAP).map(k => loadAndCacheOrganelleGLB(k))),
+    getCamera: () => camera,
+    getScene: () => scene,
+    getRenderer: () => renderer,
+    setPlayerPose: (x, z, rotY, pitch = 0) => {
+      player.x = x;
+      player.z = z;
+      player.rotY = rotY;
+      player.pitch = pitch;
+      camera.position.set(player.x, player.y, player.z);
+      camera.rotation.set(player.pitch, player.rotY, 0, 'YXZ');
+    },
+    selectMode: (m) => selectMode(m),
+    switchARModel: (m) => switchARModel(m),
+    lookAtHeading: (deg) => lookAtARHeading(deg),
+    calibrateHeading: () => calibrateARWorldHeading(),
+    togglePosture: () => toggleARPostureMode(),
+    placeSpatialStations: (pos, yaw) => positionARWorldStationsSpatial(pos, yaw),
+    checkVisibility: () => checkARWorldStationVisibility(),
+    tapAt: (x, y) => handleARWorldTap(x, y),
+    raycast3DAt: (x, y) => handle3DStationRaycastTap(x, y),
+    selectOrganelle: (id, num) => selectAROrganelle(id, num),
+    openQuiz: (idx) => openStationModal(idx)
+  };
 
   // Run initialization when DOM is ready
   if (document.readyState === 'loading') {
