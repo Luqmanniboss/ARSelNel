@@ -1929,3 +1929,128 @@ body.cq-ar-mode {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==============================================================================
+   MISI AKHIR: TREASURE HUNT AR & CABARAN BONUS STYLES
+   ============================================================================== */
+.tc-quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.85);
+  color: #f1f5f9;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin-bottom: 8px;
+}
+.tc-quiz-opt:hover:not(:disabled) {
+  background: rgba(45, 212, 191, 0.15);
+  border-color: #2dd4bf;
+  transform: translateX(3px);
+}
+.tc-quiz-opt .opt-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  font-weight: 900;
+  color: #2dd4bf;
+  flex-shrink: 0;
+}
+.tc-quiz-opt.correct {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
+  color: #a7f3d0 !important;
+}
+.tc-quiz-opt.correct .opt-letter {
+  background: #10b981;
+  color: #fff;
+}
+.tc-quiz-opt.incorrect {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+.tc-quiz-opt.incorrect .opt-letter {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* SMART RADAR SENARAI 8 STESEN MANUAL */
+.cq-radar-stations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 124px;
+  overflow-y: auto;
+  padding-right: 2px;
+  margin-top: 3px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 5px;
+}
+.cq-radar-stations-list::-webkit-scrollbar {
+  width: 4px;
+}
+.cq-radar-stations-list::-webkit-scrollbar-thumb {
+  background: rgba(45, 212, 191, 0.4);
+  border-radius: 4px;
+}
+.cq-radar-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  font-size: 10.5px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.cq-radar-list-item:hover {
+  background: rgba(45, 212, 191, 0.18);
+  border-color: rgba(45, 212, 191, 0.5);
+}
+.cq-radar-list-item.target {
+  background: rgba(250, 204, 21, 0.2);
+  border-color: #facc15;
+  color: #fef08a;
+}
+.cq-radar-list-item.done {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+.cq-stn-badge {
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 5px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.cq-stn-badge.done {
+  background: rgba(16, 185, 129, 0.22);
+  color: #34d399;
+}
+.cq-stn-badge.discovered {
+  background: rgba(45, 212, 191, 0.22);
+  color: #5eead4;
+}
+.cq-stn-badge.pending {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+

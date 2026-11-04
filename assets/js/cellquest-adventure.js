@@ -226,6 +226,20 @@
       notes.forEach((f, idx) => {
         setTimeout(() => this.playTone(f, 'triangle', 0.3, 0.25), idx * 120);
       });
+    },
+    powerUp() {
+      if (this.muted) return;
+      const notes = [392.00, 523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((f, idx) => {
+        setTimeout(() => this.playTone(f, 'sine', 0.15, 0.18), idx * 75);
+      });
+    },
+    fanfare() {
+      if (this.muted) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((f, idx) => {
+        setTimeout(() => this.playTone(f, 'triangle', 0.22, 0.2), idx * 90);
+      });
     }
   };
 
@@ -243,7 +257,15 @@
     isPaused: false,
     isCompleted: false,
     mode: '3d', // '3d' | 'camera-ar' | 'ar'
-    user: null
+    user: null,
+    // Misi Akhir: Treasure Hunt ARSELNel State
+    treasureHuntUnlocked: false,
+    treasureHuntActive: false,
+    treasureHuntCompleted: false,
+    treasureHuntBonusClaimed: false,
+    treasureHuntQuestions: [],
+    treasureHuntCurrentQIndex: 0,
+    treasureHuntCorrectCount: 0
   };
 
   // 4. THREE.JS ENGINE COMPONENTS
@@ -328,7 +350,7 @@
     stationGroups: [],           // Array THREE.Group untuk setiap stesen dalam world space
     stationVisibility: new Array(8).fill(false),
     discoveredStations: new Set(), // Set stationNumber yang telah ditemui melalui kamera
-    targetStationIdx: 3,         // Indeks stesen yang sedang diburu pada Smart Radar (Default: Stesen 4 Mitokondrion)
+    targetStationIdx: 0,         // Indeks stesen yang sedang diburu pada Smart Radar (Lalai: Stesen 1 Nukleus / auto-next)
     radarPanelExpanded: false,   // Lalai: Paparan ringkas (compact) di sebelah radar bulat; boleh dikembangkan (expanded)
     horizontalToleranceDeg: 14,  // Toleransi sudut mendatar (azimut ±14°) untuk penemuan stesen
     verticalToleranceDeg: 12,    // Toleransi sudut menegak (elevasi ±12°) untuk penemuan stesen
@@ -343,7 +365,26 @@
     lastDetectedIdx: -1,         // Indeks stesen terakhir yang dikesan
     lastExitTargetUrl: null,     // URL destinasi apabila keluar ke CellQuest
     spatialOrigin: new THREE.Vector3(0, 0, -1.5), // Pusat ruang bagi Mod A (Spatial AR)
-    spatialAnchors: []           // Senarai WebXR XRAnchor jika disokong
+    spatialAnchors: [],          // Senarai WebXR XRAnchor jika disokong
+    // Misi Akhir: Peti Harta Karun ARSELNel
+    isTreasureHuntActive: false,
+    treasureChestGroup: null,
+    treasureChestConfig: {
+      stationKey: 'treasure_chest',
+      stationNumber: 99,
+      slotNumber: 9,
+      label: 'Peti ARSELNel',
+      directionName: 'Kiri Hadapan',
+      azimuthDeg: 330,
+      elevationDeg: 8,
+      radius: 5.0,
+      icon: '🎁',
+      color: 0xf59e0b
+    },
+    isChestLidOpen: false,
+    chestLidPivot: null,
+    chestLight: null,
+    chestParticles: []
   };
 
   // Konfigurasi transform khusus mengikut model untuk Mod B (Marker AR)
@@ -754,6 +795,26 @@
     DOM.exitConfirmModal = document.getElementById('exit-confirm-modal');
     DOM.exitConfirmContinueBtn = document.getElementById('exit-confirm-continue-btn');
     DOM.exitConfirmLeaveBtn = document.getElementById('exit-confirm-leave-btn');
+
+    // Misi Akhir: Treasure Hunt ARSELNel Dialogs
+    DOM.treasureHuntIntroModal = document.getElementById('treasure-hunt-intro-modal');
+    DOM.startTreasureHuntBtn = document.getElementById('start-treasure-hunt-btn');
+    DOM.closeTreasureIntroBtn = document.getElementById('close-treasure-intro-btn');
+    DOM.treasureChestModal = document.getElementById('treasure-chest-modal');
+    DOM.closeTreasureModalBtn = document.getElementById('close-treasure-modal-btn');
+    DOM.tcQuestionProgress = document.getElementById('tc-question-progress');
+    DOM.tcQuizQuestion = document.getElementById('tc-quiz-question');
+    DOM.tcQuizOptions = document.getElementById('tc-quiz-options');
+    DOM.tcQuizFeedback = document.getElementById('tc-quiz-feedback');
+    DOM.tcModalActions = document.getElementById('tc-modal-actions');
+    DOM.tcNextBtn = document.getElementById('tc-next-btn');
+    DOM.tcNextBtnText = document.getElementById('tc-next-btn-text');
+    DOM.treasureRewardModal = document.getElementById('treasure-reward-modal');
+    DOM.trFinalScore = document.getElementById('tr-final-score');
+    DOM.trFinalTime = document.getElementById('tr-final-time');
+    DOM.trPrintBtn = document.getElementById('tr-print-btn');
+    DOM.trReplayBtn = document.getElementById('tr-replay-btn');
+    DOM.trExitBtn = document.getElementById('tr-exit-btn');
   }
 
   function loadUser() {
@@ -2980,12 +3041,38 @@
       });
     }
 
+    // 11.1 Misi Akhir: Peti Harta Karun ARSELNel Event Listeners
+    if (DOM.startTreasureHuntBtn) {
+      DOM.startTreasureHuntBtn.addEventListener('click', startTreasureHuntMission);
+    }
+    if (DOM.closeTreasureIntroBtn) {
+      DOM.closeTreasureIntroBtn.addEventListener('click', hideTreasureHuntIntroModal);
+    }
+    if (DOM.closeTreasureModalBtn) {
+      DOM.closeTreasureModalBtn.addEventListener('click', closeTreasureChestModal);
+    }
+    if (DOM.tcNextBtn) {
+      DOM.tcNextBtn.addEventListener('click', onTreasureNextButtonClicked);
+    }
+    if (DOM.trPrintBtn) {
+      DOM.trPrintBtn.addEventListener('click', printOrSaveCertificate);
+    }
+    if (DOM.trReplayBtn) {
+      DOM.trReplayBtn.addEventListener('click', () => {
+        hideTreasureRewardModal();
+        restartGame();
+      });
+    }
+
     // Stop pointer/touch propagation on all AR overlay cards & drawer so canvas doesn't receive drag/tap
     const uiShields = [
       DOM.arTopBar,
       DOM.arStationsDrawer,
       DOM.arOrganelleCard,
       DOM.exitConfirmModal,
+      DOM.treasureHuntIntroModal,
+      DOM.treasureChestModal,
+      DOM.treasureRewardModal,
       document.getElementById('ar-floating-bar')
     ];
     uiShields.forEach(el => {
@@ -3680,6 +3767,53 @@
       DOM.arCardBadge.textContent = `Lencana Stesen ${stationNumber} Selesai ✓`;
       DOM.arCardBadge.classList.add('completed');
     }
+
+    // Semak sama ada semua 8 stesen telah selesai
+    if (State.completedStations.size >= 8) {
+      unlockExitDoor();
+      State.treasureHuntUnlocked = true;
+      if (!State.treasureHuntCompleted && !State.treasureHuntActive) {
+        setTimeout(() => {
+          showTreasureHuntIntroModal();
+        }, 1200);
+      }
+    } else if (arWorldState.active) {
+      // Auto-Next Station: Tukar sasaran Smart Radar kepada stesen seterusnya yang belum selesai
+      const nextIdx = findNextUncompletedStation(arWorldState.targetStationIdx);
+      if (nextIdx >= 0) {
+        selectRadarTargetStation(nextIdx, false);
+        const nextCfg = AR_WORLD_STATIONS[nextIdx];
+        if (nextCfg) {
+          alertToast(`🎯 Sasaran Seterusnya: Stesen ${nextCfg.stationNumber} (${nextCfg.label})`);
+        }
+      }
+    }
+  }
+
+  // Cari stesen seterusnya yang belum selesai mengikut urutan bulatan 1..8 (Auto-Next Station)
+  function findNextUncompletedStation(fromIdx = 0) {
+    if (typeof fromIdx !== 'number' || fromIdx < 0) fromIdx = 0;
+    for (let offset = 1; offset <= 8; offset++) {
+      const idx = (fromIdx + offset) % 8;
+      const stnNum = AR_WORLD_STATIONS[idx]?.stationNumber;
+      if (stnNum && !State.completedStations.has(stnNum)) {
+        return idx;
+      }
+    }
+    return -1; // Semua 8 stesen telah selesai
+  }
+
+  function showTreasureHuntIntroModal() {
+    if (DOM.treasureHuntIntroModal) {
+      DOM.treasureHuntIntroModal.classList.add('open');
+      SoundFX.fanfare();
+    }
+  }
+
+  function hideTreasureHuntIntroModal() {
+    if (DOM.treasureHuntIntroModal) {
+      DOM.treasureHuntIntroModal.classList.remove('open');
+    }
   }
 
   // Unlock Exit Door when all 8 stations are cleared
@@ -3803,6 +3937,23 @@
     State.durationSeconds = 0;
     State.attemptsCount = {};
     State.isCompleted = false;
+
+    // Reset Misi Akhir: Treasure Hunt ARSELNel
+    State.treasureHuntUnlocked = false;
+    State.treasureHuntActive = false;
+    State.treasureHuntCompleted = false;
+    State.treasureHuntBonusClaimed = false;
+    State.treasureHuntQuestions = [];
+    State.treasureHuntCurrentQIndex = 0;
+    State.treasureHuntCorrectCount = 0;
+    arWorldState.isTreasureHuntActive = false;
+    arWorldState.isChestLidOpen = false;
+    if (arWorldState.treasureChestGroup) {
+      arWorldState.treasureChestGroup.visible = false;
+      if (arWorldState.chestLidPivot) arWorldState.chestLidPivot.rotation.x = 0;
+      if (arWorldState.chestLight) arWorldState.chestLight.intensity = 0.6;
+    }
+
     player.x = 0;
     player.z = 8.5;
     player.rotY = 0; // Look down -Z towards lab center
@@ -3824,6 +3975,395 @@
     startTimer();
     updateHUD();
     closeVictoryModal();
+    hideTreasureRewardModal();
+    hideTreasureHuntIntroModal();
+    closeTreasureChestModal();
+  }
+
+  // ==============================================================================
+  // MISI AKHIR: PETI HARTA KARUN ARSELNEL (SELEPAS 8/8 STESEN SELESAI)
+  // 3 Soalan Bonus Biologi (Perbandingan Sel Haiwan & Sel Tumbuhan KSSM)
+  // Ganjaran: +300 Mata Bonus Sekali Sahaja & Lencana Khas: Penjelajah Dunia Sel
+  // ==============================================================================
+
+  const BONUS_TREASURE_QUESTIONS = [
+    {
+      question: "Organel manakah yang hanya hadir dalam sel tumbuhan dan berfungsi menyerap tenaga cahaya untuk fotosintesis?",
+      options: ["Mitokondrion", "Kloroplas", "Nukleus", "Vakuol"],
+      correctIndex: 1,
+      explanation: "Kloroplas mengandungi pigmen klorofil yang menyerap cahaya matahari untuk fotosintesis. Organel ini hanya wujud dalam sel tumbuhan."
+    },
+    {
+      question: "Struktur manakah yang tegar, diperbuat daripada selulosa, dan memberikan sokongan mekanikal serta bentuk tetap kepada sel tumbuhan?",
+      options: ["Membran Sel", "Dinding Sel", "Sitoplasma", "Jasad Golgi"],
+      correctIndex: 1,
+      explanation: "Dinding sel terbina daripada gentian selulosa tegar untuk mengekalkan bentuk sel tumbuhan. Sel haiwan tidak mempunyai dinding sel."
+    },
+    {
+      question: "Apakah fungsi utama Mitokondrion yang terdapat dalam kedua-dua sel haiwan dan sel tumbuhan?",
+      options: ["Menghasilkan tenaga (ATP) melalui respirasi sel", "Mengawal pembahagian nukleus", "Menyimpan air dan garam mineral", "Membina dinding sel"],
+      correctIndex: 0,
+      explanation: "Mitokondrion ialah 'penjana tenaga' (powerhouse) sel yang menjalankan respirasi sel untuk menjana tenaga bagi aktiviti biokimia sel."
+    },
+    {
+      question: "Vakuol yang besar dan matang dalam sel tumbuhan diisi dengan sejenis cecair penting yang dikenali sebagai apa?",
+      options: ["Air suling tulen", "Sap sel", "Sitoplasma pekat", "Nukleoplasma"],
+      correctIndex: 1,
+      explanation: "Vakuol sel tumbuhan mengandungi sap sel yang terdiri daripada air, gula, asid organik dan garam mineral untuk mengekalkan kesegahan sel."
+    },
+    {
+      question: "Struktur sel yang mengandungi kromosom (DNA) dan bertindak sebagai pusat kawalan seluruh aktiviti sel ialah...",
+      options: ["Nukleus", "Membran Plasma", "Ribosom", "Retikulum Endoplasma"],
+      correctIndex: 0,
+      explanation: "Nukleus mengandungi maklumat genetik (DNA) dan mengawal sintesis protein serta seluruh aktiviti metabolisme sel."
+    },
+    {
+      question: "Mengapakah sel haiwan mempunyai bentuk yang fleksibel / tidak tetap berbanding sel tumbuhan?",
+      options: ["Kerana sel haiwan tiada nukleus", "Kerana sel haiwan ketiadaan kloroplas", "Kerana sel haiwan tidak mempunyai dinding sel", "Kerana membran sel haiwan sangat keras"],
+      correctIndex: 2,
+      explanation: "Sel haiwan hanya diliputi membran plasma fleksibel tanpa dinding sel selulosa tegar, menyebabkan bentuknya fleksibel dan boleh berubah mengikut fungsi."
+    }
+  ];
+
+  // Bina model 3D Peti Harta Karun ARSELNel di koordinat dunia (Azimuth 330°, Elevasi +8°, Jarak 5.0m)
+  function buildTreasureChest3D() {
+    if (arWorldState.treasureChestGroup) {
+      return arWorldState.treasureChestGroup;
+    }
+    const group = new THREE.Group();
+    group.name = 'ARWorld_TreasureChest';
+
+    // 1. Badan Peti (Deep turquoise metal container dengan aksen emas ARSELNel)
+    const bodyGeo = new THREE.BoxGeometry(0.72, 0.42, 0.52);
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x0f766e,
+      metalness: 0.6,
+      roughness: 0.35
+    });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = 0.21;
+    group.add(body);
+
+    const bandMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      metalness: 0.85,
+      roughness: 0.25
+    });
+    const band1 = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.05, 0.54), bandMat);
+    band1.position.y = 0.38;
+    group.add(band1);
+
+    // 2. Penutup Peti Berengsel (Hinged Lid)
+    const lidPivot = new THREE.Group();
+    lidPivot.position.set(0, 0.42, -0.26);
+
+    const lidMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.27, 0.27, 0.72, 24, 1, false, 0, Math.PI),
+      new THREE.MeshStandardMaterial({
+        color: 0x0d9488,
+        metalness: 0.6,
+        roughness: 0.35,
+        side: THREE.DoubleSide
+      })
+    );
+    lidMesh.rotation.z = Math.PI / 2;
+    lidMesh.rotation.y = Math.PI / 2;
+    lidMesh.position.set(0, 0, 0.26);
+    lidPivot.add(lidMesh);
+
+    const lidRim = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.05, 0.54), bandMat);
+    lidRim.position.set(0, 0, 0.26);
+    lidPivot.add(lidRim);
+
+    const lock = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 0.12, 0.06),
+      new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.9, roughness: 0.15 })
+    );
+    lock.position.set(0, 0, 0.54);
+    lidPivot.add(lock);
+
+    group.add(lidPivot);
+    arWorldState.chestLidPivot = lidPivot;
+
+    // 3. Sumber Cahaya Emas di dalam Peti (Glow memancar apabila dibuka)
+    const chestLight = new THREE.PointLight(0xfbbf24, 0.6, 4.0);
+    chestLight.position.set(0, 0.35, 0);
+    group.add(chestLight);
+    arWorldState.chestLight = chestLight;
+
+    // 4. Zarah Cahaya Bintang / Sparkles
+    const partGroup = new THREE.Group();
+    const partMat = new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.85 });
+    const partGeo = new THREE.OctahedronGeometry(0.045, 0);
+    arWorldState.chestParticles = [];
+    for (let i = 0; i < 10; i++) {
+      const p = new THREE.Mesh(partGeo, partMat.clone());
+      p.position.set(
+        (Math.random() - 0.5) * 0.48,
+        0.35 + Math.random() * 0.35,
+        (Math.random() - 0.5) * 0.38
+      );
+      p.userData = {
+        baseY: p.position.y,
+        speed: 1.2 + Math.random() * 1.6,
+        offset: Math.random() * Math.PI * 2
+      };
+      partGroup.add(p);
+      arWorldState.chestParticles.push(p);
+    }
+    group.add(partGroup);
+
+    // 5. Pedestal Hologram & Gelang Penanda di lantai
+    const pedGeo = new THREE.CylinderGeometry(0.75, 0.92, 0.14, 24);
+    const pedMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a, roughness: 0.35, metalness: 0.4, transparent: true, opacity: 0.85
+    });
+    const pedestal = new THREE.Mesh(pedGeo, pedMat);
+    pedestal.position.y = -0.07;
+    group.add(pedestal);
+
+    const ringGeo = new THREE.RingGeometry(0.85, 1.08, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.8
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.01;
+    group.add(ring);
+
+    // 6. Penanda Interaksi (Glowing Diamond Beacon di atas peti)
+    const beacon = createBeaconMesh(0xf59e0b);
+    beacon.scale.setScalar(0.7);
+    beacon.position.set(0, 1.55, 0);
+    group.add(beacon);
+
+    // 7. Papan Nama 3D Peti Harta Karun
+    const labelGroup = buildStationLabel('🎁 Peti Harta Karun ARSELNel', 'Misi Akhir • Ketik Buka', '🎁', 0xf59e0b, 99);
+    labelGroup.position.set(0, 1.05, 0);
+    group.add(labelGroup);
+
+    // 8. Sfera Collider Besar untuk Ketikan Skrin Sentuh
+    const hitCollider = new THREE.Mesh(
+      new THREE.SphereGeometry(1.25, 12, 12),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
+    );
+    hitCollider.position.set(0, 0.4, 0);
+    hitCollider.userData = {
+      pickable: true,
+      isTreasureChest: true,
+      id: 'treasure_chest'
+    };
+    group.add(hitCollider);
+
+    group.userData = {
+      stationConfig: arWorldState.treasureChestConfig,
+      labelGroup,
+      beacon,
+      ring,
+      hitCollider,
+      isTreasureChest: true
+    };
+
+    // Tetapkan koordinat dunia (Azimuth 330°, Elevasi +8°, Radius 5.0m)
+    const azRad = THREE.MathUtils.degToRad(330);
+    const elRad = THREE.MathUtils.degToRad(8);
+    const R = 5.0;
+    const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
+    const horizR = Math.cos(elRad) * R;
+    group.position.x = Math.sin(azRad) * horizR;
+    group.position.z = -Math.cos(azRad) * horizR;
+    group.position.y = eyeY + Math.sin(elRad) * R;
+
+    group.visible = false;
+    scene.add(group);
+    arWorldState.treasureChestGroup = group;
+    return group;
+  }
+
+  // Mulakan Misi Akhir: Paparkan Peti 3D di koordinat 330° & tukar sasaran Smart Radar
+  function startTreasureHuntMission() {
+    hideTreasureHuntIntroModal();
+    State.treasureHuntActive = true;
+    arWorldState.isTreasureHuntActive = true;
+
+    buildTreasureChest3D();
+    if (arWorldState.treasureChestGroup) {
+      arWorldState.treasureChestGroup.visible = true;
+    }
+
+    // Tukar sasaran Smart Radar kepada Peti ARSELNel (-1)
+    selectRadarTargetStation(-1, false);
+    SoundFX.powerUp();
+    alertToast('🎁 Misi Akhir Diaktifkan! Smart Radar kini menghala ke Peti ARSELNel (330°, +8°)!');
+  }
+
+  // Buka Modal Cabaran 3 Soalan Bonus Peti Harta Karun
+  function openTreasureChestModal() {
+    if (State.treasureHuntCompleted) {
+      showTreasureRewardModal();
+      return;
+    }
+
+    // Pilih 3 soalan rawak atau unik daripada senarai 6 soalan
+    const shuffled = [...BONUS_TREASURE_QUESTIONS].sort(() => 0.5 - Math.random());
+    State.treasureHuntQuestions = shuffled.slice(0, 3);
+    State.treasureHuntCurrentQIndex = 0;
+    State.treasureHuntCorrectCount = 0;
+
+    renderTreasureBonusQuestion();
+    if (DOM.treasureChestModal) {
+      DOM.treasureChestModal.classList.add('open');
+    }
+    SoundFX.interact();
+  }
+
+  function closeTreasureChestModal() {
+    if (DOM.treasureChestModal) {
+      DOM.treasureChestModal.classList.remove('open');
+    }
+  }
+
+  // Paparkan soalan bonus semasa
+  function renderTreasureBonusQuestion() {
+    const qIndex = State.treasureHuntCurrentQIndex;
+    const q = State.treasureHuntQuestions[qIndex];
+    if (!q) return;
+
+    if (DOM.tcQuestionProgress) {
+      DOM.tcQuestionProgress.textContent = `Cabaran ${qIndex + 1} / 3`;
+    }
+    if (DOM.tcQuizQuestion) {
+      DOM.tcQuizQuestion.textContent = q.question;
+    }
+    if (DOM.tcQuizOptions) {
+      DOM.tcQuizOptions.innerHTML = '';
+      q.options.forEach((optText, optIdx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tc-quiz-opt';
+        btn.id = `tc-opt-${optIdx}`;
+        btn.innerHTML = `<span style="font-weight:900; color:#facc15; margin-right:8px;">${String.fromCharCode(65 + optIdx)}.</span> <span>${optText}</span>`;
+        btn.onclick = () => checkTreasureBonusAnswer(optIdx);
+        DOM.tcQuizOptions.appendChild(btn);
+      });
+    }
+
+    if (DOM.tcQuizFeedback) DOM.tcQuizFeedback.style.display = 'none';
+    if (DOM.tcModalActions) DOM.tcModalActions.style.display = 'none';
+  }
+
+  // Semak jawapan soalan bonus
+  function checkTreasureBonusAnswer(choiceIdx) {
+    const qIndex = State.treasureHuntCurrentQIndex;
+    const q = State.treasureHuntQuestions[qIndex];
+    if (!q) return;
+
+    const optButtons = DOM.tcQuizOptions ? DOM.tcQuizOptions.querySelectorAll('.tc-quiz-opt') : [];
+    optButtons.forEach(btn => btn.disabled = true);
+
+    const isCorrect = (choiceIdx === q.correctIndex);
+    const chosenBtn = optButtons[choiceIdx];
+
+    if (isCorrect) {
+      if (chosenBtn) chosenBtn.classList.add('correct');
+      SoundFX.correct();
+      State.treasureHuntCorrectCount++;
+
+      if (DOM.tcQuizFeedback) {
+        DOM.tcQuizFeedback.className = 'cq-feedback-box correct';
+        DOM.tcQuizFeedback.innerHTML = `
+          <strong>🎉 TAHNIAH! JAWAPAN TEPAT!</strong>
+          <p style="margin-top: 6px; font-size: 13px;">${q.explanation}</p>
+        `;
+        DOM.tcQuizFeedback.style.display = 'block';
+      }
+
+      if (DOM.tcModalActions) {
+        DOM.tcModalActions.style.display = 'flex';
+      }
+      if (DOM.tcNextBtnText) {
+        DOM.tcNextBtnText.textContent = (qIndex < 2) ? 'Soalan Seterusnya' : 'Buka Peti Harta Karun! 🎁';
+      }
+    } else {
+      if (chosenBtn) chosenBtn.classList.add('incorrect');
+      if (optButtons[q.correctIndex]) {
+        optButtons[q.correctIndex].classList.add('correct');
+      }
+      SoundFX.incorrect();
+
+      if (DOM.tcQuizFeedback) {
+        DOM.tcQuizFeedback.className = 'cq-feedback-box incorrect';
+        DOM.tcQuizFeedback.innerHTML = `
+          <strong>❌ KURANG TEPAT, SILA FAHAMI KONSEP INI:</strong>
+          <p style="margin-top: 6px; font-size: 13px;">${q.explanation}</p>
+          <div style="margin-top: 10px;">
+            <button type="button" class="cq-btn-secondary" id="tc-retry-btn" style="padding: 6px 14px; font-size: 12.5px;">
+              🔄 Cuba Semula Soalan
+            </button>
+          </div>
+        `;
+        DOM.tcQuizFeedback.style.display = 'block';
+
+        const retryBtn = document.getElementById('tc-retry-btn');
+        if (retryBtn) {
+          retryBtn.onclick = () => renderTreasureBonusQuestion();
+        }
+      }
+    }
+  }
+
+  // Butang 'Soalan Seterusnya' atau 'Buka Peti'
+  function onTreasureNextButtonClicked() {
+    if (State.treasureHuntCurrentQIndex < 2) {
+      State.treasureHuntCurrentQIndex++;
+      renderTreasureBonusQuestion();
+    } else {
+      onTreasureBonusCompleted();
+    }
+  }
+
+  // Berjaya menjawab 3 soalan: Buka peti, berikan +300 bonus, animasi pembukaan lid
+  async function onTreasureBonusCompleted() {
+    closeTreasureChestModal();
+    State.treasureHuntCompleted = true;
+    arWorldState.isChestLidOpen = true;
+
+    // Berikan 300 markah bonus SEKALI SAHAJA
+    if (!State.treasureHuntBonusClaimed) {
+      State.score += 300;
+      State.treasureHuntBonusClaimed = true;
+    }
+
+    SoundFX.victory();
+    alertToast('🏆 TAHNIAH! Anda berjaya membuka Peti ARSELNel! +300 Markah Bonus Diperoleh!');
+
+    updateHUD();
+    await saveLearningRecord();
+
+    // Buka Skrin Ganjaran & Sijil selepas animasi penutup peti dibuka (~1.2 saat)
+    setTimeout(() => {
+      showTreasureRewardModal();
+    }, 1200);
+  }
+
+  // Tunjuk Modal 9: Ganjaran Akhir, Lencana Khas & Sijil
+  function showTreasureRewardModal() {
+    if (DOM.trFinalScore) {
+      DOM.trFinalScore.textContent = `${State.score} Mata`;
+    }
+    if (DOM.trFinalTime) {
+      DOM.trFinalTime.textContent = formatTime(State.durationSeconds);
+    }
+    if (DOM.treasureRewardModal) {
+      DOM.treasureRewardModal.classList.add('open');
+    }
+    SoundFX.fanfare();
+  }
+
+  function hideTreasureRewardModal() {
+    if (DOM.treasureRewardModal) {
+      DOM.treasureRewardModal.classList.remove('open');
+    }
   }
 
   // ==============================================================================
@@ -4582,6 +5122,19 @@
       // Model menghadap ke arah titik pemerhati di pusat dunia (0, stationY, 0)
       group.lookAt(0, stationY, 0);
     });
+
+    // Kemas kini kedudukan Peti Harta Karun ARSELNel jika wujud
+    if (arWorldState.treasureChestGroup) {
+      const azRad = THREE.MathUtils.degToRad(330);
+      const elRad = THREE.MathUtils.degToRad(8);
+      const R = 5.0;
+      const horizR = Math.cos(elRad) * R;
+      const chestX = Math.sin(azRad) * horizR;
+      const chestZ = -Math.cos(azRad) * horizR;
+      const chestY = eyeY + Math.sin(elRad) * R;
+      arWorldState.treasureChestGroup.position.set(chestX, chestY, chestZ);
+      arWorldState.treasureChestGroup.lookAt(0, chestY, 0);
+    }
   }
 
   // Konfigurasi semula susun atur 8 stesen secara dinamik jika diperlukan selepas ujian
@@ -5016,7 +5569,25 @@
       }
     });
 
-    arWorldState.activeStation = closestInFOV ? closestInFOV.userData.stationConfig : null;
+    // Semak juga pengesanan Peti Harta Karun ARSELNel jika Misi Akhir aktif
+    if (State.treasureHuntActive && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
+      const chestGroup = arWorldState.treasureChestGroup;
+      const chestDir = new THREE.Vector3();
+      chestDir.subVectors(chestGroup.position, camPos).normalize();
+      const chestDot = camDir.dot(chestDir);
+      const chestAngleDeg = THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, chestDot))));
+      const deltaAzChest = Math.abs(shortestAngleDeltaDeg(330, arWorldState.currentHeadingDeg));
+      const deltaElChest = Math.abs(8 - arWorldState.currentPitchDeg);
+      const isChestWithinDiscovery = (deltaAzChest <= hTol && deltaElChest <= vTol) || (chestAngleDeg <= Math.hypot(hTol, vTol));
+
+      if (isChestWithinDiscovery) {
+        closestAngle = chestAngleDeg;
+        closestInFOV = chestGroup;
+        closestIdx = -99;
+      }
+    }
+
+    arWorldState.activeStation = (closestInFOV && closestIdx >= 0) ? closestInFOV.userData.stationConfig : (closestIdx === -99 ? arWorldState.treasureChestConfig : null);
 
     // Animasi highlight apabila stesen ditemui / dalam pandangan kamera
     arWorldState.stationGroups.forEach((group, idx) => {
@@ -5031,16 +5602,73 @@
       if (beam) beam.material.opacity = inFOV ? 0.34 : (isTarget ? 0.20 : 0.08);
     });
 
-    // Tunjuk banner "Stesen <Nama> Ditemui!" apabila menghadap stesen
+    // Tunjuk banner "Stesen <Nama> Ditemui!" atau "Peti Harta Karun Ditemui!"
     if (closestIdx !== arWorldState.lastDetectedIdx) {
       arWorldState.lastDetectedIdx = closestIdx;
-      if (closestIdx >= 0 && closestInFOV) {
+      if (closestIdx === -99) {
+        showARTreasureDetectedBanner();
+      } else if (closestIdx >= 0 && closestInFOV) {
         const cfg = closestInFOV.userData.stationConfig;
         showARStationDetectedBanner(cfg);
       } else {
         hideARStationDetectedBanner();
       }
     }
+  }
+
+  // Paparkan notifikasi Peti Harta Karun Ditemui di penjuru kanan bawah
+  function showARTreasureDetectedBanner() {
+    if ((DOM.stationModal && DOM.stationModal.classList.contains('open')) ||
+        (DOM.treasureChestModal && DOM.treasureChestModal.classList.contains('open')) ||
+        (DOM.treasureRewardModal && DOM.treasureRewardModal.classList.contains('open'))) {
+      hideARStationDetectedBanner();
+      return;
+    }
+    let banner = document.getElementById('ar-world-detected-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'ar-world-detected-banner';
+      document.body.appendChild(banner);
+      ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click'].forEach(evt => {
+        banner.addEventListener(evt, e => e.stopPropagation(), { passive: true });
+      });
+    }
+    banner.style.borderColor = '#f59e0b';
+    banner.style.display = 'flex';
+    banner.style.opacity = '1';
+    banner.style.pointerEvents = 'auto';
+    banner.innerHTML = `
+      <div class="cq-detected-info">
+        <span class="cq-detected-kicker" style="color:#fde047;">🎁 Misi Akhir ARSELNel</span>
+        <strong class="cq-detected-title">Peti Harta Karun Ditemui!</strong>
+      </div>
+      <div class="cq-detected-actions">
+        <button type="button" class="cq-detected-explore-btn" id="ar-treasure-open-btn" style="background:linear-gradient(135deg, #f59e0b, #ea580c);">Buka Peti</button>
+        <button type="button" class="cq-detected-close-btn" id="ar-detected-close-btn" aria-label="Tutup notifikasi" title="Tutup">✕</button>
+      </div>
+    `;
+    const openBtn = document.getElementById('ar-treasure-open-btn');
+    if (openBtn) {
+      openBtn.onclick = (e) => {
+        e.stopPropagation();
+        hideARStationDetectedBanner();
+        openTreasureChestModal();
+      };
+    }
+    const closeBtn = document.getElementById('ar-detected-close-btn');
+    if (closeBtn) {
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        hideARStationDetectedBanner();
+      };
+    }
+    banner.onclick = (e) => {
+      if (e.target.closest('#ar-detected-close-btn')) return;
+      e.stopPropagation();
+      hideARStationDetectedBanner();
+      openTreasureChestModal();
+    };
+    arWorldState.detectedBanner = banner;
   }
 
   // Paparkan kad notifikasi ringkas "✓ Stesen Ditemui" di penjuru kanan bawah (Bahagian 7)
@@ -5139,7 +5767,22 @@
   }
 
   // Pilih stesen sasaran pada Smart Radar ("AR Organel Hunter" — Bahagian 4 & 5)
+  // idx = 0..7 untuk Stesen 1..8, idx = -1 untuk Peti Harta Karun ARSELNel
   function selectRadarTargetStation(idx, autoTurn = false) {
+    if (idx === -1) {
+      arWorldState.targetStationIdx = -1;
+      const chestCfg = arWorldState.treasureChestConfig;
+      if (autoTurn && arWorldState.active && arWorldState.subMode === 'orientation') {
+        lookAtARHeading(chestCfg.azimuthDeg, chestCfg.elevationDeg);
+      } else {
+        checkARWorldStationVisibility();
+        updateARWorldCompass();
+      }
+      renderSmartRadarStationList();
+      SoundFX.interact();
+      return chestCfg;
+    }
+
     if (typeof idx !== 'number' || idx < 0 || idx >= AR_WORLD_STATIONS.length) return null;
     arWorldState.targetStationIdx = idx;
     const cfg = AR_WORLD_STATIONS[idx];
@@ -5149,6 +5792,7 @@
       checkARWorldStationVisibility();
       updateARWorldCompass();
     }
+    renderSmartRadarStationList();
     SoundFX.interact();
     return cfg;
   }
@@ -5614,10 +6258,10 @@
         </div>
         <!-- PAPARAN LALAI (MINIMAL CARD — Bahagian 4) -->
         <div id="ar-smart-radar-compact">
-          <div class="cq-compact-target" id="ar-compact-target-name">🎯 Mitokondrion</div>
+          <div class="cq-compact-target" id="ar-compact-target-name">🎯 Nukleus</div>
           <div class="cq-compact-dirs">
-            <span class="cq-compact-turn" id="ar-compact-turn-cmd">↶ Kiri 90°</span>
-            <span class="cq-compact-elev" id="ar-compact-elev-cmd">↑ Naik 15°</span>
+            <span class="cq-compact-turn" id="ar-compact-turn-cmd">↷ Kanan 90°</span>
+            <span class="cq-compact-elev" id="ar-compact-elev-cmd">Aras tepat</span>
           </div>
           <button type="button" class="cq-compact-expand-btn" id="ar-radar-expand-btn" title="Buka senarai 8 stesen & maklumat penuh radar">
             Cari Stesen
@@ -5631,20 +6275,21 @@
           </div>
           <div class="cq-radar-pills" id="ar-radar-pills"></div>
           <div class="cq-radar-target-row">
-            <span class="cq-radar-target-name" id="ar-radar-target-title">🎯 Stesen 4: Mitokondrion</span>
+            <span class="cq-radar-target-name" id="ar-radar-target-title">🎯 Stesen 1: Nukleus</span>
             <span class="cq-radar-status-chip" id="ar-radar-status-chip">Sedang Dicari</span>
           </div>
           <div class="cq-radar-telemetry">
-            <div id="ar-radar-az-target">Sasaran: <strong>270°</strong> (Kiri)</div>
+            <div id="ar-radar-az-target">Sasaran: <strong>90°</strong> (Kanan)</div>
             <div id="ar-radar-az-cam">Kamera: <strong>0°</strong></div>
-            <div id="ar-radar-el-target">Elevasi: <strong>+15°</strong></div>
+            <div id="ar-radar-el-target">Elevasi: <strong>0°</strong></div>
             <div id="ar-radar-el-cam">Dongak: <strong>0°</strong></div>
             <div class="cq-radar-cmd">
-              <span id="ar-radar-turn-cmd">↩ Pusing kiri 90°</span>
-              <span id="ar-radar-elev-cmd">⬆ Naikkan 15°</span>
+              <span id="ar-radar-turn-cmd">↪ Pusing kanan 90°</span>
+              <span id="ar-radar-elev-cmd">✓ Aras tepat</span>
             </div>
           </div>
-          <div class="cq-radar-coach" id="ar-radar-coach-msg">Mitokondrion berada di sebelah kiri. Pusing kiri 90° lagi.</div>
+          <div class="cq-radar-coach" id="ar-radar-coach-msg">Pilih mana-mana stesen untuk memulakan navigasi Smart Radar.</div>
+          <div class="cq-radar-stations-list" id="ar-radar-station-list"></div>
           <div class="cq-radar-actions">
             <button type="button" class="cq-radar-act-btn primary" id="ar-radar-recalibrate-btn" title="Tetapkan arah semasa sebagai 0° Hadapan & 0° Elevasi">
               🧭 Kalibrasi
@@ -5749,11 +6394,73 @@
       });
     }
 
+    renderSmartRadarStationList();
+
     wrap.style.display = 'flex';
     arWorldState.compassEl = document.getElementById('ar-world-compass');
     arWorldState.smartRadarPanelEl = document.getElementById('ar-smart-radar-panel');
     // Pastikan permulaan dalam keadaan ringkas (compact)
     toggleSmartRadarPanel(Boolean(arWorldState.radarPanelExpanded));
+  }
+
+  // Bina / kemas kini senarai 8 stesen + Peti ARSELNel dalam panel Smart Radar yang boleh dikembangkan
+  function renderSmartRadarStationList() {
+    const listHost = document.getElementById('ar-radar-station-list');
+    if (!listHost) return;
+    listHost.innerHTML = '';
+
+    // Jika Treasure Hunt sedang aktif, letakkan Peti ARSELNel di bahagian atas senarai sasaran!
+    if (State.treasureHuntActive) {
+      const chestItem = document.createElement('div');
+      const isChestTarget = (arWorldState.targetStationIdx === -1);
+      chestItem.className = `cq-radar-list-item${isChestTarget ? ' active' : ''}`;
+      chestItem.innerHTML = `
+        <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+          <span style="font-size:14px;">🎁</span>
+          <span style="font-weight:900; font-size:11px; color:#fde047; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
+            Peti ARSELNel (330°, +8°)
+          </span>
+        </div>
+        <span class="cq-stn-badge ${State.treasureHuntCompleted ? 'done' : 'discovered'}">
+          ${State.treasureHuntCompleted ? 'Selesai ✓' : 'Misi Akhir 🎁'}
+        </span>
+      `;
+      chestItem.onclick = (e) => {
+        e.stopPropagation();
+        selectRadarTargetStation(-1, false);
+      };
+      listHost.appendChild(chestItem);
+    }
+
+    AR_WORLD_STATIONS.forEach((cfg, idx) => {
+      const isTarget = (idx === arWorldState.targetStationIdx);
+      const isDone = State.completedStations.has(cfg.stationNumber);
+      const isDiscovered = arWorldState.discoveredStations.has(cfg.stationNumber);
+
+      let badgeHtml = '<span class="cq-stn-badge pending">Belum Ditemui</span>';
+      if (isDone) {
+        badgeHtml = '<span class="cq-stn-badge done">Selesai ✓</span>';
+      } else if (isDiscovered) {
+        badgeHtml = '<span class="cq-stn-badge discovered">Ditemui ✨</span>';
+      }
+
+      const item = document.createElement('div');
+      item.className = `cq-radar-list-item${isTarget ? ' active' : ''}`;
+      item.innerHTML = `
+        <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+          <span style="font-size:13px;">${cfg.icon || '🧬'}</span>
+          <span style="font-weight:800; font-size:11px; color:#fff; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
+            Stesen ${cfg.stationNumber}: ${cfg.label}
+          </span>
+        </div>
+        ${badgeHtml}
+      `;
+      item.onclick = (e) => {
+        e.stopPropagation();
+        selectRadarTargetStation(idx, false);
+      };
+      listHost.appendChild(item);
+    });
   }
 
   // Kemas kini paparan Smart Radar (8 titik warna status, garisan panduan sasaran, azimut & elevasi dalam darjah)
@@ -5810,12 +6517,13 @@
     const currentAz = ((arWorldState.currentHeadingDeg % 360) + 360) % 360;
     const currentEl = arWorldState.currentPitchDeg || 0;
     const headingRad = THREE.MathUtils.degToRad(currentAz);
-    const targetIdx = (typeof arWorldState.targetStationIdx === 'number' && arWorldState.targetStationIdx >= 0)
+    const targetIdx = (typeof arWorldState.targetStationIdx === 'number')
       ? arWorldState.targetStationIdx
       : 0;
 
-    // 4. Garisan panduan putus-putus kuning ke stesen sasaran yang dipilih
-    const targetCfg = AR_WORLD_STATIONS[targetIdx] || AR_WORLD_STATIONS[0];
+    // 4. Garisan panduan putus-putus kuning ke stesen sasaran atau Peti Harta Karun
+    const isChestTarget = (targetIdx === -1);
+    const targetCfg = isChestTarget ? arWorldState.treasureChestConfig : (AR_WORLD_STATIONS[targetIdx] || AR_WORLD_STATIONS[0]);
     if (targetCfg) {
       const targetRelRad = THREE.MathUtils.degToRad(targetCfg.azimuthDeg) - headingRad;
       const dotR = r - 15;
@@ -5826,7 +6534,7 @@
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.lineTo(tx, ty);
-      ctx.strokeStyle = '#facc15';
+      ctx.strokeStyle = isChestTarget ? '#fbbf24' : '#facc15';
       ctx.lineWidth = 1.8;
       ctx.stroke();
       ctx.restore();
@@ -5873,6 +6581,35 @@
       ctx.fillText(String(cfg.stationNumber), dotX, dotY + 0.5);
     });
 
+    // 5.1 Lukis titik Peti Harta Karun ARSELNel pada azimut 330° jika Misi Akhir aktif
+    if (State.treasureHuntActive) {
+      const chestAngleRad = THREE.MathUtils.degToRad(330);
+      const chestRelAngle = chestAngleRad - headingRad;
+      const cDotR = r - 15;
+      const chestDotX = cx + Math.sin(chestRelAngle) * cDotR;
+      const chestDotY = cy - Math.cos(chestRelAngle) * cDotR;
+
+      if (isChestTarget) {
+        ctx.beginPath();
+        ctx.arc(chestDotX, chestDotY, 11.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.arc(chestDotX, chestDotY, isChestTarget ? 8.2 : 6.8, 0, Math.PI * 2);
+      ctx.fillStyle = State.treasureHuntCompleted ? '#10b981' : '#f59e0b';
+      ctx.fill();
+      ctx.strokeStyle = isChestTarget ? '#ffffff' : 'rgba(15, 23, 42, 0.9)';
+      ctx.lineWidth = isChestTarget ? 2 : 1.2;
+      ctx.stroke();
+
+      ctx.font = '10px Nunito, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎁', chestDotX, chestDotY);
+    }
+
     // 6. Titik pengguna di tengah radar
     ctx.beginPath();
     ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
@@ -5892,6 +6629,7 @@
   function updateSmartRadarNavigationPanel(targetCfg, targetIdx, currentAz, currentEl) {
     if (!targetCfg) return;
 
+    const isChestTarget = (targetIdx === -1);
     const targetAz = targetCfg.azimuthDeg;
     const targetEl = targetCfg.elevationDeg || 0;
     const deltaAz = shortestAngleDeltaDeg(targetAz, currentAz);
@@ -5902,14 +6640,14 @@
     const azAligned = Math.abs(deltaAz) <= hTol;
     const elAligned = Math.abs(deltaEl) <= vTol;
     const isTargetDiscovered = azAligned && elAligned;
-    const isDone = State.completedStations.has(targetCfg.stationNumber);
+    const isDone = isChestTarget ? State.treasureHuntCompleted : State.completedStations.has(targetCfg.stationNumber);
 
     // Kemas kini pil stesen 1..8
     AR_WORLD_STATIONS.forEach((cfg, idx) => {
       const pill = document.getElementById(`ar-radar-pill-${cfg.stationNumber}`);
       if (pill) {
         const done = State.completedStations.has(cfg.stationNumber);
-        pill.classList.toggle('target', idx === targetIdx);
+        pill.classList.toggle('target', idx === targetIdx && !isChestTarget);
         pill.classList.toggle('done', done && idx !== targetIdx);
       }
     });
@@ -5930,7 +6668,11 @@
     }
 
     const titleEl = document.getElementById('ar-radar-target-title');
-    if (titleEl) titleEl.textContent = `🎯 Stesen ${targetCfg.stationNumber}: ${targetCfg.label}`;
+    if (titleEl) {
+      titleEl.textContent = isChestTarget
+        ? '🎁 Misi Akhir: Peti Harta Karun ARSELNel'
+        : `🎯 Stesen ${targetCfg.stationNumber}: ${targetCfg.label}`;
+    }
 
     const statusChip = document.getElementById('ar-radar-status-chip');
     if (statusChip) {
@@ -5940,12 +6682,12 @@
         statusChip.style.color = '#34d399';
         statusChip.style.borderColor = '#10b981';
       } else if (isTargetDiscovered) {
-        statusChip.textContent = 'Stesen Ditemui! ✨';
+        statusChip.textContent = isChestTarget ? 'Peti Ditemui! 🎁' : 'Stesen Ditemui! ✨';
         statusChip.style.background = 'rgba(45, 212, 191, 0.25)';
         statusChip.style.color = '#5eead4';
         statusChip.style.borderColor = '#2dd4bf';
       } else {
-        statusChip.textContent = 'Sedang Dicari';
+        statusChip.textContent = isChestTarget ? 'Harta Karun ARSELNel 🎁' : 'Sedang Dicari';
         statusChip.style.background = 'rgba(250, 204, 21, 0.2)';
         statusChip.style.color = '#fde047';
         statusChip.style.borderColor = 'rgba(250, 204, 21, 0.45)';
@@ -5999,7 +6741,7 @@
     const turnWord = deltaAz > 0 ? 'kanan' : 'kiri';
     if (coachEl) {
       if (isTargetDiscovered) {
-        coachEl.textContent = `Stesen ${targetCfg.label} ditemui! Ketik untuk meneroka.`;
+        coachEl.textContent = isChestTarget ? 'Peti Harta Karun ARSELNel ditemui! Ketik untuk buka.' : `Stesen ${targetCfg.label} ditemui! Ketik untuk meneroka.`;
         coachEl.style.color = '#34d399';
       } else if (!azAligned && absAz <= 28) {
         coachEl.textContent = `Bagus! Anda hampir menghadap ${targetCfg.label}. Pusing ${turnWord} ${absAz}° lagi.`;
@@ -6016,7 +6758,7 @@
     // 8. Kemas kini Paparan Lalai Ringkas (Minimal Card — Bahagian 4)
     const compactTargetEl = document.getElementById('ar-compact-target-name');
     if (compactTargetEl) {
-      compactTargetEl.textContent = `🎯 ${targetCfg.label}`;
+      compactTargetEl.textContent = isChestTarget ? '🎁 Peti ARSELNel' : `🎯 ${targetCfg.label}`;
     }
     const compactTurnEl = document.getElementById('ar-compact-turn-cmd');
     if (compactTurnEl) {
@@ -6095,6 +6837,47 @@
       });
     });
 
+    // Animasi Peti Harta Karun ARSELNel (Misi Akhir)
+    if (State.treasureHuntActive && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
+      const chest = arWorldState.treasureChestGroup;
+      const baseEyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
+      const elRad = THREE.MathUtils.degToRad(8);
+      const baseY = baseEyeY + Math.sin(elRad) * 5.0;
+      chest.position.y = baseY + Math.sin(elapsedTime * 2.2) * 0.06;
+
+      if (chest.userData.beacon) {
+        chest.userData.beacon.rotation.y = elapsedTime * 2.2;
+      }
+      if (chest.userData.labelGroup) {
+        chest.userData.labelGroup.lookAt(camPos);
+      }
+
+      // Animasi pembukaan penutup peti (lid opening lerp)
+      if (arWorldState.isChestLidOpen && arWorldState.chestLidPivot) {
+        arWorldState.chestLidPivot.rotation.x = THREE.MathUtils.lerp(
+          arWorldState.chestLidPivot.rotation.x,
+          -1.75,
+          0.06
+        );
+        if (arWorldState.chestLight) {
+          arWorldState.chestLight.intensity = THREE.MathUtils.lerp(
+            arWorldState.chestLight.intensity,
+            2.8,
+            0.06
+          );
+        }
+      }
+
+      // Animasi zarah bintang / sparkles
+      if (Array.isArray(arWorldState.chestParticles)) {
+        arWorldState.chestParticles.forEach(p => {
+          p.position.y = p.userData.baseY + Math.sin(elapsedTime * p.userData.speed + p.userData.offset) * 0.12;
+          p.rotation.y += 0.03;
+          p.rotation.x += 0.02;
+        });
+      }
+    }
+
     if (arWorldState.subMode === 'spatial') {
       // Dalam Mod A (WebXR), kemas kini arah kompas & stesen dalam FOV daripada pose kamera XR sebenar
       const camDir = new THREE.Vector3();
@@ -6134,6 +6917,13 @@
     // Bina 8 stesen AR di lokasi sudut & elevasi berasingan dalam world space
     buildARWorldStations();
     buildARWorldCompass();
+
+    if (State.treasureHuntActive) {
+      buildTreasureChest3D();
+      if (arWorldState.treasureChestGroup) {
+        arWorldState.treasureChestGroup.visible = true;
+      }
+    }
 
     // Setup DeviceOrientation (untuk peranti yang tidak memerlukan klik izin iOS)
     setupDeviceOrientation();
@@ -6241,7 +7031,12 @@
 
     const targetGroups = arMarkerState.active
       ? arMarkerState.anchors
-      : (arWorldState.active ? arWorldState.stationGroups : []);
+      : (arWorldState.active ? [...arWorldState.stationGroups] : []);
+
+    // Sertakan Peti Harta Karun dalam sasaran ketikan jika Misi Akhir aktif
+    if (arWorldState.active && State.treasureHuntActive && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
+      targetGroups.push(arWorldState.treasureChestGroup);
+    }
 
     if (!targetGroups.length) return false;
 
@@ -6263,6 +7058,11 @@
         stationGroup = stationGroup.parent;
       }
       if (stationGroup && stationGroup.userData && stationGroup.userData.stationConfig) {
+        if (stationGroup.userData.isTreasureChest) {
+          SoundFX.interact();
+          openTreasureChestModal();
+          return true;
+        }
         const cfg = stationGroup.userData.stationConfig;
         arWorldState.focusedStationIdx = stationGroup.userData.stationIndex;
         SoundFX.interact();
@@ -8223,7 +9023,24 @@
     tapAt: (x, y) => handleARWorldTap(x, y),
     raycast3DAt: (x, y) => handle3DStationRaycastTap(x, y),
     selectOrganelle: (id, num) => selectAROrganelle(id, num),
-    openQuiz: (idx) => openStationModal(idx)
+    openQuiz: (idx) => openStationModal(idx),
+    getTreasureHuntState: () => ({
+      unlocked: State.treasureHuntUnlocked,
+      active: State.treasureHuntActive,
+      completed: State.treasureHuntCompleted,
+      bonusClaimed: State.treasureHuntBonusClaimed,
+      isChestLidOpen: arWorldState.isChestLidOpen,
+      chestGroup: arWorldState.treasureChestGroup
+    }),
+    startTreasureHunt: () => startTreasureHuntMission(),
+    openTreasureChestModal: () => openTreasureChestModal(),
+    closeTreasureChestModal: () => closeTreasureChestModal(),
+    answerBonusQuestion: (choiceIdx) => checkTreasureBonusAnswer(choiceIdx),
+    nextBonusQuestion: () => onTreasureNextButtonClicked(),
+    showTreasureRewardModal: () => showTreasureRewardModal(),
+    hideTreasureRewardModal: () => hideTreasureRewardModal(),
+    findNextUncompletedStation: (fromIdx) => findNextUncompletedStation(fromIdx),
+    markStationCompleted: (num) => markStationCompleted(num)
   };
 
   // Run initialization when DOM is ready
