@@ -518,7 +518,7 @@ function startStaticServer() {
           arResults.worldActive &&
           arResults.leftActive === 'mitochondria' &&
           arResults.rightActive === 'nucleus' &&
-          arResults.arStnSummary.filter(s => ['nucleus', 'membrane', 'mitochondria', 'animal', 'plant'].includes(s.stationKey)).every(s => s.isGLBMounted && s.inWorldSpace)
+          arResults.arStnSummary.filter(s => ['nucleus', 'membrane', 'mitochondria', 'er'].includes(s.stationKey)).every(s => s.isGLBMounted && s.inWorldSpace)
         ),
         detail: `WorldAR Active=${arResults.worldActive}, Kiri(270°)=${arResults.leftActive}, Kanan(90°)=${arResults.rightActive}, GLBsInWorldSpace=5/5`
       },

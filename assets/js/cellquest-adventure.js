@@ -292,29 +292,33 @@
   // Dalam Mod Orientasi: sudut adalah relatif kepada arah hadapan kamera semasa sesi dimulakan.
   // Dalam Mod WebXR Spasial: koordinat dalam ruang XR sebenar.
 
-  // Susun atur 8 stesen AR dunia (angle dalam darjah, 0°=depan, 90°=kanan, 180°=belakang, 270°=kiri)
-  // Stesen 1..8 mengikut arah cadangan:
-  // Kiri -> Stesen 1 (Mitokondrion), Kanan -> Stesen 2 (Nukleus), Depan -> Stesen 3 (Sel Haiwan),
-  // Belakang -> Stesen 4 (Sel Tumbuhan), Kiri depan -> Stesen 5 (Membran Sel), Kanan depan -> Stesen 6 (Kloroplas),
-  // Kiri belakang -> Stesen 7 (Sitoplasma), Kanan belakang -> Stesen 8 (Vakuol).
+  // Susun atur 8 stesen AR dunia dengan Azimut Relatif (0°=Hadapan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
+  // dan Elevasi (sudut dongak + / tunduk - dalam darjah). Boleh dikonfigurasi pada bila-bila masa.
   const AR_WORLD_STATIONS = [
-    { id: 'stn-4-mitochondria', slotNumber: 1, markerId: 0, directionName: 'Kiri',          stationKey: 'mitochondria', stationNumber: 4, angleDeg: 270, radius: 5.5, height: 1.45, spatialOffset: [-1.45, 0.0,  0.0],  label: 'Mitokondrion', color: 0xf97316, icon: '⚡' },
-    { id: 'stn-1-nucleus',      slotNumber: 2, markerId: 1, directionName: 'Kanan',         stationKey: 'nucleus',      stationNumber: 1, angleDeg: 90,  radius: 5.5, height: 1.45, spatialOffset: [ 1.45, 0.0,  0.0],  label: 'Nukleus',      color: 0x8b5cf6, icon: '🧬' },
-    { id: 'stn-8-comparison',   slotNumber: 3, markerId: 2, directionName: 'Depan',         stationKey: 'animal',       stationNumber: 8, angleDeg: 0,   radius: 5.5, height: 1.45, spatialOffset: [ 0.0,  0.0, -1.45], label: 'Sel Haiwan',   color: 0x3b82f6, icon: '🐾' },
-    { id: 'stn-6-cellwall',     slotNumber: 4, markerId: 3, directionName: 'Belakang',      stationKey: 'plant',        stationNumber: 6, angleDeg: 180, radius: 5.5, height: 1.45, spatialOffset: [ 0.0,  0.0,  1.45], label: 'Sel Tumbuhan', color: 0x22c55e, icon: '🌿' },
-    { id: 'stn-2-membrane',     slotNumber: 5, markerId: 4, directionName: 'Kiri Depan',    stationKey: 'membrane',     stationNumber: 2, angleDeg: 315, radius: 5.2, height: 1.45, spatialOffset: [-1.05, 0.0, -1.05], label: 'Membran Sel',  color: 0x3b82f6, icon: '🛡️' },
-    { id: 'stn-5-chloroplast',  slotNumber: 6, markerId: 5, directionName: 'Kanan Depan',   stationKey: 'chloroplast',  stationNumber: 5, angleDeg: 45,  radius: 5.2, height: 1.45, spatialOffset: [ 1.05, 0.0, -1.05], label: 'Kloroplas',    color: 0x22c55e, icon: '🌿' },
-    { id: 'stn-3-cytoplasm',    slotNumber: 7, markerId: 6, directionName: 'Kiri Belakang', stationKey: 'cytoplasm',    stationNumber: 3, angleDeg: 225, radius: 5.2, height: 1.45, spatialOffset: [-1.05, 0.0,  1.05], label: 'Sitoplasma',   color: 0xeab308, icon: '💧' },
-    { id: 'stn-7-vacuole',      slotNumber: 8, markerId: 7, directionName: 'Kanan Belakang',stationKey: 'vacuole',      stationNumber: 7, angleDeg: 135, radius: 5.2, height: 1.45, spatialOffset: [ 1.05, 0.0,  1.05], label: 'Vakuol',       color: 0x06b6d4, icon: '🫧' }
+    { id: 'stn-1-nucleus',      slotNumber: 1, stationNumber: 1, markerId: 1, directionName: 'Kanan',          stationKey: 'nucleus',      azimuthDeg: 90,  angleDeg: 90,  elevationDeg: 5,   radius: 5.4, height: 1.45, spatialOffset: [ 1.45,  0.12,  0.0],  label: 'Nukleus',                      color: 0x8b5cf6, icon: '🧬' },
+    { id: 'stn-2-membrane',     slotNumber: 2, stationNumber: 2, markerId: 4, directionName: 'Kanan Hadapan',  stationKey: 'membrane',     azimuthDeg: 45,  angleDeg: 45,  elevationDeg: -8,  radius: 5.4, height: 1.45, spatialOffset: [ 1.05, -0.18, -1.05], label: 'Membran Sel',                  color: 0x3b82f6, icon: '🛡️' },
+    { id: 'stn-3-cytoplasm',    slotNumber: 3, stationNumber: 3, markerId: 6, directionName: 'Kanan Belakang', stationKey: 'cytoplasm',    azimuthDeg: 135, angleDeg: 135, elevationDeg: 12,  radius: 5.4, height: 1.45, spatialOffset: [ 1.05,  0.26,  1.05], label: 'Sitoplasma',                   color: 0xeab308, icon: '💧' },
+    { id: 'stn-4-mitochondria', slotNumber: 4, stationNumber: 4, markerId: 0, directionName: 'Kiri',           stationKey: 'mitochondria', azimuthDeg: 270, angleDeg: 270, elevationDeg: 15,  radius: 5.4, height: 1.45, spatialOffset: [-1.45,  0.32,  0.0],  label: 'Mitokondrion',                 color: 0xf97316, icon: '⚡' },
+    { id: 'stn-5-chloroplast',  slotNumber: 5, stationNumber: 5, markerId: 5, directionName: 'Kiri Belakang',  stationKey: 'chloroplast',  azimuthDeg: 225, angleDeg: 225, elevationDeg: -5,  radius: 5.4, height: 1.45, spatialOffset: [-1.05, -0.12,  1.05], label: 'Kloroplas',                    color: 0x22c55e, icon: '🌿' },
+    { id: 'stn-6-cellwall',     slotNumber: 6, stationNumber: 6, markerId: 3, directionName: 'Kiri Hadapan',   stationKey: 'wall',         azimuthDeg: 315, angleDeg: 315, elevationDeg: 8,   radius: 5.4, height: 1.45, spatialOffset: [-1.05,  0.18, -1.05], label: 'Dinding Sel',                  color: 0x92400e, icon: '🧱' },
+    { id: 'stn-7-vacuole',      slotNumber: 7, stationNumber: 7, markerId: 7, directionName: 'Belakang',       stationKey: 'vacuole',      azimuthDeg: 180, angleDeg: 180, elevationDeg: 0,   radius: 5.4, height: 1.45, spatialOffset: [ 0.0,   0.0,   1.45], label: 'Vakuol',                       color: 0x06b6d4, icon: '🫧' },
+    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Hadapan',        stationKey: 'comparison',   azimuthDeg: 0,   angleDeg: 0,   elevationDeg: -12, radius: 5.4, height: 1.45, spatialOffset: [ 0.0,  -0.26, -1.45], label: 'Retikulum Endoplasma & Sel',   color: 0xec4899, icon: '⚖️' }
   ];
 
   // World-locked AR state — dikekalkan sepanjang sesi
   const arWorldState = {
     active: false,               // Adakah Mod Penerokaan Dunia AR aktif?
     subMode: 'orientation',      // 'orientation' (Mod C) | 'marker' (Mod B) | 'spatial' (Mod A)
-    baseHeadingDeg: 0,           // Arah hadapan kalibrasi (dalam darjah kompas)
-    currentHeadingDeg: 0,        // Arah semasa kamera (dari DeviceOrientation alpha atau manual yaw)
-    currentPitchDeg: 0,          // Pitch semasa kamera (dari DeviceOrientation beta atau manual pitch)
+    baseHeadingDeg: 0,           // Arah hadapan kalibrasi (dalam darjah sensor)
+    baseSensorAzimuthDeg: 0,     // Azimut sensor rujukan semasa butang Kalibrasi ditekan
+    baseSensorElevationDeg: 0,   // Elevasi sensor rujukan semasa butang Kalibrasi ditekan
+    rawSensorAzimuthDeg: 0,      // Azimut mentah daripada kuaternion DeviceOrientation (terkompensasi orientasi skrin)
+    rawSensorElevationDeg: 0,    // Elevasi mentah daripada kuaternion DeviceOrientation (terkompensasi orientasi skrin)
+    smoothedSensorAzimuthDeg: null,
+    smoothedSensorElevationDeg: null,
+    screenOrientationAngle: 0,   // 0 (Portrait), 90 (Landscape Left), -90/270 (Landscape Right), 180 (Upside Down)
+    currentHeadingDeg: 0,        // Azimut relatif semasa kamera (0°=Hadapan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
+    currentPitchDeg: 0,          // Elevasi relatif semasa kamera (-60° hingga +60° dalam darjah)
     manualYawDeg: 0,             // Kawalan pusing manual / duduk (darjah)
     manualPitchDeg: 0,           // Kawalan dongak manual (darjah)
     hasCalibrated: false,        // Sudahkah pengguna kalibrasi arah?
@@ -323,16 +327,37 @@
     postureMode: 'seated',       // 'seated' (Duduk) | 'standing' (Berdiri)
     stationGroups: [],           // Array THREE.Group untuk setiap stesen dalam world space
     stationVisibility: new Array(8).fill(false),
+    discoveredStations: new Set(), // Set stationNumber yang telah ditemui melalui kamera
+    targetStationIdx: 3,         // Indeks stesen yang sedang diburu pada Smart Radar (Default: Stesen 4 Mitokondrion)
+    horizontalToleranceDeg: 14,  // Toleransi sudut mendatar (azimut ±14°) untuk penemuan stesen
+    verticalToleranceDeg: 12,    // Toleransi sudut menegak (elevasi ±12°) untuk penemuan stesen
     activeStation: null,         // Stesen yang sedang dalam pandangan
     focusedStationIdx: -1,       // Indeks stesen yang sedang difokus/diperbesar
     focusedStationScale: 1.0,    // Skala zum pemeriksaan bagi stesen aktif
     compassEl: null,             // Elemen kompas/radar HTML
+    smartRadarPanelEl: null,     // Panel navigasi Smart Radar / AR Organel Hunter
     detectedBanner: null,        // Banner "Stesen Ditemui!"
     trackingBannerEl: null,      // Banner status tracking & arahan pemulihan
-    fovThresholdDeg: 32,         // Sudut pandang untuk stesen dianggap "dalam medan pandangan"
+    fovThresholdDeg: 36,         // Sudut pandang untuk stesen dianggap dalam medan pandangan kamera
     lastDetectedIdx: -1,         // Indeks stesen terakhir yang dikesan
     spatialOrigin: new THREE.Vector3(0, 0, -1.5), // Pusat ruang bagi Mod A (Spatial AR)
     spatialAnchors: []           // Senarai WebXR XRAnchor jika disokong
+  };
+
+  // Konfigurasi transform khusus mengikut model untuk Mod B (Marker AR)
+  // Struktur: MarkerAnchor -> ModelOrientationGroup -> ModelScaleGroup -> GLBScene
+  const MARKER_MODEL_CONFIG = {
+    nucleus:      { scale: 0.19, offsetY: 0.15, rotCorrection: [0, 0, 0] },
+    membrane:     { scale: 0.18, offsetY: 0.14, rotCorrection: [0, 0, 0] },
+    cytoplasm:    { scale: 0.19, offsetY: 0.14, rotCorrection: [0, 0, 0] },
+    mitochondria: { scale: 0.19, offsetY: 0.15, rotCorrection: [0, 0, 0] },
+    chloroplast:  { scale: 0.19, offsetY: 0.14, rotCorrection: [0, 0, 0] },
+    wall:         { scale: 0.19, offsetY: 0.15, rotCorrection: [0, 0, 0] },
+    vacuole:      { scale: 0.19, offsetY: 0.15, rotCorrection: [0, 0, 0] },
+    comparison:   { scale: 0.18, offsetY: 0.15, rotCorrection: [0, 0, 0] },
+    animal:       { scale: 0.19, offsetY: 0.15, rotCorrection: [0, 0, 0] },
+    plant:        { scale: 0.19, offsetY: 0.15, rotCorrection: [0, 0, 0] },
+    er:           { scale: 0.18, offsetY: 0.15, rotCorrection: [0, 0, 0] }
   };
 
   // Marker AR (Mod B — iPad Safari 6DOF Fiducial Tracking) state
@@ -343,11 +368,14 @@
     procCanvas: null,
     procCtx: null,
     markerSizeMeters: 0.14,      // 14cm fizikal saiz kad penanda
-    anchors: [],                 // 8 THREE.Group yang dikemas kini dengan pose 6DOF marker
-    trackedMap: {},              // markerId -> { lastSeen, pose, visible, error }
+    anchors: [],                 // 8 THREE.Group (MarkerAnchor) yang dikemas kini dengan pose 6DOF marker
+    trackedMap: {},              // markerId -> { lastSeen, pose, visible, error, confidence }
     activeMarkerIds: [],         // Senarai markerId yang sah pada frame semasa
     simulatedMarkerId: null,     // Untuk ujian makmal / simulasi kad pada desktop
-    simulatedPoseOffset: { x: 0, y: 0, z: -0.65, rotY: 0 },
+    simulatedPoseOffset: { x: 0, y: 0, z: -0.65, rotY: 0, cardRotDeg: 0, tableTiltDeg: 55 },
+    simulatedCornersMap: {},     // markerId -> 4 penjuru 2D untuk ujian POSIT penuh
+    maxReprojError: 42,          // Had ralat unjuran semula POSIT untuk penapisan keyakinan
+    gracePeriodMs: 340,          // Tempoh tangguh pendek supaya model tidak berkelip apabila hilang 1-2 frame
     lastDetectTime: 0
   };
 
@@ -454,6 +482,24 @@
       color: '#22c55e',
       description: 'Sel tumbuhan mempunyai dinding sel selulosa yang tegar, kloroplas untuk fotosintesis, dan vakuol pusat yang besar untuk mengekalkan kesegahan sel.',
       fact: 'Bentuk sel tumbuhan adalah tetap kerana disokong oleh dinding sel.'
+    },
+    comparison: {
+      stationNumber: 8,
+      name: 'Retikulum Endoplasma & Perbandingan Sel',
+      icon: '⚖️',
+      colorHex: 0xec4899,
+      color: '#ec4899',
+      description: 'Stesen 8 menggabungkan rangkaian membran Retikulum Endoplasma serta perbandingan struktur penuh Sel Haiwan dan Sel Tumbuhan.',
+      fact: 'Sel tumbuhan mempunyai dinding sel, kloroplas dan vakuol besar; sel haiwan tiada dinding sel atau kloroplas.'
+    },
+    er: {
+      stationNumber: 8,
+      name: 'Retikulum Endoplasma',
+      icon: '🧬',
+      colorHex: 0x38bdf8,
+      color: '#38bdf8',
+      description: 'Rangkaian membran berlipat yang bersambung dengan membran nukleus untuk mengangkut protein dan mensintesis lipid.',
+      fact: 'Hadir dalam kedua-dua sel haiwan dan sel tumbuhan.'
     }
   };
 
@@ -1289,7 +1335,7 @@
       targetSizeARWorld: 1.65,
       targetSizePreview: 1.55,
       targetSizeMini: 0.38,
-      rot: [0.22, 0.25, 0],
+      rot: [0.22, 0.25, Math.PI],
       tableClearanceY: 0.14
     },
     mitochondria: {
@@ -3597,8 +3643,9 @@
         }
         const oldLabel = group.userData.labelGroup;
         if (oldLabel && cfg) {
-          const labelTitle = `Stesen ${cfg.slotNumber}: ${cfg.label}`;
-          const labelSub = `Arah ${cfg.directionName} • Ketik Untuk Teroka & Kuiz`;
+          const elevStr = cfg.elevationDeg > 0 ? `+${cfg.elevationDeg}°` : `${cfg.elevationDeg}°`;
+          const labelTitle = `Stesen ${cfg.stationNumber}: ${cfg.label}`;
+          const labelSub = `Arah ${cfg.directionName} (${cfg.azimuthDeg}°, Elevasi ${elevStr}) • Selesai ✓`;
           const newLabel = buildStationLabel(labelTitle, labelSub, cfg.icon, cfg.color, cfg.stationNumber);
           newLabel.position.copy(oldLabel.position);
           group.remove(oldLabel);
@@ -3614,7 +3661,7 @@
         const oldLabel = anchor.userData.labelGroup;
         if (oldLabel && cfg) {
           const labelTitle = `Kad #${cfg.markerId}: ${cfg.label}`;
-          const labelSub = `Stesen ${cfg.slotNumber} • Ketik Model Untuk Info & Kuiz`;
+          const labelSub = `Stesen ${cfg.stationNumber} • Selesai ✓`;
           const newLabel = buildStationLabel(labelTitle, labelSub, cfg.icon, cfg.color, cfg.stationNumber);
           newLabel.position.copy(oldLabel.position);
           newLabel.scale.copy(oldLabel.scale);
@@ -3624,6 +3671,10 @@
         }
       }
     });
+
+    if (arWorldState.active) {
+      updateARWorldCompass();
+    }
 
     if (DOM.arStationsDrawer && DOM.arStationsDrawer.classList.contains('open')) {
       renderARStationsDrawer();
@@ -3994,8 +4045,66 @@
     if (DOM.cameraFallbackModal) DOM.cameraFallbackModal.classList.add('open');
   }
 
-  // Device Orientation (Gyroscope) handling
+  // ==============================================================================
+  // SENSOR ORIENTASI PERANTI (IPAD SAFARI PORTRAIT & LANDSCAPE QUATERNION)
+  // ==============================================================================
   let deviceOrientationBound = false;
+  let screenOrientationBound = false;
+
+  function getScreenOrientationAngle() {
+    if (typeof window.arSimulatedScreenOrientation === 'number') {
+      return window.arSimulatedScreenOrientation;
+    }
+    if (window.screen && window.screen.orientation && typeof window.screen.orientation.angle === 'number') {
+      return window.screen.orientation.angle;
+    }
+    if (typeof window.orientation === 'number') {
+      return window.orientation;
+    }
+    return 0;
+  }
+
+  // Kira kuaternion orientasi 3D kamera dunia daripada W3C DeviceOrientation (alpha, beta, gamma)
+  // dengan pampasan penuh untuk orientasi skrin iPad (Portrait 0°, Landscape 90° / -90° / 270°, Upside-Down 180°)
+  function computeDeviceWorldQuaternion(alphaDeg, betaDeg, gammaDeg, screenAngleDeg) {
+    const degToRad = THREE.MathUtils.degToRad;
+    const alpha = degToRad(typeof alphaDeg === 'number' ? alphaDeg : 0);
+    const beta  = degToRad(typeof betaDeg === 'number' ? betaDeg : 90);
+    const gamma = degToRad(typeof gammaDeg === 'number' ? gammaDeg : 0);
+    const orient = degToRad(typeof screenAngleDeg === 'number' ? screenAngleDeg : 0);
+
+    const euler = new THREE.Euler(beta, alpha, -gamma, 'YXZ');
+    const q = new THREE.Quaternion().setFromEuler(euler);
+    // Laraskan daripada kerangka peranti ke ufuk dunia (-90° pada paksi X)
+    const q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
+    q.multiply(q1);
+    // Pampasan putaran skrin (Portrait / Landscape)
+    const q0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orient);
+    q.multiply(q0);
+    return q;
+  }
+
+  // Ekstrak azimut ikut jam (0°..360°) dan elevasi dongak/tunduk (-60°..+60°) daripada kuaternion kamera
+  function extractCameraAzimuthAndElevation( alphaDeg, betaDeg, gammaDeg ) {
+    const screenAngle = getScreenOrientationAngle();
+    arWorldState.screenOrientationAngle = screenAngle;
+    const q = computeDeviceWorldQuaternion(alphaDeg, betaDeg, gammaDeg, screenAngle);
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(q).normalize();
+
+    const rawAzimuthDeg = ((THREE.MathUtils.radToDeg(Math.atan2(forward.x, -forward.z)) % 360) + 360) % 360;
+    const rawElevationDeg = THREE.MathUtils.radToDeg(Math.asin(Math.max(-1, Math.min(1, forward.y))));
+    return {
+      rawAzimuthDeg,
+      rawElevationDeg: Math.max(-60, Math.min(60, rawElevationDeg)),
+      quaternion: q
+    };
+  }
+
+  // Kira perbezaan sudut terpendek dalam julat [-180°, +180°]
+  function shortestAngleDeltaDeg(targetAngleDeg, currentAngleDeg) {
+    return ((targetAngleDeg - currentAngleDeg + 540) % 360) - 180;
+  }
+
   function onDeviceOrientationEvent(e) {
     if (e.alpha === null && e.beta === null) return;
     const alpha = typeof e.alpha === 'number' ? e.alpha : 0;
@@ -4012,16 +4121,64 @@
     arWorldState.sensorReceived = true;
     arWorldState.isSimulationFallback = false;
 
+    const { rawAzimuthDeg, rawElevationDeg } = extractCameraAzimuthAndElevation(alpha, beta, gamma);
+    arWorldState.rawSensorAzimuthDeg = rawAzimuthDeg;
+    arWorldState.rawSensorElevationDeg = rawElevationDeg;
+
+    // Smoothing sudut tanpa lompatan 359° <-> 0° (wraparound-safe low-pass filter)
+    if (arWorldState.smoothedSensorAzimuthDeg === null) {
+      arWorldState.smoothedSensorAzimuthDeg = rawAzimuthDeg;
+      arWorldState.smoothedSensorElevationDeg = rawElevationDeg;
+    } else {
+      const dAz = shortestAngleDeltaDeg(rawAzimuthDeg, arWorldState.smoothedSensorAzimuthDeg);
+      arWorldState.smoothedSensorAzimuthDeg = ((arWorldState.smoothedSensorAzimuthDeg + dAz * 0.35) % 360 + 360) % 360;
+      arWorldState.smoothedSensorElevationDeg = arWorldState.smoothedSensorElevationDeg + (rawElevationDeg - arWorldState.smoothedSensorElevationDeg) * 0.35;
+    }
+
     if (arWorldState.active && arWorldState.subMode === 'orientation') {
       if (!arWorldState.hasCalibrated) {
         arWorldState.baseHeadingDeg = alpha;
+        arWorldState.baseSensorAzimuthDeg = arWorldState.smoothedSensorAzimuthDeg;
+        arWorldState.baseSensorElevationDeg = arWorldState.smoothedSensorElevationDeg;
         arWorldState.hasCalibrated = true;
       }
       updateARWorldCamera(alpha, beta, gamma);
     }
   }
 
+  function onScreenOrientationChange() {
+    arWorldState.screenOrientationAngle = getScreenOrientationAngle();
+    if (arWorldState.active && arWorldState.subMode === 'orientation' && arWorldState.sensorReceived) {
+      // Kemas kini bacaan kuaternion selepas pertukaran Portrait <-> Landscape
+      const { rawAzimuthDeg, rawElevationDeg } = extractCameraAzimuthAndElevation(gyroState.alpha, gyroState.beta, gyroState.gamma);
+      arWorldState.rawSensorAzimuthDeg = rawAzimuthDeg;
+      arWorldState.rawSensorElevationDeg = rawElevationDeg;
+      arWorldState.smoothedSensorAzimuthDeg = rawAzimuthDeg;
+      arWorldState.smoothedSensorElevationDeg = rawElevationDeg;
+      updateARWorldCamera(gyroState.alpha, gyroState.beta, gyroState.gamma);
+    }
+  }
+
   function setupDeviceOrientation() {
+    if (!screenOrientationBound) {
+      window.addEventListener('orientationchange', onScreenOrientationChange);
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.addEventListener === 'function') {
+        window.screen.orientation.addEventListener('change', onScreenOrientationChange);
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && (State.mode === 'camera-ar' || State.mode === 'marker-ar')) {
+          if (DOM.cameraFeed && DOM.cameraFeed.paused && cameraStream) {
+            DOM.cameraFeed.play().catch(() => {});
+          }
+          if (arWorldState.active) {
+            checkARWorldStationVisibility();
+            updateARWorldCompass();
+          }
+        }
+      });
+      screenOrientationBound = true;
+    }
+
     if (typeof DeviceOrientationEvent === 'undefined') {
       arWorldState.isSimulationFallback = true;
       return;
@@ -4343,20 +4500,26 @@
     });
   }
 
-  // Kira koordinat world-space untuk 8 stesen berdasarkan sudut relatif kepada titik mula (0° = Depan)
+  // Kira koordinat world-space untuk 8 stesen berdasarkan Azimut Relatif (0°=Hadapan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
+  // dan Elevasi (sudut dongak + / tunduk - dalam darjah)
   function positionARWorldStations() {
     const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
     arWorldState.stationGroups.forEach((group, idx) => {
       const cfg = group.userData.stationConfig;
-      // Dalam scene Three.js, arah hadapan kalibrasi (0°) ialah paksi -Z:
-      // 0° (Depan)   -> ( 0,    y, -R)
-      // 90° (Kanan)  -> (+R,    y,  0)
-      // 180° (Belakang) -> (0,  y, +R)
-      // 270° (Kiri)  -> (-R,    y,  0)
-      const rad = THREE.MathUtils.degToRad(cfg.angleDeg);
-      const stationX = Math.sin(rad) * cfg.radius;
-      const stationZ = -Math.cos(rad) * cfg.radius;
-      const stationY = eyeY - 0.15;
+      const azDeg = typeof cfg.azimuthDeg === 'number' ? cfg.azimuthDeg : (cfg.angleDeg || 0);
+      const elDeg = typeof cfg.elevationDeg === 'number' ? cfg.elevationDeg : 0;
+      cfg.azimuthDeg = azDeg;
+      cfg.angleDeg = azDeg;
+      cfg.elevationDeg = elDeg;
+
+      const azRad = THREE.MathUtils.degToRad(azDeg);
+      const elRad = THREE.MathUtils.degToRad(elDeg);
+      const R = cfg.radius || 5.4;
+
+      const horizR = Math.cos(elRad) * R;
+      const stationX = Math.sin(azRad) * horizR;
+      const stationZ = -Math.cos(azRad) * horizR;
+      const stationY = eyeY + Math.sin(elRad) * R;
 
       group.position.set(stationX, stationY, stationZ);
       const isFocused = (arWorldState.focusedStationIdx === idx);
@@ -4368,12 +4531,85 @@
     });
   }
 
-  // Bina model 3D pendidikan yang jelas & tepat untuk setiap stesen AR (menggunakan GLB berkualiti tinggi untuk Nukleus, Membran Sel, Mitokondrion, Sel Haiwan & Sel Tumbuhan)
+  // Konfigurasi semula susun atur 8 stesen secara dinamik jika diperlukan selepas ujian
+  function setARWorldStationsConfig(customList) {
+    if (!Array.isArray(customList)) return AR_WORLD_STATIONS;
+    customList.forEach((item, idx) => {
+      const target = AR_WORLD_STATIONS.find(
+        s => s.stationNumber === item.stationNumber || s.slotNumber === item.slotNumber || s.stationKey === item.stationKey
+      ) || AR_WORLD_STATIONS[idx];
+      if (!target) return;
+      if (typeof item.azimuthDeg === 'number') {
+        target.azimuthDeg = item.azimuthDeg;
+        target.angleDeg = item.azimuthDeg;
+      } else if (typeof item.angleDeg === 'number') {
+        target.azimuthDeg = item.angleDeg;
+        target.angleDeg = item.angleDeg;
+      }
+      if (typeof item.elevationDeg === 'number') target.elevationDeg = item.elevationDeg;
+      if (typeof item.radius === 'number') target.radius = item.radius;
+      if (typeof item.directionName === 'string') target.directionName = item.directionName;
+      if (typeof item.label === 'string') target.label = item.label;
+    });
+    if (arWorldState.stationGroups.length === 8) {
+      positionARWorldStations();
+      checkARWorldStationVisibility();
+      updateARWorldCompass();
+    }
+    return AR_WORLD_STATIONS;
+  }
+
+  // Bina model 3D pendidikan yang jelas & tepat untuk setiap stesen AR (menggunakan GLB berkualiti tinggi untuk Nukleus, Membran Sel, Mitokondrion, Retikulum Endoplasma, Sel Haiwan & Sel Tumbuhan)
   function buildOrganelleModel(organelleKey, color) {
     const group = new THREE.Group();
     group.userData = { id: organelleKey, organelleId: organelleKey, pickable: true };
 
-    // 1. Model Penuh Sel Haiwan & Sel Tumbuhan (GLB + fallback prosedur)
+    // 1. Stesen 8: Pameran Gabungan Retikulum Endoplasma + Perbandingan Sel Haiwan & Tumbuhan
+    if (organelleKey === 'comparison' || organelleKey === 'er') {
+      const compHolder = new THREE.Group();
+      const detailed8 = buildStylizedOrganelle(8, color || 0xec4899);
+      detailed8.scale.setScalar(1.35);
+      compHolder.add(detailed8);
+      group.add(compHolder);
+
+      // Muatkan model GLB Retikulum Endoplasma di tengah-atas serta Sel Haiwan (kiri) & Sel Tumbuhan (kanan)
+      const erSlot = new THREE.Group();
+      erSlot.position.set(0, 0.26, 0.08);
+      const animalSlot = new THREE.Group();
+      animalSlot.position.set(-0.56, -0.18, 0);
+      const plantSlot = new THREE.Group();
+      plantSlot.position.set(0.56, -0.18, 0);
+
+      mountGLBIntoContainer(erSlot, 'er', 'ar-world', {
+        organelleId: 'comparison',
+        stationId: 'stn-8-comparison',
+        stationNumber: 8,
+        customTargetSize: 0.92,
+        alignOnTable: false
+      }).then(ok => {
+        if (ok) {
+          compHolder.clear();
+          compHolder.add(erSlot, animalSlot, plantSlot);
+        }
+      });
+      mountGLBIntoContainer(animalSlot, 'animal', 'ar-world', {
+        organelleId: 'comparison',
+        stationId: 'stn-8-comparison',
+        stationNumber: 8,
+        customTargetSize: 0.78,
+        alignOnTable: false
+      });
+      mountGLBIntoContainer(plantSlot, 'plant', 'ar-world', {
+        organelleId: 'comparison',
+        stationId: 'stn-8-comparison',
+        stationNumber: 8,
+        customTargetSize: 0.80,
+        alignOnTable: false
+      });
+      return group;
+    }
+
+    // 2. Model Penuh Sel Haiwan & Sel Tumbuhan (GLB + fallback prosedur)
     if (organelleKey === 'animal') {
       const holder = new THREE.Group();
       buildProceduralAnimalCell(holder);
@@ -4395,14 +4631,14 @@
       group.add(holder);
       mountGLBIntoContainer(group, 'plant', 'ar-world', {
         organelleId: 'plant',
-        stationId: 'stn-6-wall',
+        stationId: 'stn-6-cellwall',
         stationNumber: 6,
         alignOnTable: false
       });
       return group;
     }
 
-    // 2. Pemetaan organel kepada nombor stesen (buildStylizedOrganelle sebagai fallback segera)
+    // 3. Pemetaan organel kepada nombor stesen (buildStylizedOrganelle sebagai fallback segera)
     const keyToNum = {
       nucleus: 1,
       membrane: 2,
@@ -4456,7 +4692,7 @@
     const borderHex = isDone ? '#10b981' : ('#' + color.toString(16).padStart(6, '0'));
 
     // Latar belakang kaca gelap
-    ctx.fillStyle = 'rgba(8, 15, 28, 0.9)';
+    ctx.fillStyle = 'rgba(8, 15, 28, 0.92)';
     if (ctx.roundRect) {
       ctx.beginPath();
       ctx.roundRect(6, 6, 628, 158, 22);
@@ -4478,14 +4714,14 @@
 
     // Tajuk utama
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 34px Nunito, Arial, sans-serif';
+    ctx.font = '900 33px Nunito, Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`${icon} ${titleText} ${isDone ? '✓' : ''}`, 320, 62);
 
     // Sub-teks arah & tindakan
     ctx.fillStyle = isDone ? '#34d399' : '#5eead4';
-    ctx.font = '700 22px Nunito, Arial, sans-serif';
+    ctx.font = '700 21px Nunito, Arial, sans-serif';
     ctx.fillText(isDone ? '✓ Lencana Diperoleh • Ketik Untuk Ulang Kaji' : subText, 320, 118);
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -4497,12 +4733,26 @@
     return labelMesh;
   }
 
-  // Kalibrasi arah hadapan — tetapkan arah pandangan semasa sebagai 0° (Depan = Stesen Sel Haiwan)
+  // Kalibrasi arah hadapan — tetapkan orientasi semasa peranti sebagai 0° Hadapan & 0° Elevasi
+  // Tanpa memadam markah, masa, atau kemajuan lencana murid!
   function calibrateARWorldHeading() {
-    if (gyroState.active && gyroState.alpha !== null) {
+    if (arWorldState.sensorReceived && gyroState.active) {
+      const { rawAzimuthDeg, rawElevationDeg } = extractCameraAzimuthAndElevation(
+        gyroState.alpha,
+        gyroState.beta,
+        gyroState.gamma
+      );
       arWorldState.baseHeadingDeg = gyroState.alpha;
+      arWorldState.rawSensorAzimuthDeg = rawAzimuthDeg;
+      arWorldState.rawSensorElevationDeg = rawElevationDeg;
+      arWorldState.smoothedSensorAzimuthDeg = rawAzimuthDeg;
+      arWorldState.smoothedSensorElevationDeg = rawElevationDeg;
+      arWorldState.baseSensorAzimuthDeg = rawAzimuthDeg;
+      arWorldState.baseSensorElevationDeg = rawElevationDeg;
     } else {
       arWorldState.baseHeadingDeg = 0;
+      arWorldState.baseSensorAzimuthDeg = 0;
+      arWorldState.baseSensorElevationDeg = 0;
     }
     arWorldState.manualYawDeg = 0;
     arWorldState.manualPitchDeg = 0;
@@ -4512,17 +4762,17 @@
     arWorldState.focusedStationIdx = -1;
     arWorldState.focusedStationScale = 1.0;
 
-    // Kekalkan 8 stesen pada koordinat dunia mengelilingi pengguna
+    // Kekalkan semua 8 stesen pada koordinat dunia mengelilingi pengguna
     positionARWorldStations();
 
-    // Tetapkan kedudukan kamera mengikut mod duduk/berdiri & pandang terus ke 0° (Depan)
+    // Tetapkan kedudukan kamera mengikut mod duduk/berdiri & pandang terus ke 0° (Hadapan, Elevasi 0°)
     const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
     camera.position.set(0, eyeY, 0);
     camera.rotation.set(0, 0, 0, 'YXZ');
 
     checkARWorldStationVisibility();
     updateARWorldCompass();
-    alertToast('🧭 Kalibrasi Selesai! Pandang Kiri (Mitokondrion), Kanan (Nukleus), Depan (Sel Haiwan) & Belakang (Sel Tumbuhan).');
+    alertToast('🧭 Kalibrasi Semula Selesai! Arah semasa ditetapkan sebagai 0° Hadapan & 0° Elevasi.');
   }
 
   // Tukar Mod Duduk / Berdiri (Keselamatan & Keselesaan Murid)
@@ -4537,36 +4787,46 @@
       camera.position.set(0, eyeY, 0);
       positionARWorldStations();
       checkARWorldStationVisibility();
+      updateARWorldCompass();
     }
     alertToast(isSeated
       ? '🪑 Mod Duduk Aktif: Pusing kerusi atau seret skrin tanpa perlu berjalan.'
       : '🧍 Mod Berdiri Aktif: Pusing badan dengan selamat di tempat anda.');
   }
 
-  // Kemas kini kamera berdasarkan orientasi peranti + offset manual (Mod C — AR Orientasi Dunia)
+  // Kemas kini kamera berdasarkan orientasi peranti (terkompensasi orientasi skrin Portrait/Landscape) + offset manual
   function updateARWorldCamera(alphaDeg, betaDeg, gammaDeg) {
     if (!arWorldState.active || arWorldState.subMode !== 'orientation') return;
 
-    // Dalam DeviceOrientation, apabila pengguna pusing ke kanan (ikut jam), alpha berkurang pada kebanyakan peranti
-    // Kita normalkan supaya currentHeadingDeg ialah sudut kompas ikut jam (0°=Depan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
     let sensorHeadingCW = 0;
-    if (arWorldState.sensorReceived && typeof alphaDeg === 'number') {
-      sensorHeadingCW = (arWorldState.baseHeadingDeg - alphaDeg);
+    let sensorPitchDeg = 0;
+
+    if (arWorldState.sensorReceived) {
+      const a = typeof alphaDeg === 'number' ? alphaDeg : gyroState.alpha;
+      const b = typeof betaDeg === 'number' ? betaDeg : gyroState.beta;
+      const g = typeof gammaDeg === 'number' ? gammaDeg : gyroState.gamma;
+
+      const { rawAzimuthDeg, rawElevationDeg } = extractCameraAzimuthAndElevation(a, b, g);
+      const activeAz = typeof arWorldState.smoothedSensorAzimuthDeg === 'number'
+        ? arWorldState.smoothedSensorAzimuthDeg
+        : rawAzimuthDeg;
+      const activeEl = typeof arWorldState.smoothedSensorElevationDeg === 'number'
+        ? arWorldState.smoothedSensorElevationDeg
+        : rawElevationDeg;
+
+      sensorHeadingCW = ((activeAz - arWorldState.baseSensorAzimuthDeg) % 360 + 360) % 360;
+      sensorPitchDeg = Math.max(-50, Math.min(50, activeEl - arWorldState.baseSensorElevationDeg));
     }
 
     const totalHeadingDeg = ((sensorHeadingCW + arWorldState.manualYawDeg) % 360 + 360) % 360;
     arWorldState.currentHeadingDeg = totalHeadingDeg;
 
-    // Dalam Three.js (YXZ): rotation.y = 0 pandang -Z (0° Depan).
+    // Dalam Three.js (YXZ): rotation.y = 0 pandang -Z (0° Hadapan).
     // rotation.y = -90° (-PI/2) pandang +X (90° Kanan).
     // rotation.y = +90° (+PI/2) pandang -X (270° Kiri).
     const yawRad = -THREE.MathUtils.degToRad(totalHeadingDeg);
 
-    let sensorPitchDeg = 0;
-    if (arWorldState.sensorReceived && typeof betaDeg === 'number') {
-      sensorPitchDeg = Math.max(-45, Math.min(45, betaDeg - 80));
-    }
-    const totalPitchDeg = Math.max(-55, Math.min(55, sensorPitchDeg + arWorldState.manualPitchDeg));
+    const totalPitchDeg = Math.max(-55, Math.min(55, sensorPitchDeg + (arWorldState.manualPitchDeg || 0)));
     arWorldState.currentPitchDeg = totalPitchDeg;
     const pitchRad = THREE.MathUtils.degToRad(totalPitchDeg);
 
@@ -4578,21 +4838,41 @@
     updateARWorldCompass();
   }
 
-  // Fungsi pembantu untuk menghalakan pandangan ke arah sudut tertentu (digunakan oleh ujian, tab pantas & simulasi)
-  function lookAtARHeading(targetHeadingDeg, targetPitchDeg = 0) {
+  // Fungsi pembantu untuk menghalakan pandangan ke arah sudut azimut & elevasi tertentu
+  // (Jika targetPitchDeg tidak dinyatakan, gunakan elevasi stesen pada azimut tersebut supaya stesen tepat di tengah skrin)
+  function lookAtARHeading(targetHeadingDeg, targetPitchDeg) {
     if (!arWorldState.active) return;
     const calPrompt = document.getElementById('ar-world-calibration-ui');
     if (calPrompt) calPrompt.style.display = 'none';
-    let sensorHeadingCW = 0;
-    if (arWorldState.sensorReceived && typeof gyroState.alpha === 'number') {
-      sensorHeadingCW = (arWorldState.baseHeadingDeg - gyroState.alpha);
+
+    const normAz = ((targetHeadingDeg % 360) + 360) % 360;
+    let resolvedPitch = targetPitchDeg;
+    if (typeof resolvedPitch !== 'number') {
+      const matchedStn = AR_WORLD_STATIONS.find(s => Math.abs(shortestAngleDeltaDeg(s.azimuthDeg, normAz)) <= 5);
+      resolvedPitch = matchedStn ? (matchedStn.elevationDeg || 0) : 0;
     }
-    arWorldState.manualYawDeg = targetHeadingDeg - sensorHeadingCW;
-    arWorldState.manualPitchDeg = targetPitchDeg;
-    updateARWorldCamera(gyroState.alpha || 0, gyroState.beta || 80, gyroState.gamma || 0);
+
+    let sensorHeadingCW = 0;
+    let sensorPitchDeg = 0;
+    if (arWorldState.sensorReceived) {
+      const activeAz = typeof arWorldState.smoothedSensorAzimuthDeg === 'number'
+        ? arWorldState.smoothedSensorAzimuthDeg
+        : arWorldState.rawSensorAzimuthDeg;
+      const activeEl = typeof arWorldState.smoothedSensorElevationDeg === 'number'
+        ? arWorldState.smoothedSensorElevationDeg
+        : arWorldState.rawSensorElevationDeg;
+      sensorHeadingCW = ((activeAz - arWorldState.baseSensorAzimuthDeg) % 360 + 360) % 360;
+      sensorPitchDeg = Math.max(-50, Math.min(50, activeEl - arWorldState.baseSensorElevationDeg));
+    }
+
+    arWorldState.manualYawDeg = normAz - sensorHeadingCW;
+    arWorldState.manualPitchDeg = resolvedPitch - sensorPitchDeg;
+    updateARWorldCamera(gyroState.alpha, gyroState.beta, gyroState.gamma);
   }
 
-  // Semak stesen yang sedang dalam medan pandangan kamera (Frustum & Sudut Pandangan)
+  // Sistem Penemuan Stesen (Bahagian 6) & Semakan Medan Pandangan Kamera
+  // PENTING: Semua 8 stesen kekal wujud dalam world space (group.visible = true) supaya tidak hilang secara tiba-tiba
+  // apabila murid mendongak/menunduk pada iPad Landscape!
   function checkARWorldStationVisibility() {
     if (!arWorldState.active || !camera) return;
     const camPos = new THREE.Vector3();
@@ -4600,24 +4880,36 @@
     camera.getWorldPosition(camPos);
     camera.getWorldDirection(camDir);
 
+    const hTol = arWorldState.horizontalToleranceDeg || 14;
+    const vTol = arWorldState.verticalToleranceDeg || 12;
+
     let closestInFOV = null;
-    let closestAngle = arWorldState.fovThresholdDeg;
+    let closestAngle = arWorldState.fovThresholdDeg || 36;
     let closestIdx = -1;
 
     arWorldState.stationGroups.forEach((group, idx) => {
+      const cfg = group.userData.stationConfig;
       const stationDir = new THREE.Vector3();
       stationDir.subVectors(group.position, camPos).normalize();
 
       const dotProduct = camDir.dot(stationDir);
       const angleDeg = THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, dotProduct))));
 
-      // Paparkan hanya stesen yang berada dalam medan pandangan aktif kamera (<= 34°)
-      // supaya stesen bersebelahan (45° jauhnya) tidak bertindih di tepi skrin lebar
-      const isVisibleInFrustum = angleDeg <= 34;
-      arWorldState.stationVisibility[idx] = isVisibleInFrustum;
-      group.visible = isVisibleInFrustum;
+      const deltaAz = Math.abs(shortestAngleDeltaDeg(cfg.azimuthDeg, arWorldState.currentHeadingDeg));
+      const deltaEl = Math.abs((cfg.elevationDeg || 0) - arWorldState.currentPitchDeg);
 
-      if (angleDeg < closestAngle) {
+      const isWithinDiscovery = (deltaAz <= hTol && deltaEl <= vTol) || (angleDeg <= Math.hypot(hTol, vTol));
+      const isVisibleInFrustum = (angleDeg <= 36) || isWithinDiscovery;
+
+      arWorldState.stationVisibility[idx] = isVisibleInFrustum;
+      // Kekalkan group.visible = true supaya Three.js frustum culling menguruskan paparan semula jadi tanpa pop-out mengejut
+      group.visible = true;
+
+      if (isWithinDiscovery) {
+        arWorldState.discoveredStations.add(cfg.stationNumber);
+      }
+
+      if (angleDeg < closestAngle || (isWithinDiscovery && angleDeg <= closestAngle + 4)) {
         closestAngle = angleDeg;
         closestInFOV = group;
         closestIdx = idx;
@@ -4626,16 +4918,17 @@
 
     arWorldState.activeStation = closestInFOV ? closestInFOV.userData.stationConfig : null;
 
-    // Animasi stesen yang dalam pandangan (bersinar)
+    // Animasi highlight apabila stesen ditemui / dalam pandangan kamera
     arWorldState.stationGroups.forEach((group, idx) => {
       const inFOV = (idx === closestIdx);
+      const isTarget = (idx === arWorldState.targetStationIdx);
       const ring = group.userData.ring;
       const beam = group.userData.beam;
       if (ring) {
-        ring.material.opacity = inFOV ? 1.0 : 0.4;
-        ring.scale.setScalar(inFOV ? 1.18 : 1.0);
+        ring.material.opacity = inFOV ? 1.0 : (isTarget ? 0.85 : 0.45);
+        ring.scale.setScalar(inFOV ? 1.22 : (isTarget ? 1.10 : 1.0));
       }
-      if (beam) beam.material.opacity = inFOV ? 0.3 : 0.08;
+      if (beam) beam.material.opacity = inFOV ? 0.34 : (isTarget ? 0.20 : 0.08);
     });
 
     // Tunjuk banner "Stesen <Nama> Ditemui!" apabila menghadap stesen
@@ -4650,7 +4943,7 @@
     }
   }
 
-  // Paparkan banner "Stesen <Organel> Ditemui!" yang kemas & boleh diketik
+  // Paparkan banner "Stesen <Organel> Ditemui! • Teroka Stesen" yang kemas & boleh diketik
   function showARStationDetectedBanner(cfg) {
     let banner = document.getElementById('ar-world-detected-banner');
     if (!banner) {
@@ -4658,43 +4951,16 @@
       banner.type = 'button';
       banner.id = 'ar-world-detected-banner';
       banner.style.cssText = `
-        position: fixed; bottom: max(88px, calc(env(safe-area-inset-bottom) + 80px)); left: 50%;
+        position: fixed; bottom: max(112px, calc(env(safe-area-inset-bottom) + 102px)); left: 50%;
         transform: translateX(-50%);
-        background: rgba(8, 15, 28, 0.92); border: 2px solid #2dd4bf;
-        border-radius: 999px; padding: 8px 20px;
+        background: rgba(8, 15, 28, 0.94); border: 2px solid #2dd4bf;
+        border-radius: 999px; padding: 9px 22px;
         font-family: 'Nunito', Arial, sans-serif; font-size: 14px; font-weight: 900;
         color: #fff; z-index: 32; pointer-events: auto; cursor: pointer;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+        box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 18px rgba(45, 212, 191, 0.35);
         transition: opacity 0.25s, transform 0.25s;
         white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
       `;
-      if (!document.getElementById('ar-world-style')) {
-        const style = document.createElement('style');
-        style.id = 'ar-world-style';
-        style.textContent = `
-          #ar-world-compass-wrap {
-            position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: max(16px, env(safe-area-inset-left));
-            z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 4px;
-            pointer-events: auto;
-          }
-          #ar-world-compass {
-            width: 112px; height: 112px; border-radius: 50%;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5); cursor: pointer;
-          }
-          #ar-world-tracking-banner {
-            position: fixed; bottom: max(50px, calc(env(safe-area-inset-bottom) + 42px)); left: 50%;
-            transform: translateX(-50%); z-index: 29;
-            background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(45, 212, 191, 0.45);
-            border-radius: 999px; padding: 5px 14px; font-size: 11px; font-weight: 800;
-            color: #e2e8f0; pointer-events: auto; text-align: center; max-width: 92vw;
-          }
-          @media (max-width: 768px) {
-            #ar-world-compass { width: 92px; height: 92px; }
-            #ar-world-compass-wrap { bottom: max(14px, env(safe-area-inset-bottom)); left: 12px; }
-          }
-        `;
-        document.head.appendChild(style);
-      }
       document.body.appendChild(banner);
     }
     const hexColor = '#' + cfg.color.toString(16).padStart(6, '0');
@@ -4703,7 +4969,8 @@
     banner.style.alignItems = 'center';
     banner.style.gap = '8px';
     banner.style.opacity = '1';
-    banner.innerHTML = `<span>${cfg.icon}</span><span>Stesen ${cfg.label} Ditemui!</span><span style="font-size:11px;padding:2px 8px;border-radius:999px;background:${hexColor}33;color:#5eead4;">Ketik Teroka</span>`;
+    banner.style.pointerEvents = 'auto';
+    banner.innerHTML = `<span>${cfg.icon}</span><span>Stesen ${cfg.label} Ditemui!</span><span style="font-size:11px;padding:3px 10px;border-radius:999px;background:${hexColor}33;border:1px solid ${hexColor};color:#5eead4;">Teroka Stesen</span>`;
     banner.onclick = (e) => {
       e.stopPropagation();
       selectAROrganelle(cfg.stationKey, cfg.stationNumber);
@@ -4745,114 +5012,621 @@
     arWorldState.trackingBannerEl = el;
   }
 
-  // Bina kompas / radar AR mini
+  // Pilih stesen sasaran pada Smart Radar ("AR Organel Hunter" — Bahagian 4 & 5)
+  function selectRadarTargetStation(idx, autoTurn = false) {
+    if (typeof idx !== 'number' || idx < 0 || idx >= AR_WORLD_STATIONS.length) return null;
+    arWorldState.targetStationIdx = idx;
+    const cfg = AR_WORLD_STATIONS[idx];
+    if (autoTurn && arWorldState.active && arWorldState.subMode === 'orientation') {
+      lookAtARHeading(cfg.azimuthDeg, cfg.elevationDeg);
+    } else {
+      checkARWorldStationVisibility();
+      updateARWorldCompass();
+    }
+    SoundFX.interact();
+    return cfg;
+  }
+
+  // Bina Smart Radar ("AR Organel Hunter") + Penunjuk Elevasi di bahagian kiri bawah skrin
   function buildARWorldCompass() {
+    if (!document.getElementById('ar-world-style')) {
+      const style = document.createElement('style');
+      style.id = 'ar-world-style';
+      style.textContent = `
+        #ar-world-compass-wrap {
+          position: fixed;
+          bottom: max(16px, env(safe-area-inset-bottom));
+          left: max(14px, env(safe-area-inset-left));
+          z-index: 30;
+          display: flex;
+          align-items: flex-end;
+          gap: 10px;
+          pointer-events: auto;
+          max-width: min(520px, calc(100vw - 28px));
+          font-family: 'Nunito', Arial, sans-serif;
+        }
+        .cq-radar-dial-box {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(8, 15, 28, 0.90);
+          border: 1.5px solid rgba(45, 212, 191, 0.55);
+          border-radius: 20px;
+          padding: 8px;
+          box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+          backdrop-filter: blur(10px);
+          flex-shrink: 0;
+        }
+        #ar-world-compass {
+          width: 128px;
+          height: 128px;
+          border-radius: 50%;
+          cursor: pointer;
+          display: block;
+          touch-action: manipulation;
+        }
+        .cq-elev-gauge {
+          width: 24px;
+          height: 122px;
+          background: rgba(15, 23, 42, 0.92);
+          border: 1px solid rgba(148, 163, 184, 0.35);
+          border-radius: 12px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          align-items: center;
+          padding: 4px 0;
+          font-size: 8px;
+          font-weight: 800;
+          color: #94a3b8;
+          user-select: none;
+        }
+        .cq-elev-zero-line {
+          position: absolute;
+          top: 50%;
+          left: 2px;
+          right: 2px;
+          height: 1px;
+          background: rgba(148, 163, 184, 0.45);
+        }
+        .cq-elev-target-dot {
+          position: absolute;
+          left: 50%;
+          width: 14px;
+          height: 6px;
+          border-radius: 4px;
+          background: #facc15;
+          box-shadow: 0 0 6px #facc15;
+          transform: translate(-50%, -50%);
+          transition: top 0.15s ease-out;
+        }
+        .cq-elev-cam-dot {
+          position: absolute;
+          left: 50%;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #38bdf8;
+          border: 1.5px solid #fff;
+          transform: translate(-50%, -50%);
+          transition: top 0.12s ease-out;
+        }
+        #ar-smart-radar-panel {
+          background: rgba(8, 15, 28, 0.92);
+          border: 1.5px solid rgba(45, 212, 191, 0.5);
+          border-radius: 16px;
+          padding: 8px 10px;
+          color: #f1f5f9;
+          box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+          backdrop-filter: blur(10px);
+          min-width: 220px;
+          max-width: 268px;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .cq-radar-pills {
+          display: flex;
+          gap: 4px;
+          flex-wrap: nowrap;
+        }
+        .cq-radar-stn-pill {
+          flex: 1;
+          min-width: 24px;
+          height: 22px;
+          border-radius: 6px;
+          border: 1px solid rgba(255,255,255,0.22);
+          background: rgba(56, 189, 248, 0.18);
+          color: #e2e8f0;
+          font-size: 10px;
+          font-weight: 900;
+          cursor: pointer;
+          padding: 0;
+          transition: all 0.15s;
+        }
+        .cq-radar-stn-pill.target {
+          background: #facc15;
+          color: #0f172a;
+          border-color: #fef08a;
+          box-shadow: 0 0 8px rgba(250, 204, 21, 0.65);
+        }
+        .cq-radar-stn-pill.done {
+          background: rgba(16, 185, 129, 0.28);
+          color: #34d399;
+          border-color: #10b981;
+        }
+        .cq-radar-target-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+        }
+        .cq-radar-target-name {
+          font-size: 13px;
+          font-weight: 900;
+          color: #fff;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .cq-radar-status-chip {
+          font-size: 10px;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 999px;
+          background: rgba(250, 204, 21, 0.2);
+          color: #fde047;
+          border: 1px solid rgba(250, 204, 21, 0.45);
+          white-space: nowrap;
+        }
+        .cq-radar-telemetry {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 4px 8px;
+          background: rgba(15, 23, 42, 0.75);
+          padding: 6px 8px;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.08);
+          font-size: 10.5px;
+          line-height: 1.35;
+        }
+        .cq-radar-cmd {
+          grid-column: 1 / -1;
+          font-size: 11.5px;
+          font-weight: 900;
+          color: #fde047;
+          display: flex;
+          justify-content: space-between;
+          gap: 6px;
+          padding-top: 2px;
+          border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .cq-radar-coach {
+          font-size: 11px;
+          font-weight: 700;
+          color: #5eead4;
+          line-height: 1.35;
+        }
+        .cq-radar-actions {
+          display: flex;
+          gap: 6px;
+        }
+        .cq-radar-act-btn {
+          flex: 1;
+          padding: 5px 8px;
+          border-radius: 8px;
+          font-size: 10.5px;
+          font-weight: 800;
+          cursor: pointer;
+          border: 1px solid rgba(255,255,255,0.18);
+          background: rgba(255,255,255,0.08);
+          color: #e2e8f0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+        }
+        .cq-radar-act-btn.primary {
+          background: linear-gradient(135deg, #0d9488, #10b981);
+          color: #fff;
+          border-color: #2dd4bf;
+        }
+        #ar-world-tracking-banner {
+          position: fixed; bottom: max(54px, calc(env(safe-area-inset-bottom) + 46px)); left: 50%;
+          transform: translateX(-50%); z-index: 29;
+          background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(45, 212, 191, 0.45);
+          border-radius: 999px; padding: 5px 14px; font-size: 11px; font-weight: 800;
+          color: #e2e8f0; pointer-events: auto; text-align: center; max-width: 90vw;
+        }
+        @media (max-width: 900px) {
+          #ar-world-compass { width: 106px; height: 106px; }
+          .cq-elev-gauge { height: 100px; }
+          #ar-smart-radar-panel { min-width: 215px; max-width: 260px; padding: 8px 10px; }
+          #ar-world-tracking-banner { display: none !important; }
+        }
+        @media (max-width: 600px) {
+          #ar-world-compass-wrap { flex-direction: column; align-items: flex-start; gap: 6px; }
+          #ar-world-compass { width: 92px; height: 92px; }
+          .cq-elev-gauge { height: 88px; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
     let wrap = document.getElementById('ar-world-compass-wrap');
     if (!wrap) {
       wrap = document.createElement('div');
       wrap.id = 'ar-world-compass-wrap';
-      const compass = document.createElement('canvas');
-      compass.id = 'ar-world-compass';
-      compass.width = 128;
-      compass.height = 128;
-      compass.title = 'Radar Stesen AR (Ketik titik stesen untuk pusing pantas dalam mod duduk)';
-      wrap.appendChild(compass);
+      wrap.innerHTML = `
+        <div class="cq-radar-dial-box">
+          <canvas id="ar-world-compass" width="160" height="160" title="Smart Radar Organel: Ketik titik stesen (1-8) untuk memilih sasaran navigasi"></canvas>
+          <div class="cq-elev-gauge" id="ar-elevation-gauge" title="Penunjuk Elevasi Kamera vs Sasaran (Darjah)">
+            <span>+30°</span>
+            <div class="cq-elev-zero-line"></div>
+            <div class="cq-elev-target-dot" id="ar-elev-target-dot" title="Elevasi Sasaran"></div>
+            <div class="cq-elev-cam-dot" id="ar-elev-cam-dot" title="Elevasi Kamera Semasa"></div>
+            <span>-30°</span>
+          </div>
+        </div>
+        <div id="ar-smart-radar-panel">
+          <div class="cq-radar-pills" id="ar-radar-pills"></div>
+          <div class="cq-radar-target-row">
+            <span class="cq-radar-target-name" id="ar-radar-target-title">🎯 Stesen 4: Mitokondrion</span>
+            <span class="cq-radar-status-chip" id="ar-radar-status-chip">Sedang Dicari</span>
+          </div>
+          <div class="cq-radar-telemetry">
+            <div id="ar-radar-az-target">Sasaran: <strong>270°</strong> (Kiri)</div>
+            <div id="ar-radar-az-cam">Kamera: <strong>0°</strong></div>
+            <div id="ar-radar-el-target">Elevasi: <strong>+15°</strong></div>
+            <div id="ar-radar-el-cam">Dongak: <strong>0°</strong></div>
+            <div class="cq-radar-cmd">
+              <span id="ar-radar-turn-cmd">↩ Pusing kiri 90°</span>
+              <span id="ar-radar-elev-cmd">⬆ Naikkan 15°</span>
+            </div>
+          </div>
+          <div class="cq-radar-coach" id="ar-radar-coach-msg">Mitokondrion berada di sebelah kiri. Pusing kiri 90° lagi.</div>
+          <div class="cq-radar-actions">
+            <button type="button" class="cq-radar-act-btn primary" id="ar-radar-recalibrate-btn" title="Tetapkan arah semasa sebagai 0° Hadapan & 0° Elevasi">
+              🧭 KALIBRASI SEMULA
+            </button>
+            <button type="button" class="cq-radar-act-btn" id="ar-radar-look-btn" title="Halakan pandangan ke stesen sasaran (Mod Duduk)">
+              🎯 Pandang Sasaran
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(wrap);
 
-      // Klik pada titik kompas membolehkan murid dalam mod duduk berpusing terus ke arah stesen tersebut
+      const compass = document.getElementById('ar-world-compass');
       compass.addEventListener('click', (e) => {
-        if (!arWorldState.active || arWorldState.subMode !== 'orientation') return;
+        if (!arWorldState.active) return;
         const rect = compass.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 128 - 64;
-        const y = ((e.clientY - rect.top) / rect.height) * 128 - 64;
-        if (Math.hypot(x, y) < 14) return;
-        const clickRelRad = Math.atan2(x, -y);
-        const clickRelDeg = THREE.MathUtils.radToDeg(clickRelRad);
-        const newHeading = ((arWorldState.currentHeadingDeg + clickRelDeg) % 360 + 360) % 360;
-        lookAtARHeading(newHeading, 0);
+        const x = ((e.clientX - rect.left) / rect.width) * 160;
+        const y = ((e.clientY - rect.top) / rect.height) * 160;
+        const cx = 80, cy = 80, r = 68;
+        const headingRad = THREE.MathUtils.degToRad(arWorldState.currentHeadingDeg || 0);
+
+        // Cari titik stesen yang paling hampir dengan ketikan jari murid pada radar
+        let clickedIdx = -1;
+        let minDist = 22;
+        AR_WORLD_STATIONS.forEach((cfg, idx) => {
+          const stationAngleRad = THREE.MathUtils.degToRad(cfg.azimuthDeg);
+          const relAngle = stationAngleRad - headingRad;
+          const dotR = r - 15;
+          const dotX = cx + Math.sin(relAngle) * dotR;
+          const dotY = cy - Math.cos(relAngle) * dotR;
+          const d = Math.hypot(x - dotX, y - dotY);
+          if (d < minDist) {
+            minDist = d;
+            clickedIdx = idx;
+          }
+        });
+
+        if (clickedIdx >= 0) {
+          selectRadarTargetStation(clickedIdx, false);
+        }
       });
 
-      document.body.appendChild(wrap);
+      const recalBtn = document.getElementById('ar-radar-recalibrate-btn');
+      if (recalBtn) {
+        recalBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          calibrateARWorldHeading();
+        });
+      }
+
+      const lookBtn = document.getElementById('ar-radar-look-btn');
+      if (lookBtn) {
+        lookBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const tIdx = arWorldState.targetStationIdx;
+          const cfg = AR_WORLD_STATIONS[tIdx] || AR_WORLD_STATIONS[0];
+          lookAtARHeading(cfg.azimuthDeg, cfg.elevationDeg);
+        });
+      }
     }
+
+    // Bina butang pil nombor stesen 1..8 pada panel Smart Radar
+    const pillsHost = document.getElementById('ar-radar-pills');
+    if (pillsHost && pillsHost.children.length !== AR_WORLD_STATIONS.length) {
+      pillsHost.innerHTML = '';
+      AR_WORLD_STATIONS.forEach((cfg, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cq-radar-stn-pill';
+        btn.id = `ar-radar-pill-${cfg.stationNumber}`;
+        btn.textContent = String(cfg.stationNumber);
+        btn.title = `Cari Stesen ${cfg.stationNumber}: ${cfg.label}`;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectRadarTargetStation(idx, false);
+        });
+        pillsHost.appendChild(btn);
+      });
+    }
+
     wrap.style.display = 'flex';
     arWorldState.compassEl = document.getElementById('ar-world-compass');
+    arWorldState.smartRadarPanelEl = document.getElementById('ar-smart-radar-panel');
   }
 
-  // Kemas kini paparan radar / kompas AR berdasarkan data tracking sebenar
+  // Kemas kini paparan Smart Radar (8 titik warna status, garisan panduan sasaran, azimut & elevasi dalam darjah)
   function updateARWorldCompass() {
     const canvas = arWorldState.compassEl;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const cx = 64, cy = 64, r = 56;
+    const W = canvas.width || 160;
+    const H = canvas.height || 160;
+    const cx = W / 2, cy = H / 2, r = (W / 2) - 10;
 
-    ctx.clearRect(0, 0, 128, 128);
+    ctx.clearRect(0, 0, W, H);
 
-    // Latar radar
+    // 1. Bulatan latar radar
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(8, 15, 28, 0.88)';
+    ctx.fillStyle = 'rgba(8, 15, 28, 0.92)';
     ctx.fill();
-    ctx.strokeStyle = 'rgba(45, 212, 191, 0.7)';
+    ctx.strokeStyle = 'rgba(45, 212, 191, 0.75)';
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    // Gelang dalam radar
+    // 2. Gelang grid dalam radar & paksi silang
     ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+    ctx.arc(cx, cy, r * 0.56, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.20)';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Kon medan pandangan semasa (FOV cone di bahagian atas kompas)
+    ctx.beginPath();
+    ctx.moveTo(cx - r + 8, cy);
+    ctx.lineTo(cx + r - 8, cy);
+    ctx.moveTo(cx, cy - r + 8);
+    ctx.lineTo(cx, cy + r - 8);
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+    ctx.stroke();
+
+    // 3. Kon medan pandangan semasa kamera (di bahagian atas radar = arah pandangan semasa)
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r - 4, -Math.PI / 2 - 0.48, -Math.PI / 2 + 0.48);
+    ctx.arc(cx, cy, r - 4, -Math.PI / 2 - 0.45, -Math.PI / 2 + 0.45);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(45, 212, 191, 0.18)';
+    ctx.fillStyle = 'rgba(45, 212, 191, 0.20)';
     ctx.fill();
 
-    const headingRad = THREE.MathUtils.degToRad(arWorldState.currentHeadingDeg || 0);
+    // Garisan arah pandangan kamera semasa (ke atas radar)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx, cy - (r - 6));
+    ctx.strokeStyle = '#2dd4bf';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
+    const currentAz = ((arWorldState.currentHeadingDeg % 360) + 360) % 360;
+    const currentEl = arWorldState.currentPitchDeg || 0;
+    const headingRad = THREE.MathUtils.degToRad(currentAz);
+    const targetIdx = (typeof arWorldState.targetStationIdx === 'number' && arWorldState.targetStationIdx >= 0)
+      ? arWorldState.targetStationIdx
+      : 0;
+
+    // 4. Garisan panduan putus-putus kuning ke stesen sasaran yang dipilih
+    const targetCfg = AR_WORLD_STATIONS[targetIdx] || AR_WORLD_STATIONS[0];
+    if (targetCfg) {
+      const targetRelRad = THREE.MathUtils.degToRad(targetCfg.azimuthDeg) - headingRad;
+      const dotR = r - 15;
+      const tx = cx + Math.sin(targetRelRad) * dotR;
+      const ty = cy - Math.cos(targetRelRad) * dotR;
+      ctx.save();
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(tx, ty);
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 5. Lukis 8 titik stesen dengan warna status wajib (Bahagian 4):
+    //    - Biru (#38bdf8): Belum diteroka
+    //    - Kuning (#facc15): Sedang dicari (sasaran terpilih)
+    //    - Hijau (#10b981): Sudah selesai (lencana diperoleh)
     AR_WORLD_STATIONS.forEach((cfg, idx) => {
-      const stationAngleRad = THREE.MathUtils.degToRad(cfg.angleDeg);
+      const stationAngleRad = THREE.MathUtils.degToRad(cfg.azimuthDeg);
       const relAngle = stationAngleRad - headingRad;
-      const dotR = r - 14;
+      const dotR = r - 15;
       const dotX = cx + Math.sin(relAngle) * dotR;
       const dotY = cy - Math.cos(relAngle) * dotR;
 
-      const isActive = (idx === arWorldState.lastDetectedIdx);
+      const isTarget = (idx === targetIdx);
+      const isInView = (idx === arWorldState.lastDetectedIdx);
       const isDone = State.completedStations.has(cfg.stationNumber);
-      const colorHex = isDone ? '#10b981' : ('#' + cfg.color.toString(16).padStart(6, '0'));
 
-      ctx.beginPath();
-      ctx.arc(dotX, dotY, isActive ? 8 : 5.5, 0, Math.PI * 2);
-      ctx.fillStyle = colorHex;
-      ctx.fill();
-      if (isActive) {
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+      let dotColor = '#38bdf8'; // Biru = Belum diteroka
+      if (isDone) dotColor = '#10b981'; // Hijau = Sudah selesai
+      if (isTarget) dotColor = '#facc15'; // Kuning = Sedang dicari
+
+      if (isTarget || isInView) {
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, 10.5, 0, Math.PI * 2);
+        ctx.fillStyle = isTarget ? 'rgba(250, 204, 21, 0.28)' : 'rgba(45, 212, 191, 0.28)';
+        ctx.fill();
       }
 
-      // Label ringkas arah utama pada radar
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 9px Arial';
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, isTarget ? 7.8 : 6.4, 0, Math.PI * 2);
+      ctx.fillStyle = dotColor;
+      ctx.fill();
+      ctx.strokeStyle = (isTarget || isInView) ? '#ffffff' : 'rgba(15, 23, 42, 0.9)';
+      ctx.lineWidth = (isTarget || isInView) ? 2 : 1.2;
+      ctx.stroke();
+
+      ctx.fillStyle = isTarget ? '#0f172a' : '#ffffff';
+      ctx.font = '900 9.5px Nunito, Arial, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(cfg.slotNumber), dotX, dotY);
+      ctx.fillText(String(cfg.stationNumber), dotX, dotY + 0.5);
     });
 
-    // Titik pemerhati di tengah
+    // 6. Titik pengguna di tengah radar
     ctx.beginPath();
     ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
 
-    // Teks darjah semasa di bawah kompas
+    // Teks azimut semasa di bawah pusat radar
     ctx.fillStyle = '#5eead4';
-    ctx.font = 'bold 10px Arial';
+    ctx.font = '900 10px Nunito, Arial, sans-serif';
     ctx.textAlign = 'center';
-    const degTxt = Math.round(((arWorldState.currentHeadingDeg % 360) + 360) % 360) + '°';
-    ctx.fillText(degTxt, cx, cy + 16);
+    ctx.fillText(`${Math.round(currentAz)}°`, cx, cy + 17);
+
+    // 7. Kemas kini Panel Panduan Smart Radar & Penunjuk Elevasi (Bahagian 4, 5 & 6)
+    updateSmartRadarNavigationPanel(targetCfg, targetIdx, currentAz, currentEl);
+  }
+
+  function updateSmartRadarNavigationPanel(targetCfg, targetIdx, currentAz, currentEl) {
+    if (!targetCfg) return;
+
+    const targetAz = targetCfg.azimuthDeg;
+    const targetEl = targetCfg.elevationDeg || 0;
+    const deltaAz = shortestAngleDeltaDeg(targetAz, currentAz);
+    const deltaEl = targetEl - currentEl;
+
+    const hTol = arWorldState.horizontalToleranceDeg || 14;
+    const vTol = arWorldState.verticalToleranceDeg || 12;
+    const azAligned = Math.abs(deltaAz) <= hTol;
+    const elAligned = Math.abs(deltaEl) <= vTol;
+    const isTargetDiscovered = azAligned && elAligned;
+    const isDone = State.completedStations.has(targetCfg.stationNumber);
+
+    // Kemas kini pil stesen 1..8
+    AR_WORLD_STATIONS.forEach((cfg, idx) => {
+      const pill = document.getElementById(`ar-radar-pill-${cfg.stationNumber}`);
+      if (pill) {
+        const done = State.completedStations.has(cfg.stationNumber);
+        pill.classList.toggle('target', idx === targetIdx);
+        pill.classList.toggle('done', done && idx !== targetIdx);
+      }
+    });
+
+    // Kemas kini Penunjuk Elevasi Menegak (-30° hingga +30°)
+    const elevTargetDot = document.getElementById('ar-elev-target-dot');
+    const elevCamDot = document.getElementById('ar-elev-cam-dot');
+    if (elevTargetDot) {
+      const clampedT = Math.max(-30, Math.min(30, targetEl));
+      const pctT = 50 - (clampedT / 30) * 38;
+      elevTargetDot.style.top = `${pctT}%`;
+    }
+    if (elevCamDot) {
+      const clampedC = Math.max(-30, Math.min(30, currentEl));
+      const pctC = 50 - (clampedC / 30) * 38;
+      elevCamDot.style.top = `${pctC}%`;
+      elevCamDot.style.background = elAligned ? '#10b981' : '#38bdf8';
+    }
+
+    const titleEl = document.getElementById('ar-radar-target-title');
+    if (titleEl) titleEl.textContent = `🎯 Stesen ${targetCfg.stationNumber}: ${targetCfg.label}`;
+
+    const statusChip = document.getElementById('ar-radar-status-chip');
+    if (statusChip) {
+      if (isDone) {
+        statusChip.textContent = 'Selesai ✓';
+        statusChip.style.background = 'rgba(16, 185, 129, 0.22)';
+        statusChip.style.color = '#34d399';
+        statusChip.style.borderColor = '#10b981';
+      } else if (isTargetDiscovered) {
+        statusChip.textContent = 'Stesen Ditemui! ✨';
+        statusChip.style.background = 'rgba(45, 212, 191, 0.25)';
+        statusChip.style.color = '#5eead4';
+        statusChip.style.borderColor = '#2dd4bf';
+      } else {
+        statusChip.textContent = 'Sedang Dicari';
+        statusChip.style.background = 'rgba(250, 204, 21, 0.2)';
+        statusChip.style.color = '#fde047';
+        statusChip.style.borderColor = 'rgba(250, 204, 21, 0.45)';
+      }
+    }
+
+    const azTargetEl = document.getElementById('ar-radar-az-target');
+    if (azTargetEl) azTargetEl.innerHTML = `Arah sasaran: <strong>${Math.round(targetAz)}°</strong> (${targetCfg.directionName})`;
+
+    const azCamEl = document.getElementById('ar-radar-az-cam');
+    if (azCamEl) azCamEl.innerHTML = `Arah kamera: <strong>${Math.round(currentAz)}°</strong> relatif`;
+
+    const fmtSignedDeg = (v) => (Math.round(v) > 0 ? `+${Math.round(v)}°` : `${Math.round(v)}°`);
+    const elTargetEl = document.getElementById('ar-radar-el-target');
+    if (elTargetEl) elTargetEl.innerHTML = `Elevasi sasaran: <strong>${fmtSignedDeg(targetEl)}</strong>`;
+
+    const elCamEl = document.getElementById('ar-radar-el-cam');
+    if (elCamEl) elCamEl.innerHTML = `Elevasi kamera: <strong>${fmtSignedDeg(currentEl)}</strong>`;
+
+    const turnCmdEl = document.getElementById('ar-radar-turn-cmd');
+    if (turnCmdEl) {
+      if (azAligned) {
+        turnCmdEl.textContent = '✓ Arah mendatar tepat!';
+        turnCmdEl.style.color = '#34d399';
+      } else if (deltaAz > 0) {
+        turnCmdEl.textContent = `↪ Pusing kanan ${Math.round(deltaAz)}°`;
+        turnCmdEl.style.color = '#fde047';
+      } else {
+        turnCmdEl.textContent = `↩ Pusing kiri ${Math.round(Math.abs(deltaAz))}°`;
+        turnCmdEl.style.color = '#fde047';
+      }
+    }
+
+    const elevCmdEl = document.getElementById('ar-radar-elev-cmd');
+    if (elevCmdEl) {
+      if (elAligned) {
+        elevCmdEl.textContent = '✓ Aras elevasi tepat!';
+        elevCmdEl.style.color = '#34d399';
+      } else if (deltaEl > 0) {
+        elevCmdEl.textContent = `⬆ Naikkan kamera ${Math.round(deltaEl)}°`;
+        elevCmdEl.style.color = '#38bdf8';
+      } else {
+        elevCmdEl.textContent = `⬇ Turunkan kamera ${Math.round(Math.abs(deltaEl))}°`;
+        elevCmdEl.style.color = '#38bdf8';
+      }
+    }
+
+    const coachEl = document.getElementById('ar-radar-coach-msg');
+    if (coachEl) {
+      const absAz = Math.round(Math.abs(deltaAz));
+      const absEl = Math.round(Math.abs(deltaEl));
+      const turnWord = deltaAz > 0 ? 'kanan' : 'kiri';
+      if (isTargetDiscovered) {
+        coachEl.textContent = `Stesen ${targetCfg.label} ditemui! Ketik untuk meneroka.`;
+        coachEl.style.color = '#34d399';
+      } else if (!azAligned && absAz <= 28) {
+        coachEl.textContent = `Bagus! Anda hampir menghadap ${targetCfg.label}. Pusing ${turnWord} ${absAz}° lagi.`;
+        coachEl.style.color = '#fde047';
+      } else if (!azAligned) {
+        coachEl.textContent = `${targetCfg.label} berada di sebelah ${targetCfg.directionName.toLowerCase()}. Pusing ${turnWord} ${absAz}° lagi.`;
+        coachEl.style.color = '#5eead4';
+      } else if (!elAligned) {
+        coachEl.textContent = `Halakan kamera sedikit ke ${deltaEl > 0 ? 'atas' : 'bawah'} (${absEl}° lagi).`;
+        coachEl.style.color = '#38bdf8';
+      }
+    }
   }
 
   // Animasi stesen AR dunia (dipanggil setiap frame dalam renderLoop)
@@ -4865,7 +5639,7 @@
       if (!group.visible) return;
       const organelle = group.userData.organelleModel;
       if (organelle) {
-        organelle.position.y = 0.15 + Math.sin(elapsedTime * 1.3 + idx * 0.8) * 0.08;
+        organelle.position.y = 0.15 + Math.sin(elapsedTime * 1.3 + idx * 0.8) * 0.05;
         if (arState.autoRotate) {
           organelle.rotation.y = elapsedTime * 0.45 + idx * (Math.PI / 4);
         }
@@ -4873,7 +5647,7 @@
       if (group.userData.beacon) {
         group.userData.beacon.rotation.y = elapsedTime * 1.5;
       }
-      // Pastikan papan nama sentiasa menghadap kamera
+      // Pastikan papan nama sentiasa menghadap kamera dengan tegak
       group.children.forEach(child => {
         if (child.userData && child.userData.isLabel) {
           child.lookAt(camPos);
@@ -4886,13 +5660,15 @@
       const camDir = new THREE.Vector3();
       camera.getWorldDirection(camDir);
       const headingDeg = ((THREE.MathUtils.radToDeg(Math.atan2(camDir.x, -camDir.z)) % 360) + 360) % 360;
+      const pitchDeg = THREE.MathUtils.radToDeg(Math.asin(Math.max(-1, Math.min(1, camDir.y))));
       arWorldState.currentHeadingDeg = headingDeg;
+      arWorldState.currentPitchDeg = pitchDeg;
       checkARWorldStationVisibility();
       updateARWorldCompass();
     }
   }
 
-  // Mulakan Mod C — Penerokaan AR Dunia Berasaskan Orientasi (8 Stesen Berasingan)
+  // Mulakan Mod C — Penerokaan AR Dunia Berasaskan Orientasi (8 Stesen Berasingan + Smart Radar)
   async function startARWorldExploration() {
     stopMarkerAR();
     const camOk = await startInteractiveCamera(true);
@@ -4913,17 +5689,16 @@
     if (DOM.arBtnMinilab) DOM.arBtnMinilab.classList.remove('active');
     if (DOM.arPrintMarkersBtn) DOM.arPrintMarkersBtn.style.display = 'none';
     if (DOM.arPostureBtn) DOM.arPostureBtn.style.display = 'inline-flex';
-    if (DOM.arRecenterText) DOM.arRecenterText.textContent = 'Kalibrasi';
+    if (DOM.arRecenterText) DOM.arRecenterText.textContent = 'Kalibrasi Semula';
 
-    // Bina 8 stesen AR di lokasi sudut berasingan dalam world space
+    // Bina 8 stesen AR di lokasi sudut & elevasi berasingan dalam world space
     buildARWorldStations();
     buildARWorldCompass();
 
     // Setup DeviceOrientation (untuk peranti yang tidak memerlukan klik izin iOS)
     setupDeviceOrientation();
 
-    // Kalibrasi awal supaya murid terus melihat Stesen 3 (Sel Haiwan) di Depan (0°),
-    // pusing Kiri (270°) -> Mitokondrion, Kanan (90°) -> Nukleus, Belakang (180°) -> Sel Tumbuhan
+    // Kalibrasi awal supaya arah semasa menjadi 0° Hadapan & 0° Elevasi
     calibrateARWorldHeading();
 
     // Tunjuk dialog kalibrasi & kebenaran sensor iOS
@@ -4933,15 +5708,15 @@
     if (DOM.arBadgeText) {
       DOM.arBadgeText.textContent = arWorldState.sensorReceived
         ? 'Mod C: AR Orientasi Dunia'
-        : 'Mod C: AR Orientasi (Sedia Kalibrasi)';
+        : 'Mod C: AR Orientasi (Smart Radar)';
     }
     if (DOM.arHintBanner) {
-      DOM.arHintBanner.innerHTML = '<span>🧭 Pusing Peranti / Seret Skrin: <strong>Kiri</strong>=Mitokondrion • <strong>Kanan</strong>=Nukleus • <strong>Depan</strong>=Sel Haiwan • <strong>Belakang</strong>=Sel Tumbuhan</span>';
+      DOM.arHintBanner.innerHTML = '<span>🎯 Pilih organel pada <strong>Smart Radar</strong> di kiri bawah • Ikut panduan sudut pusingan &amp; elevasi kamera!</span>';
     }
 
     updateARTrackingStatusBanner(
       'ok',
-      'ℹ️ Mod Orientasi menjejak arah pusingan (3DOF), bukan translasi berjalan fizikal. Pusing di tempat anda atau seret skrin.'
+      'ℹ️ Mod C menjejak arah pusingan & elevasi (3DOF). Ketik stesen pada Smart Radar di kiri bawah untuk memburu organel.'
     );
   }
 
@@ -4966,8 +5741,8 @@
     calUI.innerHTML = `
       <div style="font-size:14px; margin-bottom:6px; color:#2dd4bf; font-weight:900;">🧭 Kalibrasi Arah Dunia AR (Mod C)</div>
       <div style="font-size:12px; margin-bottom:12px; color:#cbd5e1; line-height:1.45;">
-        Hadapkan iPad / kamera ke arah hadapan meja anda dan tekan <strong>Kalibrasi &amp; Aktifkan Sensor</strong>.<br>
-        <span style="color:#94a3b8; font-size:11px;">Kiri: Mitokondrion • Kanan: Nukleus • Depan: Sel Haiwan • Belakang: Sel Tumbuhan</span>
+        Hadapkan iPad / kamera ke arah hadapan yang selesa dan tekan <strong>Kalibrasi &amp; Aktifkan Sensor</strong>.<br>
+        <span style="color:#94a3b8; font-size:11px;">Kanan (90°): Nukleus • Kiri (270°): Mitokondrion • Belakang (180°): Vakuol • Hadapan (0°): Stesen 8</span>
       </div>
       <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
         <button type="button" id="ar-world-calibrate-btn" style="
@@ -5052,7 +5827,6 @@
         const cfg = stationGroup.userData.stationConfig;
         arWorldState.focusedStationIdx = stationGroup.userData.stationIndex;
         SoundFX.interact();
-        // Paparkan kad penerangan ringkas & butang kuiz dahulu (mengikut Aliran Murid langkah 7 -> 8 -> 9)
         selectAROrganelle(cfg.stationKey, cfg.stationNumber);
         return true;
       }
@@ -5062,6 +5836,7 @@
 
   // ==============================================================================
   // 6.4 MOD B: MARKER AR (8 KAD PENANDA AR BOLEH CETAK — IPAD SAFARI 6DOF POSE)
+  // Struktur Hirarki Wajib: MarkerAnchor -> ModelOrientationGroup -> ModelScaleGroup -> GLBScene
   // ==============================================================================
   function buildMarkerARAnchors() {
     arMarkerState.anchors.forEach(a => { if (a.parent) a.parent.remove(a); });
@@ -5069,29 +5844,49 @@
     arMarkerState.trackedMap = {};
 
     AR_WORLD_STATIONS.forEach((stnConfig, idx) => {
+      const mCfg = MARKER_MODEL_CONFIG[stnConfig.stationKey] || { scale: 0.27, offsetY: 0.15, rotCorrection: [0, 0, 0] };
+
+      // 1. Parent Group: MarkerAnchor (mengikut pose 3D permukaan kad secara langsung, +Y = normal keluar kad)
       const anchorGroup = new THREE.Group();
-      anchorGroup.name = `ARMarkerAnchor_${stnConfig.markerId}_${stnConfig.stationKey}`;
+      anchorGroup.name = `MarkerAnchor_${stnConfig.markerId}_${stnConfig.stationKey}`;
 
+      // 2. Child Group: ModelOrientationGroup (pembetulan orientasi khusus mengikut model, terasing daripada pose marker)
+      const modelOrientationGroup = new THREE.Group();
+      modelOrientationGroup.name = `ModelOrientationGroup_${stnConfig.stationKey}`;
+      const [rx, ry, rz] = mCfg.rotCorrection || [0, 0, 0];
+      modelOrientationGroup.rotation.set(rx, ry, rz);
+      anchorGroup.add(modelOrientationGroup);
+
+      // 3. Grandchild Group: ModelScaleGroup (skala & ketinggian di atas permukaan kad supaya tidak menembusi kad)
+      const modelScaleGroup = new THREE.Group();
+      modelScaleGroup.name = `ModelScaleGroup_${stnConfig.stationKey}`;
+      modelScaleGroup.scale.setScalar(mCfg.scale || 0.27);
+      modelScaleGroup.position.set(0, mCfg.offsetY || 0.15, 0);
+      modelOrientationGroup.add(modelScaleGroup);
+
+      // 4. Leaf Group: GLBScene / OrganelleModel
       const organelleModel = buildOrganelleModel(stnConfig.stationKey, stnConfig.color);
-      organelleModel.scale.setScalar(0.28);
-      organelleModel.position.set(0, 0.14, 0);
-      anchorGroup.add(organelleModel);
+      organelleModel.name = `GLBScene_${stnConfig.stationKey}`;
+      modelScaleGroup.add(organelleModel);
 
+      // 5. Papan Nama 3D di atas model (sentiasa menghadap kamera secara tegak & tidak terbalik/mirrored)
       const labelTitle = `Kad #${stnConfig.markerId}: ${stnConfig.label}`;
-      const labelSub = `Stesen ${stnConfig.slotNumber} • Ketik Model Untuk Info & Kuiz`;
+      const labelSub = `Stesen ${stnConfig.stationNumber} • Ketik Model Untuk Info & Kuiz`;
       const labelGroup = buildStationLabel(labelTitle, labelSub, stnConfig.icon, stnConfig.color, stnConfig.stationNumber);
-      labelGroup.scale.setScalar(0.28);
-      labelGroup.position.set(0, 0.42, 0);
+      labelGroup.scale.setScalar(0.16);
+      labelGroup.position.set(0, 0.04, 0);
       anchorGroup.add(labelGroup);
 
+      // 6. Gelang tapak di atas permukaan kad (selari dengan satah XZ MarkerAnchor, y = 0.008m di atas kad)
       const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.18, 0.23, 32),
-        new THREE.MeshBasicMaterial({ color: stnConfig.color, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+        new THREE.RingGeometry(0.16, 0.21, 32),
+        new THREE.MeshBasicMaterial({ color: stnConfig.color, side: THREE.DoubleSide, transparent: true, opacity: 0.88 })
       );
       ring.rotation.x = -Math.PI / 2;
-      ring.position.y = 0.01;
+      ring.position.y = 0.008;
       anchorGroup.add(ring);
 
+      // 7. Sfera collider untuk ketikan (tap) pada iPad
       const hitCollider = new THREE.Mesh(
         new THREE.SphereGeometry(0.32, 12, 12),
         new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
@@ -5108,15 +5903,122 @@
         stationConfig: stnConfig,
         stationIndex: idx,
         markerId: stnConfig.markerId,
+        modelOrientationGroup,
+        modelScaleGroup,
         organelleModel,
         labelGroup,
         ring
       };
 
-      // PENTING: Sembunyikan apabila penanda belum dikesan (jangan biarkan terapung palsu!)
+      // PENTING: Sembunyikan apabila penanda belum dikesan
       anchorGroup.visible = false;
       scene.add(anchorGroup);
       arMarkerState.anchors.push(anchorGroup);
+    });
+  }
+
+  // Tukar keputusan POSIT (R_posit, t_posit) kepada transform tangan-kanan (det = +1, tiada pantulan/mirroring)
+  // di mana:
+  //   +X_anchor = cardRight (vektor kanan kad)
+  //   +Y_anchor = cardNormal (normal permukaan kad menghala keluar dari kad ke arah kamera/atas meja)
+  //   +Z_anchor = cardForward (-cardUp, menghala ke tepi bawah kad / menghadap murid)
+  function computeRightHandedMarkerPose(pose) {
+    if (!pose || !pose.bestTranslation || !pose.bestRotation) return null;
+    const err = typeof pose.bestError === 'number' ? pose.bestError : 0;
+    if (err > (arMarkerState.maxReprojError || 42)) return null;
+
+    const t = pose.bestTranslation; // dalam mm (X kanan, Y atas, Z jauh dari kamera > 0)
+    let r = pose.bestRotation;      // matriks 3x3 POSIT
+
+    // Tukar translasi dari mm ke meter dalam ruang kamera Three.js (-Z ke hadapan)
+    const tx = (t[0] / 1000);
+    const ty = (t[1] / 1000);
+    const tz = -Math.max(0.18, Math.min(3.0, Math.abs(t[2] / 1000)));
+
+    const extractBasis = (rot3x3) => {
+      const right = new THREE.Vector3(rot3x3[0][0], rot3x3[1][0], -rot3x3[2][0]).normalize();
+      const upAlongCard = new THREE.Vector3(rot3x3[0][1], rot3x3[1][1], -rot3x3[2][1]).normalize();
+      const normal = new THREE.Vector3().crossVectors(right, upAlongCard).normalize();
+      return { right, upAlongCard, normal };
+    };
+
+    let { right: cardRight, upAlongCard: cardUp, normal: cardNormal } = extractBasis(r);
+
+    // Jika cabang pertama POSIT menghasilkan normal yang menghala menjauhi kamera (z < 0),
+    // semak alternativeRotation atau pastikan normal permukaan kad menghadap keluar ke arah pemerhati
+    if (cardNormal.z < 0 && pose.alternativeRotation) {
+      const alt = extractBasis(pose.alternativeRotation);
+      if (alt.normal.z > cardNormal.z) {
+        cardRight = alt.right;
+        cardUp = alt.upAlongCard;
+        cardNormal = alt.normal;
+      }
+    }
+    if (cardNormal.z < 0 && cardNormal.y < 0) {
+      cardNormal.negate();
+    }
+
+    // Bina asas ortonormal tangan-kanan (det = +1.0)
+    // X = cardRight, Y = cardNormal (berdiri tegak keluar dari permukaan kad), Z = cardRight x cardNormal = -cardUp
+    const cardForward = new THREE.Vector3().crossVectors(cardRight, cardNormal).normalize();
+    cardRight.crossVectors(cardNormal, cardForward).normalize();
+
+    const rotMat = new THREE.Matrix4().makeBasis(cardRight, cardNormal, cardForward);
+    const quat = new THREE.Quaternion().setFromRotationMatrix(rotMat);
+    const determinant = rotMat.determinant();
+
+    return {
+      position: new THREE.Vector3(tx, ty, tz),
+      quaternion: quat,
+      cardRight,
+      cardNormal,
+      cardForward,
+      determinant: +determinant.toFixed(4),
+      error: +err.toFixed(3)
+    };
+  }
+
+  // Jana 4 penjuru 2D simulasi bagi kad di atas meja mendatar pada sebarang sudut putaran (0°, 90°, 180°),
+  // sudut condong (oblique), dan jarak kamera (dekat/jauh) untuk ujian automatik POSIT
+  function projectSyntheticMarkerCorners(opts = {}) {
+    const cardRotDeg = typeof opts.cardRotDeg === 'number' ? opts.cardRotDeg : 0;
+    const tableTiltDeg = typeof opts.tableTiltDeg === 'number' ? opts.tableTiltDeg : 55;
+    const obliqueYawDeg = typeof opts.obliqueYawDeg === 'number' ? opts.obliqueYawDeg : 0;
+    const distanceMm = (typeof opts.distanceMeters === 'number' ? opts.distanceMeters : 0.55) * 1000;
+    const offsetXMm = (typeof opts.offsetX === 'number' ? opts.offsetX : 0) * 1000;
+    const offsetYMm = (typeof opts.offsetY === 'number' ? opts.offsetY : 0) * 1000;
+
+    const focalLen = arMarkerState.posit
+      ? arMarkerState.posit.focalLength
+      : (360 / 2) / Math.tan(THREE.MathUtils.degToRad((camera ? camera.fov : 60) / 2));
+
+    const half = (arMarkerState.markerSizeMeters * 1000) / 2; // 70mm
+    const cornersLocal = [
+      [-half,  half, 0], // Top-Left
+      [ half,  half, 0], // Top-Right
+      [ half, -half, 0], // Bottom-Right
+      [-half, -half, 0]  // Bottom-Left
+    ];
+
+    const radRot = THREE.MathUtils.degToRad(cardRotDeg);
+    const cR = Math.cos(radRot), sR = Math.sin(radRot);
+    const radTilt = THREE.MathUtils.degToRad(tableTiltDeg);
+    const cT = Math.cos(radTilt), sT = Math.sin(radTilt);
+    const radObl = THREE.MathUtils.degToRad(obliqueYawDeg);
+    const cO = Math.cos(radObl), sO = Math.sin(radObl);
+
+    return cornersLocal.map(([lx, ly]) => {
+      // 1. Putar kad di atas satah meja (0°, 90°, 180°, dll.)
+      const rx = lx * cR - ly * sR;
+      const ry = lx * sR + ly * cR;
+      // 2. Condongkan satah meja relatif kepada kamera (tableTiltDeg) & sudut serong (obliqueYawDeg)
+      const tx = rx * cO;
+      const ty = ry * cT;
+      const tz = distanceMm + ry * sT + rx * sO;
+      return {
+        x: (focalLen * (tx + offsetXMm)) / tz,
+        y: (focalLen * (ty + offsetYMm)) / tz
+      };
     });
   }
 
@@ -5127,6 +6029,7 @@
 
     arMarkerState.active = true;
     arMarkerState.simulatedMarkerId = null;
+    arMarkerState.simulatedCornersMap = {};
     arState.activeModel = 'marker';
 
     if (arObjectGroup) arObjectGroup.visible = false;
@@ -5172,6 +6075,7 @@
     arMarkerState.active = false;
     arMarkerState.activeMarkerIds = [];
     arMarkerState.simulatedMarkerId = null;
+    arMarkerState.simulatedCornersMap = {};
     arMarkerState.anchors.forEach(a => { a.visible = false; });
     const trackBanner = document.getElementById('ar-world-tracking-banner');
     if (trackBanner) trackBanner.style.display = 'none';
@@ -5183,22 +6087,71 @@
     if (!arMarkerState.active) return;
 
     const detectedNow = new Set();
+    const now = performance.now();
 
-    // 1. Jika dalam ujian / simulasi makmal (untuk pengesahan tanpa kad fizikal di hadapan webcam)
+    const applyPoseToMarkerAnchor = (anchor, mId, centeredCorners, immediate = false) => {
+      if (!arMarkerState.posit || !centeredCorners) return false;
+      const rawPose = arMarkerState.posit.pose(centeredCorners);
+      const solved = computeRightHandedMarkerPose(rawPose);
+      if (!solved) return false;
+
+      detectedNow.add(mId);
+      const wasVisible = anchor.visible;
+      const lerpAlpha = (!wasVisible || immediate) ? 1.0 : 0.48;
+
+      anchor.position.lerp(solved.position, lerpAlpha);
+      anchor.quaternion.slerp(solved.quaternion, lerpAlpha);
+      anchor.visible = true;
+      anchor.updateMatrixWorld(true);
+
+      // Pastikan papan nama 3D di atas kad sentiasa menghadap kamera secara tegak & tidak terbalik/mirrored
+      if (anchor.userData.labelGroup && camera) {
+        anchor.userData.labelGroup.quaternion.copy(anchor.quaternion).invert().multiply(camera.quaternion);
+      }
+
+      arMarkerState.trackedMap[mId] = {
+        lastSeen: now,
+        visible: true,
+        error: solved.error,
+        determinant: solved.determinant,
+        cardNormal: [
+          +solved.cardNormal.x.toFixed(3),
+          +solved.cardNormal.y.toFixed(3),
+          +solved.cardNormal.z.toFixed(3)
+        ],
+        cardRight: [
+          +solved.cardRight.x.toFixed(3),
+          +solved.cardRight.y.toFixed(3),
+          +solved.cardRight.z.toFixed(3)
+        ],
+        position: [
+          +anchor.position.x.toFixed(3),
+          +anchor.position.y.toFixed(3),
+          +anchor.position.z.toFixed(3)
+        ]
+      };
+      return true;
+    };
+
+    // 1. Jika dalam ujian / simulasi makmal (menggunakan unjuran penjuru POSIT sebenar)
     if (typeof arMarkerState.simulatedMarkerId === 'number' && arMarkerState.simulatedMarkerId >= 0) {
       const mId = arMarkerState.simulatedMarkerId;
       const anchor = arMarkerState.anchors.find(a => a.userData.markerId === mId);
       if (anchor) {
-        detectedNow.add(mId);
-        const off = arMarkerState.simulatedPoseOffset;
-        anchor.position.set(off.x, off.y, off.z);
-        anchor.rotation.set(0.15, off.rotY, 0);
-        anchor.visible = true;
+        const off = arMarkerState.simulatedPoseOffset || {};
+        const corners = arMarkerState.simulatedCornersMap[mId] || projectSyntheticMarkerCorners({
+          cardRotDeg: typeof off.cardRotDeg === 'number' ? off.cardRotDeg : THREE.MathUtils.radToDeg(off.rotY || 0),
+          tableTiltDeg: typeof off.tableTiltDeg === 'number' ? off.tableTiltDeg : 55,
+          obliqueYawDeg: typeof off.obliqueYawDeg === 'number' ? off.obliqueYawDeg : 0,
+          distanceMeters: typeof off.z === 'number' ? Math.abs(off.z) : 0.58,
+          offsetX: off.x || 0,
+          offsetY: off.y || 0
+        });
+        applyPoseToMarkerAnchor(anchor, mId, corners, true);
       }
     } else if (arMarkerState.detector && arMarkerState.posit && DOM.cameraFeed && DOM.cameraFeed.readyState >= 2) {
       // 2. Pengesanan sebenar daripada frame video kamera (iPad Safari / Desktop Webcam)
-      const now = performance.now();
-      if (now - arMarkerState.lastDetectTime > 55) {
+      if (now - arMarkerState.lastDetectTime > 50) {
         arMarkerState.lastDetectTime = now;
         const cw = arMarkerState.procCanvas.width;
         const ch = arMarkerState.procCanvas.height;
@@ -5217,57 +6170,35 @@
               y: (ch / 2) - c.y
             }));
 
-            const pose = arMarkerState.posit.pose(centeredCorners);
-            if (pose && pose.bestTranslation && pose.bestRotation) {
-              detectedNow.add(mId);
-              const t = pose.bestTranslation; // dalam mm
-              const r = pose.bestRotation;    // matriks 3x3
-
-              // Tukar dari mm ke meter dalam ruang kamera Three.js (-Z ke hadapan)
-              const tx = (t[0] / 1000);
-              const ty = (t[1] / 1000);
-              const tz = -(t[2] / 1000);
-
-              anchor.position.lerp(new THREE.Vector3(tx, ty, Math.min(-0.25, tz)), 0.45);
-
-              const rotMat = new THREE.Matrix4();
-              rotMat.set(
-                r[0][0],  r[0][1],  r[0][2], 0,
-               -r[1][0], -r[1][1], -r[1][2], 0,
-               -r[2][0], -r[2][1], -r[2][2], 0,
-                0,        0,        0,       1
-              );
-              const targetQuat = new THREE.Quaternion().setFromRotationMatrix(rotMat);
-              anchor.quaternion.slerp(targetQuat, 0.45);
-              anchor.visible = true;
-
-              arMarkerState.trackedMap[mId] = {
-                lastSeen: now,
-                visible: true
-              };
-            }
+            applyPoseToMarkerAnchor(anchor, mId, centeredCorners, false);
           });
         } catch (_) {}
-      } else {
-        // Kekalkan keterlihatan antara sela pengesanan (grace period pendek 320ms)
-        const ts = performance.now();
-        Object.keys(arMarkerState.trackedMap).forEach(k => {
-          const item = arMarkerState.trackedMap[k];
-          if (item && (ts - item.lastSeen) <= 320) {
-            detectedNow.add(Number(k));
-          }
-        });
       }
+
+      // Kekalkan keterlihatan semasa tempoh tangguh pendek (grace period 340ms) supaya model tidak berkelip
+      // tetapi sembunyikan serta-merta apabila penanda benar-benar hilang
+      const graceMs = arMarkerState.gracePeriodMs || 340;
+      Object.keys(arMarkerState.trackedMap).forEach(k => {
+        const item = arMarkerState.trackedMap[k];
+        if (item && (now - item.lastSeen) <= graceMs) {
+          detectedNow.add(Number(k));
+        }
+      });
     }
 
-    // 3. Sembunyikan model serta-merta apabila penanda hilang daripada pandangan (Ujian 7: Jangan biarkan terapung palsu!)
+    // 3. Kemas kini keterlihatan & putaran pameran lembut di atas kad
     arMarkerState.activeMarkerIds = Array.from(detectedNow);
     arMarkerState.anchors.forEach((anchor) => {
       const mId = anchor.userData.markerId;
       const isTracked = detectedNow.has(mId);
       anchor.visible = isTracked;
       if (isTracked && anchor.userData.organelleModel) {
-        anchor.userData.organelleModel.rotation.y = elapsedTime * 0.6;
+        if (arState.autoRotate) {
+          anchor.userData.organelleModel.rotation.y = elapsedTime * 0.55;
+        }
+        if (anchor.userData.labelGroup && camera) {
+          anchor.userData.labelGroup.quaternion.copy(anchor.quaternion).invert().multiply(camera.quaternion);
+        }
       }
     });
 
@@ -5279,7 +6210,7 @@
         showARStationDetectedBanner(cfg);
         updateARTrackingStatusBanner(
           'ok',
-          `✅ Penanda #${firstId} (${cfg.label}) dikesan! Model 3D terikat pada pose kad.`
+          `✅ Penanda #${firstId} (${cfg.label}) dikesan! Model 3D berdiri tegak mengikut permukaan kad.`
         );
       }
     } else {
@@ -6102,13 +7033,13 @@
       arWorldState.stationGroups.forEach(g => { g.visible = true; });
 
       if (modelType === 'animal') {
-        lookAtARHeading(0); // Depan (0°) -> Stesen 3: Sel Haiwan
+        selectRadarTargetStation(7, true); // Stesen 8: Retikulum Endoplasma & Sel (Hadapan 0°, Elevasi -12°)
         selectAROrganelle('animal', 8);
-        alertToast('🐾 Menghadap Stesen 3: Sel Haiwan (Arah Depan 0°)');
+        alertToast('🐾 Menghadap Stesen 8: Sel Haiwan & Retikulum Endoplasma (Arah Hadapan 0°)');
       } else {
-        lookAtARHeading(180); // Belakang (180°) -> Stesen 4: Sel Tumbuhan
+        selectRadarTargetStation(6, true); // Stesen 7: Vakuol & Sel Tumbuhan (Belakang 180°, Elevasi 0°)
         selectAROrganelle('plant', 6);
-        alertToast('🌿 Menghadap Stesen 4: Sel Tumbuhan (Arah Belakang 180°)');
+        alertToast('🌿 Menghadap Stesen 7: Vakuol & Sel Tumbuhan (Arah Belakang 180°)');
       }
       return;
     }
@@ -6252,21 +7183,22 @@
     if (!DOM.arDrawerList) return;
     DOM.arDrawerList.innerHTML = '';
 
-    // Susun mengikut 8 Stesen Dunia AR supaya murid tahu arah kompas & ID Kad Marker setiap stesen
-    AR_WORLD_STATIONS.forEach(worldCfg => {
+    // Susun mengikut 8 Stesen Dunia AR supaya murid tahu arah kompas, elevasi & ID Kad Marker setiap stesen
+    AR_WORLD_STATIONS.forEach((worldCfg, idx) => {
       const stn = State.stations[worldCfg.stationNumber - 1] || State.stations[0];
       const isDone = State.completedStations.has(worldCfg.stationNumber);
       const isSelected = arState.selectedOrganelle === worldCfg.stationKey || arState.selectedOrganelle === stn.id;
+      const elevStr = worldCfg.elevationDeg > 0 ? `+${worldCfg.elevationDeg}°` : `${worldCfg.elevationDeg}°`;
 
       const stationColor = stn.color || '#' + worldCfg.color.toString(16).padStart(6, '0');
       const item = document.createElement('button');
       item.type = 'button';
       item.className = `cq-drawer-station-card ${isSelected ? 'active' : ''} ${isDone ? 'completed' : ''}`;
       item.innerHTML = `
-        <div class="cq-drawer-stn-num" style="background: ${stationColor}25; border: 1.5px solid ${stationColor}; color: ${stationColor};">${worldCfg.slotNumber}</div>
+        <div class="cq-drawer-stn-num" style="background: ${stationColor}25; border: 1.5px solid ${stationColor}; color: ${stationColor};">${worldCfg.stationNumber}</div>
         <div class="cq-drawer-stn-info">
-          <strong>${worldCfg.icon || '📍'} Stesen ${worldCfg.slotNumber}: ${worldCfg.label}</strong>
-          <span>🧭 Arah: ${worldCfg.directionName} (${worldCfg.angleDeg}°) • Kad Marker #${worldCfg.markerId}</span>
+          <strong>${worldCfg.icon || '📍'} Stesen ${worldCfg.stationNumber}: ${worldCfg.label}</strong>
+          <span>🧭 Arah: ${worldCfg.directionName} (${worldCfg.azimuthDeg}°, Elevasi ${elevStr}) • Kad #${worldCfg.markerId}</span>
         </div>
         <div class="cq-drawer-stn-status ${isDone ? 'done' : ''}">
           ${isDone ? '✓ Lencana' : 'Belum'}
@@ -6276,7 +7208,7 @@
       item.addEventListener('click', (e) => {
         e.stopPropagation();
         if (arWorldState.active && arWorldState.subMode === 'orientation') {
-          lookAtARHeading(worldCfg.angleDeg);
+          selectRadarTargetStation(idx, true);
         }
         selectAROrganelle(worldCfg.stationKey, worldCfg.stationNumber);
         toggleStationsDrawer(false);
@@ -6356,7 +7288,7 @@
           e.stopPropagation();
           if (arWorldState.active && worldCfg) {
             if (arWorldState.subMode === 'orientation') {
-              lookAtARHeading(worldCfg.angleDeg);
+              lookAtARHeading(worldCfg.azimuthDeg, worldCfg.elevationDeg);
             }
             // Toggle zoom / scale inspection on the world-space station
             const stnGroup = arWorldState.stationGroups.find(g => g.userData.stationConfig.stationKey === worldCfg.stationKey);
@@ -6802,7 +7734,39 @@
     },
     selectMode: (m) => selectMode(m),
     switchARModel: (m) => switchARModel(m),
-    lookAtHeading: (deg) => lookAtARHeading(deg),
+    lookAtHeading: (deg, pitchDeg) => lookAtARHeading(deg, pitchDeg),
+    selectRadarTarget: (idx, autoTurn = false) => selectRadarTargetStation(idx, autoTurn),
+    setWorldStationsConfig: (list) => setARWorldStationsConfig(list),
+    setDiscoveryTolerance: (h, v) => {
+      if (typeof h === 'number') arWorldState.horizontalToleranceDeg = h;
+      if (typeof v === 'number') arWorldState.verticalToleranceDeg = v;
+      checkARWorldStationVisibility();
+      updateARWorldCompass();
+    },
+    simulateDeviceOrientation: (alpha, beta, gamma, screenAngle = 0) => {
+      window.arSimulatedScreenOrientation = screenAngle;
+      arWorldState.screenOrientationAngle = screenAngle;
+      onDeviceOrientationEvent({ alpha, beta, gamma });
+      // Untuk simulasi langkah-demi-langkah dalam ujian automatik, kemas kini nilai smoothed serta-merta
+      arWorldState.smoothedSensorAzimuthDeg = arWorldState.rawSensorAzimuthDeg;
+      arWorldState.smoothedSensorElevationDeg = arWorldState.rawSensorElevationDeg;
+      updateARWorldCamera(alpha, beta, gamma);
+      return {
+        rawAzimuthDeg: arWorldState.rawSensorAzimuthDeg,
+        rawElevationDeg: arWorldState.rawSensorElevationDeg,
+        currentHeadingDeg: arWorldState.currentHeadingDeg,
+        currentPitchDeg: arWorldState.currentPitchDeg
+      };
+    },
+    simulateMarkerPose: (markerId, opts = {}) => {
+      arMarkerState.simulatedMarkerId = markerId;
+      arMarkerState.simulatedPoseOffset = opts;
+      if (typeof markerId === 'number' && markerId >= 0) {
+        arMarkerState.simulatedCornersMap[markerId] = projectSyntheticMarkerCorners(opts);
+      }
+      updateMarkerARTracking(0);
+      return arMarkerState.trackedMap[markerId] || null;
+    },
     calibrateHeading: () => calibrateARWorldHeading(),
     togglePosture: () => toggleARPostureMode(),
     placeSpatialStations: (pos, yaw) => positionARWorldStationsSpatial(pos, yaw),

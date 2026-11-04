@@ -1,0 +1,406 @@
+{
+  "timestamp": "2026-11-04T03:32:11.331Z",
+  "viewport": "1194x834 (iPad Pro 11\" Landscape & 834x1194 Portrait)",
+  "modBTests": {
+    "B1_B2_scan_and_upright": {
+      "pass": true,
+      "details": {
+        "marker_4": {
+          "visible": true,
+          "hierarchy": "MarkerAnchor_4_membrane -> ModelOrientationGroup_membrane -> ModelScaleGroup_membrane -> GLBScene_membrane",
+          "determinant": 1,
+          "reprojError": 0,
+          "cardNormal": [
+            0,
+            0.819,
+            0.574
+          ],
+          "scaleGroupOffsetY": 0.14,
+          "scaleGroupScale": 0.18,
+          "labelUpWorldY": 1,
+          "isUprightOnCard": true
+        },
+        "marker_0": {
+          "visible": true,
+          "hierarchy": "MarkerAnchor_0_mitochondria -> ModelOrientationGroup_mitochondria -> ModelScaleGroup_mitochondria -> GLBScene_mitochondria",
+          "determinant": 1,
+          "reprojError": 0,
+          "cardNormal": [
+            0,
+            0.819,
+            0.574
+          ],
+          "scaleGroupOffsetY": 0.15,
+          "scaleGroupScale": 0.19,
+          "labelUpWorldY": 1,
+          "isUprightOnCard": true
+        },
+        "marker_1": {
+          "visible": true,
+          "hierarchy": "MarkerAnchor_1_nucleus -> ModelOrientationGroup_nucleus -> ModelScaleGroup_nucleus -> GLBScene_nucleus",
+          "determinant": 1,
+          "reprojError": 0,
+          "cardNormal": [
+            0,
+            0.819,
+            0.574
+          ],
+          "scaleGroupOffsetY": 0.15,
+          "scaleGroupScale": 0.19,
+          "labelUpWorldY": 1,
+          "isUprightOnCard": true
+        }
+      }
+    },
+    "B3_rotated_90deg": {
+      "cardRotDeg": 90,
+      "visible": true,
+      "determinant": 1,
+      "reprojError": 0,
+      "cardNormal": [
+        0,
+        0.819,
+        0.574
+      ],
+      "cardRight": [
+        0,
+        0.574,
+        -0.819
+      ],
+      "labelUpWorldY": 1,
+      "pass": true
+    },
+    "B4_rotated_180deg": {
+      "cardRotDeg": 180,
+      "visible": true,
+      "determinant": 1,
+      "reprojError": 0,
+      "cardNormal": [
+        0,
+        0.819,
+        0.574
+      ],
+      "cardRight": [
+        -1,
+        0,
+        0
+      ],
+      "labelUpWorldY": 1,
+      "pass": true
+    },
+    "B5_oblique_angle": {
+      "markerId": 0,
+      "organelle": "Mitokondrion",
+      "visible": true,
+      "determinant": 1,
+      "reprojError": 7,
+      "cardNormal": [
+        0.025,
+        0.581,
+        0.813
+      ],
+      "pass": true
+    },
+    "B6_near_and_far_distance": {
+      "nearZ": -0.321,
+      "farZ": -0.953,
+      "nearDet": 1,
+      "farDet": 1,
+      "pass": true
+    },
+    "B7_station_interaction_and_quiz": {
+      "cardVisible": true,
+      "cardTitle": "Membran Sel",
+      "modalOpen": true,
+      "pass": true
+    }
+  },
+  "modCTests": {
+    "C1_C2_C3_open_sensor_and_recalibrate": {
+      "modeActive": true,
+      "sensorReceived": true,
+      "hasCalibrated": true,
+      "headingAfterCalibrate": 0,
+      "pitchAfterCalibrate": 0,
+      "recalBtnExists": true,
+      "recalBtnText": "🧭 KALIBRASI SEMULA",
+      "pass": true
+    },
+    "C4_C5_smart_radar_guidance_mitochondria": {
+      "title": "🎯 Stesen 4: Mitokondrion",
+      "status": "Sedang Dicari",
+      "azTarget": "Arah sasaran: 270° (Kiri)",
+      "azCam": "Arah kamera: 0° relatif",
+      "elTarget": "Elevasi sasaran: +15°",
+      "elCam": "Elevasi kamera: 0°",
+      "turnCmd": "↩ Pusing kiri 90°",
+      "elevCmd": "⬆ Naikkan kamera 15°",
+      "coachMsg": "Mitokondrion berada di sebelah kiri. Pusing kiri 90° lagi.",
+      "pill4HasTarget": true,
+      "pass": true
+    },
+    "C6_C7_rotate_to_target_and_discover": {
+      "detectedStationIdx": 3,
+      "isDiscoveredInSet": true,
+      "ndcX": 0,
+      "ndcY": 0,
+      "status": "Stesen Ditemui! ✨",
+      "turnCmd": "✓ Arah mendatar tepat!",
+      "elevCmd": "✓ Aras elevasi tepat!",
+      "coachMsg": "Stesen Mitokondrion ditemui! Ketik untuk meneroka.",
+      "bannerVisible": true,
+      "bannerText": "⚡Stesen Mitokondrion Ditemui!Teroka Stesen",
+      "pass": true
+    },
+    "C8_rotate_away_and_return_world_locked": {
+      "posBefore": [
+        -5.216,
+        2.648,
+        0
+      ],
+      "posAfter": [
+        -5.216,
+        2.648,
+        0
+      ],
+      "detectedAt90_isNucleus": true,
+      "mitoOutOfViewAt90": true,
+      "detectedBackAt270_isMito": true,
+      "exactSameWorldPos": true,
+      "pass": true
+    },
+    "C9_all_8_stations_azimuth_elevation": {
+      "stationChecks": [
+        {
+          "stationNumber": 1,
+          "label": "Nukleus",
+          "azimuthDeg": 90,
+          "elevationDeg": 5,
+          "directionName": "Kanan",
+          "groupVisible": true,
+          "worldPos": [
+            5.38,
+            1.72,
+            0
+          ],
+          "detectedAsActive": true,
+          "discovered": true
+        },
+        {
+          "stationNumber": 2,
+          "label": "Membran Sel",
+          "azimuthDeg": 45,
+          "elevationDeg": -8,
+          "directionName": "Kanan Hadapan",
+          "groupVisible": true,
+          "worldPos": [
+            3.78,
+            0.5,
+            -3.78
+          ],
+          "detectedAsActive": true,
+          "discovered": true
+        },
+        {
+          "stationNumber": 3,
+          "label": "Sitoplasma",
+          "azimuthDeg": 135,
+          "elevationDeg": 12,
+          "directionName": "Kanan Belakang",
+          "groupVisible": true,
+          "worldPos": [
+            3.73,
+            2.37,
+            3.73
+          ],
+          "detectedAsActive": true,
+          "discovered": true
+        },
+        {
+          "stationNumber": 4,
+          "label": "Mitokondrion",
+          "azimuthDeg": 270,
+          "elevationDeg": 15,
+          "directionName": "Kiri",
+          "groupVisible": true,
+          "worldPos": [
+            -5.22,
+            2.65,
+            0
+          ],
+          "detectedAsActive": true,
+          "discovered": true
+        },
+        {
+          "stationNumber": 5,
+          "label": "Kloroplas",
+          "azimuthDeg": 225,
+          "elevationDeg": -5,
+          "directionName": "Kiri Belakang",
+          "groupVisible": true,
+          "worldPos": [
+            -3.8,
+            0.78,
+            3.8
+          ],
+          "detectedAsActive": true,
+          "discovered": true
+        },
+        {
+          "stationNumber": 6,
+          "label": "Dinding Sel",
+          "azimuthDeg": 315,
+          "elevationDeg": 8,
+          "directionName": "Kiri Hadapan",
+          "groupVisible": true,
+          "worldPos": [
+            -3.78,
+            2,
+            -3.78
+          ],
+          "detectedAsActive": true,
+          "discovered": true
+        },
+        {
+          "stationNumber": 7,
+          "label": "Vakuol",
+          "azimuthDeg": 180,
+          "elevationDeg": 0,
+          "directionName": "Belakang",
+          "groupVisible": true,
+          "worldPos": [
+            0,
+            1.25,
+            5.4
+          ],
+          "detectedAsActive": true,
+          "discovered": true
+        },
+        {
+          "stationNumber": 8,
+          "label": "Retikulum Endoplasma & Sel",
+          "azimuthDeg": 0,
+          "elevationDeg": -12,
+          "directionName": "Hadapan",
+          "groupVisible": true,
+          "worldPos": [
+            0,
+            0.13,
+            -5.28
+          ],
+          "detectedAsActive": true,
+          "discovered": true
+        }
+      ],
+      "pass": true
+    },
+    "C10_C11_full_360_and_elevation_sweep": {
+      "allStationsAlwaysInSceneGraph": true,
+      "pitchAccurate": true,
+      "sweepResults": [
+        {
+          "az": 0,
+          "currentHeading": 0,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 45,
+          "currentHeading": 45,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 90,
+          "currentHeading": 90,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 135,
+          "currentHeading": 135,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 180,
+          "currentHeading": 180,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 225,
+          "currentHeading": 225,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 270,
+          "currentHeading": 270,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 315,
+          "currentHeading": 315,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 359,
+          "currentHeading": 359,
+          "visibleGroupsCount": 8
+        },
+        {
+          "az": 360,
+          "currentHeading": 0,
+          "visibleGroupsCount": 8
+        }
+      ],
+      "pitchResults": [
+        {
+          "el": -20,
+          "currentPitch": -20
+        },
+        {
+          "el": -12,
+          "currentPitch": -12
+        },
+        {
+          "el": -5,
+          "currentPitch": -5
+        },
+        {
+          "el": 0,
+          "currentPitch": 0
+        },
+        {
+          "el": 5,
+          "currentPitch": 5
+        },
+        {
+          "el": 12,
+          "currentPitch": 12
+        },
+        {
+          "el": 15,
+          "currentPitch": 15
+        },
+        {
+          "el": 20,
+          "currentPitch": 20
+        }
+      ],
+      "pass": true
+    },
+    "C12_portrait_and_landscape_sensor_quaternion": {
+      "portraitTurn90Heading": 90,
+      "portraitElevation": 0,
+      "landscapeTurn90Heading": 90,
+      "landscapeElevation": 0,
+      "pass": true
+    },
+    "C13_quiz_completion_and_world_persistence": {
+      "completedBeforeQuiz": false,
+      "completedAfterCloseOnly": false,
+      "completedAfterCorrectAnswer": true,
+      "statusChipText": "Selesai ✓",
+      "worldPosUnchanged": true,
+      "pass": true
+    }
+  },
+  "consoleErrors": [],
+  "failed404s": []
+}
