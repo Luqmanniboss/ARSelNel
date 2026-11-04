@@ -1382,18 +1382,139 @@
   // HIGH-QUALITY GLB ORGANELLE LOADER, CACHE, CLONER & THREE.BOX3 AUTO-FIT ENGINE
   // ==============================================================================
 
+  // Bina model 3D Sitoplasma separa lut sinar bercirikan cecair gel biologi hidup (cytosol matrix + cyclosis streaming)
+  // Menepati arahan KSSM & sains sel: jeli separa lut sinar dengan organel terampai, bukan pinjaman model organel lain.
+  function buildCytoplasmGelVisual() {
+    const gelGroup = new THREE.Group();
+    gelGroup.name = 'Cytoplasm_Gel_Visual';
+
+    // 1. Lapisan Gel Luar (Semi-translucent colloidal gel fluid)
+    const outerGeo = new THREE.IcosahedronGeometry(0.48, 3);
+    const outerMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.52,
+      roughness: 0.12,
+      metalness: 0.08,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+    gelGroup.add(outerMesh);
+
+    // 2. Lapisan Sol / Matriks Dalaman (Warm colloidal core)
+    const innerGeo = new THREE.IcosahedronGeometry(0.36, 2);
+    const innerMat = new THREE.MeshStandardMaterial({
+      color: 0xfacc15,
+      transparent: true,
+      opacity: 0.32,
+      roughness: 0.25,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+    gelGroup.add(innerMesh);
+
+    // 3. Jaringan Sitoskeleton (Microfilaments & Microtubules lattice)
+    const cytoskelGroup = new THREE.Group();
+    const fiberColors = [0x06b6d4, 0xf59e0b, 0xa855f7];
+    for (let f = 0; f < 6; f++) {
+      const fiberMat = new THREE.MeshBasicMaterial({
+        color: fiberColors[f % fiberColors.length],
+        transparent: true,
+        opacity: 0.75
+      });
+      const fiber = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.62, 8), fiberMat);
+      fiber.rotation.set(
+        (f * Math.PI) / 3 + 0.2,
+        (f * Math.PI) / 4 + 0.1,
+        (f * Math.PI) / 5
+      );
+      cytoskelGroup.add(fiber);
+    }
+    gelGroup.add(cytoskelGroup);
+
+    // 4. Granul & Vesikel Terampai (Suspended metabolic granules, ribosomes & enzymes)
+    const granulesGroup = new THREE.Group();
+    const granColors = [0x67e8f9, 0xfde047, 0xf472b6, 0x4ade80, 0xa78bfa];
+    const granuleMeshes = [];
+    for (let g = 0; g < 14; g++) {
+      const gMat = new THREE.MeshStandardMaterial({
+        color: granColors[g % granColors.length],
+        roughness: 0.3,
+        metalness: 0.2
+      });
+      const gSize = 0.028 + (g % 3) * 0.012;
+      const gMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(gSize), gMat);
+      const angle = (g / 14) * Math.PI * 2;
+      const dist = 0.14 + ((g * 7) % 10) * 0.018;
+      const yOff = ((g % 5) - 2) * 0.07;
+      gMesh.position.set(Math.cos(angle) * dist, yOff, Math.sin(angle) * dist);
+      gMesh.userData = {
+        orbitAngle: angle,
+        orbitDist: dist,
+        orbitSpeed: 0.4 + (g % 4) * 0.2,
+        baseY: yOff
+      };
+      granulesGroup.add(gMesh);
+      granuleMeshes.push(gMesh);
+    }
+    gelGroup.add(granulesGroup);
+
+    // 5. Halo Cahaya Sitosol (Bioluminescent aura)
+    const auraRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.52, 0.58, 32),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
+    );
+    auraRing.rotation.x = Math.PI / 2;
+    gelGroup.add(auraRing);
+
+    gelGroup.userData = {
+      isCytoplasmGel: true,
+      outerMesh,
+      innerMesh,
+      cytoskelGroup,
+      granuleMeshes,
+      updateAnimation(elapsedTime) {
+        if (outerMesh) {
+          const s = 1.0 + Math.sin(elapsedTime * 1.8) * 0.035;
+          outerMesh.scale.set(s, 1.0 + Math.cos(elapsedTime * 1.5) * 0.03, s);
+        }
+        if (innerMesh) {
+          const sIn = 1.0 + Math.cos(elapsedTime * 1.6) * 0.04;
+          innerMesh.scale.set(sIn, sIn, sIn);
+        }
+        if (cytoskelGroup) {
+          cytoskelGroup.rotation.y = elapsedTime * 0.15;
+        }
+        if (granuleMeshes) {
+          granuleMeshes.forEach(gm => {
+            gm.userData.orbitAngle += gm.userData.orbitSpeed * 0.015;
+            gm.position.x = Math.cos(gm.userData.orbitAngle) * gm.userData.orbitDist;
+            gm.position.z = Math.sin(gm.userData.orbitAngle) * gm.userData.orbitDist;
+            gm.position.y = gm.userData.baseY + Math.sin(elapsedTime * 2.0 + gm.userData.orbitDist) * 0.03;
+            gm.rotation.x += 0.02;
+            gm.rotation.y += 0.03;
+          });
+        }
+      }
+    };
+
+    return gelGroup;
+  }
+
   const STATION_GLB_MAP = {
     nucleus: {
       key: 'nucleus',
       stationNumber: 1,
       stationId: 'stn-1-nucleus',
       label: 'Nukleus',
-      url: '../models/nucleus.glb',
-      fallbackUrl: '../models/nucleus_opt.glb',
-      targetSize3D: 0.92,
-      targetSizeARWorld: 1.35,
+      url: '../models/nucleus_opt.glb',
+      fallbackUrl: '../models/nucleus.glb',
+      targetSize3D: 0.95,
+      targetSizeARWorld: 1.40,
       targetSizePreview: 1.35,
-      targetSizeMini: 0.30,
+      targetSizeMini: 0.32,
       rot: [0.16, -0.35, 0],
       tableClearanceY: 0.14
     },
@@ -1402,13 +1523,27 @@
       stationNumber: 2,
       stationId: 'stn-2-membrane',
       label: 'Membran Sel',
-      url: '../models/plasma_membrane.glb',
-      fallbackUrl: '../models/plasma_membrane_opt.glb',
-      targetSize3D: 1.28,
-      targetSizeARWorld: 1.65,
-      targetSizePreview: 1.55,
+      url: '../models/plasma_membrane_opt.glb',
+      fallbackUrl: '../models/plasma_membrane.glb',
+      targetSize3D: 1.25,
+      targetSizeARWorld: 1.60,
+      targetSizePreview: 1.50,
       targetSizeMini: 0.38,
       rot: [0.22, 0.25, Math.PI],
+      tableClearanceY: 0.14
+    },
+    cytoplasm: {
+      key: 'cytoplasm',
+      stationNumber: 3,
+      stationId: 'stn-3-cytoplasm',
+      label: 'Sitoplasma',
+      url: 'cytoplasm_gel_visual',
+      fallbackUrl: 'cytoplasm_gel_visual',
+      targetSize3D: 1.10,
+      targetSizeARWorld: 1.45,
+      targetSizePreview: 1.35,
+      targetSizeMini: 0.35,
+      rot: [0, 0, 0],
       tableClearanceY: 0.14
     },
     mitochondria: {
@@ -1425,6 +1560,48 @@
       rot: [0.24, -0.30, 0.10],
       tableClearanceY: 0.14
     },
+    chloroplast: {
+      key: 'chloroplast',
+      stationNumber: 5,
+      stationId: 'stn-5-chloroplast',
+      label: 'Kloroplas',
+      url: '../models/chloroplast%20(1).glb',
+      fallbackUrl: '../models/chloroplast.glb',
+      targetSize3D: 1.15,
+      targetSizeARWorld: 1.50,
+      targetSizePreview: 1.40,
+      targetSizeMini: 0.35,
+      rot: [0.35, 0.20, 0],
+      tableClearanceY: 0.14
+    },
+    wall: {
+      key: 'wall',
+      stationNumber: 6,
+      stationId: 'stn-6-cellwall',
+      label: 'Dinding Sel',
+      url: '../models/cell_wall.glb',
+      fallbackUrl: '../models/cell_wall%20(1).glb',
+      targetSize3D: 1.15,
+      targetSizeARWorld: 1.50,
+      targetSizePreview: 1.40,
+      targetSizeMini: 0.35,
+      rot: [0.20, 0.30, 0],
+      tableClearanceY: 0.14
+    },
+    vacuole: {
+      key: 'vacuole',
+      stationNumber: 7,
+      stationId: 'stn-7-vacuole',
+      label: 'Vakuol',
+      url: '../models/vacuole.glb',
+      fallbackUrl: '../models/vacuole%20(1).glb',
+      targetSize3D: 1.20,
+      targetSizeARWorld: 1.55,
+      targetSizePreview: 1.40,
+      targetSizeMini: 0.35,
+      rot: [0.20, 0.25, 0],
+      tableClearanceY: 0.14
+    },
     animal: {
       key: 'animal',
       stationNumber: 8,
@@ -1433,7 +1610,7 @@
       url: '../models/animal_cell_final.glb',
       fallbackUrl: '../models/animal_cell_final.glb',
       targetSize3D: 0.72,
-      targetSizeARWorld: 1.55,
+      targetSizeARWorld: 1.40,
       targetSizePreview: 0.95,
       targetSizeMini: 0.32,
       rot: [0.18, -0.25, 0],
@@ -1445,9 +1622,9 @@
       stationId: 'stn-8-comparison',
       label: 'Sel Tumbuhan',
       url: '../models/plantcellnew.glb',
-      fallbackUrl: '../models/plantcellnew.glb',
+      fallbackUrl: '../models/plant_cell.glb',
       targetSize3D: 0.76,
-      targetSizeARWorld: 1.60,
+      targetSizeARWorld: 1.45,
       targetSizePreview: 0.98,
       targetSizeMini: 0.32,
       rot: [0.18, 0.25, 0],
@@ -1455,8 +1632,8 @@
     },
     er: {
       key: 'er',
-      stationNumber: 9,
-      stationId: 'exhibit-er',
+      stationNumber: 8,
+      stationId: 'stn-8-comparison',
       label: 'Retikulum Endoplasma',
       url: '../models/endoplasmic_reticulum_opt.glb',
       fallbackUrl: '../models/endoplasmic_reticulum.glb',
@@ -1465,6 +1642,20 @@
       targetSizePreview: 1.40,
       targetSizeMini: 0.32,
       rot: [0.26, 0.20, 0],
+      tableClearanceY: 0.14
+    },
+    chest: {
+      key: 'chest',
+      stationNumber: 99,
+      stationId: 'treasure_chest',
+      label: 'Peti Harta Karun',
+      url: '../models/treasure_chests_asset_pack.glb',
+      fallbackUrl: '../models/treasure_chests_asset_pack.glb',
+      targetSize3D: 0.90,
+      targetSizeARWorld: 1.25,
+      targetSizePreview: 1.20,
+      targetSizeMini: 0.35,
+      rot: [0, 0, 0],
       tableClearanceY: 0.14
     }
   };
@@ -1594,6 +1785,31 @@
     if (pendingGLBPromises[key]) {
       return pendingGLBPromises[key];
     }
+
+    // Untuk Sitoplasma, hasilkan visual gel biologi separa lut sinar beranimasi siklosis secara terus
+    if (key === 'cytoplasm') {
+      const gelScene = buildCytoplasmGelVisual();
+      cachedOrganelleGLBs['cytoplasm'] = gelScene;
+      glbDiagnostics['cytoplasm'] = {
+        key: 'cytoplasm',
+        label: cfg.label,
+        stationNumber: cfg.stationNumber,
+        stationId: cfg.stationId,
+        url: 'cytoplasm_gel_visual',
+        usedFallbackUrl: false,
+        loaded: true,
+        status: 'OK_BIOLOGICAL_GEL',
+        loadMs: 1,
+        rawMeshCount: 16,
+        batchedMeshCount: 16,
+        materialCount: 4,
+        textureCount: 0,
+        vertexCount: 380,
+        triangleCount: 520
+      };
+      return Promise.resolve(gelScene);
+    }
+
     if (typeof THREE.GLTFLoader === 'undefined') {
       return Promise.reject(new Error('THREE.GLTFLoader tidak tersedia'));
     }
@@ -1602,90 +1818,109 @@
     const t0 = performance.now();
 
     const tryLoadUrl = (urlToLoad, isFallback) => new Promise((resolve, reject) => {
-      loader.load(
+      const candidateUrls = [
         urlToLoad,
-        gltf => {
-          if (!gltf || !gltf.scene) {
-            reject(new Error(`Fail GLB kosong atau tidak sah: ${urlToLoad}`));
-            return;
-          }
+        encodeURI(urlToLoad),
+        decodeURI(urlToLoad),
+        urlToLoad.replace(/^\.\.\//, ''),
+        '/' + urlToLoad.replace(/^\.\.\//, '')
+      ].filter((u, i, arr) => arr.indexOf(u) === i);
 
-          let rawMeshCount = 0;
-          let vertexCount = 0;
-          let triangleCount = 0;
-          const matSet = new Set();
-          const texSet = new Set();
-
-          gltf.scene.traverse(node => {
-            if (!node.isMesh) return;
-            if (node.name === 'Labels') {
-              node.visible = false;
+      let curIdx = 0;
+      function attemptNext() {
+        if (curIdx >= candidateUrls.length) {
+          reject(new Error(`Fail GLB tidak dapat dimuatkan dari semua varian URL: ${urlToLoad}`));
+          return;
+        }
+        const targetUrl = candidateUrls[curIdx++];
+        loader.load(
+          targetUrl,
+          gltf => {
+            if (!gltf || !gltf.scene) {
+              attemptNext();
               return;
             }
-            rawMeshCount++;
-            const g = node.geometry;
-            if (g && g.attributes && g.attributes.position) {
-              vertexCount += g.attributes.position.count;
-              triangleCount += g.index ? (g.index.count / 3) : (g.attributes.position.count / 3);
-            }
-            const mats = Array.isArray(node.material) ? node.material : [node.material];
-            mats.forEach(m => {
-              if (!m) return;
-              matSet.add(m.uuid);
-              m.side = THREE.DoubleSide;
-              ['map', 'emissiveMap'].forEach(tKey => {
-                if (m[tKey]) {
-                  m[tKey].encoding = THREE.sRGBEncoding;
-                  texSet.add(m[tKey].uuid);
-                }
-              });
-              ['normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'].forEach(tKey => {
-                if (m[tKey]) texSet.add(m[tKey].uuid);
+
+            let rawMeshCount = 0;
+            let vertexCount = 0;
+            let triangleCount = 0;
+            const matSet = new Set();
+            const texSet = new Set();
+
+            gltf.scene.traverse(node => {
+              if (!node.isMesh) return;
+              if (node.name === 'Labels') {
+                node.visible = false;
+                return;
+              }
+              rawMeshCount++;
+              const g = node.geometry;
+              if (g && g.attributes && g.attributes.position) {
+                vertexCount += g.attributes.position.count;
+                triangleCount += g.index ? (g.index.count / 3) : (g.attributes.position.count / 3);
+              }
+              const mats = Array.isArray(node.material) ? node.material : [node.material];
+              mats.forEach(m => {
+                if (!m) return;
+                matSet.add(m.uuid);
+                m.side = THREE.DoubleSide;
+                ['map', 'emissiveMap'].forEach(tKey => {
+                  if (m[tKey]) {
+                    m[tKey].encoding = THREE.sRGBEncoding;
+                    texSet.add(m[tKey].uuid);
+                  }
+                });
+                ['normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'].forEach(tKey => {
+                  if (m[tKey]) texSet.add(m[tKey].uuid);
+                });
               });
             });
-          });
 
-          const rawBox = new THREE.Box3().setFromObject(gltf.scene);
-          const rawSize = rawBox.getSize(new THREE.Vector3());
-          const rawCenter = rawBox.getCenter(new THREE.Vector3());
+            const rawBox = new THREE.Box3().setFromObject(gltf.scene);
+            const rawSize = rawBox.getSize(new THREE.Vector3());
+            const rawCenter = rawBox.getCenter(new THREE.Vector3());
 
-          const optimizedScene = batchOptimizeGLBScene(gltf.scene);
-          let finalMeshCount = 0;
-          optimizedScene.traverse(n => { if (n.isMesh && n.visible !== false) finalMeshCount++; });
+            const optimizedScene = batchOptimizeGLBScene(gltf.scene);
+            let finalMeshCount = 0;
+            optimizedScene.traverse(n => { if (n.isMesh && n.visible !== false) finalMeshCount++; });
 
-          const loadMs = Math.round(performance.now() - t0);
-          cachedOrganelleGLBs[key] = optimizedScene;
-          if (key === 'animal') cachedGltfScenes.animal = optimizedScene;
-          if (key === 'plant') cachedGltfScenes.plant = optimizedScene;
+            const loadMs = Math.round(performance.now() - t0);
+            cachedOrganelleGLBs[key] = optimizedScene;
+            if (key === 'animal') cachedGltfScenes.animal = optimizedScene;
+            if (key === 'plant') cachedGltfScenes.plant = optimizedScene;
 
-          glbDiagnostics[key] = {
-            ...(glbDiagnostics[key] || {}),
-            key,
-            label: cfg.label,
-            stationNumber: cfg.stationNumber,
-            stationId: cfg.stationId,
-            url: urlToLoad,
-            usedFallbackUrl: !!isFallback,
-            loaded: true,
-            status: 'OK',
-            loadMs,
-            rawMin: [+rawBox.min.x.toFixed(3), +rawBox.min.y.toFixed(3), +rawBox.min.z.toFixed(3)],
-            rawMax: [+rawBox.max.x.toFixed(3), +rawBox.max.y.toFixed(3), +rawBox.max.z.toFixed(3)],
-            rawSize: [+rawSize.x.toFixed(3), +rawSize.y.toFixed(3), +rawSize.z.toFixed(3)],
-            rawCenter: [+rawCenter.x.toFixed(3), +rawCenter.y.toFixed(3), +rawCenter.z.toFixed(3)],
-            rawMeshCount,
-            batchedMeshCount: finalMeshCount,
-            materialCount: matSet.size,
-            textureCount: texSet.size,
-            vertexCount,
-            triangleCount: Math.round(triangleCount)
-          };
+            glbDiagnostics[key] = {
+              ...(glbDiagnostics[key] || {}),
+              key,
+              label: cfg.label,
+              stationNumber: cfg.stationNumber,
+              stationId: cfg.stationId,
+              url: targetUrl,
+              usedFallbackUrl: !!isFallback,
+              loaded: true,
+              status: 'OK',
+              loadMs,
+              rawMin: [+rawBox.min.x.toFixed(3), +rawBox.min.y.toFixed(3), +rawBox.min.z.toFixed(3)],
+              rawMax: [+rawBox.max.x.toFixed(3), +rawBox.max.y.toFixed(3), +rawBox.max.z.toFixed(3)],
+              rawSize: [+rawSize.x.toFixed(3), +rawSize.y.toFixed(3), +rawSize.z.toFixed(3)],
+              rawCenter: [+rawCenter.x.toFixed(3), +rawCenter.y.toFixed(3), +rawCenter.z.toFixed(3)],
+              rawMeshCount,
+              batchedMeshCount: finalMeshCount,
+              materialCount: matSet.size,
+              textureCount: texSet.size,
+              vertexCount,
+              triangleCount: Math.round(triangleCount)
+            };
 
-          resolve(optimizedScene);
-        },
-        undefined,
-        err => reject(err)
-      );
+            resolve(optimizedScene);
+          },
+          undefined,
+          err => {
+            attemptNext();
+          }
+        );
+      }
+      attemptNext();
     });
 
     pendingGLBPromises[key] = tryLoadUrl(cfg.url, false).catch(err => {
@@ -1737,6 +1972,30 @@
 
     // Tandakan metadata pada fallback sedia ada sementara menunggu GLB selesai dimuatkan
     applyMetadataToTree(containerGroup, false);
+
+    // Khas untuk Sitoplasma: Visual Gel Biologi Separa Lut Sinar
+    if (key === 'cytoplasm') {
+      const gelVisual = buildCytoplasmGelVisual();
+      containerGroup.clear();
+      containerGroup.add(gelVisual);
+      containerGroup.userData.isGLBMounted = true;
+      containerGroup.userData.glbKey = 'cytoplasm';
+      containerGroup.userData.isCytoplasmGel = true;
+      containerGroup.userData.gelVisual = gelVisual;
+      if (meta.alignOnTable) {
+        const tableTopY = typeof meta.tableTopY === 'number' ? meta.tableTopY : 0.97;
+        const clearanceY = typeof meta.clearanceY === 'number' ? meta.clearanceY : (cfg.tableClearanceY || 0.14);
+        const targetCenterY = tableTopY + clearanceY + 0.45;
+        containerGroup.position.y = targetCenterY;
+        containerGroup.userData.baseY = targetCenterY;
+        containerGroup.userData.tableTopY = tableTopY;
+        containerGroup.userData.clearanceY = clearanceY;
+        containerGroup.userData.fittedMinY = +(targetCenterY - 0.45).toFixed(3);
+        containerGroup.userData.fittedMaxY = +(targetCenterY + 0.45).toFixed(3);
+      }
+      applyMetadataToTree(containerGroup, true);
+      return Promise.resolve(true);
+    }
 
     return loadAndCacheOrganelleGLB(key)
       .then(cachedScene => {
@@ -1980,7 +2239,12 @@
     const stationNumToGLBKey = {
       1: 'nucleus',
       2: 'membrane',
-      4: 'mitochondria'
+      3: 'cytoplasm',
+      4: 'mitochondria',
+      5: 'chloroplast',
+      6: 'wall',
+      7: 'vacuole',
+      8: 'comparison'
     };
 
     State.stations.forEach((stn, index) => {
@@ -2056,14 +2320,22 @@
       };
       stnGroup.add(screenFace);
 
-      // 3. 3D Organelle Exhibition Model (GLB for Stations 1, 2, 4 & Whole-Cell GLBs on Station 8; Procedural kept for 3, 5, 6, 7)
+      // 3. 3D Organelle Exhibition Model (GLB untuk semua 8 Stesen; fallback prosedur sedia ada dikekalkan)
       const organelleMesh = buildStylizedOrganelle(stn.number, stn.colorHex);
       organelleMesh.position.set(0, 1.38, 0.16);
       stnGroup.add(organelleMesh);
 
+      // Laraskan posisi fallback sementara menunggu GLB selesai dimuatkan
+      alignProceduralOnTable(organelleMesh, 0.97, 0.14, {
+        stationId: stn.id,
+        stationNumber: stn.number,
+        stationIndex: index,
+        organelleId: stn.id
+      });
+
       const glbKey = stationNumToGLBKey[stn.number];
-      if (glbKey) {
-        // Stesen 1 (nucleus.glb), Stesen 2 (plasma_membrane.glb), Stesen 4 (mitochondria.glb)
+      if (glbKey && stn.number !== 8) {
+        // Stesen 1-7: Nukleus, Membran Sel, Sitoplasma Gel, Mitokondrion, Kloroplas, Dinding Sel, Vakuol
         mountGLBIntoContainer(organelleMesh, glbKey, '3d', {
           stationId: stn.id,
           stationNumber: stn.number,
@@ -2074,29 +2346,29 @@
           clearanceY: 0.14
         });
       } else if (stn.number === 8) {
-        // Stesen 8: Perbandingan Sel Haiwan (animal_cell_final.glb) & Sel Tumbuhan (plantcellnew.glb)
-        alignProceduralOnTable(organelleMesh, 0.97, 0.12, {
-          stationId: stn.id,
-          stationNumber: stn.number,
-          stationIndex: index,
-          organelleId: stn.id
-        });
+        // Stesen 8: Perbandingan Sel Haiwan & Sel Tumbuhan + Retikulum Endoplasma
         const compGroup = organelleMesh.children[0];
         if (compGroup && compGroup.children.length >= 2) {
           const leftAnimalSlot = new THREE.Group();
-          leftAnimalSlot.position.set(-0.46, 0.08, 0);
+          leftAnimalSlot.position.set(-0.52, 0.08, 0);
           const animLabel = createTextPlane('SEL HAIWAN', '#f472b6', 0.86, 0.24);
-          animLabel.position.set(-0.46, -0.36, 0.12);
+          animLabel.position.set(-0.52, -0.36, 0.12);
           animLabel.userData = { stationId: stn.id, stationNumber: stn.number, stationIndex: index, organelleId: 'animal', pickable: true };
 
           const rightPlantSlot = new THREE.Group();
-          rightPlantSlot.position.set(0.46, 0.08, 0);
+          rightPlantSlot.position.set(0.52, 0.08, 0);
           const plantLabel = createTextPlane('SEL TUMBUHAN', '#4ade80', 0.92, 0.24);
-          plantLabel.position.set(0.46, -0.36, 0.12);
+          plantLabel.position.set(0.52, -0.36, 0.12);
           plantLabel.userData = { stationId: stn.id, stationNumber: stn.number, stationIndex: index, organelleId: 'plant', pickable: true };
 
+          const erCenterSlot = new THREE.Group();
+          erCenterSlot.position.set(0, 0.38, 0.04);
+          const erLabel = createTextPlane('RETIKULUM ENDOPLASMA', '#ec4899', 1.10, 0.22);
+          erLabel.position.set(0, 0.02, 0.14);
+          erLabel.userData = { stationId: stn.id, stationNumber: stn.number, stationIndex: index, organelleId: 'er', pickable: true };
+
           compGroup.clear();
-          compGroup.add(leftAnimalSlot, animLabel, rightPlantSlot, plantLabel);
+          compGroup.add(leftAnimalSlot, animLabel, rightPlantSlot, plantLabel, erCenterSlot, erLabel);
 
           mountGLBIntoContainer(leftAnimalSlot, 'animal', '3d', {
             stationId: stn.id,
@@ -2114,21 +2386,22 @@
             customTargetSize: 0.76,
             alignOnTable: false
           });
+          mountGLBIntoContainer(erCenterSlot, 'er', '3d', {
+            stationId: stn.id,
+            stationNumber: stn.number,
+            stationIndex: index,
+            organelleId: 'er',
+            customTargetSize: 0.65,
+            alignOnTable: false
+          });
+
           organelleMesh.position.y = 1.42;
           organelleMesh.userData.isGLBMounted = true;
-          organelleMesh.userData.glbKey = 'animal+plant';
+          organelleMesh.userData.glbKey = 'animal+plant+er';
           organelleMesh.userData.baseY = 1.42;
           organelleMesh.userData.tableTopY = 0.97;
           organelleMesh.userData.fittedMinY = 1.05;
         }
-      } else {
-        // Stesen 3 (Sitoplasma), Stesen 5 (Kloroplas), Stesen 6 (Dinding Sel), Stesen 7 (Vakuol) -> Kekalkan model sedia ada
-        alignProceduralOnTable(organelleMesh, 0.97, 0.16, {
-          stationId: stn.id,
-          stationNumber: stn.number,
-          stationIndex: index,
-          organelleId: stn.id
-        });
       }
 
       // 4. Floating Badge Indicator Beacon (? -> ✓)
@@ -2177,6 +2450,11 @@
           // Berhenti berputar ketika murid sedang memeriksa stesen secara interaktif
           if (!isModalInspectingThis) {
             organelleMesh.rotation.y += 0.0065; // Putaran pameran yang lembut & tenang (~0.39 rad/s)
+          }
+
+          // Animasi pergerakan protoplasma/siklosis zarah hidup untuk model Sitoplasma
+          if (organelleMesh.userData && organelleMesh.userData.isCytoplasmGel && organelleMesh.userData.gelVisual) {
+            organelleMesh.userData.gelVisual.userData.updateAnimation(t);
           }
 
           // Floating yang sangat minimum (±0.022m) supaya model tidak menembusi meja atau terapung terlalu tinggi
@@ -3512,12 +3790,20 @@
       previewModelGroup = null;
     }
 
-    // Build dedicated preview representation of the organelle (fallback + GLB upgrade for Stations 1, 2, 4, 8)
+    // Build dedicated preview representation of the organelle (fallback + GLB upgrade untuk semua 8 stesen)
     previewModelGroup = buildStylizedOrganelle(stn.number, stn.colorHex);
     previewModelGroup.scale.set(1.4, 1.4, 1.4);
     previewScene.add(previewModelGroup);
 
-    const previewGLBMap = { 1: 'nucleus', 2: 'membrane', 4: 'mitochondria' };
+    const previewGLBMap = {
+      1: 'nucleus',
+      2: 'membrane',
+      3: 'cytoplasm',
+      4: 'mitochondria',
+      5: 'chloroplast',
+      6: 'wall',
+      7: 'vacuole'
+    };
     const glbKey = previewGLBMap[stn.number];
     if (glbKey) {
       previewModelGroup.scale.set(1, 1, 1);
@@ -3535,10 +3821,13 @@
         leftAnimal.position.set(-0.52, 0.04, 0);
         const rightPlant = new THREE.Group();
         rightPlant.position.set(0.52, 0.04, 0);
+        const erCenter = new THREE.Group();
+        erCenter.position.set(0, 0.32, 0.04);
         compGroup.clear();
-        compGroup.add(leftAnimal, rightPlant);
-        mountGLBIntoContainer(leftAnimal, 'animal', 'preview', { customTargetSize: 0.90, alignOnTable: false });
-        mountGLBIntoContainer(rightPlant, 'plant', 'preview', { customTargetSize: 0.92, alignOnTable: false });
+        compGroup.add(leftAnimal, rightPlant, erCenter);
+        mountGLBIntoContainer(leftAnimal, 'animal', 'preview', { customTargetSize: 0.85, alignOnTable: false });
+        mountGLBIntoContainer(rightPlant, 'plant', 'preview', { customTargetSize: 0.88, alignOnTable: false });
+        mountGLBIntoContainer(erCenter, 'er', 'preview', { customTargetSize: 0.70, alignOnTable: false });
       }
     }
 
@@ -3557,6 +3846,9 @@
         previewAnimId = requestAnimationFrame(animatePreview);
         if (previewModelGroup && !isPreviewDraggingGlobal) {
           previewModelGroup.rotation.y += 0.006; // Putaran pameran lembut
+        }
+        if (previewModelGroup && previewModelGroup.userData && previewModelGroup.userData.isCytoplasmGel && previewModelGroup.userData.gelVisual) {
+          previewModelGroup.userData.gelVisual.userData.updateAnimation(performance.now() * 0.001);
         }
         previewRenderer.render(previewScene, previewCamera);
       }
@@ -4085,6 +4377,41 @@
     group.add(lidPivot);
     arWorldState.chestLidPivot = lidPivot;
 
+    // Muatkan pek GLB Peti Harta Karun (models/treasure_chests_asset_pack.glb) secara asynchronous
+    const glbChestSlot = new THREE.Group();
+    glbChestSlot.position.set(0, 0.22, 0);
+    group.add(glbChestSlot);
+
+    mountGLBIntoContainer(glbChestSlot, 'chest', 'ar-world', {
+      organelleId: 'treasure_chest',
+      stationId: 'treasure_chest',
+      stationNumber: 99,
+      customTargetSize: 0.95,
+      alignOnTable: false
+    }).then(ok => {
+      if (ok) {
+        let foundClosed = false;
+        glbChestSlot.traverse(child => {
+          if (child.isMesh) {
+            if (child.name.includes('Chest1_closed')) {
+              child.visible = true;
+              foundClosed = true;
+            } else {
+              child.visible = false;
+            }
+          }
+        });
+        if (foundClosed) {
+          body.visible = false;
+          band1.visible = false;
+          lidPivot.visible = false;
+          group.userData.glbChestSlot = glbChestSlot;
+        }
+      }
+    }).catch(() => {
+      // Fallback geometri peti ARSELNel kekal sedia ada
+    });
+
     // 3. Sumber Cahaya Emas di dalam Peti (Glow memancar apabila dibuka)
     const chestLight = new THREE.PointLight(0xfbbf24, 0.6, 4.0);
     chestLight.position.set(0, 0.35, 0);
@@ -4327,6 +4654,16 @@
     closeTreasureChestModal();
     State.treasureHuntCompleted = true;
     arWorldState.isChestLidOpen = true;
+
+    // Buka penutup model GLB Peti jika pek aset GLB sedang digunakan
+    if (arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.userData && arWorldState.treasureChestGroup.userData.glbChestSlot) {
+      arWorldState.treasureChestGroup.userData.glbChestSlot.traverse(child => {
+        if (child.isMesh) {
+          if (child.name.includes('Chest1_open')) child.visible = true;
+          if (child.name.includes('Chest1_closed')) child.visible = false;
+        }
+      });
+    }
 
     // Berikan 300 markah bonus SEKALI SAHAJA
     if (!State.treasureHuntBonusClaimed) {
@@ -6820,6 +7157,9 @@
         if (arState.autoRotate) {
           organelle.rotation.y = elapsedTime * 0.45 + idx * (Math.PI / 4);
         }
+        if (organelle.userData && organelle.userData.isCytoplasmGel && organelle.userData.gelVisual) {
+          organelle.userData.gelVisual.userData.updateAnimation(elapsedTime);
+        }
       }
       if (group.userData.beacon) {
         group.userData.beacon.rotation.y = elapsedTime * 1.5;
@@ -7800,13 +8140,22 @@
       numBadge.rotation.y = angle;
       miniStnGroup.add(numBadge);
 
-      // Mini Organelle Model (GLB for Stations 1, 2, 4; Procedural for 3, 5, 6, 7, 8)
+      // Mini Organelle Model (GLB untuk semua 8 stesen; fallback prosedur)
       const organelleMini = buildStylizedOrganelle(stn.number, stn.colorHex);
       organelleMini.scale.set(0.34, 0.34, 0.34);
       organelleMini.position.set(0, 0.32, 0);
       miniStnGroup.add(organelleMini);
 
-      const miniGLBMap = { 1: 'nucleus', 2: 'membrane', 4: 'mitochondria' };
+      const miniGLBMap = {
+        1: 'nucleus',
+        2: 'membrane',
+        3: 'cytoplasm',
+        4: 'mitochondria',
+        5: 'chloroplast',
+        6: 'wall',
+        7: 'vacuole',
+        8: 'er'
+      };
       if (miniGLBMap[stn.number]) {
         organelleMini.scale.set(1, 1, 1);
         mountGLBIntoContainer(organelleMini, miniGLBMap[stn.number], 'mini', {

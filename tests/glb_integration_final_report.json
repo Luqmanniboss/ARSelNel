@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-11-04T11:23:38.959Z",
+  "totalTests": 14,
+  "passed": 14,
+  "failed": 0,
+  "consoleErrorsCount": 0,
+  "passedTests": [
+    {
+      "num": 1,
+      "name": "Kesahihan Fail GLB Folder models/"
+    },
+    {
+      "num": 2,
+      "name": "Stesen 1: Nukleus GLB"
+    },
+    {
+      "num": 3,
+      "name": "Stesen 2: Membran Sel GLB"
+    },
+    {
+      "num": 4,
+      "name": "Stesen 3: Sitoplasma Gel Biologi Separa Lut Sinar"
+    },
+    {
+      "num": 5,
+      "name": "Stesen 4: Mitokondrion GLB"
+    },
+    {
+      "num": 6,
+      "name": "Stesen 5: Kloroplas GLB"
+    },
+    {
+      "num": 7,
+      "name": "Stesen 6: Dinding Sel GLB"
+    },
+    {
+      "num": 8,
+      "name": "Stesen 7: Vakuol GLB"
+    },
+    {
+      "num": 9,
+      "name": "Stesen 8: Perbandingan Sel Penuh & ER"
+    },
+    {
+      "num": 10,
+      "name": "Pameran Tambahan Retikulum Endoplasma"
+    },
+    {
+      "num": 11,
+      "name": "Penjajaran Model di Atas Meja"
+    },
+    {
+      "num": 12,
+      "name": "Mod C: AR Orientasi Dunia (8 Stesen World-Locked)"
+    },
+    {
+      "num": 13,
+      "name": "Mod B: Marker AR (8 Kad Penanda 6DOF)"
+    },
+    {
+      "num": 14,
+      "name": "Misi Akhir: Peti Harta Karun ARSELNel 3D"
+    }
+  ],
+  "failedTests": []
+}
