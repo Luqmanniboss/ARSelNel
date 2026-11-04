@@ -1,0 +1,567 @@
+{
+  "timestamp": "2026-11-04T04:25:02.814Z",
+  "allPassed": true,
+  "totalTests": 14,
+  "passedCount": 14,
+  "results": {
+    "ujian1_navigasi_mod_dibuang": {
+      "pass": true,
+      "visibilityMap": {
+        "ar-top-center-nav": false,
+        "ar-model-tabs": false,
+        "ar-btn-world": false,
+        "ar-btn-marker": false,
+        "ar-btn-animal": false,
+        "ar-btn-plant": false,
+        "ar-btn-minilab": false,
+        "ar-floating-bar": false
+      }
+    },
+    "ujian3_topbar_tidak_bertindih": {
+      "pass": true,
+      "badgeText": "AR Jelajah Sel",
+      "mainTitleText": "Misi Jelajah Dunia Sel",
+      "backText": "arrow_back Kembali",
+      "maxOverlapAcrossAll8Viewports": 0
+    },
+    "ujian4_smart_radar_ringkas": {
+      "pass": true,
+      "compactVisible": true,
+      "panelCollapsed": true,
+      "compactTarget": "🎯 Mitokondrion",
+      "compactTurn": "↶ Kiri 90°",
+      "compactElev": "↑ Naik 15°",
+      "expandBtnText": "Cari Stesen"
+    },
+    "ujian5_smart_radar_boleh_dibuka_ditutup": {
+      "pass": true,
+      "expanded": {
+        "compactHiddenWhenExpanded": true,
+        "panelVisibleWhenExpanded": true,
+        "pillCount": 8,
+        "panelTitle": "🎯 Stesen 4: Mitokondrion",
+        "closeBtnExists": true
+      },
+      "collapsedAgain": {
+        "compactVisibleAgain": true,
+        "panelHiddenAgain": true
+      }
+    },
+    "ujian6_papan_nama_stesen_3d": {
+      "pass": true,
+      "station8Label": {
+        "stationNumber": 8,
+        "line1": "⚖️ Stesen 8",
+        "line2": "Retikulum Endoplasma",
+        "line3": "Ketik untuk Teroka",
+        "fontSizePx": 33,
+        "maxTextWidthPx": 371,
+        "canvasWidthPx": 560,
+        "textFitsCanvas": true,
+        "scale": 1
+      },
+      "labels": [
+        {
+          "stationNumber": 1,
+          "line1": "🧬 Stesen 1",
+          "line2": "Nukleus",
+          "line3": "Ketik untuk Teroka",
+          "fontSizePx": 33,
+          "maxTextWidthPx": 174,
+          "canvasWidthPx": 560,
+          "textFitsCanvas": true,
+          "scale": 1
+        },
+        {
+          "stationNumber": 2,
+          "line1": "🛡️ Stesen 2",
+          "line2": "Membran Sel",
+          "line3": "Ketik untuk Teroka",
+          "fontSizePx": 33,
+          "maxTextWidthPx": 211,
+          "canvasWidthPx": 560,
+          "textFitsCanvas": true,
+          "scale": 1
+        },
+        {
+          "stationNumber": 3,
+          "line1": "💧 Stesen 3",
+          "line2": "Sitoplasma",
+          "line3": "Ketik untuk Teroka",
+          "fontSizePx": 33,
+          "maxTextWidthPx": 180,
+          "canvasWidthPx": 560,
+          "textFitsCanvas": true,
+          "scale": 1
+        },
+        {
+          "stationNumber": 4,
+          "line1": "⚡ Stesen 4",
+          "line2": "Mitokondrion",
+          "line3": "Ketik untuk Teroka",
+          "fontSizePx": 33,
+          "maxTextWidthPx": 215,
+          "canvasWidthPx": 560,
+          "textFitsCanvas": true,
+          "scale": 1
+        },
+        {
+          "stationNumber": 5,
+          "line1": "🌿 Stesen 5",
+          "line2": "Kloroplas",
+          "line3": "Ketik untuk Teroka",
+          "fontSizePx": 33,
+          "maxTextWidthPx": 174,
+          "canvasWidthPx": 560,
+          "textFitsCanvas": true,
+          "scale": 1
+        },
+        {
+          "stationNumber": 6,
+          "line1": "🧱 Stesen 6",
+          "line2": "Dinding Sel",
+          "line3": "Ketik untuk Teroka",
+          "fontSizePx": 33,
+          "maxTextWidthPx": 186,
+          "canvasWidthPx": 560,
+          "textFitsCanvas": true,
+          "scale": 1
+        },
+        {
+          "stationNumber": 7,
+          "line1": "🫧 Stesen 7",
+          "line2": "Vakuol",
+          "line3": "Ketik untuk Teroka",
+          "fontSizePx": 33,
+          "maxTextWidthPx": 174,
+          "canvasWidthPx": 560,
+          "textFitsCanvas": true,
+          "scale": 1
+        },
+        {
+          "stationNumber": 8,
+          "line1": "⚖️ Stesen 8",
+          "line2": "Retikulum Endoplasma",
+          "line3": "Ketik untuk Teroka",
+          "fontSizePx": 33,
+          "maxTextWidthPx": 371,
+          "canvasWidthPx": 560,
+          "textFitsCanvas": true,
+          "scale": 1
+        }
+      ]
+    },
+    "ujian7_satu_arahan_utama": {
+      "pass": true,
+      "instTurn": "↶ Pusing kiri 90° untuk mencari Mitokondrion.",
+      "instElev": "↑ Naikkan kamera 15° untuk mencari Mitokondrion.",
+      "instDiscovered": {
+        "text": "✓ Mitokondrion ditemui! Ketik untuk teroka.",
+        "singleVisible": true,
+        "hintBannerHidden": true,
+        "trackingBannerHidden": true
+      }
+    },
+    "ujian8_notifikasi_stesen_ditemui": {
+      "pass": true,
+      "kicker": "✓ Stesen Ditemui",
+      "title": "⚡ Mitokondrion",
+      "overlapWithRadar": 0,
+      "overlapWithInstruction": 0
+    },
+    "ujian9_ipad_landscape": {
+      "pass": true,
+      "viewports": {
+        "1024x768": {
+          "viewport": "1024x768",
+          "maxTopBarOverlap": 0,
+          "maxHudOverlap": 0,
+          "withinViewport": true,
+          "freeScreenRatioPct": 85.8,
+          "badgeText": "AR Jelajah Sel",
+          "mainTitleText": "Misi Jelajah Dunia Sel",
+          "backText": "arrow_back Kembali",
+          "rects": {
+            "topBar": {
+              "left": 14,
+              "top": 12,
+              "right": 1010,
+              "bottom": 54,
+              "width": 996,
+              "height": 42
+            },
+            "radarWrap": {
+              "left": 14,
+              "top": 632,
+              "right": 357,
+              "bottom": 754,
+              "width": 343,
+              "height": 122
+            },
+            "singleInst": {
+              "left": 323,
+              "top": 64,
+              "right": 701,
+              "bottom": 97,
+              "width": 377,
+              "height": 33
+            },
+            "detectedBanner": {
+              "left": 715,
+              "top": 702,
+              "right": 1010,
+              "bottom": 754,
+              "width": 295,
+              "height": 52
+            }
+          }
+        },
+        "1180x820": {
+          "viewport": "1180x820",
+          "maxTopBarOverlap": 0,
+          "maxHudOverlap": 0,
+          "withinViewport": true,
+          "freeScreenRatioPct": 87.7,
+          "badgeText": "AR Jelajah Sel",
+          "mainTitleText": "Misi Jelajah Dunia Sel",
+          "backText": "arrow_back Kembali",
+          "rects": {
+            "topBar": {
+              "left": 14,
+              "top": 12,
+              "right": 1166,
+              "bottom": 54,
+              "width": 1152,
+              "height": 42
+            },
+            "radarWrap": {
+              "left": 14,
+              "top": 684,
+              "right": 357,
+              "bottom": 806,
+              "width": 343,
+              "height": 122
+            },
+            "singleInst": {
+              "left": 399,
+              "top": 64,
+              "right": 781,
+              "bottom": 98,
+              "width": 382,
+              "height": 34
+            },
+            "detectedBanner": {
+              "left": 871,
+              "top": 754,
+              "right": 1166,
+              "bottom": 806,
+              "width": 295,
+              "height": 52
+            }
+          }
+        },
+        "1366x1024": {
+          "viewport": "1366x1024",
+          "maxTopBarOverlap": 0,
+          "maxHudOverlap": 0,
+          "withinViewport": true,
+          "freeScreenRatioPct": 91,
+          "badgeText": "AR Jelajah Sel",
+          "mainTitleText": "Misi Jelajah Dunia Sel",
+          "backText": "arrow_back Kembali",
+          "rects": {
+            "topBar": {
+              "left": 14,
+              "top": 12,
+              "right": 1352,
+              "bottom": 54,
+              "width": 1338,
+              "height": 42
+            },
+            "radarWrap": {
+              "left": 14,
+              "top": 888,
+              "right": 357,
+              "bottom": 1010,
+              "width": 343,
+              "height": 122
+            },
+            "singleInst": {
+              "left": 492,
+              "top": 64,
+              "right": 874,
+              "bottom": 98,
+              "width": 382,
+              "height": 34
+            },
+            "detectedBanner": {
+              "left": 1057,
+              "top": 958,
+              "right": 1352,
+              "bottom": 1010,
+              "width": 295,
+              "height": 52
+            }
+          }
+        }
+      }
+    },
+    "ujian10_ipad_portrait": {
+      "pass": true,
+      "metrics": {
+        "viewport": "820x1180",
+        "maxTopBarOverlap": 0,
+        "maxHudOverlap": 0,
+        "withinViewport": true,
+        "freeScreenRatioPct": 91,
+        "badgeText": "AR Jelajah Sel",
+        "mainTitleText": "Misi Jelajah Dunia Sel",
+        "backText": "arrow_back Kembali",
+        "rects": {
+          "topBar": {
+            "left": 14,
+            "top": 12,
+            "right": 806,
+            "bottom": 46,
+            "width": 792,
+            "height": 34
+          },
+          "radarWrap": {
+            "left": 14,
+            "top": 1056,
+            "right": 338,
+            "bottom": 1166,
+            "width": 324,
+            "height": 110
+          },
+          "singleInst": {
+            "left": 248,
+            "top": 58,
+            "right": 572,
+            "bottom": 86,
+            "width": 323,
+            "height": 28
+          },
+          "detectedBanner": {
+            "left": 511,
+            "top": 1114,
+            "right": 806,
+            "bottom": 1166,
+            "width": 295,
+            "height": 52
+          }
+        }
+      }
+    },
+    "ujian11_desktop_laptop": {
+      "pass": true,
+      "viewports": {
+        "1920x1080": {
+          "viewport": "1920x1080",
+          "maxTopBarOverlap": 0,
+          "maxHudOverlap": 0,
+          "withinViewport": true,
+          "freeScreenRatioPct": 92.2,
+          "badgeText": "AR Jelajah Sel",
+          "mainTitleText": "Misi Jelajah Dunia Sel",
+          "backText": "arrow_back Kembali",
+          "rects": {
+            "topBar": {
+              "left": 14,
+              "top": 12,
+              "right": 1906,
+              "bottom": 60,
+              "width": 1892,
+              "height": 48
+            },
+            "radarWrap": {
+              "left": 14,
+              "top": 944,
+              "right": 357,
+              "bottom": 1066,
+              "width": 343,
+              "height": 122
+            },
+            "singleInst": {
+              "left": 769,
+              "top": 64,
+              "right": 1151,
+              "bottom": 98,
+              "width": 382,
+              "height": 34
+            },
+            "detectedBanner": {
+              "left": 1611,
+              "top": 1014,
+              "right": 1906,
+              "bottom": 1066,
+              "width": 295,
+              "height": 52
+            }
+          }
+        },
+        "1366x768": {
+          "viewport": "1366x768",
+          "maxTopBarOverlap": 0,
+          "maxHudOverlap": 0,
+          "withinViewport": true,
+          "freeScreenRatioPct": 88,
+          "badgeText": "AR Jelajah Sel",
+          "mainTitleText": "Misi Jelajah Dunia Sel",
+          "backText": "arrow_back Kembali",
+          "rects": {
+            "topBar": {
+              "left": 14,
+              "top": 12,
+              "right": 1352,
+              "bottom": 54,
+              "width": 1338,
+              "height": 42
+            },
+            "radarWrap": {
+              "left": 14,
+              "top": 632,
+              "right": 357,
+              "bottom": 754,
+              "width": 343,
+              "height": 122
+            },
+            "singleInst": {
+              "left": 492,
+              "top": 64,
+              "right": 874,
+              "bottom": 98,
+              "width": 382,
+              "height": 34
+            },
+            "detectedBanner": {
+              "left": 1057,
+              "top": 702,
+              "right": 1352,
+              "bottom": 754,
+              "width": 295,
+              "height": 52
+            }
+          }
+        }
+      }
+    },
+    "ujian12_telefon": {
+      "pass": true,
+      "viewports": {
+        "390x844": {
+          "viewport": "390x844",
+          "maxTopBarOverlap": 0,
+          "maxHudOverlap": 0,
+          "withinViewport": true,
+          "freeScreenRatioPct": 74.3,
+          "badgeText": "AR Jelajah Sel",
+          "mainTitleText": "Misi Jelajah Dunia Sel",
+          "backText": "arrow_back Kembali",
+          "rects": {
+            "topBar": {
+              "left": 10,
+              "top": 8,
+              "right": 380,
+              "bottom": 77,
+              "width": 370,
+              "height": 69
+            },
+            "radarWrap": {
+              "left": 14,
+              "top": 730,
+              "right": 327,
+              "bottom": 830,
+              "width": 313,
+              "height": 100
+            },
+            "singleInst": {
+              "left": 42,
+              "top": 92,
+              "right": 348,
+              "bottom": 120,
+              "width": 306,
+              "height": 28
+            },
+            "detectedBanner": {
+              "left": 10,
+              "top": 674,
+              "right": 380,
+              "bottom": 726,
+              "width": 370,
+              "height": 52
+            }
+          }
+        },
+        "844x390": {
+          "viewport": "844x390",
+          "maxTopBarOverlap": 0,
+          "maxHudOverlap": 0,
+          "withinViewport": true,
+          "freeScreenRatioPct": 77.6,
+          "badgeText": "AR Jelajah Sel",
+          "mainTitleText": "Misi Jelajah Dunia Sel",
+          "backText": "arrow_back Kembali",
+          "rects": {
+            "topBar": {
+              "left": 10,
+              "top": 6,
+              "right": 834,
+              "bottom": 36,
+              "width": 824,
+              "height": 30
+            },
+            "radarWrap": {
+              "left": 10,
+              "top": 290,
+              "right": 301,
+              "bottom": 382,
+              "width": 291,
+              "height": 92
+            },
+            "singleInst": {
+              "left": 269,
+              "top": 46,
+              "right": 575,
+              "bottom": 72,
+              "width": 306,
+              "height": 26
+            },
+            "detectedBanner": {
+              "left": 539,
+              "top": 334,
+              "right": 834,
+              "bottom": 382,
+              "width": 295,
+              "height": 48
+            }
+          }
+        }
+      }
+    },
+    "ujian13_fungsi_ar_kekal": {
+      "pass": true,
+      "camActive": true,
+      "calZero": true,
+      "stationCount": 8,
+      "cardVisible": true,
+      "detectedHiddenWhenCardOpen": true,
+      "quizOpen": true
+    },
+    "ujian2_butang_kembali": {
+      "pass": true,
+      "openedOnBackClick": true,
+      "closedOnContinue": true,
+      "camStillActiveAfterContinue": true,
+      "targetUrl": "code.html",
+      "camStoppedAfterConfirm": true,
+      "sensorRemovedAfterConfirm": true,
+      "arWorldStopped": true
+    },
+    "ujian14_console_bersih": {
+      "pass": true,
+      "consoleErrors": [],
+      "failed404s": []
+    }
+  }
+}

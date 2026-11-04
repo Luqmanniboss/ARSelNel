@@ -302,7 +302,7 @@
     { id: 'stn-5-chloroplast',  slotNumber: 5, stationNumber: 5, markerId: 5, directionName: 'Kiri Belakang',  stationKey: 'chloroplast',  azimuthDeg: 225, angleDeg: 225, elevationDeg: -5,  radius: 5.4, height: 1.45, spatialOffset: [-1.05, -0.12,  1.05], label: 'Kloroplas',                    color: 0x22c55e, icon: '🌿' },
     { id: 'stn-6-cellwall',     slotNumber: 6, stationNumber: 6, markerId: 3, directionName: 'Kiri Hadapan',   stationKey: 'wall',         azimuthDeg: 315, angleDeg: 315, elevationDeg: 8,   radius: 5.4, height: 1.45, spatialOffset: [-1.05,  0.18, -1.05], label: 'Dinding Sel',                  color: 0x92400e, icon: '🧱' },
     { id: 'stn-7-vacuole',      slotNumber: 7, stationNumber: 7, markerId: 7, directionName: 'Belakang',       stationKey: 'vacuole',      azimuthDeg: 180, angleDeg: 180, elevationDeg: 0,   radius: 5.4, height: 1.45, spatialOffset: [ 0.0,   0.0,   1.45], label: 'Vakuol',                       color: 0x06b6d4, icon: '🫧' },
-    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Hadapan',        stationKey: 'comparison',   azimuthDeg: 0,   angleDeg: 0,   elevationDeg: -12, radius: 5.4, height: 1.45, spatialOffset: [ 0.0,  -0.26, -1.45], label: 'Retikulum Endoplasma & Sel',   color: 0xec4899, icon: '⚖️' }
+    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Hadapan',        stationKey: 'comparison',   azimuthDeg: 0,   angleDeg: 0,   elevationDeg: -12, radius: 5.4, height: 1.45, spatialOffset: [ 0.0,  -0.26, -1.45], label: 'Retikulum Endoplasma',         color: 0xec4899, icon: '⚖️' }
   ];
 
   // World-locked AR state — dikekalkan sepanjang sesi
@@ -329,6 +329,7 @@
     stationVisibility: new Array(8).fill(false),
     discoveredStations: new Set(), // Set stationNumber yang telah ditemui melalui kamera
     targetStationIdx: 3,         // Indeks stesen yang sedang diburu pada Smart Radar (Default: Stesen 4 Mitokondrion)
+    radarPanelExpanded: false,   // Lalai: Paparan ringkas (compact) di sebelah radar bulat; boleh dikembangkan (expanded)
     horizontalToleranceDeg: 14,  // Toleransi sudut mendatar (azimut ±14°) untuk penemuan stesen
     verticalToleranceDeg: 12,    // Toleransi sudut menegak (elevasi ±12°) untuk penemuan stesen
     activeStation: null,         // Stesen yang sedang dalam pandangan
@@ -340,6 +341,7 @@
     trackingBannerEl: null,      // Banner status tracking & arahan pemulihan
     fovThresholdDeg: 36,         // Sudut pandang untuk stesen dianggap dalam medan pandangan kamera
     lastDetectedIdx: -1,         // Indeks stesen terakhir yang dikesan
+    lastExitTargetUrl: null,     // URL destinasi apabila keluar ke CellQuest
     spatialOrigin: new THREE.Vector3(0, 0, -1.5), // Pusat ruang bagi Mod A (Spatial AR)
     spatialAnchors: []           // Senarai WebXR XRAnchor jika disokong
   };
@@ -595,7 +597,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'ar') {
       openModeDialog();
-    } else if (urlParams.get('mode') === 'camera' || urlParams.get('mode') === 'world-ar') {
+    } else if (urlParams.get('mode') === 'camera' || urlParams.get('mode') === 'world-ar' || urlParams.get('mode') === 'camera-ar') {
       selectMode('camera-ar');
     } else if (urlParams.get('mode') === 'marker-ar') {
       selectMode('marker-ar');
@@ -717,16 +719,21 @@
 
     // Walkthrough HUD container
     DOM.walkthroughHud = document.getElementById('cq-walkthrough-hud');
+    DOM.walkthroughBackBtn = document.getElementById('walkthrough-back-btn');
 
     // New AR HUD, Drawer & Window Controls
     DOM.arTopBar = document.getElementById('ar-topbar');
     DOM.arBackBtn = document.getElementById('ar-back-btn');
     DOM.arSoundBtn = document.getElementById('ar-sound-btn');
     DOM.arSoundIcon = document.getElementById('ar-sound-icon');
+    DOM.arPauseBtn = document.getElementById('ar-pause-btn');
+    DOM.arPauseIcon = document.getElementById('ar-pause-icon');
     DOM.arHelpBtn = document.getElementById('ar-help-btn');
     DOM.arHudScore = document.getElementById('ar-hud-score');
     DOM.arHudBadges = document.getElementById('ar-hud-badges');
     DOM.arHudTimer = document.getElementById('ar-hud-timer');
+    DOM.arSingleInstruction = document.getElementById('ar-single-instruction');
+    DOM.arSingleInstructionText = document.getElementById('ar-single-instruction-text');
     DOM.arStationsToggle = document.getElementById('ar-stations-toggle');
     DOM.arStnDoneCount = document.getElementById('ar-stn-done-count');
     DOM.arRecenterBtn = document.getElementById('ar-recenter-btn');
@@ -742,6 +749,11 @@
     DOM.arCardMinIcon = document.getElementById('ar-card-min-icon');
     DOM.arCardHeader = document.getElementById('ar-card-header');
     DOM.arCardBody = document.getElementById('ar-card-body');
+
+    // Exit Confirmation Dialog (Bahagian 2)
+    DOM.exitConfirmModal = document.getElementById('exit-confirm-modal');
+    DOM.exitConfirmContinueBtn = document.getElementById('exit-confirm-continue-btn');
+    DOM.exitConfirmLeaveBtn = document.getElementById('exit-confirm-leave-btn');
   }
 
   function loadUser() {
@@ -2893,8 +2905,10 @@
     if (DOM.downloadCertBtn) DOM.downloadCertBtn.addEventListener('click', printOrSaveCertificate);
 
     // 11. AR Interface & WebXR Buttons
-    if (DOM.arBackBtn) DOM.arBackBtn.addEventListener('click', () => selectMode('3d'));
-    if (DOM.arExitBtn) DOM.arExitBtn.addEventListener('click', () => selectMode('3d'));
+    if (DOM.arBackBtn) DOM.arBackBtn.addEventListener('click', openExitConfirmDialog);
+    if (DOM.arExitBtn) DOM.arExitBtn.addEventListener('click', openExitConfirmDialog);
+    if (DOM.exitConfirmContinueBtn) DOM.exitConfirmContinueBtn.addEventListener('click', closeExitConfirmDialog);
+    if (DOM.exitConfirmLeaveBtn) DOM.exitConfirmLeaveBtn.addEventListener('click', confirmExitToCellQuest);
     if (DOM.arBtnWorld) DOM.arBtnWorld.addEventListener('click', () => switchARModel('world'));
     if (DOM.arBtnMarker) DOM.arBtnMarker.addEventListener('click', () => selectMode('marker-ar'));
     if (DOM.arBtnAnimal) DOM.arBtnAnimal.addEventListener('click', () => switchARModel('animal'));
@@ -2902,6 +2916,7 @@
     if (DOM.arBtnMinilab) DOM.arBtnMinilab.addEventListener('click', () => switchARModel('minilab'));
     if (DOM.arPostureBtn) DOM.arPostureBtn.addEventListener('click', toggleARPostureMode);
     if (DOM.arSoundBtn) DOM.arSoundBtn.addEventListener('click', toggleSound);
+    if (DOM.arPauseBtn) DOM.arPauseBtn.addEventListener('click', togglePause);
     if (DOM.arHelpBtn) DOM.arHelpBtn.addEventListener('click', openHowToPlayDialog);
     if (DOM.arStationsToggle) DOM.arStationsToggle.addEventListener('click', () => toggleStationsDrawer());
     if (DOM.arDrawerCloseBtn) DOM.arDrawerCloseBtn.addEventListener('click', () => toggleStationsDrawer(false));
@@ -2970,6 +2985,7 @@
       DOM.arTopBar,
       DOM.arStationsDrawer,
       DOM.arOrganelleCard,
+      DOM.exitConfirmModal,
       document.getElementById('ar-floating-bar')
     ];
     uiShields.forEach(el => {
@@ -2978,27 +2994,6 @@
         el.addEventListener(evt, e => e.stopPropagation(), { passive: true });
       });
     });
-    if (DOM.arLargerBtn) {
-      DOM.arLargerBtn.addEventListener('click', () => {
-        if (arObjectGroup) {
-          arObjectGroup.scale.multiplyScalar(1.18);
-          alertToast('＋ Saiz Model Dibesarkan');
-        }
-      });
-    }
-    if (DOM.arRotateBtn) {
-      DOM.arRotateBtn.addEventListener('click', () => {
-        if (arObjectGroup) {
-          arObjectGroup.rotation.y += Math.PI / 4;
-        }
-      });
-    }
-    if (DOM.arRepositionBtn) {
-      DOM.arRepositionBtn.addEventListener('click', () => {
-        arState.isPlaced = false;
-        alertToast('🔄 Halakan kamera ke permukaan meja/lantai');
-      });
-    }
 
     // 12. Window Resize & Orientation Change
     window.addEventListener('resize', onWindowResize);
@@ -4189,6 +4184,66 @@
     }
   }
 
+  function teardownDeviceOrientation() {
+    if (deviceOrientationBound) {
+      window.removeEventListener('deviceorientation', onDeviceOrientationEvent);
+      deviceOrientationBound = false;
+    }
+    if (screenOrientationBound) {
+      window.removeEventListener('orientationchange', onScreenOrientationChange);
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.removeEventListener === 'function') {
+        window.screen.orientation.removeEventListener('change', onScreenOrientationChange);
+      }
+      screenOrientationBound = false;
+    }
+    gyroState.active = false;
+  }
+
+  // Dialog Pengesahan Keluar ("← Kembali" — Bahagian 2)
+  function openExitConfirmDialog(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    SoundFX.interact();
+    if (DOM.exitConfirmModal) {
+      DOM.exitConfirmModal.classList.add('open');
+    }
+  }
+
+  function closeExitConfirmDialog(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    SoundFX.interact();
+    if (DOM.exitConfirmModal) {
+      DOM.exitConfirmModal.classList.remove('open');
+    }
+  }
+
+  async function confirmExitToCellQuest(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (DOM.exitConfirmModal) {
+      DOM.exitConfirmModal.classList.remove('open');
+    }
+
+    // 1. Tutup sesi AR dengan kemas (WebXR, Mod C World AR, Mod B Marker AR)
+    if (xrSession) {
+      try { await xrSession.end(); } catch (_) {}
+      xrSession = null;
+    }
+    stopARWorldExploration();
+    stopMarkerAR();
+
+    // 2. Hentikan semua camera stream tracks & sensor orientation listeners
+    stopInteractiveCamera();
+    teardownDeviceOrientation();
+    clearInterval(State.timerInterval);
+
+    // 3. Navigasi kembali ke halaman induk pemilihan CellQuest (cellquest/code.html)
+    const targetUrl = 'code.html';
+    arWorldState.lastExitTargetUrl = targetUrl;
+    if (!window.CellQuestAR || !window.CellQuestAR.preventRedirectInTest) {
+      window.location.href = targetUrl;
+    }
+    return targetUrl;
+  }
+
   function requestiOSOrientationPermission() {
     if (typeof DeviceOrientationEvent !== 'undefined' &&
         typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -4422,11 +4477,9 @@
       organelleModel.position.set(0, 0.15, 0);
       stationGroup.add(organelleModel);
 
-      // 2. Papan nama stesen (melayang di atas model dengan arah & nombor stesen)
-      const labelTitle = `Stesen ${stnConfig.slotNumber}: ${stnConfig.label}`;
-      const labelSub = `Arah ${stnConfig.directionName} • Ketik Untuk Teroka & Kuiz`;
-      const labelGroup = buildStationLabel(labelTitle, labelSub, stnConfig.icon, stnConfig.color, stnConfig.stationNumber);
-      labelGroup.position.set(0, 1.35, 0);
+      // 2. Papan nama stesen 3 baris yang kemas (melayang di atas model tanpa bertindih dengan model 3D)
+      const labelGroup = buildStationLabel(stnConfig.label, 'Ketik untuk Teroka', stnConfig.icon, stnConfig.color, stnConfig.stationNumber);
+      labelGroup.position.set(0, 1.24, 0);
       stationGroup.add(labelGroup);
 
       // 3. Pedestal hologram & gelang penanda di bawah model
@@ -4681,55 +4734,102 @@
     return group;
   }
 
-  // Bina papan nama stesen (floating label dengan status lencana)
+  // Bina papan nama stesen 3D 3 baris yang kemas & tidak pernah terpotong (Bahagian 5)
+  // Format:
+  //   Baris 1: Stesen 8
+  //   Baris 2: Retikulum Endoplasma
+  //   Baris 3: Ketik untuk Teroka
   function buildStationLabel(titleText, subText, icon, color, stationNumber) {
     const canvas = document.createElement('canvas');
-    canvas.width = 640;
-    canvas.height = 170;
+    canvas.width = 560;
+    canvas.height = 220;
     const ctx = canvas.getContext('2d');
 
     const isDone = State.completedStations.has(stationNumber);
-    const borderHex = isDone ? '#10b981' : ('#' + color.toString(16).padStart(6, '0'));
+    const borderHex = isDone ? '#10b981' : ('#' + (typeof color === 'number' ? color.toString(16).padStart(6, '0') : '2dd4bf'));
 
-    // Latar belakang kaca gelap
+    // Latar belakang kaca gelap dengan padding mencukupi
     ctx.fillStyle = 'rgba(8, 15, 28, 0.92)';
     if (ctx.roundRect) {
       ctx.beginPath();
-      ctx.roundRect(6, 6, 628, 158, 22);
+      ctx.roundRect(8, 8, 544, 204, 26);
       ctx.fill();
     } else {
-      ctx.fillRect(6, 6, 628, 158);
+      ctx.fillRect(8, 8, 544, 204);
     }
 
     // Sempadan warna stesen
     ctx.strokeStyle = borderHex;
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4.5;
     if (ctx.roundRect) {
       ctx.beginPath();
-      ctx.roundRect(6, 6, 628, 158, 22);
+      ctx.roundRect(8, 8, 544, 204, 26);
       ctx.stroke();
     } else {
-      ctx.strokeRect(6, 6, 628, 158);
+      ctx.strokeRect(8, 8, 544, 204);
     }
 
-    // Tajuk utama
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '900 33px Nunito, Arial, sans-serif';
+    // Ekstrak nama organel yang ringkas & bersih
+    let cleanName = String(titleText || '')
+      .replace(/^(Stesen\s*\d+\s*:\s*|Kad\s*#\d+\s*:\s*)/i, '')
+      .replace(/Retikulum Endoplasma\s*&\s*Sel/i, 'Retikulum Endoplasma')
+      .trim();
+    if (!cleanName) cleanName = `Stesen ${stationNumber}`;
+
+    const line1 = `${icon || '🧬'} Stesen ${stationNumber}${isDone ? ' ✓' : ''}`;
+    const line2 = cleanName;
+    const line3 = isDone ? '✓ Lencana Diperoleh • Ulang Kaji' : 'Ketik untuk Teroka';
+
+    const maxAllowedWidth = canvas.width - 64; // Padding minimum 32px kiri & 32px kanan
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${icon} ${titleText} ${isDone ? '✓' : ''}`, 320, 62);
 
-    // Sub-teks arah & tindakan
+    // Baris 1: Nombor Stesen
     ctx.fillStyle = isDone ? '#34d399' : '#5eead4';
-    ctx.font = '700 21px Nunito, Arial, sans-serif';
-    ctx.fillText(isDone ? '✓ Lencana Diperoleh • Ketik Untuk Ulang Kaji' : subText, 320, 118);
+    ctx.font = '800 22px Nunito, Arial, sans-serif';
+    ctx.fillText(line1, 280, 50);
+
+    // Baris 2: Nama Organel (auto-fit font supaya tidak terpotong walau nama panjang)
+    let font2Size = 33;
+    ctx.font = `900 ${font2Size}px Nunito, Arial, sans-serif`;
+    while (ctx.measureText(line2).width > maxAllowedWidth && font2Size > 18) {
+      font2Size -= 1;
+      ctx.font = `900 ${font2Size}px Nunito, Arial, sans-serif`;
+    }
+    const w2 = ctx.measureText(line2).width;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(line2, 280, 110);
+
+    // Baris 3: Tindakan ("Ketik untuk Teroka")
+    let font3Size = 20;
+    ctx.font = `700 ${font3Size}px Nunito, Arial, sans-serif`;
+    while (ctx.measureText(line3).width > maxAllowedWidth && font3Size > 14) {
+      font3Size -= 1;
+      ctx.font = `700 ${font3Size}px Nunito, Arial, sans-serif`;
+    }
+    const w3 = ctx.measureText(line3).width;
+    ctx.fillStyle = isDone ? '#a7f3d0' : '#cbd5e1';
+    ctx.fillText(line3, 280, 168);
+
+    const maxMeasuredWidth = Math.max(w2, w3);
 
     const texture = new THREE.CanvasTexture(canvas);
     const labelMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.3, 0.62),
+      new THREE.PlaneGeometry(1.62, 0.64),
       new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide })
     );
-    labelMesh.userData = { isLabel: true, stationNumber };
+    labelMesh.userData = {
+      isLabel: true,
+      stationNumber,
+      line1,
+      line2,
+      line3,
+      fontSizePx: font2Size,
+      maxTextWidthPx: Math.round(maxMeasuredWidth),
+      canvasWidthPx: canvas.width,
+      textFitsCanvas: maxMeasuredWidth <= (canvas.width - 48)
+    };
     return labelMesh;
   }
 
@@ -4943,36 +5043,60 @@
     }
   }
 
-  // Paparkan banner "Stesen <Organel> Ditemui! • Teroka Stesen" yang kemas & boleh diketik
+  // Paparkan kad notifikasi ringkas "✓ Stesen Ditemui" di penjuru kanan bawah (Bahagian 7)
+  // Tanpa bertindih dengan Smart Radar (kiri bawah), model 3D (tengah), atau modal kuiz!
   function showARStationDetectedBanner(cfg) {
+    if (!cfg) return;
+    // Jangan paparkan jika kad organel atau modal kuiz sedang dibuka
+    if ((DOM.arOrganelleCard && DOM.arOrganelleCard.style.display === 'block') ||
+        (DOM.stationModal && DOM.stationModal.classList.contains('open'))) {
+      hideARStationDetectedBanner();
+      return;
+    }
+
     let banner = document.getElementById('ar-world-detected-banner');
     if (!banner) {
-      banner = document.createElement('button');
-      banner.type = 'button';
+      banner = document.createElement('div');
       banner.id = 'ar-world-detected-banner';
-      banner.style.cssText = `
-        position: fixed; bottom: max(112px, calc(env(safe-area-inset-bottom) + 102px)); left: 50%;
-        transform: translateX(-50%);
-        background: rgba(8, 15, 28, 0.94); border: 2px solid #2dd4bf;
-        border-radius: 999px; padding: 9px 22px;
-        font-family: 'Nunito', Arial, sans-serif; font-size: 14px; font-weight: 900;
-        color: #fff; z-index: 32; pointer-events: auto; cursor: pointer;
-        box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 18px rgba(45, 212, 191, 0.35);
-        transition: opacity 0.25s, transform 0.25s;
-        white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
-      `;
       document.body.appendChild(banner);
+      ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click'].forEach(evt => {
+        banner.addEventListener(evt, e => e.stopPropagation(), { passive: true });
+      });
     }
-    const hexColor = '#' + cfg.color.toString(16).padStart(6, '0');
+    const hexColor = '#' + (typeof cfg.color === 'number' ? cfg.color.toString(16).padStart(6, '0') : '2dd4bf');
     banner.style.borderColor = hexColor;
-    banner.style.display = 'inline-flex';
-    banner.style.alignItems = 'center';
-    banner.style.gap = '8px';
+    banner.style.display = 'flex';
     banner.style.opacity = '1';
     banner.style.pointerEvents = 'auto';
-    banner.innerHTML = `<span>${cfg.icon}</span><span>Stesen ${cfg.label} Ditemui!</span><span style="font-size:11px;padding:3px 10px;border-radius:999px;background:${hexColor}33;border:1px solid ${hexColor};color:#5eead4;">Teroka Stesen</span>`;
+    banner.innerHTML = `
+      <div class="cq-detected-info">
+        <span class="cq-detected-kicker">✓ Stesen Ditemui</span>
+        <strong class="cq-detected-title">${cfg.icon || '🧬'} ${cfg.label}</strong>
+      </div>
+      <div class="cq-detected-actions">
+        <button type="button" class="cq-detected-explore-btn" id="ar-detected-explore-btn" style="background:${hexColor};">Teroka</button>
+        <button type="button" class="cq-detected-close-btn" id="ar-detected-close-btn" aria-label="Tutup notifikasi" title="Tutup">✕</button>
+      </div>
+    `;
+    const exploreBtn = document.getElementById('ar-detected-explore-btn');
+    if (exploreBtn) {
+      exploreBtn.onclick = (e) => {
+        e.stopPropagation();
+        hideARStationDetectedBanner();
+        selectAROrganelle(cfg.stationKey, cfg.stationNumber);
+      };
+    }
+    const closeBtn = document.getElementById('ar-detected-close-btn');
+    if (closeBtn) {
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        hideARStationDetectedBanner();
+      };
+    }
     banner.onclick = (e) => {
+      if (e.target.closest('#ar-detected-close-btn')) return;
       e.stopPropagation();
+      hideARStationDetectedBanner();
       selectAROrganelle(cfg.stationKey, cfg.stationNumber);
     };
     arWorldState.detectedBanner = banner;
@@ -4983,10 +5107,11 @@
     if (banner) {
       banner.style.opacity = '0';
       banner.style.pointerEvents = 'none';
+      banner.style.display = 'none';
     }
   }
 
-  // Paparkan banner status tracking & arahan pemulihan yang jujur
+  // Paparkan banner status tracking & arahan pemulihan yang jujur (hanya untuk amaran sensor / Mod B Marker AR)
   function updateARTrackingStatusBanner(level, message) {
     let el = document.getElementById('ar-world-tracking-banner');
     if (!el) {
@@ -4994,7 +5119,8 @@
       el.id = 'ar-world-tracking-banner';
       document.body.appendChild(el);
     }
-    if (!message) {
+    // Dalam Mod C (Orientasi), kita gunakan #ar-single-instruction tunggal supaya tiada pertindihan teks di bawah!
+    if (!message || (arWorldState.active && arWorldState.subMode === 'orientation' && level === 'ok')) {
       el.style.display = 'none';
       return;
     }
@@ -5027,7 +5153,28 @@
     return cfg;
   }
 
-  // Bina Smart Radar ("AR Organel Hunter") + Penunjuk Elevasi di bahagian kiri bawah skrin
+  // Buka / tutup panel penuh Smart Radar (Bahagian 4: Expandable / Collapsible)
+  function toggleSmartRadarPanel(forceExpand) {
+    const nextState = typeof forceExpand === 'boolean'
+      ? forceExpand
+      : !arWorldState.radarPanelExpanded;
+    arWorldState.radarPanelExpanded = nextState;
+
+    const compactEl = document.getElementById('ar-smart-radar-compact');
+    const panelEl = document.getElementById('ar-smart-radar-panel');
+    if (compactEl) {
+      compactEl.style.display = nextState ? 'none' : 'flex';
+    }
+    if (panelEl) {
+      panelEl.classList.toggle('expanded', nextState);
+      panelEl.classList.toggle('collapsed', !nextState);
+      panelEl.style.display = nextState ? 'flex' : 'none';
+    }
+    SoundFX.interact();
+    return nextState;
+  }
+
+  // Bina Smart Radar ("AR Organel Hunter") + Kad Sasaran Ringkas (Minimal) + Panel Terperinci (Expandable)
   function buildARWorldCompass() {
     if (!document.getElementById('ar-world-style')) {
       const style = document.createElement('style');
@@ -5035,14 +5182,14 @@
       style.textContent = `
         #ar-world-compass-wrap {
           position: fixed;
-          bottom: max(16px, env(safe-area-inset-bottom));
+          bottom: max(14px, env(safe-area-inset-bottom));
           left: max(14px, env(safe-area-inset-left));
           z-index: 30;
           display: flex;
           align-items: flex-end;
-          gap: 10px;
+          gap: 8px;
           pointer-events: auto;
-          max-width: min(520px, calc(100vw - 28px));
+          max-width: min(460px, calc(100vw - 28px));
           font-family: 'Nunito', Arial, sans-serif;
         }
         .cq-radar-dial-box {
@@ -5051,33 +5198,33 @@
           gap: 6px;
           background: rgba(8, 15, 28, 0.90);
           border: 1.5px solid rgba(45, 212, 191, 0.55);
-          border-radius: 20px;
-          padding: 8px;
-          box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+          border-radius: 18px;
+          padding: 6px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.5);
           backdrop-filter: blur(10px);
           flex-shrink: 0;
         }
         #ar-world-compass {
-          width: 128px;
-          height: 128px;
+          width: 108px;
+          height: 108px;
           border-radius: 50%;
           cursor: pointer;
           display: block;
           touch-action: manipulation;
         }
         .cq-elev-gauge {
-          width: 24px;
-          height: 122px;
+          width: 22px;
+          height: 102px;
           background: rgba(15, 23, 42, 0.92);
           border: 1px solid rgba(148, 163, 184, 0.35);
-          border-radius: 12px;
+          border-radius: 10px;
           position: relative;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
           align-items: center;
-          padding: 4px 0;
-          font-size: 8px;
+          padding: 3px 0;
+          font-size: 7.5px;
           font-weight: 800;
           color: #94a3b8;
           user-select: none;
@@ -5093,9 +5240,9 @@
         .cq-elev-target-dot {
           position: absolute;
           left: 50%;
-          width: 14px;
-          height: 6px;
-          border-radius: 4px;
+          width: 12px;
+          height: 5px;
+          border-radius: 3px;
           background: #facc15;
           box-shadow: 0 0 6px #facc15;
           transform: translate(-50%, -50%);
@@ -5104,27 +5251,107 @@
         .cq-elev-cam-dot {
           position: absolute;
           left: 50%;
-          width: 10px;
-          height: 10px;
+          width: 9px;
+          height: 9px;
           border-radius: 50%;
           background: #38bdf8;
           border: 1.5px solid #fff;
           transform: translate(-50%, -50%);
           transition: top 0.12s ease-out;
         }
-        #ar-smart-radar-panel {
-          background: rgba(8, 15, 28, 0.92);
+        /* PAPARAN LALAI (MINIMAL CARD — Bahagian 4) */
+        #ar-smart-radar-compact {
+          background: rgba(8, 15, 28, 0.90);
           border: 1.5px solid rgba(45, 212, 191, 0.5);
           border-radius: 16px;
-          padding: 8px 10px;
+          padding: 8px 11px;
           color: #f1f5f9;
-          box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.5);
           backdrop-filter: blur(10px);
-          min-width: 220px;
-          max-width: 268px;
+          min-width: 152px;
+          max-width: 196px;
           display: flex;
           flex-direction: column;
+          gap: 3px;
+        }
+        .cq-compact-target {
+          font-size: 12.5px;
+          font-weight: 900;
+          color: #fff;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .cq-compact-dirs {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          font-size: 11px;
+          font-weight: 800;
+        }
+        .cq-compact-turn {
+          color: #fde047;
+          white-space: nowrap;
+        }
+        .cq-compact-elev {
+          color: #38bdf8;
+          white-space: nowrap;
+        }
+        .cq-compact-expand-btn {
+          margin-top: 3px;
+          padding: 5px 10px;
+          border-radius: 8px;
+          border: 1px solid rgba(45, 212, 191, 0.55);
+          background: linear-gradient(135deg, rgba(13, 148, 136, 0.9), rgba(16, 185, 129, 0.9));
+          color: #fff;
+          font-size: 11px;
+          font-weight: 900;
+          cursor: pointer;
+          text-align: center;
+          transition: all 0.15s ease;
+        }
+        .cq-compact-expand-btn:hover {
+          filter: brightness(1.1);
+        }
+        /* PAPARAN TERPERINCI (EXPANDABLE / COLLAPSIBLE PANEL — Bahagian 4) */
+        #ar-smart-radar-panel {
+          background: rgba(8, 15, 28, 0.94);
+          border: 1.5px solid rgba(45, 212, 191, 0.55);
+          border-radius: 16px;
+          padding: 9px 11px;
+          color: #f1f5f9;
+          box-shadow: 0 12px 32px rgba(0,0,0,0.65);
+          backdrop-filter: blur(12px);
+          min-width: 235px;
+          max-width: 276px;
+          display: none;
+          flex-direction: column;
           gap: 5px;
+        }
+        .cq-radar-panel-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+          padding-bottom: 3px;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .cq-radar-panel-kicker {
+          font-size: 10.5px;
+          font-weight: 900;
+          color: #5eead4;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        .cq-radar-collapse-btn {
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
+          color: #cbd5e1;
+          border-radius: 6px;
+          padding: 2px 7px;
+          font-size: 10px;
+          font-weight: 800;
+          cursor: pointer;
         }
         .cq-radar-pills {
           display: flex;
@@ -5163,7 +5390,7 @@
           gap: 6px;
         }
         .cq-radar-target-name {
-          font-size: 13px;
+          font-size: 12.5px;
           font-weight: 900;
           color: #fff;
           white-space: nowrap;
@@ -5171,7 +5398,7 @@
           text-overflow: ellipsis;
         }
         .cq-radar-status-chip {
-          font-size: 10px;
+          font-size: 9.5px;
           font-weight: 800;
           padding: 2px 7px;
           border-radius: 999px;
@@ -5183,17 +5410,17 @@
         .cq-radar-telemetry {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 4px 8px;
+          gap: 3px 8px;
           background: rgba(15, 23, 42, 0.75);
-          padding: 6px 8px;
+          padding: 5px 8px;
           border-radius: 10px;
           border: 1px solid rgba(255,255,255,0.08);
-          font-size: 10.5px;
+          font-size: 10px;
           line-height: 1.35;
         }
         .cq-radar-cmd {
           grid-column: 1 / -1;
-          font-size: 11.5px;
+          font-size: 11px;
           font-weight: 900;
           color: #fde047;
           display: flex;
@@ -5203,7 +5430,7 @@
           border-top: 1px solid rgba(255,255,255,0.08);
         }
         .cq-radar-coach {
-          font-size: 11px;
+          font-size: 10.5px;
           font-weight: 700;
           color: #5eead4;
           line-height: 1.35;
@@ -5216,7 +5443,7 @@
           flex: 1;
           padding: 5px 8px;
           border-radius: 8px;
-          font-size: 10.5px;
+          font-size: 10px;
           font-weight: 800;
           cursor: pointer;
           border: 1px solid rgba(255,255,255,0.18);
@@ -5232,23 +5459,139 @@
           color: #fff;
           border-color: #2dd4bf;
         }
+        /* NOTIFIKASI STESEN DITEMUI (KANAN BAWAH — Bahagian 7) */
+        #ar-world-detected-banner {
+          position: fixed;
+          bottom: max(14px, env(safe-area-inset-bottom));
+          right: max(14px, env(safe-area-inset-right));
+          z-index: 31;
+          background: rgba(8, 15, 28, 0.93);
+          border: 1.5px solid #2dd4bf;
+          border-radius: 16px;
+          padding: 8px 12px;
+          font-family: 'Nunito', Arial, sans-serif;
+          color: #fff;
+          pointer-events: auto;
+          cursor: pointer;
+          box-shadow: 0 10px 26px rgba(0,0,0,0.55);
+          backdrop-filter: blur(10px);
+          display: none;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          max-width: min(295px, calc(100vw - 28px));
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .cq-detected-info {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+        .cq-detected-kicker {
+          font-size: 10px;
+          font-weight: 900;
+          color: #34d399;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        .cq-detected-title {
+          font-size: 13px;
+          font-weight: 900;
+          color: #fff;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .cq-detected-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+        .cq-detected-explore-btn {
+          border: none;
+          border-radius: 10px;
+          padding: 6px 12px;
+          font-size: 11.5px;
+          font-weight: 900;
+          color: #fff;
+          cursor: pointer;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .cq-detected-close-btn {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 1px solid rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.08);
+          color: #cbd5e1;
+          font-size: 11px;
+          font-weight: 900;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
         #ar-world-tracking-banner {
-          position: fixed; bottom: max(54px, calc(env(safe-area-inset-bottom) + 46px)); left: 50%;
-          transform: translateX(-50%); z-index: 29;
-          background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(45, 212, 191, 0.45);
-          border-radius: 999px; padding: 5px 14px; font-size: 11px; font-weight: 800;
-          color: #e2e8f0; pointer-events: auto; text-align: center; max-width: 90vw;
+          position: fixed;
+          bottom: max(136px, calc(env(safe-area-inset-bottom) + 126px));
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 29;
+          background: rgba(15, 23, 42, 0.88);
+          border: 1px solid rgba(45, 212, 191, 0.45);
+          border-radius: 999px;
+          padding: 5px 14px;
+          font-size: 11px;
+          font-weight: 800;
+          color: #e2e8f0;
+          pointer-events: auto;
+          text-align: center;
+          max-width: 90vw;
+          display: none;
         }
         @media (max-width: 900px) {
-          #ar-world-compass { width: 106px; height: 106px; }
-          .cq-elev-gauge { height: 100px; }
-          #ar-smart-radar-panel { min-width: 215px; max-width: 260px; padding: 8px 10px; }
-          #ar-world-tracking-banner { display: none !important; }
+          #ar-world-compass { width: 96px; height: 96px; }
+          .cq-elev-gauge { height: 90px; }
+          #ar-smart-radar-compact { min-width: 140px; max-width: 178px; padding: 7px 9px; }
         }
-        @media (max-width: 600px) {
-          #ar-world-compass-wrap { flex-direction: column; align-items: flex-start; gap: 6px; }
-          #ar-world-compass { width: 92px; height: 92px; }
-          .cq-elev-gauge { height: 88px; }
+        /* Telefon Portrait (390x844): Susun menegak tanpa bertindih & jadikan panel penuh bottom-sheet */
+        @media (max-width: 640px) {
+          #ar-world-compass { width: 84px; height: 84px; }
+          .cq-elev-gauge { height: 78px; width: 20px; }
+          #ar-smart-radar-compact { min-width: 135px; max-width: calc(100vw - 148px); padding: 6px 9px; }
+          #ar-smart-radar-panel.expanded {
+            position: fixed;
+            left: 10px;
+            right: 10px;
+            bottom: max(116px, calc(env(safe-area-inset-bottom) + 108px));
+            max-width: calc(100vw - 20px);
+            z-index: 36;
+          }
+          #ar-world-detected-banner {
+            bottom: max(118px, calc(env(safe-area-inset-bottom) + 110px));
+            right: 10px;
+            left: 10px;
+            max-width: calc(100vw - 20px);
+          }
+        }
+        /* Telefon Landscape (844x390): Padatkan tinggi radar supaya ruang tengah kamera luas */
+        @media (max-height: 480px) and (orientation: landscape) {
+          #ar-world-compass-wrap {
+            bottom: max(8px, env(safe-area-inset-bottom));
+            left: max(10px, env(safe-area-inset-left));
+          }
+          #ar-world-compass { width: 78px; height: 78px; }
+          .cq-elev-gauge { height: 74px; width: 19px; }
+          #ar-smart-radar-compact { padding: 5px 8px; min-width: 132px; }
+          .cq-compact-target { font-size: 11.5px; }
+          .cq-compact-dirs { font-size: 10px; }
+          .cq-compact-expand-btn { padding: 4px 8px; font-size: 10px; }
+          #ar-world-detected-banner {
+            bottom: max(8px, env(safe-area-inset-bottom));
+            right: max(10px, env(safe-area-inset-right));
+            padding: 6px 10px;
+          }
         }
       `;
       document.head.appendChild(style);
@@ -5269,7 +5612,23 @@
             <span>-30°</span>
           </div>
         </div>
-        <div id="ar-smart-radar-panel">
+        <!-- PAPARAN LALAI (MINIMAL CARD — Bahagian 4) -->
+        <div id="ar-smart-radar-compact">
+          <div class="cq-compact-target" id="ar-compact-target-name">🎯 Mitokondrion</div>
+          <div class="cq-compact-dirs">
+            <span class="cq-compact-turn" id="ar-compact-turn-cmd">↶ Kiri 90°</span>
+            <span class="cq-compact-elev" id="ar-compact-elev-cmd">↑ Naik 15°</span>
+          </div>
+          <button type="button" class="cq-compact-expand-btn" id="ar-radar-expand-btn" title="Buka senarai 8 stesen & maklumat penuh radar">
+            Cari Stesen
+          </button>
+        </div>
+        <!-- PAPARAN TERPERINCI (BOLEH DIKEMBANGKAN & DITUTUP SEMULA — Bahagian 4) -->
+        <div id="ar-smart-radar-panel" class="collapsed">
+          <div class="cq-radar-panel-header">
+            <span class="cq-radar-panel-kicker">🧭 Smart Radar (Stesen 1–8)</span>
+            <button type="button" class="cq-radar-collapse-btn" id="ar-radar-collapse-btn" title="Tutup panel penuh">✕ Tutup</button>
+          </div>
           <div class="cq-radar-pills" id="ar-radar-pills"></div>
           <div class="cq-radar-target-row">
             <span class="cq-radar-target-name" id="ar-radar-target-title">🎯 Stesen 4: Mitokondrion</span>
@@ -5288,7 +5647,7 @@
           <div class="cq-radar-coach" id="ar-radar-coach-msg">Mitokondrion berada di sebelah kiri. Pusing kiri 90° lagi.</div>
           <div class="cq-radar-actions">
             <button type="button" class="cq-radar-act-btn primary" id="ar-radar-recalibrate-btn" title="Tetapkan arah semasa sebagai 0° Hadapan & 0° Elevasi">
-              🧭 KALIBRASI SEMULA
+              🧭 Kalibrasi
             </button>
             <button type="button" class="cq-radar-act-btn" id="ar-radar-look-btn" title="Halakan pandangan ke stesen sasaran (Mod Duduk)">
               🎯 Pandang Sasaran
@@ -5298,8 +5657,13 @@
       `;
       document.body.appendChild(wrap);
 
+      ['pointerdown', 'pointerup', 'touchstart', 'touchend'].forEach(evt => {
+        wrap.addEventListener(evt, e => e.stopPropagation(), { passive: true });
+      });
+
       const compass = document.getElementById('ar-world-compass');
       compass.addEventListener('click', (e) => {
+        e.stopPropagation();
         if (!arWorldState.active) return;
         const rect = compass.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 160;
@@ -5325,8 +5689,27 @@
 
         if (clickedIdx >= 0) {
           selectRadarTargetStation(clickedIdx, false);
+        } else {
+          // Ketik bahagian tengah radar untuk buka/tutup panel penuh
+          toggleSmartRadarPanel();
         }
       });
+
+      const expandBtn = document.getElementById('ar-radar-expand-btn');
+      if (expandBtn) {
+        expandBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleSmartRadarPanel(true);
+        });
+      }
+
+      const collapseBtn = document.getElementById('ar-radar-collapse-btn');
+      if (collapseBtn) {
+        collapseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleSmartRadarPanel(false);
+        });
+      }
 
       const recalBtn = document.getElementById('ar-radar-recalibrate-btn');
       if (recalBtn) {
@@ -5369,6 +5752,8 @@
     wrap.style.display = 'flex';
     arWorldState.compassEl = document.getElementById('ar-world-compass');
     arWorldState.smartRadarPanelEl = document.getElementById('ar-smart-radar-panel');
+    // Pastikan permulaan dalam keadaan ringkas (compact)
+    toggleSmartRadarPanel(Boolean(arWorldState.radarPanelExpanded));
   }
 
   // Kemas kini paparan Smart Radar (8 titik warna status, garisan panduan sasaran, azimut & elevasi dalam darjah)
@@ -5609,10 +5994,10 @@
     }
 
     const coachEl = document.getElementById('ar-radar-coach-msg');
+    const absAz = Math.round(Math.abs(deltaAz));
+    const absEl = Math.round(Math.abs(deltaEl));
+    const turnWord = deltaAz > 0 ? 'kanan' : 'kiri';
     if (coachEl) {
-      const absAz = Math.round(Math.abs(deltaAz));
-      const absEl = Math.round(Math.abs(deltaEl));
-      const turnWord = deltaAz > 0 ? 'kanan' : 'kiri';
       if (isTargetDiscovered) {
         coachEl.textContent = `Stesen ${targetCfg.label} ditemui! Ketik untuk meneroka.`;
         coachEl.style.color = '#34d399';
@@ -5625,6 +6010,56 @@
       } else if (!elAligned) {
         coachEl.textContent = `Halakan kamera sedikit ke ${deltaEl > 0 ? 'atas' : 'bawah'} (${absEl}° lagi).`;
         coachEl.style.color = '#38bdf8';
+      }
+    }
+
+    // 8. Kemas kini Paparan Lalai Ringkas (Minimal Card — Bahagian 4)
+    const compactTargetEl = document.getElementById('ar-compact-target-name');
+    if (compactTargetEl) {
+      compactTargetEl.textContent = `🎯 ${targetCfg.label}`;
+    }
+    const compactTurnEl = document.getElementById('ar-compact-turn-cmd');
+    if (compactTurnEl) {
+      if (azAligned) {
+        compactTurnEl.textContent = '✓ Arah tepat';
+        compactTurnEl.style.color = '#34d399';
+      } else if (deltaAz > 0) {
+        compactTurnEl.textContent = `↷ Kanan ${absAz}°`;
+        compactTurnEl.style.color = '#fde047';
+      } else {
+        compactTurnEl.textContent = `↶ Kiri ${absAz}°`;
+        compactTurnEl.style.color = '#fde047';
+      }
+    }
+    const compactElevEl = document.getElementById('ar-compact-elev-cmd');
+    if (compactElevEl) {
+      if (elAligned) {
+        compactElevEl.textContent = '✓ Aras tepat';
+        compactElevEl.style.color = '#34d399';
+      } else if (deltaEl > 0) {
+        compactElevEl.textContent = `↑ Naik ${absEl}°`;
+        compactElevEl.style.color = '#38bdf8';
+      } else {
+        compactElevEl.textContent = `↓ Turun ${absEl}°`;
+        compactElevEl.style.color = '#38bdf8';
+      }
+    }
+
+    // 9. Kemas kini SATU Arahan Utama di bahagian bawah tengah (Bahagian 6)
+    if (DOM.arSingleInstruction && DOM.arSingleInstructionText && arWorldState.active) {
+      DOM.arSingleInstruction.style.display = 'block';
+      if (isTargetDiscovered) {
+        DOM.arSingleInstructionText.textContent = `✓ ${targetCfg.label} ditemui! Ketik untuk teroka.`;
+        DOM.arSingleInstruction.classList.add('discovered');
+      } else if (!azAligned) {
+        const arrow = deltaAz > 0 ? '↷' : '↶';
+        DOM.arSingleInstructionText.textContent = `${arrow} Pusing ${turnWord} ${absAz}° untuk mencari ${targetCfg.label}.`;
+        DOM.arSingleInstruction.classList.remove('discovered');
+      } else {
+        const arrow = deltaEl > 0 ? '↑' : '↓';
+        const verb = deltaEl > 0 ? 'Naikkan' : 'Turunkan';
+        DOM.arSingleInstructionText.textContent = `${arrow} ${verb} kamera ${absEl}° untuk mencari ${targetCfg.label}.`;
+        DOM.arSingleInstruction.classList.remove('discovered');
       }
     }
   }
@@ -5647,10 +6082,15 @@
       if (group.userData.beacon) {
         group.userData.beacon.rotation.y = elapsedTime * 1.5;
       }
-      // Pastikan papan nama sentiasa menghadap kamera dengan tegak
+      // Pastikan papan nama sentiasa menghadap kamera dengan tegak & skala terhad mengikut jarak (Bahagian 5)
+      const stnPos = new THREE.Vector3();
+      group.getWorldPosition(stnPos);
+      const dist = camPos.distanceTo(stnPos);
+      const clampedLabelScale = Math.max(0.75, Math.min(1.02, dist / 5.4));
       group.children.forEach(child => {
         if (child.userData && child.userData.isLabel) {
           child.lookAt(camPos);
+          child.scale.setScalar(clampedLabelScale);
         }
       });
     });
@@ -5706,18 +6146,16 @@
 
     if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '🧭';
     if (DOM.arBadgeText) {
-      DOM.arBadgeText.textContent = arWorldState.sensorReceived
-        ? 'Mod C: AR Orientasi Dunia'
-        : 'Mod C: AR Orientasi (Smart Radar)';
+      DOM.arBadgeText.textContent = 'AR Jelajah Sel';
     }
     if (DOM.arHintBanner) {
-      DOM.arHintBanner.innerHTML = '<span>🎯 Pilih organel pada <strong>Smart Radar</strong> di kiri bawah • Ikut panduan sudut pusingan &amp; elevasi kamera!</span>';
+      DOM.arHintBanner.style.display = 'none';
+    }
+    if (DOM.arSingleInstruction) {
+      DOM.arSingleInstruction.style.display = 'block';
     }
 
-    updateARTrackingStatusBanner(
-      'ok',
-      'ℹ️ Mod C menjejak arah pusingan & elevasi (3DOF). Ketik stesen pada Smart Radar di kiri bawah untuk memburu organel.'
-    );
+    updateARTrackingStatusBanner('ok', '');
   }
 
   // Tunjuk UI Kalibrasi & Permintaan Sensor iOS Safari
@@ -5788,6 +6226,7 @@
     if (compassWrap) compassWrap.style.display = 'none';
     const trackBanner = document.getElementById('ar-world-tracking-banner');
     if (trackBanner) trackBanner.style.display = 'none';
+    if (DOM.arSingleInstruction) DOM.arSingleInstruction.style.display = 'none';
     hideARStationDetectedBanner();
   }
 
@@ -6043,9 +6482,9 @@
     if (DOM.arPostureBtn) DOM.arPostureBtn.style.display = 'none';
 
     if (DOM.arBadgeIcon) DOM.arBadgeIcon.textContent = '🃏';
-    if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'Mod B: Marker AR (6DOF Kad)';
+    if (DOM.arBadgeText) DOM.arBadgeText.textContent = 'AR Kad Penanda';
     if (DOM.arHintBanner) {
-      DOM.arHintBanner.innerHTML = '<span>🃏 Halakan kamera ke <strong>Kad Penanda AR (#0–#7)</strong> di atas meja • Klik <strong>8 Kad AR</strong> di kiri untuk cetak</span>';
+      DOM.arHintBanner.style.display = 'none';
     }
 
     // Sediakan pengesan ArUco & penganggar pose 3D POSIT
@@ -7235,6 +7674,7 @@
   // Select an organelle in AR, display card & pulse highlight
   function selectAROrganelle(organelleId, stationNumber) {
     arState.selectedOrganelle = organelleId;
+    hideARStationDetectedBanner();
 
     const info = ORGANELLE_DATA[organelleId] || {};
     const stnIdx = (stationNumber ? stationNumber - 1 : (info.stationNumber ? info.stationNumber - 1 : 0));
@@ -7642,6 +8082,9 @@
 
   function togglePause() {
     State.isPaused = !State.isPaused;
+    if (DOM.arPauseIcon) {
+      DOM.arPauseIcon.textContent = State.isPaused ? 'play_arrow' : 'pause';
+    }
     if (State.isPaused) {
       alertToast('⏸️ Permainan Dijeda');
     } else {
@@ -7769,6 +8212,12 @@
     },
     calibrateHeading: () => calibrateARWorldHeading(),
     togglePosture: () => toggleARPostureMode(),
+    toggleSmartRadarPanel: (expand) => toggleSmartRadarPanel(expand),
+    openExitConfirmDialog: () => openExitConfirmDialog(),
+    closeExitConfirmDialog: () => closeExitConfirmDialog(),
+    confirmExitToCellQuest: (skipRedirect = false) => confirmExitToCellQuest(skipRedirect),
+    isCameraStreamActive: () => !!cameraStream,
+    isSensorBound: () => !!(deviceOrientationBound || screenOrientationBound),
     placeSpatialStations: (pos, yaw) => positionARWorldStationsSpatial(pos, yaw),
     checkVisibility: () => checkARWorldStationVisibility(),
     tapAt: (x, y) => handleARWorldTap(x, y),

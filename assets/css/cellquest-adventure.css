@@ -26,7 +26,8 @@
 
 html, body {
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   font-family: var(--cq-font);
   background-color: var(--cq-bg);
@@ -1105,12 +1106,13 @@ body.cq-ar-mode {
   padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
 }
 
-/* 1. TOPBAR: 3-Column Clean Flexible Layout */
+/* 1. TOPBAR: Clean Responsive Layout (No Cross-Mode Navigation Clutter) */
 .cq-ar-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   pointer-events: auto;
   width: 100%;
 }
@@ -1118,45 +1120,72 @@ body.cq-ar-mode {
 .cq-ar-top-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  gap: 10px;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .cq-ar-back-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(10px);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1.5px solid rgba(255, 255, 255, 0.24);
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .cq-ar-back-btn:hover {
-  background: rgba(30, 41, 59, 0.95);
+  background: rgba(30, 41, 59, 0.96);
   border-color: #2dd4bf;
   transform: translateY(-1px);
+}
+
+.cq-ar-title-stack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.cq-ar-main-title {
+  font-size: clamp(13px, 1.4vw, 15px);
+  font-weight: 900;
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cq-ar-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(15, 23, 42, 0.85);
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.88);
   backdrop-filter: blur(8px);
   border: 1px solid #2dd4bf;
-  padding: 8px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   color: #5eead4;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ar-live-dot {
@@ -1173,23 +1202,13 @@ body.cq-ar-mode {
   50% { opacity: 0.35; transform: scale(0.85); }
 }
 
-/* Center Model Switcher Tabs */
+/* Center Model Switcher Tabs — Hidden in active AR gameplay per Bahagian 1 */
 .cq-ar-top-center {
-  display: flex;
-  justify-content: center;
-  flex: 1;
-  min-width: 0;
+  display: none !important;
 }
 
 .cq-ar-model-tabs {
-  display: inline-flex;
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(10px);
-  padding: 4px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-  gap: 4px;
+  display: none !important;
 }
 
 .cq-ar-model-btn {
@@ -1208,22 +1227,13 @@ body.cq-ar-mode {
   white-space: nowrap;
 }
 
-.cq-ar-model-btn:hover {
-  color: #fff;
-}
-
-.cq-ar-model-btn.active {
-  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
-  color: #fff;
-  box-shadow: 0 2px 12px rgba(16, 185, 129, 0.45);
-}
-
-/* Right Stats & Controls */
+/* Right Stats & Icon-Only Controls */
 .cq-ar-top-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .cq-ar-stats-group {
@@ -1236,15 +1246,16 @@ body.cq-ar-mode {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 12px;
+  padding: 6px 11px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.88);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.16);
   font-size: 12px;
   font-weight: 800;
   color: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
 }
 
 .cq-ar-stat-chip.score-chip { border-color: #eab308; color: #fde047; }
@@ -1257,33 +1268,44 @@ body.cq-ar-mode {
   gap: 6px;
 }
 
-/* Floating Hint Banner */
-.cq-ar-hint-banner {
-  align-self: center;
-  background: rgba(15, 23, 42, 0.78);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+/* SATU ARAHAN UTAMA SAHAJA (Bahagian 6) */
+.cq-ar-single-instruction {
+  position: fixed;
+  top: max(64px, calc(env(safe-area-inset-top) + 56px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 26;
+  background: rgba(8, 15, 28, 0.88);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(45, 212, 191, 0.5);
   border-radius: 999px;
-  padding: 5px 16px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #cbd5e1;
+  padding: 6px 18px;
+  font-size: clamp(11.5px, 1.3vw, 13.5px);
+  font-weight: 800;
+  color: #f1f5f9;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  pointer-events: auto;
-  margin-top: 4px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  max-width: min(560px, calc(100vw - 32px));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
 }
 
-/* 2. FLOATING BAR: STATION DRAWER TRIGGER & RECENTER */
+.cq-ar-single-instruction.found {
+  border-color: #10b981;
+  color: #a7f3d0;
+  background: rgba(6, 28, 24, 0.90);
+}
+
+/* Legacy Floating Hint Banner & Floating Bar — Hidden so only 1 instruction & clean radar show */
+.cq-ar-hint-banner {
+  display: none !important;
+}
+
 .cq-ar-floating-bar {
-  position: fixed;
-  top: max(82px, calc(env(safe-area-inset-top) + 70px));
-  left: max(16px, env(safe-area-inset-left));
-  z-index: 28;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  pointer-events: auto;
+  display: none !important;
 }
 
 .cq-ar-stations-toggle-btn {
@@ -1681,51 +1703,63 @@ body.cq-ar-mode {
 }
 
 /* ==============================================================================
-   RESPONSIVE DESIGN: IPAD (LANDSCAPE / PORTRAIT) & MOBILE
+   RESPONSIVE DESIGN: DESKTOP, LAPTOP, IPAD (LANDSCAPE / PORTRAIT) & TELEFON
    ============================================================================== */
 
-/* iPad Landscape / Medium Desktops (1260px and below) */
-@media (max-width: 1260px) {
+/* iPad Landscape (1024x768, 1180x820, 1366x1024) & Laptop (1366x768) */
+@media (max-width: 1380px) {
   .cq-ar-topbar {
-    gap: 6px;
+    gap: 6px 10px;
+  }
+  .cq-ar-main-title {
+    font-size: 13px;
+    padding: 5px 10px;
   }
   .cq-ar-status-badge {
-    padding: 6px 10px;
-    font-size: 11px;
+    padding: 5px 10px;
+    font-size: 11.5px;
   }
   .cq-ar-stat-chip {
-    padding: 5px 8px;
-    font-size: 11px;
-  }
-  .cq-ar-model-btn {
-    padding: 6px 10px;
+    padding: 5px 9px;
     font-size: 11.5px;
   }
   .cq-ar-organelle-card {
-    width: 340px;
-  }
-}
-
-/* iPad Landscape / Portrait & Compact Desktops (1380px and below) */
-@media (max-width: 1380px) {
-  .cq-ar-topbar {
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-  .cq-ar-top-center {
-    order: 3;
-    width: 100%;
-    margin-top: 6px;
-  }
-  .cq-ar-floating-bar {
-    top: max(108px, calc(env(safe-area-inset-top) + 96px));
+    width: 330px;
   }
   .cq-ar-stations-drawer {
     width: 320px;
   }
 }
 
-/* Mobile & Small Screens (768px and below) */
+/* iPad Portrait (820x1180) & Small Tablets (900px and below) */
+@media (max-width: 900px) {
+  .cq-ar-main-title {
+    display: none;
+  }
+  .cq-ar-back-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .cq-ar-status-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .cq-ar-stat-chip {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .cq-ar-tools-group .cq-icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .cq-ar-single-instruction {
+    top: max(58px, calc(env(safe-area-inset-top) + 50px));
+    padding: 5px 14px;
+    font-size: 11.5px;
+  }
+}
+
+/* Mobile & Phone Portrait (390x844 and below 768px) */
 @media (max-width: 768px) {
   .cq-hud {
     padding: max(8px, env(safe-area-inset-top)) 10px 8px 10px;
@@ -1768,35 +1802,61 @@ body.cq-ar-mode {
     grid-template-columns: 1fr;
   }
   .cq-modal {
-    padding: 18px;
+    padding: 16px;
     border-radius: 20px;
-    max-height: 85vh;
+    max-height: 86dvh;
   }
   .cq-station-preview-box {
-    height: 160px;
+    height: 150px;
   }
 
-  /* AR Mobile Bottom Sheet & Drawer */
-  .cq-ar-top-left .btn-text {
-    display: none;
+  /* AR Mobile Layout (390x844) */
+  .cq-ar-overlay {
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   }
-  .cq-ar-status-badge {
-    padding: 6px 10px;
-    font-size: 11px;
+  .cq-ar-topbar {
+    gap: 6px;
   }
-  .cq-ar-model-btn .tab-label {
+  .cq-ar-top-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .cq-ar-top-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+  }
+  .cq-ar-stats-group {
+    gap: 4px;
+  }
+  .cq-ar-stat-chip {
+    padding: 4px 7px;
+    font-size: 10.5px;
+    gap: 3px;
+  }
+  .cq-ar-tools-group {
+    gap: 4px;
+  }
+  .cq-ar-tools-group .cq-icon-btn {
+    width: 31px;
+    height: 31px;
+  }
+  .cq-ar-single-instruction {
+    top: max(92px, calc(env(safe-area-inset-top) + 84px));
+    max-width: calc(100vw - 20px);
     font-size: 11px;
+    padding: 5px 12px;
   }
   .cq-ar-organelle-card {
     left: 50%;
     right: auto;
-    bottom: max(14px, env(safe-area-inset-bottom));
+    bottom: max(136px, calc(env(safe-area-inset-bottom) + 128px));
     transform: translateX(-50%);
-    width: min(440px, 94vw);
+    width: min(420px, 94vw);
   }
   .cq-ar-organelle-card.minimized {
     transform: translateX(-50%);
-    width: 260px;
+    width: 250px;
   }
   .cq-ar-stations-drawer {
     top: auto;
@@ -1805,7 +1865,7 @@ body.cq-ar-mode {
     right: 0;
     width: 100%;
     max-width: 100%;
-    height: 60vh;
+    height: 60dvh;
     border-radius: 24px 24px 0 0;
     border-left: none;
     border-top: 1px solid rgba(45, 212, 191, 0.35);
@@ -1813,6 +1873,55 @@ body.cq-ar-mode {
   }
   .cq-ar-stations-drawer.open {
     transform: translateY(0);
+  }
+}
+
+/* Phone Landscape (844x390 — Short Viewport Height <= 480px) */
+@media (max-height: 480px) and (orientation: landscape) {
+  .cq-ar-overlay {
+    padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+  .cq-ar-topbar {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .cq-ar-top-left {
+    width: auto;
+  }
+  .cq-ar-top-right {
+    width: auto;
+  }
+  .cq-ar-main-title {
+    display: none;
+  }
+  .cq-ar-back-btn {
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+  .cq-ar-status-badge {
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+  .cq-ar-stat-chip {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .cq-ar-tools-group .cq-icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+  .cq-ar-single-instruction {
+    top: max(46px, calc(env(safe-area-inset-top) + 40px));
+    padding: 4px 12px;
+    font-size: 11px;
+  }
+  .cq-modal {
+    padding: 12px 16px;
+    max-height: 92dvh;
+  }
+  .cq-station-preview-box {
+    height: 110px;
+    margin-bottom: 10px;
   }
 }
 

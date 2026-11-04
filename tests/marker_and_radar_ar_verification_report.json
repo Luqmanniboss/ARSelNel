@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-04T03:32:11.331Z",
+  "timestamp": "2026-11-04T04:26:11.341Z",
   "viewport": "1194x834 (iPad Pro 11\" Landscape & 834x1194 Portrait)",
   "modBTests": {
     "B1_B2_scan_and_upright": {
@@ -123,7 +123,7 @@
       "headingAfterCalibrate": 0,
       "pitchAfterCalibrate": 0,
       "recalBtnExists": true,
-      "recalBtnText": "🧭 KALIBRASI SEMULA",
+      "recalBtnText": "🧭 Kalibrasi",
       "pass": true
     },
     "C4_C5_smart_radar_guidance_mitochondria": {
@@ -149,7 +149,7 @@
       "elevCmd": "✓ Aras elevasi tepat!",
       "coachMsg": "Stesen Mitokondrion ditemui! Ketik untuk meneroka.",
       "bannerVisible": true,
-      "bannerText": "⚡Stesen Mitokondrion Ditemui!Teroka Stesen",
+      "bannerText": "✓ Stesen Ditemui\n        ⚡ Mitokondrion\n      \n      \n        Teroka\n        ✕",
       "pass": true
     },
     "C8_rotate_away_and_return_world_locked": {
@@ -278,7 +278,7 @@
         },
         {
           "stationNumber": 8,
-          "label": "Retikulum Endoplasma & Sel",
+          "label": "Retikulum Endoplasma",
           "azimuthDeg": 0,
           "elevationDeg": -12,
           "directionName": "Hadapan",
