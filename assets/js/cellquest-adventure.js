@@ -630,20 +630,23 @@
     buildARSystem();
     buildMiniBadgeStrip();
     initStationPreview();
-    startTimer();
     hideLoadingScreen();
     animate();
 
-    // Check URL search params for quick mode launch (e.g. ?mode=ar, ?mode=camera, ?mode=marker-ar, ?mode=how)
+    // Check URL search params for direct mode launch (e.g. ?mode=3d, ?mode=camera-ar, ?mode=marker-ar, ?mode=how)
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('mode') === 'ar') {
-      openModeDialog();
-    } else if (urlParams.get('mode') === 'camera' || urlParams.get('mode') === 'world-ar' || urlParams.get('mode') === 'camera-ar') {
-      selectMode('camera-ar');
-    } else if (urlParams.get('mode') === 'marker-ar') {
-      selectMode('marker-ar');
-    } else if (urlParams.get('mode') === 'how') {
+    const modeParam = urlParams.get('mode');
+    if (modeParam === '3d') {
+      launchMode('3d');
+    } else if (modeParam === 'camera' || modeParam === 'world-ar' || modeParam === 'camera-ar') {
+      launchMode('camera-ar');
+    } else if (modeParam === 'marker-ar') {
+      launchMode('marker-ar');
+    } else if (modeParam === 'how') {
       openHowToPlayDialog();
+    } else {
+      // DEFAULT ALIRAN BAHARU: Masuk ke Lobi Makmal Sains (Zero Camera Request)
+      openScienceLabLobby();
     }
   }
 
@@ -815,6 +818,27 @@
     DOM.trPrintBtn = document.getElementById('tr-print-btn');
     DOM.trReplayBtn = document.getElementById('tr-replay-btn');
     DOM.trExitBtn = document.getElementById('tr-exit-btn');
+
+    // Lobi Makmal Sains & Galeri Pendidikan
+    DOM.lobbyScreen = document.getElementById('cq-science-lobby');
+    DOM.lobbyBackBtn = document.getElementById('lobby-back-btn');
+    DOM.lobbyBtnModA = document.getElementById('lobby-btn-mod-a');
+    DOM.lobbyBtnModB = document.getElementById('lobby-btn-mod-b');
+    DOM.lobbyBtnModC = document.getElementById('lobby-btn-mod-c');
+    DOM.lobbyPrintMarkersBtn = document.getElementById('lobby-print-markers-btn');
+    DOM.lobbyUserName = document.getElementById('lobby-user-name');
+    DOM.lobbyUserRole = document.getElementById('lobby-user-role');
+    DOM.lobbyStatBadges = document.getElementById('lobby-stat-badges');
+    DOM.galleryCards = document.querySelectorAll('.cq-gallery-card');
+    DOM.galleryDetailModal = document.getElementById('gallery-detail-modal');
+    DOM.closeGalleryDetailBtn = document.getElementById('close-gallery-detail-btn');
+    DOM.galleryDetailCloseBtn = document.getElementById('gallery-detail-close-btn');
+    DOM.galleryDetailTitle = document.getElementById('gallery-detail-title');
+    DOM.galleryDetailSubtitle = document.getElementById('gallery-detail-subtitle');
+    DOM.galleryDetailChip = document.getElementById('gallery-detail-chip');
+    DOM.galleryDetailImg = document.getElementById('gallery-detail-img');
+    DOM.galleryDetailNotes = document.getElementById('gallery-detail-notes');
+    DOM.hud3dBackBtn = document.getElementById('hud-3d-back-btn');
   }
 
   function loadUser() {
@@ -3246,8 +3270,48 @@
     // 11. AR Interface & WebXR Buttons
     if (DOM.arBackBtn) DOM.arBackBtn.addEventListener('click', openExitConfirmDialog);
     if (DOM.arExitBtn) DOM.arExitBtn.addEventListener('click', openExitConfirmDialog);
+    if (DOM.hud3dBackBtn) DOM.hud3dBackBtn.addEventListener('click', openExitConfirmDialog);
+    if (DOM.walkthroughBackBtn) DOM.walkthroughBackBtn.addEventListener('click', openExitConfirmDialog);
     if (DOM.exitConfirmContinueBtn) DOM.exitConfirmContinueBtn.addEventListener('click', closeExitConfirmDialog);
     if (DOM.exitConfirmLeaveBtn) DOM.exitConfirmLeaveBtn.addEventListener('click', confirmExitToCellQuest);
+
+    // 12. Lobi Makmal Sains & Galeri Pendidikan
+    if (DOM.lobbyBtnModA) {
+      DOM.lobbyBtnModA.addEventListener('click', () => launchMode('3d'));
+    }
+    if (DOM.lobbyBtnModB) {
+      DOM.lobbyBtnModB.addEventListener('click', () => launchMode('camera-ar'));
+    }
+    if (DOM.lobbyBtnModC) {
+      DOM.lobbyBtnModC.addEventListener('click', () => launchMode('marker-ar'));
+    }
+
+    if (DOM.galleryCards && DOM.galleryCards.length) {
+      DOM.galleryCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const type = card.dataset.gallery || 'animal';
+          openCellGalleryModal(type);
+        });
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const type = card.dataset.gallery || 'animal';
+            openCellGalleryModal(type);
+          }
+        });
+      });
+    }
+    if (DOM.closeGalleryDetailBtn) {
+      DOM.closeGalleryDetailBtn.addEventListener('click', closeCellGalleryModal);
+    }
+    if (DOM.galleryDetailCloseBtn) {
+      DOM.galleryDetailCloseBtn.addEventListener('click', closeCellGalleryModal);
+    }
+    if (DOM.galleryDetailModal) {
+      DOM.galleryDetailModal.addEventListener('click', (e) => {
+        if (e.target === DOM.galleryDetailModal) closeCellGalleryModal();
+      });
+    }
     if (DOM.arBtnWorld) DOM.arBtnWorld.addEventListener('click', () => switchARModel('world'));
     if (DOM.arBtnMarker) DOM.arBtnMarker.addEventListener('click', () => selectMode('marker-ar'));
     if (DOM.arBtnAnimal) DOM.arBtnAnimal.addEventListener('click', () => switchARModel('animal'));
@@ -4724,6 +4788,12 @@
 
   async function selectMode(mode) {
     closeModeDialog();
+    closeScienceLabLobby();
+
+    // Mulakan pemasa jika belum berjalan
+    if (!State.timerInterval) {
+      startTimer();
+    }
 
     // 1. Cleanup existing active mode
     if (State.mode !== mode) {
@@ -5093,13 +5163,13 @@
     }
   }
 
-  async function confirmExitToCellQuest(e) {
+  async function confirmExitToCellQuest(e, forceRedirect = false) {
     if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
     if (DOM.exitConfirmModal) {
       DOM.exitConfirmModal.classList.remove('open');
     }
 
-    // 1. Tutup sesi AR dengan kemas (WebXR, Mod C World AR, Mod B Marker AR)
+    // 1. Tutup sesi AR dengan kemas (WebXR, Mod B World AR, Mod C Marker AR)
     if (xrSession) {
       try { await xrSession.end(); } catch (_) {}
       xrSession = null;
@@ -5110,15 +5180,24 @@
     // 2. Hentikan semua camera stream tracks & sensor orientation listeners
     stopInteractiveCamera();
     teardownDeviceOrientation();
-    clearInterval(State.timerInterval);
-
-    // 3. Navigasi kembali ke halaman induk pemilihan CellQuest (cellquest/code.html)
-    const targetUrl = 'code.html';
-    arWorldState.lastExitTargetUrl = targetUrl;
-    if (!window.CellQuestAR || !window.CellQuestAR.preventRedirectInTest) {
-      window.location.href = targetUrl;
+    if (State.timerInterval) {
+      clearInterval(State.timerInterval);
+      State.timerInterval = null;
     }
-    return targetUrl;
+
+    // 3. Navigasi kembali ke Lobi Makmal Sains (atau redirect ke code.html jika diminta)
+    if (forceRedirect) {
+      const targetUrl = 'code.html';
+      arWorldState.lastExitTargetUrl = targetUrl;
+      if (!window.CellQuestAR || !window.CellQuestAR.preventRedirectInTest) {
+        window.location.href = targetUrl;
+      }
+      return targetUrl;
+    }
+
+    openScienceLabLobby();
+    arWorldState.lastExitTargetUrl = 'lobby';
+    return 'lobby';
   }
 
   function requestiOSOrientationPermission() {
@@ -9177,6 +9256,215 @@
   }
 
   // ==============================================================================
+  // LOBI MAKMAL SAINS ARSELNEL & GALERI PENDIDIKAN SEL
+  // ==============================================================================
+
+  let isLobbyActive = false;
+
+  const GALLERY_CONTENT = {
+    animal: {
+      chip: 'KSSM SAINS TINGKATAN 1 • BAB 2',
+      title: 'Struktur & Organel Sel Haiwan',
+      subtitle: 'Ciri-ciri unik dan fungsi komponen sel haiwan mengikut sukatan pelajaran.',
+      img: '../assets/images/galeri_sel_haiwan.svg',
+      notes: [
+        {
+          heading: '🔬 Bentuk Sel Tidak Tetap',
+          text: 'Sel haiwan tidak mempunyai dinding sel yang tegar, menjadikannya mempunyai bentuk yang tidak tetap dan fleksibel.'
+        },
+        {
+          heading: '🧬 Nukleus & Bahan Genetik',
+          text: 'Pusat kawalan utama sel yang mengandungi kromosom dan DNA. Mengawal segala aktiviti biokimia dan pewarisan ciri sel.'
+        },
+        {
+          heading: '🛡️ Membran Sel (Plasma Membrane)',
+          text: 'Lapisan luar separa telap yang menyelubungi sel. Mengawal atur keluar masuk bahan seperti oksigen, glukosa dan bahan buangan.'
+        },
+        {
+          heading: '🧪 Sitoplasma',
+          text: 'Medium seperti jeli yang mengisi ruang antara nukleus dan membran sel. Tempat berlakunya tindak balas biokimia penting.'
+        },
+        {
+          heading: '⚡ Mitokondrion (Powerhouse Sel)',
+          text: 'Stesen janakuasa sel yang menjana tenaga dalam bentuk molekul ATP melalui respirasi selular untuk semua aktiviti hidupan.'
+        },
+        {
+          heading: '💧 Vakuol Kecil / Tiada',
+          text: 'Kebanyakan sel haiwan tidak mempunyai vakuol, atau hanya mempunyai vakuol bersaiz kecil untuk menyimpan nutrien atau air.'
+        },
+        {
+          heading: '🍞 Simpanan Karbohidrat: Glikogen',
+          text: 'Sel haiwan menyimpan karbohidrat berlebihan dalam bentuk glikogen (bukan kanji).'
+        }
+      ]
+    },
+    plant: {
+      chip: 'KSSM SAINS TINGKATAN 1 • BAB 2',
+      title: 'Struktur & Organel Sel Tumbuhan',
+      subtitle: 'Ciri-ciri khas tumbuhan untuk sokongan mekanikal dan fotosintesis.',
+      img: '../assets/images/galeri_sel_tumbuhan.svg',
+      notes: [
+        {
+          heading: '🧱 Dinding Sel (Cell Wall)',
+          text: 'Lapisan luar tegar daripada gentian selulosa. Memberikan bentuk tetap, kekuatan fizikal dan sokongan mekanikal kepada sel tumbuhan.'
+        },
+        {
+          heading: '🌿 Kloroplas & Klorofil',
+          text: 'Organel berbentuk cakera yang mengandungi pigmen klorofil hijau untuk menyerap cahaya matahari bagi proses fotosintesis.'
+        },
+        {
+          heading: '💦 Vakuol Besar (Central Vacuole)',
+          text: 'Kantung besar berisi cecair sap sel (air, garam mineral, gula). Mengekalkan kesegahan sel supaya tumbuhan tidak layu.'
+        },
+        {
+          heading: '🛡️ Membran Sel',
+          text: 'Terletak di bawah dinding sel. Membran telap memilih yang mengawal pergerakan bahan ke dalam dan keluar sel.'
+        },
+        {
+          heading: '⚡ Mitokondrion & Nukleus',
+          text: 'Sel tumbuhan juga mempunyai nukleus untuk kawalan genetik dan mitokondrion untuk menjana tenaga respirasi sel.'
+        },
+        {
+          heading: '🥔 Simpanan Karbohidrat: Kanji',
+          text: 'Glukosa berlebihan hasil daripada fotosintesis disimpan dalam bentuk butir kanji.'
+        }
+      ]
+    },
+    comparison: {
+      chip: 'KSSM SAINS TINGKATAN 1 • NOTA ULANGKAJI',
+      title: 'Perbandingan Sel Haiwan vs Sel Tumbuhan',
+      subtitle: 'Rumusan lengkap persamaan dan perbezaan utama mengikut sukatan KSSM.',
+      img: '../assets/images/galeri_perbandingan_sel.svg',
+      notes: [
+        {
+          heading: '✅ 4 Persamaan Utama Organel',
+          text: 'Kedua-dua sel haiwan dan tumbuhan memiliki: 1. Nukleus (pusat kawalan genetik), 2. Sitoplasma (medium tindak balas), 3. Membran Sel (kawal bahan), 4. Mitokondrion (penjana tenaga ATP).'
+        },
+        {
+          heading: '⚖️ Perbezaan 1 (Bentuk Sel): Tidak Tetap vs Tetap',
+          text: 'Sel haiwan mempunyai bentuk TIDAK TETAP, manakala sel tumbuhan mempunyai bentuk TETAP (kerana kehadiran dinding sel selulosa).'
+        },
+        {
+          heading: '⚖️ Perbezaan 2 (Dinding Sel): Tiada vs Ada',
+          text: 'Sel haiwan TIADA dinding sel, manakala sel tumbuhan MEMPUNYAI dinding sel tegar di luar membran.'
+        },
+        {
+          heading: '⚖️ Perbezaan 3 (Kloroplas): Tiada vs Ada',
+          text: 'Sel haiwan TIADA kloroplas (tidak boleh fotosintesis), manakala sel tumbuhan MEMPUNYAI kloroplas berisi klorofil hijau.'
+        },
+        {
+          heading: '⚖️ Perbezaan 4 (Vakuol): Tiada/Kecil vs Satu Vakuol Besar',
+          text: 'Sel haiwan tiada vakuol atau hanya bersaiz kecil, manakala sel tumbuhan matang mempunyai SATU VAKUOL PUSAT BESAR berisi sap sel.'
+        },
+        {
+          heading: '⚖️ Perbezaan 5 (Simpanan Karbohidrat): Glikogen vs Kanji',
+          text: 'Sel haiwan menyimpan karbohidrat dalam bentuk GLIKOGEN, manakala sel tumbuhan menyimpannya dalam bentuk KANJI.'
+        }
+      ]
+    }
+  };
+
+  function openScienceLabLobby() {
+    isLobbyActive = true;
+
+    // 1. Matikan sebarang penstriman kamera dan pengesan orientasi dengan bersih (Zero Camera in Lobby)
+    stopInteractiveCamera();
+    teardownDeviceOrientation();
+    stopARWorldExploration();
+    stopMarkerAR();
+
+    // 2. Sembunyikan semua HUD dalam permainan
+    if (DOM.walkthroughHud) DOM.walkthroughHud.style.display = 'none';
+    if (DOM.badgeStrip) DOM.badgeStrip.style.display = 'none';
+    if (DOM.crosshair) DOM.crosshair.style.display = 'none';
+    if (DOM.promptContainer) DOM.promptContainer.classList.remove('active');
+    if (DOM.mobileControls) DOM.mobileControls.style.display = 'none';
+    if (DOM.mobileInteractBtn) DOM.mobileInteractBtn.style.display = 'none';
+    if (DOM.arOverlay) DOM.arOverlay.style.display = 'none';
+    if (DOM.touchZone) DOM.touchZone.style.display = 'none';
+
+    // 3. Jeda pemasa permainan semasa berada di lobi
+    if (State.timerInterval) {
+      clearInterval(State.timerInterval);
+      State.timerInterval = null;
+    }
+
+    // 4. Paparkan Lobi Makmal Sains
+    if (DOM.lobbyScreen) {
+      DOM.lobbyScreen.classList.add('active');
+      DOM.lobbyScreen.style.display = 'flex';
+      DOM.lobbyScreen.scrollTop = 0;
+    }
+
+    // 5. Kemas kini status murid
+    if (DOM.lobbyUserName && State.user && State.user.nama) {
+      DOM.lobbyUserName.textContent = State.user.nama;
+    }
+    if (DOM.lobbyStatBadges) {
+      DOM.lobbyStatBadges.textContent = `${State.completedStations ? State.completedStations.size : 0}/8`;
+    }
+
+    // 6. Pastikan persekitaran makmal 3D kekal aktif sebagai latar belakang estetik
+    if (labEnvironmentGroup) labEnvironmentGroup.visible = true;
+    if (walkthroughStationsGroup) walkthroughStationsGroup.visible = true;
+    if (arObjectGroup) arObjectGroup.visible = false;
+    if (scene) {
+      scene.background = new THREE.Color(0x0a161e);
+      scene.fog = new THREE.FogExp2(0x0a161e, 0.025);
+    }
+  }
+
+  function closeScienceLabLobby() {
+    isLobbyActive = false;
+    if (DOM.lobbyScreen) {
+      DOM.lobbyScreen.classList.remove('active');
+      DOM.lobbyScreen.style.display = 'none';
+    }
+  }
+
+  async function launchMode(mode) {
+    SoundFX.interact();
+    closeScienceLabLobby();
+    await selectMode(mode);
+    if (!State.timerInterval) {
+      startTimer();
+    }
+  }
+
+  function openCellGalleryModal(type) {
+    const data = GALLERY_CONTENT[type] || GALLERY_CONTENT.animal;
+    SoundFX.interact();
+
+    if (DOM.galleryDetailChip) DOM.galleryDetailChip.textContent = data.chip;
+    if (DOM.galleryDetailTitle) DOM.galleryDetailTitle.textContent = data.title;
+    if (DOM.galleryDetailSubtitle) DOM.galleryDetailSubtitle.textContent = data.subtitle;
+    if (DOM.galleryDetailImg) {
+      DOM.galleryDetailImg.src = data.img;
+      DOM.galleryDetailImg.alt = data.title;
+    }
+
+    if (DOM.galleryDetailNotes) {
+      DOM.galleryDetailNotes.innerHTML = data.notes.map(note => `
+        <div class="gallery-note-block">
+          <div class="gallery-note-heading">${note.heading}</div>
+          <p class="gallery-note-text">${note.text}</p>
+        </div>
+      `).join('');
+    }
+
+    if (DOM.galleryDetailModal) {
+      DOM.galleryDetailModal.classList.add('open');
+    }
+  }
+
+  function closeCellGalleryModal() {
+    SoundFX.interact();
+    if (DOM.galleryDetailModal) {
+      DOM.galleryDetailModal.classList.remove('open');
+    }
+  }
+
+  // ==============================================================================
   // HOW TO PLAY DIALOG (CARA BERMAIN)
   // ==============================================================================
 
@@ -9256,7 +9544,16 @@
     const elapsedTime = clock.getElapsedTime();
 
     // 1. Update Mode Specific Logic
-    if (State.mode === '3d') {
+    if (isLobbyActive) {
+      if (camera) {
+        const orbitRadius = 11;
+        const orbitSpeed = 0.12;
+        camera.position.x = Math.sin(elapsedTime * orbitSpeed) * orbitRadius;
+        camera.position.z = Math.cos(elapsedTime * orbitSpeed) * orbitRadius;
+        camera.position.y = 2.4;
+        camera.lookAt(0, 1.8, 0);
+      }
+    } else if (State.mode === '3d') {
       updatePlayerMovement();
     } else {
       // Animasi 8 stesen AR world-locked (Mod A Spatial & Mod C Orientasi)
@@ -9389,7 +9686,18 @@
     showTreasureRewardModal: () => showTreasureRewardModal(),
     hideTreasureRewardModal: () => hideTreasureRewardModal(),
     findNextUncompletedStation: (fromIdx) => findNextUncompletedStation(fromIdx),
-    markStationCompleted: (num) => markStationCompleted(num)
+    markStationCompleted: (num) => markStationCompleted(num),
+    openScienceLabLobby: () => openScienceLabLobby(),
+    closeScienceLabLobby: () => closeScienceLabLobby(),
+    isLobbyActive: () => isLobbyActive,
+    launchMode: (m) => launchMode(m),
+    openCellGalleryModal: (t) => openCellGalleryModal(t),
+    closeCellGalleryModal: () => closeCellGalleryModal(),
+    getLobbyState: () => ({
+      active: isLobbyActive,
+      user: State.user,
+      completedCount: State.completedStations ? State.completedStations.size : 0
+    })
   };
 
   // Run initialization when DOM is ready

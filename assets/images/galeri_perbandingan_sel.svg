@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 520" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGradComp" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1924"/>
+      <stop offset="100%" stop-color="#0e2a3a"/>
+    </linearGradient>
+    <linearGradient id="animCardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(244,114,182,0.14)"/>
+      <stop offset="100%" stop-color="rgba(15,23,42,0.8)"/>
+    </linearGradient>
+    <linearGradient id="plantCardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(34,197,94,0.14)"/>
+      <stop offset="100%" stop-color="rgba(15,23,42,0.8)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="840" height="520" rx="20" fill="url(#bgGradComp)"/>
+
+  <!-- Top Title -->
+  <g transform="translate(40, 24)">
+    <rect width="360" height="38" rx="12" fill="rgba(45,212,191,0.15)" stroke="#2dd4bf" stroke-width="1.5"/>
+    <circle cx="22" cy="19" r="7" fill="#2dd4bf"/>
+    <text x="40" y="25" font-family="'Nunito', sans-serif" font-weight="900" font-size="15" fill="#f0fdfa">PERBANDINGAN SEL HAIWAN VS SEL TUMBUHAN</text>
+  </g>
+
+  <!-- Left Column: Sel Haiwan Card -->
+  <g transform="translate(40, 80)">
+    <rect width="365" height="320" rx="16" fill="url(#animCardGrad)" stroke="#f472b6" stroke-width="1.8"/>
+    <!-- Card Header -->
+    <rect width="365" height="42" rx="16" fill="rgba(244,114,182,0.25)"/>
+    <text x="20" y="27" font-family="'Nunito', sans-serif" font-weight="900" font-size="16" fill="#fdf2f8">🐾 SEL HAIWAN</text>
+    
+    <!-- Checklist items -->
+    <g transform="translate(20, 68)" font-family="'Nunito', sans-serif" font-size="12.5" fill="#f1f5f9">
+      <text x="0" y="0" font-weight="800" fill="#f472b6">✖ Bentuk Sel:</text>
+      <text x="135" y="0">Bentuk tidak tetap (fleksibel)</text>
+
+      <text x="0" y="36" font-weight="800" fill="#f472b6">✖ Dinding Sel:</text>
+      <text x="135" y="36">Tiada dinding sel</text>
+
+      <text x="0" y="72" font-weight="800" fill="#f472b6">✖ Kloroplas:</text>
+      <text x="135" y="72">Tiada kloroplas</text>
+
+      <text x="0" y="108" font-weight="800" fill="#f472b6">✖ Vakuol:</text>
+      <text x="135" y="108">Vakuol kecil (atau tiada)</text>
+
+      <text x="0" y="144" font-weight="800" fill="#38bdf8">✔ Membran Sel:</text>
+      <text x="135" y="144">Ada (lapisan paling luar)</text>
+
+      <text x="0" y="180" font-weight="800" fill="#38bdf8">✔ Nukleus:</text>
+      <text x="135" y="180">Ada (di tengah sel)</text>
+
+      <text x="0" y="216" font-weight="800" fill="#facc15">✔ Simpanan:</text>
+      <text x="135" y="216">Karbohidrat bentuk glikogen</text>
+    </g>
+  </g>
+
+  <!-- Right Column: Sel Tumbuhan Card -->
+  <g transform="translate(435, 80)">
+    <rect width="365" height="320" rx="16" fill="url(#plantCardGrad)" stroke="#22c55e" stroke-width="1.8"/>
+    <!-- Card Header -->
+    <rect width="365" height="42" rx="16" fill="rgba(34,197,94,0.25)"/>
+    <text x="20" y="27" font-family="'Nunito', sans-serif" font-weight="900" font-size="16" fill="#f0fdf4">🌿 SEL TUMBUHAN</text>
+
+    <!-- Checklist items -->
+    <g transform="translate(20, 68)" font-family="'Nunito', sans-serif" font-size="12.5" fill="#f1f5f9">
+      <text x="0" y="0" font-weight="800" fill="#22c55e">✔ Bentuk Sel:</text>
+      <text x="135" y="0">Bentuk tetap (tegar/heksagon)</text>
+
+      <text x="0" y="36" font-weight="800" fill="#22c55e">✔ Dinding Sel:</text>
+      <text x="135" y="36">Ada (selulosa kuat di luar)</text>
+
+      <text x="0" y="72" font-weight="800" fill="#22c55e">✔ Kloroplas:</text>
+      <text x="135" y="72">Ada (klorofil fotosintesis)</text>
+
+      <text x="0" y="108" font-weight="800" fill="#22c55e">✔ Vakuol:</text>
+      <text x="135" y="108">Vakuol pusat bersaiz besar</text>
+
+      <text x="0" y="144" font-weight="800" fill="#38bdf8">✔ Membran Sel:</text>
+      <text x="135" y="144">Ada (bawah dinding sel)</text>
+
+      <text x="0" y="180" font-weight="800" fill="#38bdf8">✔ Nukleus:</text>
+      <text x="135" y="180">Ada (di tepi ditolak vakuol)</text>
+
+      <text x="0" y="216" font-weight="800" fill="#facc15">✔ Simpanan:</text>
+      <text x="135" y="216">Karbohidrat bentuk kanji</text>
+    </g>
+  </g>
+
+  <!-- Bottom Common Features Bar -->
+  <g transform="translate(40, 420)">
+    <rect width="760" height="74" rx="14" fill="#132738" stroke="#334155" stroke-width="1.2"/>
+    <text x="24" y="26" font-family="'Nunito', sans-serif" font-weight="900" font-size="13" fill="#2dd4bf">
+      🧬 PERSAMAAN UTAMA KEDUA-DUA SEL (KSSM TINGKATAN 1 BAB 2):
+    </text>
+    <text x="24" y="52" font-family="'Nunito', sans-serif" font-weight="700" font-size="12" fill="#cbd5e1">
+      Kedua-dua sel mempunyai <tspan fill="#38bdf8" font-weight="900">Membran Sel</tspan>, <tspan fill="#fb923c" font-weight="900">Sitoplasma</tspan>, <tspan fill="#c084fc" font-weight="900">Nukleus</tspan>, dan <tspan fill="#fbbf24" font-weight="900">Mitokondrion</tspan> untuk menjalankan proses asas kehidupan.
+    </text>
+  </g>
+</svg>
+

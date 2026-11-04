@@ -264,7 +264,13 @@ async function runTest() {
     }
 
     // Beri masa GLB memuat turun melalui server
-    await sleep(1500);
+    await evalExpr(`(async () => {
+      if (window.CellQuestAR && window.CellQuestAR.preloadAllGLBs) {
+        await window.CellQuestAR.preloadAllGLBs();
+      }
+      return true;
+    })()`);
+    await sleep(2500);
 
     // Kumpulkan data audit semua 8 stesen di Makmal 3D
     const labAudit = await evalExpr(`(() => {
