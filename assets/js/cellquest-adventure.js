@@ -315,16 +315,16 @@
   // Dalam Mod WebXR Spasial: koordinat dalam ruang XR sebenar.
 
   // Susun atur 8 stesen AR dunia dengan Azimut Relatif (0°=Hadapan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
-  // dan Elevasi (sudut dongak + / tunduk - dalam darjah). Boleh dikonfigurasi pada bila-bila masa.
+  // dan Elevasi (sudut dongak + / tunduk - dalam darjah). Diedarkan luas 360° dengan variasi ketinggian.
   const AR_WORLD_STATIONS = [
-    { id: 'stn-1-nucleus',      slotNumber: 1, stationNumber: 1, markerId: 1, directionName: 'Kanan',          stationKey: 'nucleus',      azimuthDeg: 90,  angleDeg: 90,  elevationDeg: 5,   radius: 5.4, height: 1.45, spatialOffset: [ 1.45,  0.12,  0.0],  label: 'Nukleus',                      color: 0x8b5cf6, icon: '🧬' },
-    { id: 'stn-2-membrane',     slotNumber: 2, stationNumber: 2, markerId: 4, directionName: 'Kanan Hadapan',  stationKey: 'membrane',     azimuthDeg: 45,  angleDeg: 45,  elevationDeg: -8,  radius: 5.4, height: 1.45, spatialOffset: [ 1.05, -0.18, -1.05], label: 'Membran Sel',                  color: 0x3b82f6, icon: '🛡️' },
-    { id: 'stn-3-cytoplasm',    slotNumber: 3, stationNumber: 3, markerId: 6, directionName: 'Kanan Belakang', stationKey: 'cytoplasm',    azimuthDeg: 135, angleDeg: 135, elevationDeg: 12,  radius: 5.4, height: 1.45, spatialOffset: [ 1.05,  0.26,  1.05], label: 'Sitoplasma',                   color: 0xeab308, icon: '💧' },
-    { id: 'stn-4-mitochondria', slotNumber: 4, stationNumber: 4, markerId: 0, directionName: 'Kiri',           stationKey: 'mitochondria', azimuthDeg: 270, angleDeg: 270, elevationDeg: 15,  radius: 5.4, height: 1.45, spatialOffset: [-1.45,  0.32,  0.0],  label: 'Mitokondrion',                 color: 0xf97316, icon: '⚡' },
-    { id: 'stn-5-chloroplast',  slotNumber: 5, stationNumber: 5, markerId: 5, directionName: 'Kiri Belakang',  stationKey: 'chloroplast',  azimuthDeg: 225, angleDeg: 225, elevationDeg: -5,  radius: 5.4, height: 1.45, spatialOffset: [-1.05, -0.12,  1.05], label: 'Kloroplas',                    color: 0x22c55e, icon: '🌿' },
-    { id: 'stn-6-cellwall',     slotNumber: 6, stationNumber: 6, markerId: 3, directionName: 'Kiri Hadapan',   stationKey: 'wall',         azimuthDeg: 315, angleDeg: 315, elevationDeg: 8,   radius: 5.4, height: 1.45, spatialOffset: [-1.05,  0.18, -1.05], label: 'Dinding Sel',                  color: 0x92400e, icon: '🧱' },
-    { id: 'stn-7-vacuole',      slotNumber: 7, stationNumber: 7, markerId: 7, directionName: 'Belakang',       stationKey: 'vacuole',      azimuthDeg: 180, angleDeg: 180, elevationDeg: 0,   radius: 5.4, height: 1.45, spatialOffset: [ 0.0,   0.0,   1.45], label: 'Vakuol',                       color: 0x06b6d4, icon: '🫧' },
-    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Hadapan',        stationKey: 'comparison',   azimuthDeg: 0,   angleDeg: 0,   elevationDeg: -12, radius: 5.4, height: 1.45, spatialOffset: [ 0.0,  -0.26, -1.45], label: 'Retikulum Endoplasma',         color: 0xec4899, icon: '⚖️' }
+    { id: 'stn-1-nucleus',      slotNumber: 1, stationNumber: 1, markerId: 1, directionName: 'Hadapan',        stationKey: 'nucleus',      azimuthDeg: 0,   angleDeg: 0,   elevationDeg: -8,  radius: 5.4, height: 1.45, spatialOffset: [ 0.0,  -0.18, -1.45], label: 'Nukleus',                      color: 0x8b5cf6, icon: '🧬' },
+    { id: 'stn-2-membrane',     slotNumber: 2, stationNumber: 2, markerId: 4, directionName: 'Kanan Hadapan',  stationKey: 'membrane',     azimuthDeg: 45,  angleDeg: 45,  elevationDeg: -6,  radius: 5.4, height: 1.45, spatialOffset: [ 1.05, -0.14, -1.05], label: 'Membran Sel',                  color: 0x3b82f6, icon: '🛡️' },
+    { id: 'stn-3-cytoplasm',    slotNumber: 3, stationNumber: 3, markerId: 6, directionName: 'Kanan',          stationKey: 'cytoplasm',    azimuthDeg: 90,  angleDeg: 90,  elevationDeg: 4,   radius: 5.4, height: 1.45, spatialOffset: [ 1.45,  0.09,  0.0],  label: 'Sitoplasma',                   color: 0xeab308, icon: '💧' },
+    { id: 'stn-4-mitochondria', slotNumber: 4, stationNumber: 4, markerId: 0, directionName: 'Kanan Belakang', stationKey: 'mitochondria', azimuthDeg: 135, angleDeg: 135, elevationDeg: 18,  radius: 5.4, height: 1.45, spatialOffset: [ 1.05,  0.40,  1.05], label: 'Mitokondrion',                 color: 0xf97316, icon: '⚡' },
+    { id: 'stn-5-chloroplast',  slotNumber: 5, stationNumber: 5, markerId: 5, directionName: 'Belakang',       stationKey: 'chloroplast',  azimuthDeg: 180, angleDeg: 180, elevationDeg: 22,  radius: 5.4, height: 1.45, spatialOffset: [ 0.0,   0.49,  1.45], label: 'Kloroplas',                    color: 0x22c55e, icon: '🌿' },
+    { id: 'stn-6-cellwall',     slotNumber: 6, stationNumber: 6, markerId: 3, directionName: 'Kiri Belakang',  stationKey: 'wall',         azimuthDeg: 225, angleDeg: 225, elevationDeg: -7,  radius: 5.4, height: 1.45, spatialOffset: [-1.05, -0.16,  1.05], label: 'Dinding Sel',                  color: 0x92400e, icon: '🧱' },
+    { id: 'stn-7-vacuole',      slotNumber: 7, stationNumber: 7, markerId: 7, directionName: 'Kiri',           stationKey: 'vacuole',      azimuthDeg: 270, angleDeg: 270, elevationDeg: 12,  radius: 5.4, height: 1.45, spatialOffset: [-1.45,  0.27,  0.0],  label: 'Vakuol',                       color: 0x06b6d4, icon: '🫧' },
+    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Kiri Hadapan',   stationKey: 'comparison',   azimuthDeg: 315, angleDeg: 315, elevationDeg: -5,  radius: 5.4, height: 1.45, spatialOffset: [-1.05, -0.11, -1.05], label: 'Retikulum Endoplasma',         color: 0xec4899, icon: '⚖️' }
   ];
 
   // World-locked AR state — dikekalkan sepanjang sesi
@@ -829,6 +829,8 @@
     DOM.lobbyUserName = document.getElementById('lobby-user-name');
     DOM.lobbyUserRole = document.getElementById('lobby-user-role');
     DOM.lobbyStatBadges = document.getElementById('lobby-stat-badges');
+    DOM.lobbyBtnNotes = document.getElementById('lobby-btn-notes');
+    DOM.lobbyBtnVideos = document.getElementById('lobby-btn-videos');
     DOM.galleryCards = document.querySelectorAll('.cq-gallery-card');
     DOM.galleryDetailModal = document.getElementById('gallery-detail-modal');
     DOM.closeGalleryDetailBtn = document.getElementById('close-gallery-detail-btn');
@@ -3285,6 +3287,12 @@
     if (DOM.lobbyBtnModC) {
       DOM.lobbyBtnModC.addEventListener('click', () => launchMode('marker-ar'));
     }
+    if (DOM.lobbyBtnNotes) {
+      DOM.lobbyBtnNotes.addEventListener('click', () => SoundFX.interact());
+    }
+    if (DOM.lobbyBtnVideos) {
+      DOM.lobbyBtnVideos.addEventListener('click', () => SoundFX.interact());
+    }
 
     if (DOM.galleryCards && DOM.galleryCards.length) {
       DOM.galleryCards.forEach(card => {
@@ -4050,6 +4058,7 @@
 
   // Station completed visual feedback in 3D world, AR mini lab & HUD
   function markStationCompleted(stationNumber) {
+    State.lastCompletedStationNumber = stationNumber;
     const stnMesh = stationMeshes.find(s => s.data.number === stationNumber);
     if (stnMesh) {
       stnMesh.halo.material.color.setHex(0x10b981);
@@ -4293,6 +4302,7 @@
     State.durationSeconds = 0;
     State.attemptsCount = {};
     State.isCompleted = false;
+    State.lastCompletedStationNumber = null;
 
     // Reset Misi Akhir: Treasure Hunt ARSELNel
     State.treasureHuntUnlocked = false;
@@ -4381,7 +4391,40 @@
     }
   ];
 
-  // Bina model 3D Peti Harta Karun ARSELNel di koordinat dunia (Azimuth 330°, Elevasi +8°, Jarak 5.0m)
+  // Dapatkan nama arah kardinal daripada darjah azimut (0..360)
+  function getDirectionNameFromAzimuth(deg) {
+    const norm = ((deg % 360) + 360) % 360;
+    if (norm >= 337.5 || norm < 22.5) return 'Hadapan';
+    if (norm >= 22.5 && norm < 67.5) return 'Kanan Hadapan';
+    if (norm >= 67.5 && norm < 112.5) return 'Kanan';
+    if (norm >= 112.5 && norm < 157.5) return 'Kanan Belakang';
+    if (norm >= 157.5 && norm < 202.5) return 'Belakang';
+    if (norm >= 202.5 && norm < 247.5) return 'Kiri Belakang';
+    if (norm >= 247.5 && norm < 292.5) return 'Kiri';
+    return 'Kiri Hadapan';
+  }
+
+  // Kira penempatan Peti Ganjaran AR di lokasi berasingan:
+  // - Jarak sudut sekurang-kurangnya 35° (khususnya 67.5°) dari stesen terakhir selesai
+  // - Tepat pada titik tengah antara dua stesen (selang 22.5° dari stesen terdekat) untuk elak pertindihan
+  // - Ketinggian +6° (pitch rendah-sederhana) & jarak 4.8m untuk kedalaman 3D tersendiri
+  function getRewardChestPlacement() {
+    const lastStnNum = State.lastCompletedStationNumber || 8;
+    const lastStn = AR_WORLD_STATIONS.find(s => s.stationNumber === lastStnNum) || AR_WORLD_STATIONS[7];
+    const lastAz = typeof lastStn.azimuthDeg === 'number' ? lastStn.azimuthDeg : 315;
+    const chestAz = ((lastAz + 67.5) % 360 + 360) % 360;
+    const chestEl = 6;
+    const chestRadius = 4.8;
+    const dirName = getDirectionNameFromAzimuth(chestAz);
+    return {
+      azimuthDeg: chestAz,
+      elevationDeg: chestEl,
+      radius: chestRadius,
+      directionName: dirName
+    };
+  }
+
+  // Bina model 3D Peti Harta Karun ARSELNel di koordinat dunia (Kedudukan Dinamik & Hologram Terapung)
   function buildTreasureChest3D() {
     if (arWorldState.treasureChestGroup) {
       return arWorldState.treasureChestGroup;
@@ -4504,23 +4547,27 @@
     }
     group.add(partGroup);
 
-    // 5. Pedestal Hologram & Gelang Penanda di lantai
-    const pedGeo = new THREE.CylinderGeometry(0.75, 0.92, 0.14, 24);
-    const pedMat = new THREE.MeshStandardMaterial({
-      color: 0x0f172a, roughness: 0.35, metalness: 0.4, transparent: true, opacity: 0.85
-    });
-    const pedestal = new THREE.Mesh(pedGeo, pedMat);
-    pedestal.position.y = -0.07;
-    group.add(pedestal);
+    // 5. Hologram Gelang Penanda Terapung (tanpa piring/pedestal tebal)
+    const chestHoloGroup = new THREE.Group();
+    chestHoloGroup.position.y = 0.01;
 
-    const ringGeo = new THREE.RingGeometry(0.85, 1.08, 32);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.8
+    const ringGeo1 = new THREE.RingGeometry(0.60, 0.65, 48);
+    const ringMat1 = new THREE.MeshBasicMaterial({
+      color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.8, depthWrite: false
     });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.01;
-    group.add(ring);
+    const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+    ring1.rotation.x = -Math.PI / 2;
+    chestHoloGroup.add(ring1);
+
+    const ringGeo2 = new THREE.RingGeometry(0.82, 0.88, 48);
+    const ringMat2 = new THREE.MeshBasicMaterial({
+      color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.6, depthWrite: false
+    });
+    const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+    ring2.rotation.x = -Math.PI / 2;
+    chestHoloGroup.add(ring2);
+
+    group.add(chestHoloGroup);
 
     // 6. Penanda Interaksi (Glowing Diamond Beacon di atas peti)
     const beacon = createBeaconMesh(0xf59e0b);
@@ -4550,20 +4597,22 @@
       stationConfig: arWorldState.treasureChestConfig,
       labelGroup,
       beacon,
-      ring,
+      ring: ring1,
       hitCollider,
       isTreasureChest: true
     };
 
-    // Tetapkan koordinat dunia (Azimuth 330°, Elevasi +8°, Radius 5.0m)
-    const azRad = THREE.MathUtils.degToRad(330);
-    const elRad = THREE.MathUtils.degToRad(8);
-    const R = 5.0;
+    // Tetapkan koordinat dunia menggunakan konfigurasi dinamik
+    const chestCfg = arWorldState.treasureChestConfig;
+    const azRad = THREE.MathUtils.degToRad(chestCfg.azimuthDeg);
+    const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg);
+    const R = chestCfg.radius || 4.8;
     const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
     const horizR = Math.cos(elRad) * R;
     group.position.x = Math.sin(azRad) * horizR;
     group.position.z = -Math.cos(azRad) * horizR;
     group.position.y = eyeY + Math.sin(elRad) * R;
+    group.lookAt(0, group.position.y, 0);
 
     group.visible = false;
     scene.add(group);
@@ -4571,21 +4620,39 @@
     return group;
   }
 
-  // Mulakan Misi Akhir: Paparkan Peti 3D di koordinat 330° & tukar sasaran Smart Radar
+  // Mulakan Misi Akhir: Paparkan Peti 3D di lokasi berasingan & tukar sasaran Smart Radar
   function startTreasureHuntMission() {
     hideTreasureHuntIntroModal();
     State.treasureHuntActive = true;
     arWorldState.isTreasureHuntActive = true;
 
+    // Kira kedudukan dinamik peti berasingan daripada stesen terakhir selesai
+    const placement = getRewardChestPlacement();
+    arWorldState.treasureChestConfig.azimuthDeg = placement.azimuthDeg;
+    arWorldState.treasureChestConfig.elevationDeg = placement.elevationDeg;
+    arWorldState.treasureChestConfig.radius = placement.radius;
+    arWorldState.treasureChestConfig.directionName = placement.directionName;
+
     buildTreasureChest3D();
     if (arWorldState.treasureChestGroup) {
+      const azRad = THREE.MathUtils.degToRad(placement.azimuthDeg);
+      const elRad = THREE.MathUtils.degToRad(placement.elevationDeg);
+      const R = placement.radius || 4.8;
+      const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
+      const horizR = Math.cos(elRad) * R;
+      arWorldState.treasureChestGroup.position.set(
+        Math.sin(azRad) * horizR,
+        eyeY + Math.sin(elRad) * R,
+        -Math.cos(azRad) * horizR
+      );
+      arWorldState.treasureChestGroup.lookAt(0, eyeY + Math.sin(elRad) * R, 0);
       arWorldState.treasureChestGroup.visible = true;
     }
 
     // Tukar sasaran Smart Radar kepada Peti ARSELNel (-1)
     selectRadarTargetStation(-1, false);
     SoundFX.powerUp();
-    alertToast('🎁 Misi Akhir Diaktifkan! Smart Radar kini menghala ke Peti ARSELNel (330°, +8°)!');
+    alertToast('TAHNIAH! Semua stesen berjaya diselesaikan. Cari Peti Ganjaran AR untuk menuntut hadiah anda!');
   }
 
   // Buka Modal Cabaran 3 Soalan Bonus Peti Harta Karun
@@ -4757,6 +4824,10 @@
     }
     if (DOM.treasureRewardModal) {
       DOM.treasureRewardModal.classList.add('open');
+    }
+    // Sembunyikan peti 3D daripada ruang AR selepas dituntut sepenuhnya
+    if (arWorldState.treasureChestGroup) {
+      arWorldState.treasureChestGroup.visible = false;
     }
     SoundFX.fanfare();
   }
@@ -5438,27 +5509,51 @@
       labelGroup.position.set(0, 1.24, 0);
       stationGroup.add(labelGroup);
 
-      // 3. Pedestal hologram & gelang penanda di bawah model
-      const pedGeo = new THREE.CylinderGeometry(0.65, 0.8, 0.14, 24);
-      const pedMat = new THREE.MeshStandardMaterial({
-        color: 0x0f172a,
-        roughness: 0.35,
-        metalness: 0.4,
-        transparent: true,
-        opacity: 0.85
-      });
-      const pedestal = new THREE.Mesh(pedGeo, pedMat);
-      pedestal.position.y = -0.68;
-      stationGroup.add(pedestal);
+      // 3. Floating Scientific Hologram (Cincin nipis berbilang lapisan & cahaya holografik tanpa sebarang piring/meja fizikal)
+      const holoGroup = new THREE.Group();
+      holoGroup.name = 'HologramBase';
+      holoGroup.position.y = -0.45;
 
-      const ringGeo = new THREE.RingGeometry(0.75, 0.95, 32);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: stnConfig.color, side: THREE.DoubleSide, transparent: true, opacity: 0.75
+      // Cincin hologram luar (luar nipis cyan/sky)
+      const outerRingGeo = new THREE.RingGeometry(0.66, 0.70, 48);
+      const outerRingMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false
       });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.y = -0.6;
-      stationGroup.add(ring);
+      const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
+      outerRing.rotation.x = -Math.PI / 2;
+      holoGroup.add(outerRing);
+
+      // Cincin hologram dalam (warna stesen)
+      const innerRingGeo = new THREE.RingGeometry(0.44, 0.48, 48);
+      const innerRingMat = new THREE.MeshBasicMaterial({
+        color: stnConfig.color,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.70,
+        depthWrite: false
+      });
+      const innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
+      innerRing.rotation.x = -Math.PI / 2;
+      holoGroup.add(innerRing);
+
+      // Piring unjuran cahaya hologram pusat (sangat lembut & lut sinar)
+      const centerDiscGeo = new THREE.RingGeometry(0.02, 0.26, 32);
+      const centerDiscMat = new THREE.MeshBasicMaterial({
+        color: 0x2dd4bf,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.20,
+        depthWrite: false
+      });
+      const centerDisc = new THREE.Mesh(centerDiscGeo, centerDiscMat);
+      centerDisc.rotation.x = -Math.PI / 2;
+      holoGroup.add(centerDisc);
+
+      stationGroup.add(holoGroup);
 
       // 4. Penanda Interaksi (Glowing Interactive Beacon di atas papan nama)
       const beacon = createBeaconMesh(stnConfig.color);
@@ -5466,21 +5561,34 @@
       beacon.position.set(0, 1.95, 0);
       stationGroup.add(beacon);
 
-      // 5. Tiang cahaya lembut (beam)
-      const beamGeo = new THREE.CylinderGeometry(0.06, 0.45, 2.6, 12);
+      // 5. Tiang cahaya hologram lembut (cone beam)
+      const beamGeo = new THREE.CylinderGeometry(0.04, 0.46, 2.0, 24, 1, true);
       const beamMat = new THREE.MeshBasicMaterial({
-        color: stnConfig.color, transparent: true, opacity: 0.12, depthWrite: false
+        color: 0x38bdf8, transparent: true, opacity: 0.09, depthWrite: false, side: THREE.DoubleSide
       });
       const beam = new THREE.Mesh(beamGeo, beamMat);
-      beam.position.y = 0.55;
+      beam.position.y = 0.40;
       stationGroup.add(beam);
+
+      // 5.1 Zarah holografik halus terapung mengelilingi organel
+      const holoParticles = [];
+      const pGeo = new THREE.OctahedronGeometry(0.025, 0);
+      const pMat = new THREE.MeshBasicMaterial({ color: 0x5eead4, transparent: true, opacity: 0.75 });
+      for (let pIdx = 0; pIdx < 4; pIdx++) {
+        const pMesh = new THREE.Mesh(pGeo, pMat.clone());
+        const angle = (pIdx / 4) * Math.PI * 2;
+        pMesh.position.set(Math.cos(angle) * 0.40, -0.2 + (pIdx * 0.15), Math.sin(angle) * 0.40);
+        pMesh.userData = { angle, baseRadius: 0.40, baseHeight: pMesh.position.y, speed: 0.8 + pIdx * 0.2 };
+        stationGroup.add(pMesh);
+        holoParticles.push(pMesh);
+      }
 
       // 6. Sfera collider besar supaya mudah diketik pada skrin iPad/telefon
       const hitCollider = new THREE.Mesh(
-        new THREE.SphereGeometry(1.15, 12, 12),
+        new THREE.SphereGeometry(1.25, 12, 12),
         new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
       );
-      hitCollider.position.set(0, 0.25, 0);
+      hitCollider.position.set(0, 0.35, 0);
       hitCollider.userData = {
         id: stnConfig.stationKey,
         stationNumber: stnConfig.stationNumber,
@@ -5496,7 +5604,12 @@
         organelleModel,
         labelGroup,
         beacon,
-        ring,
+        ring: outerRing,
+        outerRing,
+        innerRing,
+        centerDisc,
+        holoGroup,
+        holoParticles,
         beam,
         baseAngleDeg: stnConfig.angleDeg,
         radius: stnConfig.radius
@@ -5541,9 +5654,10 @@
 
     // Kemas kini kedudukan Peti Harta Karun ARSELNel jika wujud
     if (arWorldState.treasureChestGroup) {
-      const azRad = THREE.MathUtils.degToRad(330);
-      const elRad = THREE.MathUtils.degToRad(8);
-      const R = 5.0;
+      const chestCfg = arWorldState.treasureChestConfig;
+      const azRad = THREE.MathUtils.degToRad(chestCfg.azimuthDeg);
+      const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg);
+      const R = chestCfg.radius || 4.8;
       const horizR = Math.cos(elRad) * R;
       const chestX = Math.sin(azRad) * horizR;
       const chestZ = -Math.cos(azRad) * horizR;
@@ -5985,15 +6099,16 @@
       }
     });
 
-    // Semak juga pengesanan Peti Harta Karun ARSELNel jika Misi Akhir aktif
-    if (State.treasureHuntActive && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
+    // Semak juga pengesanan Peti Harta Karun ARSELNel jika Misi Akhir aktif & belum dituntut
+    if (State.treasureHuntActive && !State.treasureHuntCompleted && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
       const chestGroup = arWorldState.treasureChestGroup;
+      const chestCfg = arWorldState.treasureChestConfig;
       const chestDir = new THREE.Vector3();
       chestDir.subVectors(chestGroup.position, camPos).normalize();
       const chestDot = camDir.dot(chestDir);
       const chestAngleDeg = THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, chestDot))));
-      const deltaAzChest = Math.abs(shortestAngleDeltaDeg(330, arWorldState.currentHeadingDeg));
-      const deltaElChest = Math.abs(8 - arWorldState.currentPitchDeg);
+      const deltaAzChest = Math.abs(shortestAngleDeltaDeg(chestCfg.azimuthDeg, arWorldState.currentHeadingDeg));
+      const deltaElChest = Math.abs((chestCfg.elevationDeg || 6) - arWorldState.currentPitchDeg);
       const isChestWithinDiscovery = (deltaAzChest <= hTol && deltaElChest <= vTol) || (chestAngleDeg <= Math.hypot(hTol, vTol));
 
       if (isChestWithinDiscovery) {
@@ -6009,13 +6124,18 @@
     arWorldState.stationGroups.forEach((group, idx) => {
       const inFOV = (idx === closestIdx);
       const isTarget = (idx === arWorldState.targetStationIdx);
-      const ring = group.userData.ring;
+      const outerRing = group.userData.outerRing || group.userData.ring;
+      const innerRing = group.userData.innerRing;
       const beam = group.userData.beam;
-      if (ring) {
-        ring.material.opacity = inFOV ? 1.0 : (isTarget ? 0.85 : 0.45);
-        ring.scale.setScalar(inFOV ? 1.22 : (isTarget ? 1.10 : 1.0));
+      if (outerRing) {
+        outerRing.material.opacity = inFOV ? 0.90 : (isTarget ? 0.75 : 0.45);
+        outerRing.scale.setScalar(inFOV ? 1.20 : (isTarget ? 1.08 : 1.0));
       }
-      if (beam) beam.material.opacity = inFOV ? 0.34 : (isTarget ? 0.20 : 0.08);
+      if (innerRing) {
+        innerRing.material.opacity = inFOV ? 0.95 : (isTarget ? 0.85 : 0.55);
+        innerRing.scale.setScalar(inFOV ? 1.20 : (isTarget ? 1.08 : 1.0));
+      }
+      if (beam) beam.material.opacity = inFOV ? 0.28 : (isTarget ? 0.18 : 0.08);
     });
 
     // Tunjuk banner "Stesen <Nama> Ditemui!" atau "Peti Harta Karun Ditemui!"
@@ -6825,8 +6945,10 @@
     if (!listHost) return;
     listHost.innerHTML = '';
 
-    // Jika Treasure Hunt sedang aktif, letakkan Peti ARSELNel di bahagian atas senarai sasaran!
-    if (State.treasureHuntActive) {
+    // Jika Treasure Hunt sedang aktif & belum dituntut, letakkan Peti ARSELNel di bahagian atas senarai sasaran!
+    if (State.treasureHuntActive && !State.treasureHuntCompleted) {
+      const chestCfg = arWorldState.treasureChestConfig;
+      const sgn = (chestCfg.elevationDeg >= 0) ? '+' : '';
       const chestItem = document.createElement('div');
       const isChestTarget = (arWorldState.targetStationIdx === -1);
       chestItem.className = `cq-radar-list-item${isChestTarget ? ' active' : ''}`;
@@ -6834,7 +6956,7 @@
         <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
           <span style="font-size:14px;">🎁</span>
           <span style="font-weight:900; font-size:11px; color:#fde047; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
-            Peti ARSELNel (330°, +8°)
+            Peti ARSELNel (${Math.round(chestCfg.azimuthDeg)}°, ${sgn}${Math.round(chestCfg.elevationDeg)}°)
           </span>
         </div>
         <span class="cq-stn-badge ${State.treasureHuntCompleted ? 'done' : 'discovered'}">
@@ -6997,9 +7119,9 @@
       ctx.fillText(String(cfg.stationNumber), dotX, dotY + 0.5);
     });
 
-    // 5.1 Lukis titik Peti Harta Karun ARSELNel pada azimut 330° jika Misi Akhir aktif
-    if (State.treasureHuntActive) {
-      const chestAngleRad = THREE.MathUtils.degToRad(330);
+    // 5.1 Lukis titik Peti Harta Karun ARSELNel pada azimut dinamik jika Misi Akhir aktif & belum selesai
+    if (State.treasureHuntActive && !State.treasureHuntCompleted) {
+      const chestAngleRad = THREE.MathUtils.degToRad(arWorldState.treasureChestConfig.azimuthDeg);
       const chestRelAngle = chestAngleRad - headingRad;
       const cDotR = r - 15;
       const chestDotX = cx + Math.sin(chestRelAngle) * cDotR;
@@ -7243,6 +7365,22 @@
       if (group.userData.beacon) {
         group.userData.beacon.rotation.y = elapsedTime * 1.5;
       }
+      // Animasi apungan hologram & putaran cincin bercahaya
+      if (group.userData.outerRing) {
+        group.userData.outerRing.rotation.z = -elapsedTime * 0.25;
+      }
+      if (group.userData.innerRing) {
+        group.userData.innerRing.rotation.z = elapsedTime * 0.38;
+      }
+      if (Array.isArray(group.userData.holoParticles)) {
+        group.userData.holoParticles.forEach(p => {
+          const u = p.userData;
+          const a = u.angle + elapsedTime * u.speed * 0.45;
+          p.position.x = Math.cos(a) * u.baseRadius;
+          p.position.z = Math.sin(a) * u.baseRadius;
+          p.position.y = u.baseHeight + Math.sin(elapsedTime * 1.6 + u.angle) * 0.05;
+        });
+      }
       // Pastikan papan nama sentiasa menghadap kamera dengan tegak & skala terhad mengikut jarak (Bahagian 5)
       const stnPos = new THREE.Vector3();
       group.getWorldPosition(stnPos);
@@ -7257,12 +7395,14 @@
     });
 
     // Animasi Peti Harta Karun ARSELNel (Misi Akhir)
-    if (State.treasureHuntActive && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
+    if (State.treasureHuntActive && !State.treasureHuntCompleted && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
       const chest = arWorldState.treasureChestGroup;
+      const chestCfg = arWorldState.treasureChestConfig;
       const baseEyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
-      const elRad = THREE.MathUtils.degToRad(8);
-      const baseY = baseEyeY + Math.sin(elRad) * 5.0;
-      chest.position.y = baseY + Math.sin(elapsedTime * 2.2) * 0.06;
+      const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg || 6);
+      const R = chestCfg.radius || 4.8;
+      const baseY = baseEyeY + Math.sin(elRad) * R;
+      chest.position.y = baseY + Math.sin(elapsedTime * 2.2) * 0.05;
 
       if (chest.userData.beacon) {
         chest.userData.beacon.rotation.y = elapsedTime * 2.2;
@@ -9261,108 +9401,8 @@
 
   let isLobbyActive = false;
 
-  const GALLERY_CONTENT = {
-    animal: {
-      chip: 'KSSM SAINS TINGKATAN 1 • BAB 2',
-      title: 'Struktur & Organel Sel Haiwan',
-      subtitle: 'Ciri-ciri unik dan fungsi komponen sel haiwan mengikut sukatan pelajaran.',
-      img: '../assets/images/galeri_sel_haiwan.svg',
-      notes: [
-        {
-          heading: '🔬 Bentuk Sel Tidak Tetap',
-          text: 'Sel haiwan tidak mempunyai dinding sel yang tegar, menjadikannya mempunyai bentuk yang tidak tetap dan fleksibel.'
-        },
-        {
-          heading: '🧬 Nukleus & Bahan Genetik',
-          text: 'Pusat kawalan utama sel yang mengandungi kromosom dan DNA. Mengawal segala aktiviti biokimia dan pewarisan ciri sel.'
-        },
-        {
-          heading: '🛡️ Membran Sel (Plasma Membrane)',
-          text: 'Lapisan luar separa telap yang menyelubungi sel. Mengawal atur keluar masuk bahan seperti oksigen, glukosa dan bahan buangan.'
-        },
-        {
-          heading: '🧪 Sitoplasma',
-          text: 'Medium seperti jeli yang mengisi ruang antara nukleus dan membran sel. Tempat berlakunya tindak balas biokimia penting.'
-        },
-        {
-          heading: '⚡ Mitokondrion (Powerhouse Sel)',
-          text: 'Stesen janakuasa sel yang menjana tenaga dalam bentuk molekul ATP melalui respirasi selular untuk semua aktiviti hidupan.'
-        },
-        {
-          heading: '💧 Vakuol Kecil / Tiada',
-          text: 'Kebanyakan sel haiwan tidak mempunyai vakuol, atau hanya mempunyai vakuol bersaiz kecil untuk menyimpan nutrien atau air.'
-        },
-        {
-          heading: '🍞 Simpanan Karbohidrat: Glikogen',
-          text: 'Sel haiwan menyimpan karbohidrat berlebihan dalam bentuk glikogen (bukan kanji).'
-        }
-      ]
-    },
-    plant: {
-      chip: 'KSSM SAINS TINGKATAN 1 • BAB 2',
-      title: 'Struktur & Organel Sel Tumbuhan',
-      subtitle: 'Ciri-ciri khas tumbuhan untuk sokongan mekanikal dan fotosintesis.',
-      img: '../assets/images/galeri_sel_tumbuhan.svg',
-      notes: [
-        {
-          heading: '🧱 Dinding Sel (Cell Wall)',
-          text: 'Lapisan luar tegar daripada gentian selulosa. Memberikan bentuk tetap, kekuatan fizikal dan sokongan mekanikal kepada sel tumbuhan.'
-        },
-        {
-          heading: '🌿 Kloroplas & Klorofil',
-          text: 'Organel berbentuk cakera yang mengandungi pigmen klorofil hijau untuk menyerap cahaya matahari bagi proses fotosintesis.'
-        },
-        {
-          heading: '💦 Vakuol Besar (Central Vacuole)',
-          text: 'Kantung besar berisi cecair sap sel (air, garam mineral, gula). Mengekalkan kesegahan sel supaya tumbuhan tidak layu.'
-        },
-        {
-          heading: '🛡️ Membran Sel',
-          text: 'Terletak di bawah dinding sel. Membran telap memilih yang mengawal pergerakan bahan ke dalam dan keluar sel.'
-        },
-        {
-          heading: '⚡ Mitokondrion & Nukleus',
-          text: 'Sel tumbuhan juga mempunyai nukleus untuk kawalan genetik dan mitokondrion untuk menjana tenaga respirasi sel.'
-        },
-        {
-          heading: '🥔 Simpanan Karbohidrat: Kanji',
-          text: 'Glukosa berlebihan hasil daripada fotosintesis disimpan dalam bentuk butir kanji.'
-        }
-      ]
-    },
-    comparison: {
-      chip: 'KSSM SAINS TINGKATAN 1 • NOTA ULANGKAJI',
-      title: 'Perbandingan Sel Haiwan vs Sel Tumbuhan',
-      subtitle: 'Rumusan lengkap persamaan dan perbezaan utama mengikut sukatan KSSM.',
-      img: '../assets/images/galeri_perbandingan_sel.svg',
-      notes: [
-        {
-          heading: '✅ 4 Persamaan Utama Organel',
-          text: 'Kedua-dua sel haiwan dan tumbuhan memiliki: 1. Nukleus (pusat kawalan genetik), 2. Sitoplasma (medium tindak balas), 3. Membran Sel (kawal bahan), 4. Mitokondrion (penjana tenaga ATP).'
-        },
-        {
-          heading: '⚖️ Perbezaan 1 (Bentuk Sel): Tidak Tetap vs Tetap',
-          text: 'Sel haiwan mempunyai bentuk TIDAK TETAP, manakala sel tumbuhan mempunyai bentuk TETAP (kerana kehadiran dinding sel selulosa).'
-        },
-        {
-          heading: '⚖️ Perbezaan 2 (Dinding Sel): Tiada vs Ada',
-          text: 'Sel haiwan TIADA dinding sel, manakala sel tumbuhan MEMPUNYAI dinding sel tegar di luar membran.'
-        },
-        {
-          heading: '⚖️ Perbezaan 3 (Kloroplas): Tiada vs Ada',
-          text: 'Sel haiwan TIADA kloroplas (tidak boleh fotosintesis), manakala sel tumbuhan MEMPUNYAI kloroplas berisi klorofil hijau.'
-        },
-        {
-          heading: '⚖️ Perbezaan 4 (Vakuol): Tiada/Kecil vs Satu Vakuol Besar',
-          text: 'Sel haiwan tiada vakuol atau hanya bersaiz kecil, manakala sel tumbuhan matang mempunyai SATU VAKUOL PUSAT BESAR berisi sap sel.'
-        },
-        {
-          heading: '⚖️ Perbezaan 5 (Simpanan Karbohidrat): Glikogen vs Kanji',
-          text: 'Sel haiwan menyimpan karbohidrat dalam bentuk GLIKOGEN, manakala sel tumbuhan menyimpannya dalam bentuk KANJI.'
-        }
-      ]
-    }
-  };
+  // Stubs for backwards-compatibility
+  const GALLERY_CONTENT = {};
 
   function openScienceLabLobby() {
     isLobbyActive = true;
@@ -9432,36 +9472,11 @@
   }
 
   function openCellGalleryModal(type) {
-    const data = GALLERY_CONTENT[type] || GALLERY_CONTENT.animal;
     SoundFX.interact();
-
-    if (DOM.galleryDetailChip) DOM.galleryDetailChip.textContent = data.chip;
-    if (DOM.galleryDetailTitle) DOM.galleryDetailTitle.textContent = data.title;
-    if (DOM.galleryDetailSubtitle) DOM.galleryDetailSubtitle.textContent = data.subtitle;
-    if (DOM.galleryDetailImg) {
-      DOM.galleryDetailImg.src = data.img;
-      DOM.galleryDetailImg.alt = data.title;
-    }
-
-    if (DOM.galleryDetailNotes) {
-      DOM.galleryDetailNotes.innerHTML = data.notes.map(note => `
-        <div class="gallery-note-block">
-          <div class="gallery-note-heading">${note.heading}</div>
-          <p class="gallery-note-text">${note.text}</p>
-        </div>
-      `).join('');
-    }
-
-    if (DOM.galleryDetailModal) {
-      DOM.galleryDetailModal.classList.add('open');
-    }
   }
 
   function closeCellGalleryModal() {
     SoundFX.interact();
-    if (DOM.galleryDetailModal) {
-      DOM.galleryDetailModal.classList.remove('open');
-    }
   }
 
   // ==============================================================================
@@ -9540,20 +9555,16 @@
   }
 
   function renderLoop(timestamp, frame) {
+    // 0. Optimumkan Prestasi: Jeda rendering Three.js semasa Lobi Makmal aktif untuk elakkan beban GPU & lag
+    if (isLobbyActive) {
+      return;
+    }
+
     const delta = clock.getDelta();
     const elapsedTime = clock.getElapsedTime();
 
     // 1. Update Mode Specific Logic
-    if (isLobbyActive) {
-      if (camera) {
-        const orbitRadius = 11;
-        const orbitSpeed = 0.12;
-        camera.position.x = Math.sin(elapsedTime * orbitSpeed) * orbitRadius;
-        camera.position.z = Math.cos(elapsedTime * orbitSpeed) * orbitRadius;
-        camera.position.y = 2.4;
-        camera.lookAt(0, 1.8, 0);
-      }
-    } else if (State.mode === '3d') {
+    if (State.mode === '3d') {
       updatePlayerMovement();
     } else {
       // Animasi 8 stesen AR world-locked (Mod A Spatial & Mod C Orientasi)
@@ -9676,8 +9687,10 @@
       completed: State.treasureHuntCompleted,
       bonusClaimed: State.treasureHuntBonusClaimed,
       isChestLidOpen: arWorldState.isChestLidOpen,
-      chestGroup: arWorldState.treasureChestGroup
+      chestGroup: arWorldState.treasureChestGroup,
+      chestConfig: arWorldState.treasureChestConfig
     }),
+    getRewardChestPlacement: () => getRewardChestPlacement(),
     startTreasureHunt: () => startTreasureHuntMission(),
     openTreasureChestModal: () => openTreasureChestModal(),
     closeTreasureChestModal: () => closeTreasureChestModal(),

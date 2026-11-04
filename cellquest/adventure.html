@@ -45,218 +45,309 @@
   <div class="cq-touch-look-zone" id="touch-look-zone"></div>
 
   <!-- ==============================================================================
-       LOBI MAKMAL SAINS ARSELNEL (ENTRY POINT & MODE SELECTION + EDUCATIONAL GALLERY)
+       LOBI MAKMAL SAINS ARSELNEL (PORTAL PENGEMBARAAN & PUSAT PEMBELAJARAN)
        ============================================================================== -->
   <section class="cq-lobby-screen" id="cq-science-lobby" aria-label="Lobi Makmal Sains ARSelNel">
-    <div class="cq-lobby-backdrop"></div>
+    <!-- Hiasan sains ringan terapung (ringan tanpa lag GPU) -->
+    <div class="cq-lobby-decor-orb orb-1" aria-hidden="true"></div>
+    <div class="cq-lobby-decor-orb orb-2" aria-hidden="true"></div>
+    <div class="cq-lobby-decor-orb orb-3" aria-hidden="true"></div>
+
     <div class="cq-lobby-shell">
       
-      <!-- Topbar / Header -->
+      <!-- Topbar / Header (Kiri: Kembali | Kanan: Profil Murid) -->
       <header class="cq-lobby-header">
         <div class="cq-lobby-nav">
-          <a href="code.html" class="cq-lobby-back-btn" id="lobby-back-btn" title="Kembali ke Halaman CellQuest">
-            <span class="material-symbols-outlined">arrow_back</span>
-            <span>Kembali ke CellQuest</span>
-          </a>
-          <div class="cq-lobby-tag">
-            <span class="pulse-dot"></span>
-            <span>MAKMAL SAINS MAYA ARSELNEL</span>
+          <!-- Kiri: Butang Kembali ke CellQuest -->
+          <div class="cq-nav-left">
+            <a href="code.html" class="cq-lobby-back-btn" id="lobby-back-btn" title="Kembali ke Halaman Utama CellQuest">
+              <span class="material-symbols-outlined">arrow_back</span>
+              <span>Kembali ke CellQuest</span>
+            </a>
+          </div>
+
+          <!-- Kanan: Status Profil Murid -->
+          <div class="cq-nav-right">
+            <div class="cq-lobby-user-pill" id="lobby-user-pill">
+              <span class="material-symbols-outlined user-avatar-icon">account_circle</span>
+              <strong id="lobby-user-name">Saintis Muda</strong>
+              <div class="lobby-stat-chip" title="Lencana Terkumpul">
+                <span class="chip-icon">🎖️</span>
+                <strong id="lobby-stat-badges">0/8</strong>
+              </div>
+            </div>
           </div>
         </div>
 
+        <!-- Hero Section (Kiri: Tajuk & Subtajuk | Kanan: Ilustrasi 3D Sel & Robot Maskot) -->
         <div class="cq-lobby-hero">
           <div class="cq-lobby-hero-content">
+            <div class="cq-lobby-hero-badge">
+              <span class="material-symbols-outlined hero-badge-icon">science</span>
+              <span>MAKMAL EKSPLORASI BIOLOGI TINGKATAN 1</span>
+            </div>
             <h1 class="cq-lobby-title">
-              Selamat Datang ke <span class="highlight-text">Lobi Makmal Sains</span>
+              <span class="title-line-1">Terokai Dunia AR:</span>
+              <span class="title-line-2">
+                <span class="highlight-text">Pengembaraan Sel</span>
+                <svg class="title-brush-underline" viewBox="0 0 320 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 14C80 4 240 3 317 11" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/>
+                </svg>
+              </span>
             </h1>
             <p class="cq-lobby-subtitle">
-              Pilih mod pengembaraan anda dan terokai dunia sel haiwan serta sel tumbuhan secara interaktif (KSSM Tingkatan 1 Bab 2).
+              Jelajahi dunia sel haiwan dan sel tumbuhan melalui pengalaman 3D dan Augmented Reality (AR) yang menyeronokkan!
             </p>
           </div>
-          <div class="cq-lobby-user-pill" id="lobby-user-pill">
-            <span class="material-symbols-outlined user-avatar-icon">account_circle</span>
-            <div class="user-meta">
-              <strong id="lobby-user-name">Saintis Muda</strong>
-              <span id="lobby-user-role">Peneroka Sel</span>
-            </div>
-            <div class="lobby-stat-chip" title="Lencana Terkumpul">
-              <span>🎖️</span>
-              <strong id="lobby-stat-badges">0/8</strong>
+
+          <!-- Kanan: Ilustrasi 3D Komposisi Khas Sel Haiwan, Sel Tumbuhan & Robot Maskot ARSELNEL -->
+          <div class="cq-lobby-hero-visual" aria-hidden="true">
+            <div class="hero-3d-stage">
+              <!-- Zarah Terapung Hiasan Sains -->
+              <span class="hero-sparkle sp-1">✨</span>
+              <span class="hero-sparkle sp-2">⭐</span>
+              <span class="hero-sparkle sp-3">🧬</span>
+              <span class="hero-sparkle sp-4">✨</span>
+              <span class="hero-bubble bb-1"></span>
+              <span class="hero-bubble bb-2"></span>
+
+              <!-- 1. Sel Haiwan 3D (Terapung Kiri) -->
+              <div class="hero-entity-wrap entity-animal-cell" title="Model 3D Sel Haiwan">
+                <img src="../assets/images/lobby/hero-animal-cell.svg" alt="Model 3D Sel Haiwan" class="hero-entity-svg" />
+              </div>
+
+              <!-- 2. Sel Tumbuhan 3D (Terapung Tengah) -->
+              <div class="hero-entity-wrap entity-plant-cell" title="Model 3D Sel Tumbuhan">
+                <img src="../assets/images/lobby/hero-plant-cell.svg" alt="Model 3D Sel Tumbuhan" class="hero-entity-svg" />
+              </div>
+
+              <!-- 3. Robot Maskot ARSELNEL (Terapung Kanan Thumbs-up) -->
+              <div class="hero-entity-wrap entity-robot-mascot" title="Robot Maskot ARSELNEL">
+                <img src="../assets/images/lobby/hero-robot.svg" alt="Robot Maskot ARSELNEL" class="hero-entity-svg" />
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <!-- Main Body: Section 1 (3 Adventure Modes) -->
-      <div class="cq-lobby-section">
+      <!-- ==============================================================================
+           SEKSYEN 1: 3 MOD PENGEMBARAAN (REKA BENTUK KAD WARNA-WARNI BERDASARKAN GAMBAR RUJUKAN)
+           ============================================================================== -->
+      <section class="cq-lobby-section" aria-labelledby="section-modes-title">
         <div class="cq-section-heading">
           <div class="cq-section-title-wrap">
-            <span class="material-symbols-outlined section-icon">rocket_launch</span>
-            <h2>Pilih Mod Pengembaraan</h2>
+            <div class="section-icon-box">
+              <span class="material-symbols-outlined">sports_esports</span>
+            </div>
+            <h2 id="section-modes-title">Pilih Mod Pengembaraan</h2>
+            <span class="heading-divider">|</span>
+            <span class="cq-section-hint">Tiga pilihan mod mengikut kesesuaian peranti anda</span>
           </div>
-          <span class="cq-section-hint">Tiga pilihan mod mengikut kesesuaian peranti anda</span>
         </div>
 
         <div class="cq-lobby-modes-grid">
           
-          <!-- MOD A: Jelajah Makmal 3D -->
+          <!-- MOD A: JELAJAH MAKMAL 3D (TEMA BIRU) -->
           <div class="cq-lobby-card mod-a" id="lobby-card-mod-a">
             <div class="card-badge a-badge">MOD A • TANPA KAMERA</div>
-            <div class="card-icon-banner">
-              <span class="big-icon">🎮</span>
-              <span class="sec-icon">🖥️</span>
+            
+            <div class="card-hero-row">
+              <div class="card-text-col">
+                <h3 class="card-title">Jelajah Makmal 3D</h3>
+                <p class="card-desc">
+                  Terokai makmal maya, temui 8 stesen organel dan selesaikan cabaran sains.
+                </p>
+              </div>
+              <div class="card-illustration-col">
+                <img src="../assets/images/lobby/mode-a-3d-lab.svg" alt="Monitor 3D & Kawalan Permainan" class="card-3d-illus illus-mod-a" />
+              </div>
             </div>
-            <h3 class="card-title">Jelajah Makmal 3D</h3>
-            <p class="card-desc">
-              Terokai makmal maya secara bebas menggunakan papan kekunci (WASD), tetikus atau joystick telefon. 8 stesen penuh dengan model 3D berkualiti tinggi, kuiz dan lencana.
-            </p>
-            <div class="card-features">
-              <div class="feature-item"><span class="check-icon">✓</span> Bebas bergerak dalam bilik makmal 3D</div>
-              <div class="feature-item"><span class="check-icon">✓</span> Joystick maya &amp; sokongan skrin sentuh</div>
-              <div class="feature-item"><span class="check-icon">✓</span> Tanpa perlu kebenaran kamera</div>
+
+            <!-- Strip 3 Ciri Visual Padat -->
+            <div class="card-features-strip">
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-no-cam">
+                  <span class="material-symbols-outlined">no_photography</span>
+                </div>
+                <span class="strip-label">Tanpa<br/>kamera</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-keyboard">
+                  <span class="material-symbols-outlined">keyboard</span>
+                </div>
+                <span class="strip-label">WASD atau<br/>joystick</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-flag">
+                  <span class="material-symbols-outlined">flag</span>
+                </div>
+                <span class="strip-label">8 stesen<br/>dan kuiz</span>
+              </div>
             </div>
-            <div class="card-device-tag">💻 Laptop, PC, Tablet &amp; Telefon Pintar</div>
-            <button type="button" class="cq-lobby-btn start-a" id="lobby-btn-mod-a">
-              <span class="material-symbols-outlined">play_arrow</span>
-              <span>Mula Jelajah 3D</span>
-            </button>
+
+            <div class="card-footer">
+              <button type="button" class="cq-lobby-btn start-a" id="lobby-btn-mod-a">
+                <span class="material-symbols-outlined">play_arrow</span>
+                <span>Mula Jelajah 3D</span>
+              </button>
+            </div>
           </div>
 
-          <!-- MOD B: AR Orientasi Dunia -->
-          <div class="cq-lobby-card mod-b featured-card" id="lobby-card-mod-b">
-            <div class="card-badge b-badge">MOD B • DISYORKAN iPad &amp; TELEFON</div>
-            <div class="card-icon-banner">
-              <span class="big-icon">🧭</span>
-              <span class="sec-icon">📱</span>
+          <!-- MOD B: AR ORIENTASI DUNIA (TEMA TURQUOISE & MINT) -->
+          <div class="cq-lobby-card mod-b" id="lobby-card-mod-b">
+            <div class="card-badge b-badge">MOD B • DISYORKAN IPAD &amp; TELEFON</div>
+            
+            <div class="card-hero-row">
+              <div class="card-text-col">
+                <h3 class="card-title">AR Orientasi Dunia</h3>
+                <p class="card-desc">
+                  Gunakan kamera, putar peranti dan cari stesen organel dengan bantuan Smart Radar.
+                </p>
+              </div>
+              <div class="card-illustration-col">
+                <img src="../assets/images/lobby/mode-b-ar-orientation.svg" alt="Telefon Kamera & Kompas 3D" class="card-3d-illus illus-mod-b" />
+              </div>
             </div>
-            <h3 class="card-title">AR Orientasi Dunia</h3>
-            <p class="card-desc">
-              Halakan kamera ke sekeliling bilik anda. Pusing peranti 360° untuk mencari 8 stesen organel maya yang berasingan dengan bantuan Smart Radar &amp; Misi Akhir Harta Karun.
-            </p>
-            <div class="card-features">
-              <div class="feature-item"><span class="check-icon">✓</span> Smart Radar 8 arah stesen &amp; panduan darjah</div>
-              <div class="feature-item"><span class="check-icon">✓</span> Model organel GLB terapung di sekeliling bilik</div>
-              <div class="feature-item"><span class="check-icon">✓</span> Pengesanan orientasi giroskop 3DOF</div>
+
+            <!-- Strip 3 Ciri Visual Padat -->
+            <div class="card-features-strip">
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-cam-sensor">
+                  <span class="material-symbols-outlined">photo_camera</span>
+                </div>
+                <span class="strip-label">Kamera dan<br/>sensor orientasi</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-radar">
+                  <span class="material-symbols-outlined">explore</span>
+                </div>
+                <span class="strip-label">Panduan arah<br/>&amp; Smart Radar</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-pin">
+                  <span class="material-symbols-outlined">location_on</span>
+                </div>
+                <span class="strip-label">8 stesen<br/>AR</span>
+              </div>
             </div>
-            <div class="card-device-tag">🧭 iPad Safari &amp; Semua Telefon Pintar Berkamera</div>
-            <button type="button" class="cq-lobby-btn start-b" id="lobby-btn-mod-b">
-              <span class="material-symbols-outlined">explore</span>
-              <span>Mula AR Orientasi</span>
-            </button>
+
+            <div class="card-footer">
+              <button type="button" class="cq-lobby-btn start-b" id="lobby-btn-mod-b">
+                <span class="material-symbols-outlined">explore</span>
+                <span>Mula AR Orientasi</span>
+              </button>
+            </div>
           </div>
 
-          <!-- MOD C: AR Kad Penanda -->
+          <!-- MOD C: AR KAD PENANDA (TEMA UNGU & OREN) -->
           <div class="cq-lobby-card mod-c" id="lobby-card-mod-c">
-            <div class="card-badge c-badge">MOD C • 6DOF MARKER AR</div>
-            <div class="card-icon-banner">
-              <span class="big-icon">🃏</span>
-              <span class="sec-icon">📷</span>
+            <div class="card-badge c-badge">MOD C • 8 KAD PENANDA</div>
+            
+            <div class="card-hero-row">
+              <div class="card-text-col">
+                <h3 class="card-title">AR Kad Penanda</h3>
+                <p class="card-desc">
+                  Imbas kad penanda untuk memunculkan model organel 3D dan menjawab cabaran.
+                </p>
+              </div>
+              <div class="card-illustration-col">
+                <img src="../assets/images/lobby/mode-c-marker-ar.svg" alt="Kad Penanda & Organel 3D" class="card-3d-illus illus-mod-c" />
+              </div>
             </div>
-            <h3 class="card-title">AR Kad Penanda</h3>
-            <p class="card-desc">
-              Gunakan 8 kad penanda bercetak yang diletakkan di atas meja. Halakan kamera pada kad untuk melihat model 3D organel muncul terapung tepat di atas permukaan kad.
-            </p>
-            <div class="card-features">
-              <div class="feature-item"><span class="check-icon">✓</span> Penjejakan pose kad 6DOF ArUco tepat</div>
-              <div class="feature-item"><span class="check-icon">✓</span> Model berdiri tegak mengikut orientasi kad</div>
-              <div class="feature-item"><span class="check-icon">✓</span> Interaksi kuiz pantas di atas meja fizikal</div>
+
+            <!-- Strip 3 Ciri Visual Padat -->
+            <div class="card-features-strip">
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-marker-cam">
+                  <span class="material-symbols-outlined">qr_code_scanner</span>
+                </div>
+                <span class="strip-label">Kamera dan<br/>kad penanda</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-model-3d">
+                  <span class="material-symbols-outlined">view_in_ar</span>
+                </div>
+                <span class="strip-label">Model<br/>organel 3D</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-quiz-check">
+                  <span class="material-symbols-outlined">check_box</span>
+                </div>
+                <span class="strip-label">Kuiz<br/>interaktif</span>
+              </div>
             </div>
-            <div class="card-device-tag">🃏 iPad Safari &amp; Kamera + 8 Kad Penanda</div>
-            <div class="card-btn-stack">
+
+            <!-- Dua Butang Tindakan Sejajar (Mula AR & Cetak 8 Kad) -->
+            <div class="card-footer card-c-actions">
               <button type="button" class="cq-lobby-btn start-c" id="lobby-btn-mod-c">
-                <span class="material-symbols-outlined">qr_code_scanner</span>
+                <span class="material-symbols-outlined">play_arrow</span>
                 <span>Mula AR Kad Penanda</span>
               </button>
-              <a href="markers.html" target="_blank" rel="noopener" class="cq-lobby-sublink" id="lobby-print-markers-btn">
-                <span class="material-symbols-outlined" style="font-size:16px">print</span>
-                <span>Cetak 8 Kad Penanda AR</span>
+              <a href="markers.html" target="_blank" rel="noopener" class="cq-lobby-sublink btn-print-card" id="lobby-print-markers-btn" title="Cetak 8 Kad Penanda AR PDF/SVG">
+                <span class="material-symbols-outlined">print</span>
+                <span>Cetak 8 Kad AR</span>
               </a>
             </div>
           </div>
 
         </div>
-      </div>
+      </section>
 
-      <!-- Main Body: Section 2 (Educational Gallery: Sel Haiwan & Sel Tumbuhan) -->
-      <div class="cq-lobby-section gallery-section">
+      <!-- ==============================================================================
+           SEKSYEN 2: PUSAT PEMBELAJARAN ARSELNEL (NOTA & VIDEO PEMBELAJARAN)
+           ============================================================================== -->
+      <section class="cq-lobby-section learning-hub-section" id="cq-lobby-hub-section" aria-labelledby="section-hub-title">
         <div class="cq-section-heading">
           <div class="cq-section-title-wrap">
-            <span class="material-symbols-outlined section-icon">menu_book</span>
-            <h2>Galeri Pendidikan: Sel Haiwan &amp; Sel Tumbuhan</h2>
+            <div class="section-icon-box hub-icon-box">
+              <span class="material-symbols-outlined">auto_stories</span>
+            </div>
+            <h2 id="section-hub-title">Pusat Pembelajaran ARSELNEL</h2>
+            <span class="heading-divider">|</span>
+            <span class="cq-section-hint">Ulang kaji struktur sel melalui nota interaktif dan video pembelajaran sebelum memulakan pengembaraan.</span>
           </div>
-          <span class="cq-section-hint">KSSM Sains Tingkatan 1 Bab 2 • Ketik mana-mana rajah untuk nota terperinci</span>
         </div>
 
-        <div class="cq-lobby-gallery-grid">
+        <div class="cq-lobby-hub-grid">
           
-          <!-- Galeri 1: Sel Haiwan -->
-          <div class="cq-gallery-card" data-gallery="animal" id="gallery-card-animal" role="button" tabindex="0" title="Ketik untuk kaji Sel Haiwan">
-            <div class="gallery-card-img-wrap">
-              <img src="../assets/images/galeri_sel_haiwan.svg" alt="Rajah Struktur Sel Haiwan ARSelNel" class="gallery-img">
-              <div class="gallery-zoom-badge">
-                <span class="material-symbols-outlined">zoom_in</span>
-                <span>Kaji Terperinci</span>
+          <!-- KAD 1: NOTA INTERAKTIF (KUNING PASTEL DENGAN BUKU 3D & CHEVRON) -->
+          <a href="../nota_pembelajaran/code.html?from=lobby" class="cq-hub-card hub-notes" id="hub-card-notes" title="Buka Halaman Nota Interaktif">
+            <div class="hub-card-horizontal">
+              <div class="hub-illus-box">
+                <img src="../assets/images/lobby/learning-notes.svg" alt="Buku Nota Interaktif 3D" class="hub-3d-illus illus-notes" />
+              </div>
+              <div class="hub-card-text">
+                <h3 class="card-title hub-title">Nota Interaktif</h3>
+                <p class="hub-desc">
+                  Terokai nota, slaid dan bahan pembelajaran tentang struktur sel haiwan, sel tumbuhan serta fungsi organel.
+                </p>
+              </div>
+              <div class="hub-arrow-btn yellow-arrow" id="lobby-btn-notes" href="../nota_pembelajaran/code.html?from=lobby" aria-label="Buka Nota Interaktif">
+                <span class="material-symbols-outlined">chevron_right</span>
               </div>
             </div>
-            <div class="gallery-card-info">
-              <div class="gallery-pill animal-pill">SEL HAIWAN</div>
-              <h3 class="gallery-title">Kenali Sel Haiwan</h3>
-              <p class="gallery-desc">
-                Bentuk sel tidak tetap, tiada dinding sel atau kloroplas. Mempunyai membran sel, sitoplasma, nukleus, mitokondrion dan vakuol kecil.
-              </p>
-              <div class="gallery-explore-cue">
-                <span>Ketik untuk buka nota organel</span>
-                <span class="material-symbols-outlined arrow">arrow_forward</span>
-              </div>
-            </div>
-          </div>
+          </a>
 
-          <!-- Galeri 2: Sel Tumbuhan -->
-          <div class="cq-gallery-card" data-gallery="plant" id="gallery-card-plant" role="button" tabindex="0" title="Ketik untuk kaji Sel Tumbuhan">
-            <div class="gallery-card-img-wrap">
-              <img src="../assets/images/galeri_sel_tumbuhan.svg" alt="Rajah Struktur Sel Tumbuhan ARSelNel" class="gallery-img">
-              <div class="gallery-zoom-badge">
-                <span class="material-symbols-outlined">zoom_in</span>
-                <span>Kaji Terperinci</span>
+          <!-- KAD 2: VIDEO PEMBELAJARAN (CORAL/PINK PASTEL DENGAN VIDEO 3D & CHEVRON) -->
+          <a href="../perpustakaan_video/code.html?from=lobby" class="cq-hub-card hub-videos" id="hub-card-videos" title="Buka Halaman Video Pembelajaran">
+            <div class="hub-card-horizontal">
+              <div class="hub-illus-box">
+                <img src="../assets/images/lobby/learning-video.svg" alt="Video Pembelajaran 3D" class="hub-3d-illus illus-video" />
+              </div>
+              <div class="hub-card-text">
+                <h3 class="card-title hub-title">Video Pembelajaran</h3>
+                <p class="hub-desc">
+                  Tonton video pembelajaran untuk memahami struktur, ciri dan fungsi organel sel dengan lebih mudah.
+                </p>
+              </div>
+              <div class="hub-arrow-btn coral-arrow" id="lobby-btn-videos" href="../perpustakaan_video/code.html?from=lobby" aria-label="Tonton Video Pembelajaran">
+                <span class="material-symbols-outlined">chevron_right</span>
               </div>
             </div>
-            <div class="gallery-card-info">
-              <div class="gallery-pill plant-pill">SEL TUMBUHAN</div>
-              <h3 class="gallery-title">Kenali Sel Tumbuhan</h3>
-              <p class="gallery-desc">
-                Mempunyai bentuk tetap kerana dinding sel selulosa. Memiliki kloroplas untuk fotosintesis dan vakuol pusat besar berisi sap sel.
-              </p>
-              <div class="gallery-explore-cue">
-                <span>Ketik untuk buka nota organel</span>
-                <span class="material-symbols-outlined arrow">arrow_forward</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Galeri 3: Perbandingan Sel -->
-          <div class="cq-gallery-card" data-gallery="comparison" id="gallery-card-comparison" role="button" tabindex="0" title="Ketik untuk kaji Perbandingan Sel">
-            <div class="gallery-card-img-wrap">
-              <img src="../assets/images/galeri_perbandingan_sel.svg" alt="Rajah Perbandingan Sel Haiwan vs Sel Tumbuhan" class="gallery-img">
-              <div class="gallery-zoom-badge">
-                <span class="material-symbols-outlined">zoom_in</span>
-                <span>Kaji Terperinci</span>
-              </div>
-            </div>
-            <div class="gallery-card-info">
-              <div class="gallery-pill compare-pill">PERBANDINGAN KSSM</div>
-              <h3 class="gallery-title">Sel Haiwan vs Sel Tumbuhan</h3>
-              <p class="gallery-desc">
-                Ketahui 4 persamaan utama organel serta 5 perbezaan penting dari segi bentuk, dinding sel, kloroplas, vakuol dan simpanan karbohidrat.
-              </p>
-              <div class="gallery-explore-cue">
-                <span>Ketik untuk buka jadual perbandingan</span>
-                <span class="material-symbols-outlined arrow">arrow_forward</span>
-              </div>
-            </div>
-          </div>
+          </a>
 
         </div>
-      </div>
+      </section>
 
     </div>
   </section>
@@ -622,36 +713,6 @@
     </div>
   </div>
 
-  <!-- ==============================================================================
-       MODAL 6B: MODAL TERPERINCI GALERI PENDIDIKAN SEL
-       ============================================================================== -->
-  <div class="cq-modal-backdrop" id="gallery-detail-modal" role="dialog" aria-modal="true" aria-labelledby="gallery-detail-title">
-    <div class="cq-modal cq-gallery-modal">
-      <button type="button" class="cq-modal-close" id="close-gallery-detail-btn" aria-label="Tutup">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-
-      <div class="cq-station-badge-chip" id="gallery-detail-chip">KSSM TINGKATAN 1 • BAB 2</div>
-      <h2 id="gallery-detail-title" class="gallery-modal-title">Struktur &amp; Organel Sel</h2>
-      <p id="gallery-detail-subtitle" class="gallery-modal-subtitle">Panduan rujukan pantas organel dan fungsinya.</p>
-
-      <div class="gallery-modal-body">
-        <div class="gallery-modal-img-container">
-          <img id="gallery-detail-img" src="../assets/images/galeri_sel_haiwan.svg" alt="Rajah Pembelajaran Sel" class="gallery-detail-large-img">
-        </div>
-        <div class="gallery-modal-notes" id="gallery-detail-notes">
-          <!-- Populated by JavaScript -->
-        </div>
-      </div>
-
-      <div class="cq-modal-actions" style="margin-top: 18px; justify-content: flex-end;">
-        <button type="button" class="cq-btn-primary" id="gallery-detail-close-btn" style="min-width: 140px; justify-content: center;">
-          <span class="material-symbols-outlined">check</span>
-          <span>Faham &amp; Tutup</span>
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- ==============================================================================
        MODAL 7: MISI AKHIR — JEMPUTAN HARTA KARUN DUNIA SEL (SELEPAS 8/8 SELESAI)
@@ -661,11 +722,11 @@
       <div style="font-size: 46px; margin-bottom: 8px;">🎁</div>
       <div class="cq-station-badge-chip" style="background: rgba(250, 204, 21, 0.2); border-color: #facc15; color: #fde047; margin: 0 auto 10px auto;">MISI AKHIR • BONUS ARSELNEL</div>
       <h2 id="th-intro-title" style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px;">Misi Akhir: Harta Karun Dunia Sel</h2>
-      <p style="font-size: 14px; color: #5eead4; font-weight: 800; margin-bottom: 6px;">
-        🎉 TAHNIAH! Anda telah menguasai 8 stesen Dunia Sel!
+      <p style="font-size: 14.5px; color: #5eead4; font-weight: 800; margin-bottom: 8px; line-height: 1.45;">
+        🎉 TAHNIAH! Semua stesen berjaya diselesaikan. Cari Peti Ganjaran AR untuk menuntut hadiah anda!
       </p>
       <p style="font-size: 13.5px; color: #cbd5e1; line-height: 1.55; margin-bottom: 18px;">
-        Namun, satu rahsia masih tersembunyi... Gunakan <strong>Smart Radar</strong> untuk mencari <strong>Peti Harta Karun ARSELNEL</strong>!
+        Peti ganjaran telah dikunci pada ruang AR di lokasi berasingan. Gunakan <strong>Smart Radar</strong> dan pusingkan peranti anda untuk menjejakinya!
       </p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <button type="button" class="cq-btn-primary" id="start-treasure-hunt-btn" style="justify-content: center; width: 100%; font-size: 15px; padding: 12px 20px; background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);">

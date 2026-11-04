@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 130" width="140" height="130" fill="none">
+  <defs>
+    <!-- Bayang 3D Mod B -->
+    <filter id="glowModB" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#0d9488" flood-opacity="0.28"/>
+    </filter>
+
+    <!-- Badan Telefon 3D Logam Teal/Pudina -->
+    <linearGradient id="gradPhoneBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#ccfbf1"/>
+      <stop offset="85%" stop-color="#5eead4"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+
+    <!-- Skrin AR Gelap Telus Realistik -->
+    <linearGradient id="gradPhoneScreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#134e4a"/>
+      <stop offset="60%" stop-color="#042f2e"/>
+      <stop offset="100%" stop-color="#021c1a"/>
+    </linearGradient>
+
+    <!-- Kompas Emas 3D -->
+    <radialGradient id="gradCompassGold" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="45%" stop-color="#facc15"/>
+      <stop offset="85%" stop-color="#ca8a04"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </radialGradient>
+
+    <!-- Jarum Kompas Merah & Putih -->
+    <linearGradient id="gradNeedleRed" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#be123c"/>
+    </linearGradient>
+
+    <!-- Mitokondrion AR Bercahaya Ungu/Merah Jambu -->
+    <radialGradient id="gradMitoAR" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#f5d0fe"/>
+      <stop offset="50%" stop-color="#d946ef"/>
+      <stop offset="100%" stop-color="#86198f"/>
+    </radialGradient>
+  </defs>
+
+  <g filter="url(#glowModB)">
+    <!-- Telefon Pintar AR 3D (Kedudukan Tegak) -->
+    <g transform="translate(64, 56)">
+      <!-- Badan Telefon Luar -->
+      <rect x="-30" y="-48" width="60" height="96" rx="14" fill="url(#gradPhoneBody)"/>
+      <rect x="-30" y="-48" width="60" height="96" rx="14" stroke="#99f6e4" stroke-width="1.8" fill="none"/>
+
+      <!-- Skrin Paparan AR Kamera -->
+      <rect x="-26" y="-42" width="52" height="84" rx="10" fill="url(#gradPhoneScreen)"/>
+
+      <!-- Lubang Kamera Depan & Pembesar Suara -->
+      <ellipse cx="0" cy="-45" rx="5" ry="1.5" fill="#0f766e"/>
+      <circle cx="-8" cy="-45" r="1.5" fill="#042f2e"/>
+
+      <!-- Bingkai Sudut Imbasan AR Cyan (Scanning Reticle Corners) -->
+      <path d="M-18 -28 L-22 -28 L-22 -24" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+      <path d="M18 -28 L22 -28 L22 -24" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+      <path d="M-18 16 L-22 16 L-22 12" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+      <path d="M18 16 L22 16 L22 12" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Model Organel Mitokondrion Terapung Pada Skrin AR -->
+      <g transform="translate(0, -6)">
+        <!-- Aura Glow Organel -->
+        <ellipse cx="0" cy="0" rx="18" ry="11" fill="#e879f9" opacity="0.3"/>
+        <ellipse cx="0" cy="0" rx="14" ry="8" fill="url(#gradMitoAR)"/>
+        <!-- Lipatan Krista Ungu Cerah -->
+        <path d="M-7 -2 Q-4 0 -7 2 M-1 -3 Q2 0 -1 3 M5 -2 Q8 0 5 2" stroke="#fdf4ff" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <ellipse cx="-4" cy="-3" rx="4" ry="1.5" fill="#ffffff" opacity="0.7"/>
+      </g>
+
+      <!-- Gelung Radar AR Halus di Bawah Skrin -->
+      <ellipse cx="0" cy="26" rx="16" ry="6" stroke="#2dd4bf" stroke-width="1.2" stroke-dasharray="3 2" fill="none" opacity="0.8"/>
+      <circle cx="4" cy="25" r="2" fill="#2dd4bf"/>
+
+      <!-- Pantulan Kaca Specular Skrin Telefon -->
+      <path d="M-24 -40 L16 -40 L-10 38 L-24 38 Z" fill="#ffffff" opacity="0.1"/>
+    </g>
+
+    <!-- Kompas Emas 3D di Hadapan Bawah Kanan Telefon -->
+    <g transform="translate(100, 92)">
+      <!-- Cincin Luar Kompas Emas -->
+      <circle cx="0" cy="0" r="24" fill="url(#gradCompassGold)"/>
+      <circle cx="0" cy="0" r="24" stroke="#fef08a" stroke-width="1.8" fill="none"/>
+
+      <!-- Dail Kompas Dalam Putih/Krem -->
+      <circle cx="0" cy="0" r="18" fill="#0f172a"/>
+      <circle cx="0" cy="0" r="18" stroke="#ca8a04" stroke-width="1.2" fill="none"/>
+
+      <!-- Tanda Arah U/S/T/B -->
+      <path d="M0 -16 L0 -14 M0 16 L0 14 M-16 0 L-14 0 M16 0 L14 0" stroke="#facc15" stroke-width="1.5"/>
+
+      <!-- Jarum Kompas 3D (Arah Utara Merah / Selatan Putih) -->
+      <!-- Jarum Utara (Merah) -->
+      <polygon points="0,0 -4,-2 0,-14 4,-2" fill="url(#gradNeedleRed)"/>
+      <!-- Jarum Selatan (Putih Perak) -->
+      <polygon points="0,0 -4,2 0,14 4,2" fill="#e2e8f0"/>
+
+      <!-- Pivot Pusat Emas -->
+      <circle cx="0" cy="0" r="3.5" fill="#facc15"/>
+      <circle cx="0" cy="0" r="1.5" fill="#854d0e"/>
+
+      <!-- Penyerlah Glos Kaca Kompas -->
+      <ellipse cx="-6" cy="-8" rx="8" ry="4" fill="#ffffff" opacity="0.45" transform="rotate(-30, -6, -8)"/>
+    </g>
+
+    <!-- Sparkle Hijau/Cyan Kiri Bawah -->
+    <g transform="translate(18, 76)">
+      <path d="M0 -5 L1.5 -1.5 L5 0 L1.5 1.5 L0 5 L-1.5 1.5 L-5 0 L-1.5 -1.5 Z" fill="#2dd4bf"/>
+    </g>
+  </g>
+</svg>

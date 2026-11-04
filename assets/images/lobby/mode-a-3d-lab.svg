@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 130" width="140" height="130" fill="none">
+  <defs>
+    <!-- Bayang 3D Mod A -->
+    <filter id="glowModA" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#2563eb" flood-opacity="0.28"/>
+    </filter>
+
+    <!-- Monitor Badan Putih/Perak -->
+    <linearGradient id="gradMonitorBezel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+
+    <!-- Skrin Makmal Maya Cyan Hologram -->
+    <linearGradient id="gradLabScreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#082f49"/>
+      <stop offset="50%" stop-color="#0c4a6e"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Game Controller Ungu & Biru 3D -->
+    <linearGradient id="gradController" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+
+    <!-- Butang A/B/X/Y Controller -->
+    <radialGradient id="gradBtnYellow" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </radialGradient>
+    <radialGradient id="gradBtnGreen" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </radialGradient>
+  </defs>
+
+  <g filter="url(#glowModA)">
+    <!-- Monitor Komputer 3D (Belakang) -->
+    <g transform="translate(70, 48)">
+      <!-- Kaki & Tapak Monitor 3D -->
+      <ellipse cx="0" cy="38" rx="26" ry="7" fill="#64748b"/>
+      <ellipse cx="0" cy="37" rx="24" ry="5.5" fill="#cbd5e1"/>
+      <path d="M-6 16 L6 16 L8 36 L-8 36 Z" fill="#94a3b8"/>
+
+      <!-- Rangka Monitor (Bezel) -->
+      <rect x="-48" y="-38" width="96" height="64" rx="10" fill="url(#gradMonitorBezel)"/>
+      <rect x="-48" y="-38" width="96" height="64" rx="10" stroke="#cbd5e1" stroke-width="1.5" fill="none"/>
+
+      <!-- Skrin Makmal 3D Maya -->
+      <rect x="-42" y="-32" width="84" height="52" rx="6" fill="url(#gradLabScreen)"/>
+
+      <!-- Grid Lantai Makmal Maya Cyan -->
+      <path d="M-42 6 L42 6 M-42 12 L42 12 M-42 18 L42 18" stroke="#38bdf8" stroke-width="0.8" opacity="0.4"/>
+      <path d="M-36 20 L-22 6 M-12 20 L-6 6 M12 20 L6 6 M36 20 L22 6" stroke="#38bdf8" stroke-width="0.8" opacity="0.4"/>
+
+      <!-- Hologram Prisma Berlian Sel di Tengah Skrin -->
+      <polygon points="0,-22 14,-10 0,2 -14,-10" fill="#38bdf8" opacity="0.6"/>
+      <polygon points="0,-18 10,-8 0,0 -10,-8" fill="#a5f3fc" opacity="0.85"/>
+      <circle cx="0" cy="-9" r="4" fill="#ffffff"/>
+      <!-- Lingkaran Orbit Hologram -->
+      <ellipse cx="0" cy="-9" rx="22" ry="6" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="3 2" fill="none"/>
+
+      <!-- Pantulan Kaca Monitor Atas -->
+      <path d="M-40 -30 L38 -30 L-8 6 L-40 6 Z" fill="#ffffff" opacity="0.12"/>
+
+      <!-- LED Kuasa Monitor Cyan -->
+      <circle cx="0" cy="26" r="1.5" fill="#22d3ee"/>
+    </g>
+
+    <!-- Game Controller 3D Terapung di Hadapan (Floating Joypad) -->
+    <g transform="translate(70, 94)">
+      <!-- Bentuk Asas Controller Ergonomik -->
+      <path d="M-34 -14 C-20 -18 20 -18 34 -14 C44 -10 46 16 34 22 C26 26 18 14 12 14 C6 14 -6 14 -12 14 C-18 14 -26 26 -34 22 C-46 16 -44 -10 -34 -14 Z" 
+            fill="url(#gradController)"/>
+      <path d="M-34 -14 C-20 -18 20 -18 34 -14 C44 -10 46 16 34 22 C26 26 18 14 12 14 C6 14 -6 14 -12 14 C-18 14 -26 26 -34 22 C-46 16 -44 -10 -34 -14 Z" 
+            stroke="#c084fc" stroke-width="1.5" fill="none"/>
+
+      <!-- D-Pad Kiri (Palang Arah Hitam) -->
+      <g transform="translate(-20, 2)">
+        <rect x="-3" y="-8" width="6" height="16" rx="2" fill="#1e1b4b"/>
+        <rect x="-8" y="-3" width="16" height="6" rx="2" fill="#1e1b4b"/>
+        <circle cx="0" cy="0" r="2.5" fill="#475569"/>
+      </g>
+
+      <!-- Butang Tindakan Kanan (4 Butang Berwarna Warni) -->
+      <g transform="translate(20, 2)">
+        <circle cx="0" cy="-6" r="3.2" fill="url(#gradBtnYellow)"/> <!-- Top (Y) -->
+        <circle cx="6" cy="0" r="3.2" fill="#f43f5e"/> <!-- Right (B) -->
+        <circle cx="0" cy="6" r="3.2" fill="url(#gradBtnGreen)"/> <!-- Bottom (A) -->
+        <circle cx="-6" cy="0" r="3.2" fill="#38bdf8"/> <!-- Left (X) -->
+      </g>
+
+      <!-- Dua Thumbstick Analog Berkubah -->
+      <g transform="translate(-8, 10)">
+        <circle cx="0" cy="0" r="5" fill="#1e1b4b"/>
+        <circle cx="-1" cy="-1" r="3.5" fill="#475569"/>
+        <ellipse cx="-1.5" cy="-1.5" rx="1.5" ry="0.8" fill="#ffffff" opacity="0.5"/>
+      </g>
+      <g transform="translate(8, 10)">
+        <circle cx="0" cy="0" r="5" fill="#1e1b4b"/>
+        <circle cx="-1" cy="-1" r="3.5" fill="#475569"/>
+        <ellipse cx="-1.5" cy="-1.5" rx="1.5" ry="0.8" fill="#ffffff" opacity="0.5"/>
+      </g>
+
+      <!-- Butang Home ARSELNEL di Tengah Berlampu -->
+      <circle cx="0" cy="-4" r="3.5" fill="#06b6d4"/>
+      <circle cx="0" cy="-4" r="1.5" fill="#ffffff"/>
+
+      <!-- Penyerlah Glos Controller Atas -->
+      <path d="M-22 -14 C-10 -16 10 -16 22 -14" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    </g>
+
+    <!-- Sparkle Kecil Kanan Atas -->
+    <g transform="translate(122, 28)">
+      <path d="M0 -6 L2 -2 L6 0 L2 2 L0 6 L-2 2 L-6 0 L-2 -2 Z" fill="#38bdf8"/>
+    </g>
+    <g transform="translate(18, 42)">
+      <path d="M0 -4 L1.5 -1.5 L4 0 L1.5 1.5 L0 4 L-1.5 1.5 L-4 0 L-1.5 -1.5 Z" fill="#fbbf24"/>
+    </g>
+  </g>
+</svg>

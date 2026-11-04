@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80" width="100" height="80" fill="none">
+  <defs>
+    <!-- Bayang 3D Buku Nota -->
+    <filter id="glowNotes" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#ca8a04" flood-opacity="0.25"/>
+    </filter>
+
+    <!-- Kulit Buku Emas/Jingga -->
+    <linearGradient id="gradBookCover" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#facc15"/>
+      <stop offset="85%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+
+    <!-- Halaman Kertas Putih Berkrim 3D -->
+    <linearGradient id="gradBookPages" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="80%" stop-color="#fefce8"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+
+    <!-- Pensel Sains Oren 3D -->
+    <linearGradient id="gradPencil" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fdba74"/>
+      <stop offset="60%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#glowNotes)">
+    <!-- Buku Sains Terbuka 3D -->
+    <g transform="translate(48, 42)">
+      <!-- Kulit Bawah Buku Terbuka Tebal -->
+      <path d="M-40 18 Q0 12 40 18 L38 22 Q0 16 -38 22 Z" fill="#a16207"/>
+
+      <!-- Helaian Kiri Terbuka Berlekuk -->
+      <path d="M0 14 C-12 12 -28 10 -38 14 L-38 -12 C-28 -16 -12 -14 0 -10 Z" fill="url(#gradBookPages)"/>
+      <path d="M0 14 C-12 12 -28 10 -38 14 L-38 -12 C-28 -16 -12 -14 0 -10 Z" stroke="#fef08a" stroke-width="1.2" fill="none"/>
+
+      <!-- Helaian Kanan Terbuka Berlekuk -->
+      <path d="M0 14 C12 12 28 10 38 14 L38 -12 C28 -16 12 -14 0 -10 Z" fill="url(#gradBookPages)"/>
+      <path d="M0 14 C12 12 28 10 38 14 L38 -12 C28 -16 12 -14 0 -10 Z" stroke="#fef08a" stroke-width="1.2" fill="none"/>
+
+      <!-- Tulang Buku Tengah & Bayang Lekukan -->
+      <line x1="0" y1="-10" x2="0" y2="14" stroke="#ca8a04" stroke-width="2.5"/>
+
+      <!-- Garisan Teks & Rajah Sains Mini Pada Muka Surat Kiri -->
+      <!-- Rajah Sel Mini -->
+      <circle cx="-18" cy="-2" r="5" fill="#bae6fd" stroke="#0284c7" stroke-width="1"/>
+      <circle cx="-18" cy="-2" r="2" fill="#9333ea"/>
+      <!-- Teks Garisan -->
+      <line x1="-32" y1="6" x2="-8" y2="6" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="-32" y1="10" x2="-14" y2="10" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+
+      <!-- Garisan Teks Sains Pada Muka Surat Kanan -->
+      <line x1="8" y1="-4" x2="32" y2="-4" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="1" x2="30" y2="1" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="8" y1="6" x2="28" y2="6" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="8" y1="11" x2="22" y2="11" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+
+      <!-- Reben Penanda Buku Merah/Oren Terjuntai di Bawah -->
+      <path d="M0 14 Q4 22 2 28 L-2 25 L-5 28 Q-3 20 0 14 Z" fill="#ea580c"/>
+    </g>
+
+    <!-- Pensel Sains 3D Comel di Sebelah Kanan Atas -->
+    <g transform="translate(76, 26) rotate(35)">
+      <!-- Badan Pensel -->
+      <rect x="-3" y="-14" width="6" height="24" rx="1.5" fill="url(#gradPencil)"/>
+      <!-- Gelang Logam Perak -->
+      <rect x="-3" y="10" width="6" height="3" fill="#cbd5e1"/>
+      <!-- Pemadam Merah Jambu -->
+      <rect x="-3" y="13" width="6" height="5" rx="2" fill="#f43f5e"/>
+      <!-- Mata Pensel Kayu & Grafit -->
+      <polygon points="-3,-14 3,-14 0,-20" fill="#fed7aa"/>
+      <polygon points="-1,-18 1,-18 0,-20" fill="#1e293b"/>
+    </g>
+
+    <!-- Bintang Sparkle Emas Kiri Atas -->
+    <g transform="translate(14, 18)">
+      <path d="M0 -4 L1.2 -1.2 L4 0 L1.2 1.2 L0 4 L-1.2 1.2 L-4 0 L-1.2 -1.2 Z" fill="#eab308"/>
+    </g>
+  </g>
+</svg>

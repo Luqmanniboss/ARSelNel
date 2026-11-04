@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 130" width="140" height="130" fill="none">
+  <defs>
+    <!-- Bayang 3D Mod C -->
+    <filter id="glowModC" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#7c3aed" flood-opacity="0.28"/>
+    </filter>
+
+    <!-- Kad Penanda Putih Bergaya Isometrik -->
+    <linearGradient id="gradMarkerBase" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+
+    <!-- Mitokondrion Oren Berapi 3D -->
+    <radialGradient id="gradMitoMarker" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#f97316"/>
+      <stop offset="85%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </radialGradient>
+
+    <!-- Pancaran Cahaya Hologram Ungu & Sinar AR -->
+    <linearGradient id="gradHoloBeam" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#c084fc" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#f43f5e" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#glowModC)">
+    <!-- Pancaran Sinar Hologram Menegak dari Kad ke Model -->
+    <polygon points="30,95 110,95 95,30 45,30" fill="url(#gradHoloBeam)"/>
+
+    <!-- Kad Penanda Isometrik 3D di Lantai/Permukaan -->
+    <g transform="translate(70, 94)">
+      <!-- Ketebalan Sisi Kad 3D Bawah -->
+      <polygon points="-46,0 0,16 46,0 46,6 0,22 -46,6" fill="#94a3b8"/>
+
+      <!-- Permukaan Atas Kad Putih -->
+      <polygon points="-46,0 0,-16 46,0 0,16" fill="url(#gradMarkerBase)"/>
+      <polygon points="-46,0 0,-16 46,0 0,16" stroke="#cbd5e1" stroke-width="1.2" fill="none"/>
+
+      <!-- Corak Penanda AR Hitam-Putih Isometrik (Marker Pattern) -->
+      <polygon points="-34,0 0,-12 34,0 0,12" fill="#0f172a"/>
+      <polygon points="-24,0 0,-8 24,0 0,8" fill="#ffffff"/>
+      <polygon points="-14,0 0,-5 14,0 0,5" fill="#0f172a"/>
+
+      <!-- Bucu Biru Penanda Pengesanan AR -->
+      <circle cx="-42" cy="0" r="2.5" fill="#38bdf8"/>
+      <circle cx="42" cy="0" r="2.5" fill="#38bdf8"/>
+      <circle cx="0" cy="-14" r="2.5" fill="#38bdf8"/>
+      <circle cx="0" cy="14" r="2.5" fill="#38bdf8"/>
+
+      <!-- Lingkaran Sinar Pengimbas AR di Atas Kad -->
+      <ellipse cx="0" cy="0" rx="42" ry="14" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
+    </g>
+
+    <!-- Garisan Imbasan AR Laser Melintang (Horizontal Scan Line) -->
+    <g transform="translate(70, 68)">
+      <line x1="-38" y1="0" x2="38" y2="0" stroke="#f43f5e" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="0" cy="0" r="2" fill="#ffffff"/>
+    </g>
+
+    <!-- Model Organel Mitokondrion Oren 3D Terapung Tegak di Atas Kad -->
+    <g transform="translate(70, 42)">
+      <!-- Aura Glow Organel -->
+      <ellipse cx="0" cy="0" rx="28" ry="18" fill="#fb923c" opacity="0.35"/>
+
+      <!-- Badan Utama Mitokondrion 3D Bersegi Bujur Ergonomik -->
+      <ellipse cx="0" cy="0" rx="24" ry="14" fill="url(#gradMitoMarker)"/>
+      <ellipse cx="0" cy="0" rx="24" ry="14" stroke="#fef08a" stroke-width="1.5" stroke-opacity="0.8" fill="none"/>
+
+      <!-- Lipatan Membran Dalam (Krista) 3D Kuning Terang -->
+      <path d="M-14 -3 Q-9 0 -14 3 M-7 -5 Q-2 0 -7 5 M0 -6 Q5 0 0 6 M7 -5 Q12 0 7 5 M14 -3 Q19 0 14 3" 
+            stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+      <!-- Sorotan Glossy Specular Atas -->
+      <ellipse cx="-8" cy="-6" rx="8" ry="3" fill="#ffffff" opacity="0.75"/>
+      <circle cx="-14" cy="-5" r="2" fill="#ffffff" opacity="0.9"/>
+    </g>
+
+    <!-- Sparkle & Partikel Sains Terapung -->
+    <g transform="translate(116, 32)">
+      <path d="M0 -5 L1.5 -1.5 L5 0 L1.5 1.5 L0 5 L-1.5 1.5 L-5 0 L-1.5 -1.5 Z" fill="#fb923c"/>
+    </g>
+    <g transform="translate(26, 34)">
+      <path d="M0 -4 L1.2 -1.2 L4 0 L1.2 1.2 L0 4 L-1.2 1.2 L-4 0 L-1.2 -1.2 Z" fill="#a855f7"/>
+    </g>
+  </g>
+</svg>

@@ -243,6 +243,21 @@
   <!-- Main Content Container -->
   <main class="main-container mt-28 space-y-6">
     
+    <!-- Banner Kembali ke Lobi Makmal Sains (Hanya aktif jika dibuka melalui ?from=lobby) -->
+    <div id="lobby-return-banner" class="hidden items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-teal-500/15 via-emerald-500/10 to-sky-500/15 border border-teal-500/30 text-teal-950 shadow-sm transition-all">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">🔬</span>
+        <div>
+          <div class="font-headline font-bold text-sm sm:text-base text-teal-950">Anda sedang mengulang kaji dari Lobi Makmal Sains</div>
+          <div class="text-xs text-teal-700">Selesai membaca? Kembali bila-bila masa untuk meneruskan pengembaraan sel anda.</div>
+        </div>
+      </div>
+      <a href="../cellquest/adventure.html" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs sm:text-sm shadow-sm transition-all flex-shrink-0">
+        <span class="material-symbols-outlined text-base">arrow_back</span>
+        <span>Kembali ke Lobi Makmal</span>
+      </a>
+    </div>
+
     <!-- Search Bar Section -->
     <section>
       <div class="relative w-full shadow-sm rounded-2xl border border-slate-100 overflow-hidden bg-white">
@@ -959,6 +974,17 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
+    // Semak jika dibuka dari Lobi Makmal Sains
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('from') === 'lobby') {
+        const banner = document.getElementById('lobby-return-banner');
+        if (banner) {
+          banner.classList.remove('hidden');
+          banner.classList.add('flex');
+        }
+      }
+    } catch (_) {}
   </script>
   <script src="../assets/js/student-shell.js"></script>
 </body>
