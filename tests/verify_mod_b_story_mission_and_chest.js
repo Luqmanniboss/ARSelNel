@@ -78,7 +78,7 @@ async function runTests() {
     '--use-fake-device-for-media-stream',
     '--enable-webgl',
     '--ignore-gpu-blocklist',
-    '--user-data-dir=' + path.join(ROOT_DIR, '.tmp_cdp_profile')
+    '--user-data-dir=' + path.join(ROOT_DIR, '.tmp_cdp_chest_' + Date.now())
   ]);
 
   await new Promise(r => setTimeout(r, 1500));
@@ -87,7 +87,7 @@ async function runTests() {
   try {
     const listRes = await fetch(`http://127.0.0.1:${cdpPort}/json/list`);
     const tabs = await listRes.json();
-    const tab = tabs[0];
+    const tab = tabs.find(t => t.type === 'page') || tabs[0];
     cdpWs = new WebSocket(tab.webSocketDebuggerUrl);
   } catch (err) {
     console.error('Gagal menyambung ke CDP:', err);
@@ -180,9 +180,9 @@ async function runTests() {
         const isCamActiveAfter = window.CellQuestAR.isCameraStreamActive();
         const titleEl = document.getElementById('ar-mission-title');
         const titleText = titleEl ? titleEl.textContent.trim() : '';
-        const storyBox = document.querySelector('.cq-mission-story-box');
+        const storyBox = modal ? modal.querySelector('.cq-mission-story-box') : null;
         const storyText = storyBox ? storyBox.textContent : '';
-        const stepCards = document.querySelectorAll('.cq-mission-step-card');
+        const stepCards = modal ? modal.querySelectorAll('.cq-mission-step-card') : [];
 
         return {
           isOpen,
