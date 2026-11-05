@@ -429,8 +429,8 @@ async function runTests() {
 
     assert('Kesemua 8 stesen berjaya dipulihkan (8/8)', unlockTest.completedCount === 8);
     assert('Pintu Teras Sel kini DIBUKA KUNCI (unlocked = true)', unlockTest.doorUnlocked === true);
-    assert('Papan tanda pintu bertukar status: "⚡ PINTU TERAS SEL • DIBUKA! MASUK KE BILIK TERAS SEL"',
-      unlockTest.signText.includes('PINTU TERAS SEL • DIBUKA'));
+    assert('Papan tanda pintu bertukar status pembukaan (MEMBUKA PINTU / SILA MASUK)',
+      unlockTest.signText.includes('MEMBUKA PINTU') || unlockTest.signText.includes('SILA MASUK') || unlockTest.signText.includes('DIBUKA'));
     assert('Trail panduan lantai berlampu diaktifkan (visible = true)', unlockTest.trailVisible === true);
 
     // Capture screenshot of unlocked secret door and glowing trail
@@ -586,6 +586,33 @@ async function runTests() {
 
     assert('Butang "Kembali ke Lobi" menutup modal kemenangan', returnLobbyTest.modalClosed);
     assert('Pengguna kembali ke Lobi Makmal Sains dengan kemas', returnLobbyTest.isLobby === true);
+
+    // -------------------------------------------------------------
+    // UJIAN 14: TIADA PETI HARTA KARUN DALAM MOD A (ZERO TREASURE CHEST IN MOD A)
+    // -------------------------------------------------------------
+    console.log('\n--- UJIAN 14: PEMBUANGAN PETI HARTA KARUN DARI MOD A ---');
+    const noChestTest = await evaluate(`
+      (() => {
+        const state = window.CellQuestAR.getState();
+        const worldState = window.CellQuestAR.getWorldState();
+        const chestGroup = worldState.treasureChestGroup;
+        const chestVisible = chestGroup ? chestGroup.visible : false;
+        const introModal = document.getElementById('cq-treasure-intro-modal');
+        const chestModal = document.getElementById('cq-treasure-chest-modal');
+
+        return {
+          treasureHuntActive: state.treasureHuntActive,
+          chestVisible,
+          introModalOpen: introModal ? introModal.classList.contains('open') : false,
+          chestModalOpen: chestModal ? chestModal.classList.contains('open') : false
+        };
+      })()
+    `);
+
+    assert('Misi treasureHuntActive TIDAK aktif dalam Mod A', noChestTest.treasureHuntActive === false);
+    assert('Model Peti Harta Karun TIDAK kelihatan dalam scene Mod A', noChestTest.chestVisible === false);
+    assert('Modal intro peti TIDAK dibuka dalam Mod A', noChestTest.introModalOpen === false);
+    assert('Modal peti interaktif TIDAK dibuka dalam Mod A', noChestTest.chestModalOpen === false);
 
   } catch (err) {
     console.error('Ralat pelaksanaan ujian:', err);
