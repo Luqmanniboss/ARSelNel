@@ -628,9 +628,71 @@ async function main() {
     assert(heroProximityCheck && heroProximityCheck.isPromptHiddenFarFromHero, 'Burung-burung hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
 
     // -------------------------------------------------------------------------
-    // FASA 13: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // FASA 13: UJIAN KHAS ZON 1 — RABBIT MEADOW SANCTUARY & ARNAB COMEL
     // -------------------------------------------------------------------------
-    console.log(`\n--- UJIAN 13: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
+    console.log(`\n--- UJIAN 13: RABBIT MEADOW SANCTUARY & ARNAB COMEL ---`);
+    const rabbitMeadowCheck = await evaluate(`(() => {
+      const meadow = window.CellSafari.getRabbitMeadow();
+      const decRabbits = window.CellSafari.getDecorativeRabbits();
+      const totalRabbits = window.CellSafari.getTotalRabbitCount();
+      const heroRabbit = window.CellSafari.getInteractiveRabbit();
+      const diag = window.CellSafari.getDiagnostics();
+
+      return {
+        hasMeadow: !!meadow,
+        meadowX: meadow ? meadow.position.x : 0,
+        meadowZ: meadow ? meadow.position.z : 0,
+        totalRabbits,
+        decorativeRabbitCount: decRabbits ? decRabbits.length : 0,
+        hasHeroRabbit: !!heroRabbit,
+        heroRabbitName: heroRabbit ? heroRabbit.name : '',
+        diagnosticMeadow: diag.rabbitMeadow
+      };
+    })()`);
+
+    assert(rabbitMeadowCheck && rabbitMeadowCheck.hasMeadow, 'Objek 3D Kumpulan Taman Arnab wujud dalam persekitaran Cell Safari');
+    assert(rabbitMeadowCheck && rabbitMeadowCheck.meadowX === -30 && rabbitMeadowCheck.meadowZ === 26, 'Taman Arnab ditempatkan dengan tepat di Zon 1 (x: -30, z: 26)');
+    assert(rabbitMeadowCheck && rabbitMeadowCheck.totalRabbits >= 6 && rabbitMeadowCheck.totalRabbits <= 10, `Jumlah arnab di Taman Arnab dalam julat sasaran 6-10 ekor (Terkini: ${rabbitMeadowCheck?.totalRabbits} ekor)`);
+    assert(rabbitMeadowCheck && rabbitMeadowCheck.decorativeRabbitCount === 7, '7 Ekor Arnab Hiasan NPC pelbagai warna dan tingkah laku menghiasi taman');
+    assert(rabbitMeadowCheck && rabbitMeadowCheck.hasHeroRabbit, 'Arnab Comel hero 3D wujud di atas pelantar khas bercahaya');
+
+    // Uji Eksklusiviti Interaksi Arnab Comel
+    const rabbitProximityCheck = await evaluate(`(() => {
+      // Teleport tepat berdekatan Arnab Comel di Zon 1 (-30, 24)
+      window.CellSafari.teleport(-30, 24);
+      window.CellSafari.updateProximity();
+
+      const prompt = document.getElementById('cs-prompt');
+      const title = document.getElementById('cs-prompt-title');
+      const subtitle = document.getElementById('cs-prompt-sub');
+      const btn = document.getElementById('cs-prompt-btn-text');
+      const isActive = prompt ? prompt.classList.contains('active') : false;
+
+      const res = {
+        isActive,
+        titleText: title ? title.textContent.trim() : '',
+        subtitleText: subtitle ? subtitle.textContent.trim() : '',
+        btnText: btn ? btn.textContent.trim() : ''
+      };
+
+      // Teleport ke kawasan yang tiada haiwan zon (cth: x: -10, z: 0)
+      window.CellSafari.teleport(-10, 0);
+      window.CellSafari.updateProximity();
+      res.isPromptHiddenFarFromHero = prompt ? !prompt.classList.contains('active') : true;
+
+      return res;
+    })()`);
+
+    assert(rabbitProximityCheck && rabbitProximityCheck.isActive, 'Prompt interaksi terpapar apabila menghampiri Arnab Comel (< 5.2m)');
+    assert(rabbitProximityCheck && rabbitProximityCheck.titleText === 'ARNAB COMEL DITEMUI!', 'Tajuk prompt memaparkan "ARNAB COMEL DITEMUI!"', rabbitProximityCheck?.titleText);
+    assert(rabbitProximityCheck && rabbitProximityCheck.subtitleText === 'Hebat! Anda telah menemui Arnab Comel. Jom terokai sel haiwan dan kenali struktur asasnya!', 'Subtitle memaparkan ucapan eksplorasi sel arnab comel', rabbitProximityCheck?.subtitleText);
+    assert(rabbitProximityCheck && rabbitProximityCheck.btnText === 'Teroka Sel Haiwan', 'Butang tindakan memaparkan "Teroka Sel Haiwan"', rabbitProximityCheck?.btnText);
+    assert(rabbitProximityCheck && rabbitProximityCheck.isPromptHiddenFarFromHero, 'Arnab-arnab hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
+
+    // -------------------------------------------------------------------------
+    // FASA 14: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // -------------------------------------------------------------------------
+    console.log(`\n--- UJIAN 14: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
     const touchTargetTest = await evaluate(`(() => {
       const buttons = [
         document.getElementById('cs-v-lobby'),

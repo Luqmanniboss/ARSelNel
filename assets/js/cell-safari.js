@@ -223,6 +223,27 @@
       this.play(261.63, 'sawtooth', 0.2, 0.1);
       setTimeout(() => this.play(220.0, 'sawtooth', 0.3, 0.1), 160);
     },
+    rabbitPop() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      try {
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(780, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(440, now + 0.16);
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      } catch (_) {}
+    },
     victory() {
       const notes = [523.25, 659.25, 783.99, 1046.5];
       notes.forEach((f, idx) => setTimeout(() => this.play(f, 'sine', 0.5, 0.16), idx * 140));
@@ -295,6 +316,9 @@
   let animalMeshes = [];
   let firefliesGroup = null;
   let butterfliesGroup = null;
+  let rabbitMeadowGroup = null;
+  let decorativeRabbits = [];
+  let animGroup_zone1_rabbitAudio = false;
   let birdSanctuaryGroup = null;
   let decorativeBirds = [];
   let animGroup_zone4_chirped = false;
@@ -537,10 +561,14 @@
     // 6. Zon 4: Magical Colourful 3D Bird Sanctuary
     buildBirdSanctuaryZone4(forestEnvironmentGroup);
 
+    // 7. Zon 1: Rabbit Meadow Sanctuary (Taman Arnab 3D)
+    buildRabbitMeadowZone1(forestEnvironmentGroup);
+
     scene.add(forestEnvironmentGroup);
   }
 
   function buildZoneSignpost(zoneTitle, x, z) {
+    if (zoneTitle.includes('Arnab')) return; // Replaced by bespoke 3D Rabbit Sanctuary Signboard
     const postGroup = new THREE.Group();
     // Offset slightly from animal position
     postGroup.position.set(x - 3.5, 0, z + 2.5);
@@ -603,6 +631,8 @@
       if (Math.hypot(tx, tz) < 9) continue;
       // Jangan tanam di dalam kawasan khas Zon 4 Taman Burung (radius 16m dari x: -32, z: -28)
       if (Math.hypot(tx - (-32), tz - (-28)) < 16) continue;
+      // Jangan tanam di dalam kawasan khas Zon 1 Taman Arnab (radius 15m dari x: -30, z: 26)
+      if (Math.hypot(tx - (-30), tz - 26) < 15) continue;
       let tooCloseToAnimal = false;
       SAFARI_ZONES.forEach(z => {
         if (Math.hypot(tx - z.pos.x, tz - z.pos.z) < 4.5) tooCloseToAnimal = true;
@@ -657,6 +687,8 @@
 
       // Elakkan bunga/batu rawak bertindih dengan elemen terperinci Taman Burung
       if (Math.hypot(fx - (-32), fz - (-28)) < 16) continue;
+      // Elakkan bunga/batu rawak bertindih dengan elemen terperinci Taman Arnab
+      if (Math.hypot(fx - (-30), fz - 26) < 15) continue;
 
       if (i % 2 === 0) {
         // Flower Cluster
@@ -784,12 +816,12 @@
       animGroup.position.set(z.pos.x, 0, z.pos.z);
       animGroup.userData = { zoneIndex: index, zoneId: z.id, name: z.animal, emoji: z.emoji };
 
-      // Base Halo on ground (Pulsing golden ring for Burung Rimba Hero)
-      const isHeroBird = (index === 3);
-      const haloColor = isHeroBird ? 0xfbbf24 : z.colorHex;
+      // Base Halo on ground (Hero animals: Arnab Comel & Burung Rimba)
+      const isHero = (index === 0 || index === 3);
+      const haloColor = (index === 0) ? 0x10b981 : (index === 3 ? 0xfbbf24 : z.colorHex);
       const halo = new THREE.Mesh(
-        new THREE.RingGeometry(isHeroBird ? 1.05 : 0.8, isHeroBird ? 1.55 : 1.15, 24),
-        new THREE.MeshBasicMaterial({ color: haloColor, side: THREE.DoubleSide, transparent: true, opacity: isHeroBird ? 0.85 : 0.65 })
+        new THREE.RingGeometry(isHero ? 1.05 : 0.8, isHero ? 1.55 : 1.15, 24),
+        new THREE.MeshBasicMaterial({ color: haloColor, side: THREE.DoubleSide, transparent: true, opacity: isHero ? 0.85 : 0.65 })
       );
       halo.rotation.x = -Math.PI / 2;
       halo.position.y = 0.03;
@@ -797,7 +829,7 @@
 
       // Model Haiwan Mengikut Zon
       let creatureMesh;
-      if (index === 0) creatureMesh = createRabbitModel();
+      if (index === 0) creatureMesh = createHeroRabbitModel();
       else if (index === 1) creatureMesh = createDeerModel();
       else if (index === 2) creatureMesh = createMonkeyModel();
       else if (index === 3) creatureMesh = createBurungRimbaModel();
@@ -813,7 +845,7 @@
       ctx.fillStyle = 'rgba(6, 78, 59, 0.9)';
       ctx.roundRect ? ctx.roundRect(4, 4, 248, 64, 16) : ctx.fillRect(4, 4, 248, 64);
       ctx.fill();
-      ctx.strokeStyle = isHeroBird ? '#fbbf24' : z.color;
+      ctx.strokeStyle = (index === 0) ? '#10b981' : (index === 3 ? '#fbbf24' : z.color);
       ctx.lineWidth = 4;
       ctx.stroke();
       ctx.fillStyle = '#ffffff';
@@ -824,21 +856,22 @@
 
       const badgeTexture = new THREE.CanvasTexture(canvas);
       const badge = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.45), new THREE.MeshBasicMaterial({ map: badgeTexture, side: THREE.DoubleSide }));
-      badge.position.y = isHeroBird ? 2.85 : 2.4;
+      badge.position.y = isHero ? 2.85 : 2.4;
       animGroup.add(badge);
 
       // Floating Life Crystal / Mission Beacon Preview above animal
+      const beaconColor = (index === 0) ? 0x10b981 : (index === 3 ? 0xfbbf24 : z.colorHex);
       const crystalIco = new THREE.Mesh(
-        new THREE.OctahedronGeometry(isHeroBird ? 0.32 : 0.24, 0),
+        new THREE.OctahedronGeometry(isHero ? 0.32 : 0.24, 0),
         new THREE.MeshStandardMaterial({
-          color: isHeroBird ? 0xfbbf24 : z.colorHex,
-          emissive: isHeroBird ? 0xf59e0b : z.colorHex,
-          emissiveIntensity: isHeroBird ? 0.85 : 0.6,
+          color: beaconColor,
+          emissive: beaconColor,
+          emissiveIntensity: isHero ? 0.85 : 0.6,
           roughness: 0.15
         })
       );
-      crystalIco.scale.set(isHeroBird ? 1.0 : 0.8, isHeroBird ? 1.6 : 1.3, isHeroBird ? 1.0 : 0.8);
-      crystalIco.position.y = isHeroBird ? 3.4 : 2.95;
+      crystalIco.scale.set(isHero ? 1.0 : 0.8, isHero ? 1.6 : 1.3, isHero ? 1.0 : 0.8);
+      crystalIco.position.y = isHero ? 3.4 : 2.95;
       animGroup.add(crystalIco);
 
       animGroup.userData.creature = creatureMesh;
@@ -863,50 +896,782 @@
     });
   }
 
-  // A. Arnab 3D (Rabbit)
-  function createRabbitModel() {
+  // ============================================================================
+  // RABBIT MEADOW SANCTUARY — TAMAN ARNAB 3D (ZON 1: PADANG RUMPUT ARNAB)
+  // ============================================================================
+
+  // A. Arnab Comel Hero 3D (Hero Animal for Zone 1 - Only Interactive Target)
+  function createHeroRabbitModel() {
     const g = new THREE.Group();
-    const furMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.7, flatShading: true });
-    const pinkMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.6 });
+    g.name = 'ArnabComel_Hero';
 
-    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.48, 1), furMat);
-    body.position.y = 0.5;
-    body.scale.set(1.0, 0.9, 1.2);
-    g.add(body);
+    // 1. Two-Tiered Magical Meadow Dais
+    const daisMat1 = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.85, flatShading: true }); // Slate stone base
+    const daisMat2 = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.6, flatShading: true }); // Clover moss plinth
+    const goldTrimMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xf59e0b, emissiveIntensity: 0.35, roughness: 0.3 });
 
-    const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.32, 1), furMat);
-    head.position.set(0, 0.85, 0.42);
-    g.add(head);
+    // Tier 1: Carved slate circular base
+    const tier1 = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 0.2, 12), daisMat1);
+    tier1.position.y = 0.1;
 
-    // Ears
-    const earGeo = new THREE.BoxGeometry(0.09, 0.48, 0.06);
-    const earL = new THREE.Mesh(earGeo, furMat);
-    earL.position.set(-0.14, 1.25, 0.38);
-    earL.rotation.z = -0.15;
-    const earR = new THREE.Mesh(earGeo, furMat);
-    earR.position.set(0.14, 1.25, 0.38);
-    earR.rotation.z = 0.15;
-    g.add(earL, earR);
+    // Tier 2: Lush clover mound with gold runic trim
+    const tier2 = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.25, 0.18, 12), daisMat2);
+    tier2.position.y = 0.28;
 
-    // Nose
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 6), pinkMat);
-    nose.position.set(0, 0.82, 0.72);
-    g.add(nose);
+    const goldRing = new THREE.Mesh(new THREE.TorusGeometry(1.06, 0.04, 6, 16), goldTrimMat);
+    goldRing.rotation.x = Math.PI / 2;
+    goldRing.position.y = 0.36;
 
-    // Tail
-    const tail = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), furMat);
-    tail.position.set(0, 0.5, -0.6);
-    g.add(tail);
+    // Dais Wild Daisies
+    const daisyPetal = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const daisyCenter = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+    for (let di = 0; di < 6; di++) {
+      const da = (di / 6) * Math.PI * 2;
+      const dMesh = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 5), daisyPetal);
+      dMesh.position.set(Math.cos(da) * 0.95, 0.38, Math.sin(da) * 0.95);
+      const dC = new THREE.Mesh(new THREE.SphereGeometry(0.03, 4, 4), daisyCenter);
+      dC.position.set(Math.cos(da) * 0.95, 0.42, Math.sin(da) * 0.95);
+      g.add(dMesh, dC);
+    }
+
+    g.add(tier1, tier2, goldRing);
+
+    // 2. Articulated Arnab Comel Hero Body
+    const bunnyFurMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, flatShading: true });
+    const bellyMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.6 });
+    const pinkInnerEar = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.5 });
+    const eyeBlackMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+    const eyeHighlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const noseMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.4 });
+
+    const bunnyRoot = new THREE.Group();
+    bunnyRoot.position.y = 0.38; // Atop tier 2
+
+    // Plump chubby body
+    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.48, 1), bunnyFurMat);
+    body.position.y = 0.45;
+    body.scale.set(0.95, 1.0, 1.25);
+    bunnyRoot.add(body);
+
+    // Fluffy chest/belly patch
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.32, 7, 7), bellyMat);
+    belly.position.set(0, 0.42, 0.25);
+    bunnyRoot.add(belly);
+
+    // Rounded paws
+    const pawGeo = new THREE.SphereGeometry(0.12, 6, 6);
+    const pawFL = new THREE.Mesh(pawGeo, bunnyFurMat);
+    pawFL.position.set(-0.2, 0.12, 0.35);
+    const pawFR = new THREE.Mesh(pawGeo, bunnyFurMat);
+    pawFR.position.set(0.2, 0.12, 0.35);
+    const pawBL = new THREE.Mesh(pawGeo, bunnyFurMat);
+    pawBL.position.set(-0.32, 0.12, -0.2);
+    pawBL.scale.set(1.1, 1.0, 1.4);
+    const pawBR = new THREE.Mesh(pawGeo, bunnyFurMat);
+    pawBR.position.set(0.32, 0.12, -0.2);
+    pawBR.scale.set(1.1, 1.0, 1.4);
+    bunnyRoot.add(pawFL, pawFR, pawBL, pawBR);
+
+    // Cotton Ball Tail
+    const tail = new THREE.Mesh(new THREE.DodecahedronGeometry(0.16, 1), bunnyFurMat);
+    tail.position.set(0, 0.45, -0.6);
+    bunnyRoot.add(tail);
+
+    // Articulated Head
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.9, 0.35);
+
+    const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.36, 1), bunnyFurMat);
+    headGroup.add(head);
+
+    // Chubby Cheeks
+    const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 6), bunnyFurMat);
+    cheekL.position.set(-0.2, -0.06, 0.16);
+    const cheekR = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 6), bunnyFurMat);
+    cheekR.position.set(0.2, -0.06, 0.16);
+    headGroup.add(cheekL, cheekR);
+
+    // Eyes with corneal reflection
+    [-0.18, 0.18].forEach(ex => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 6), eyeBlackMat);
+      eye.position.set(ex, 0.08, 0.26);
+      const hl = new THREE.Mesh(new THREE.SphereGeometry(0.02, 4, 4), eyeHighlightMat);
+      hl.position.set(ex + (ex > 0 ? 0.015 : -0.015), 0.1, 0.3);
+      headGroup.add(eye, hl);
+    });
+
+    // Cute Pink Nose & Muzzle
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.08, 4), noseMat);
+    nose.rotation.x = Math.PI / 2;
+    nose.position.set(0, -0.02, 0.38);
+    headGroup.add(nose);
+
+    // Long Floppy/Upright Ears with Pink Inlays
+    const earGroupL = new THREE.Group();
+    earGroupL.position.set(-0.16, 0.32, 0);
+    const earMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.58, 0.06), bunnyFurMat);
+    earMeshL.position.y = 0.28;
+    const earPinkL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.45, 0.02), pinkInnerEar);
+    earPinkL.position.set(0, 0.28, 0.035);
+    earGroupL.add(earMeshL, earPinkL);
+    earGroupL.rotation.z = -0.12;
+
+    const earGroupR = new THREE.Group();
+    earGroupR.position.set(0.16, 0.32, 0);
+    const earMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.58, 0.06), bunnyFurMat);
+    earMeshR.position.y = 0.28;
+    const earPinkR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.45, 0.02), pinkInnerEar);
+    earPinkR.position.set(0, 0.28, 0.035);
+    earGroupR.add(earMeshR, earPinkR);
+    earGroupR.rotation.z = 0.12;
+
+    headGroup.add(earGroupL, earGroupR);
+    bunnyRoot.add(headGroup);
+    g.add(bunnyRoot);
+
+    // 3. Orbiting Sparkles
+    const sparkleMat = new THREE.MeshBasicMaterial({ color: 0xa7f3d0 });
+    const sparkles = [];
+    for (let si = 0; si < 4; si++) {
+      const sp = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), sparkleMat);
+      sp.position.set(Math.cos(si * 1.57) * 0.9, 1.0 + (si % 2) * 0.3, Math.sin(si * 1.57) * 0.9);
+      g.add(sp);
+      sparkles.push(sp);
+    }
 
     g.userData = {
+      bunnyRoot,
+      headGroup,
+      earGroupL,
+      earGroupR,
+      nose,
+      sparkles,
       animate(t) {
-        g.position.y = Math.max(0, Math.sin(t * 4) * 0.14);
-        earL.rotation.x = Math.sin(t * 3) * 0.1;
-        earR.rotation.x = Math.sin(t * 3 + 0.5) * 0.1;
+        // Cute light hopping animation
+        const hop = Math.max(0, Math.sin(t * 3.5)) * 0.12;
+        bunnyRoot.position.y = 0.38 + hop;
+
+        // Ear twitches
+        earGroupL.rotation.x = Math.sin(t * 5) * 0.15;
+        earGroupR.rotation.x = Math.sin(t * 5 + 0.6) * 0.15;
+        earGroupL.rotation.z = -0.12 + Math.sin(t * 2) * 0.05;
+        earGroupR.rotation.z = 0.12 - Math.sin(t * 2) * 0.05;
+
+        // Head looking around with alert curiosity
+        headGroup.rotation.y = Math.sin(t * 1.3) * 0.28;
+        headGroup.rotation.x = Math.sin(t * 2.5) * 0.08;
+
+        // Nose wiggle
+        nose.scale.set(1 + Math.sin(t * 8) * 0.15, 1 + Math.sin(t * 8) * 0.15, 1);
+
+        // Orbiting sparkles
+        sparkles.forEach((sp, i) => {
+          const sa = t * 1.8 + i * 1.57;
+          sp.position.x = Math.cos(sa) * 0.9;
+          sp.position.z = Math.sin(sa) * 0.9;
+          sp.position.y = 1.0 + Math.sin(t * 3 + i) * 0.18;
+          sp.rotation.y = t * 4;
+        });
       }
     };
+
     return g;
   }
+
+  // Backward compatibility alias
+  function createRabbitModel() {
+    return createHeroRabbitModel();
+  }
+
+  // Helper: Create Decorative NPC Rabbit (Purely Ambient Life - Non Interactive)
+  function createNPCRabbit(cfg, index) {
+    const bg = new THREE.Group();
+    bg.name = cfg.id;
+    bg.position.set(cfg.pos.x, cfg.pos.y, cfg.pos.z);
+    if (cfg.rotY) bg.rotation.y = cfg.rotY;
+
+    const furMat = new THREE.MeshStandardMaterial({ color: cfg.color, roughness: 0.65, flatShading: true });
+    const innerEarMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.5 });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+    const pinkNose = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.4 });
+
+    const s = cfg.scale || 0.7;
+
+    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.36 * s, 1), furMat);
+    body.position.y = 0.32 * s;
+    body.scale.set(0.9, 0.95, 1.25);
+    bg.add(body);
+
+    // Optional Spot Patch
+    if (cfg.spotColor) {
+      const spotMat = new THREE.MeshStandardMaterial({ color: cfg.spotColor, roughness: 0.65 });
+      const spot = new THREE.Mesh(new THREE.SphereGeometry(0.2 * s, 5, 5), spotMat);
+      spot.position.set(0.12 * s, 0.38 * s, 0);
+      bg.add(spot);
+    }
+
+    const tail = new THREE.Mesh(new THREE.SphereGeometry(0.1 * s, 5, 5), furMat);
+    tail.position.set(0, 0.3 * s, -0.42 * s);
+    bg.add(tail);
+
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.58 * s, 0.26 * s);
+
+    const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.25 * s, 1), furMat);
+    headGroup.add(head);
+
+    // Tiny Eyes
+    [-0.12 * s, 0.12 * s].forEach(ex => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035 * s, 4, 4), eyeMat);
+      eye.position.set(ex, 0.05 * s, 0.18 * s);
+      headGroup.add(eye);
+    });
+
+    // Tiny Nose
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.025 * s, 4, 4), pinkNose);
+    nose.position.set(0, 0, 0.25 * s);
+    headGroup.add(nose);
+
+    // Ears
+    const earGeo = new THREE.BoxGeometry(0.08 * s, 0.42 * s, 0.04 * s);
+    const earL = new THREE.Mesh(earGeo, furMat);
+    earL.position.set(-0.1 * s, 0.25 * s, 0);
+    earL.rotation.z = -0.15;
+    const earR = new THREE.Mesh(earGeo, furMat);
+    earR.position.set(0.1 * s, 0.25 * s, 0);
+    earR.rotation.z = 0.15;
+    headGroup.add(earL, earR);
+
+    bg.add(headGroup);
+
+    // Attached carrot for munching behavior
+    let heldCarrot = null;
+    if (cfg.behavior === 'munching') {
+      const cMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.4 });
+      const cTopMat = new THREE.MeshStandardMaterial({ color: 0x22c55e });
+      heldCarrot = new THREE.Group();
+      const cCone = new THREE.Mesh(new THREE.ConeGeometry(0.06 * s, 0.3 * s, 5), cMat);
+      cCone.rotation.x = -Math.PI / 3;
+      const cTop = new THREE.Mesh(new THREE.SphereGeometry(0.05 * s, 4, 4), cTopMat);
+      cTop.position.set(0, -0.06 * s, -0.14 * s);
+      heldCarrot.add(cCone, cTop);
+      heldCarrot.position.set(0, 0.22 * s, 0.38 * s);
+      bg.add(heldCarrot);
+    }
+
+    // Floating Zzz icon for sleeping behavior
+    let zzzCanvas = null;
+    let zzzMesh = null;
+    if (cfg.behavior === 'sleeping') {
+      const zCanv = document.createElement('canvas');
+      zCanv.width = 128;
+      zCanv.height = 64;
+      const zCtx = zCanv.getContext('2d');
+      zCtx.fillStyle = '#60a5fa';
+      zCtx.font = 'bold 36px Nunito, sans-serif';
+      zCtx.textAlign = 'center';
+      zCtx.fillText('Zzz...', 64, 44);
+      const zTex = new THREE.CanvasTexture(zCanv);
+      zzzMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.3), new THREE.MeshBasicMaterial({ map: zTex, transparent: true, side: THREE.DoubleSide }));
+      zzzMesh.position.set(0.2, 0.7 * s, 0.2);
+      bg.add(zzzMesh);
+    }
+
+    bg.userData = {
+      cfg,
+      index,
+      headGroup,
+      earL,
+      earR,
+      heldCarrot,
+      zzzMesh,
+      basePos: { ...cfg.pos },
+      animate(t) {
+        const offset = index * 1.1;
+        if (cfg.behavior === 'munching') {
+          // Nibbling carrot
+          const nibble = Math.sin(t * 8 + offset) * 0.12;
+          headGroup.rotation.x = 0.2 + nibble;
+          if (heldCarrot) heldCarrot.rotation.x = nibble * 0.5;
+        } else if (cfg.behavior === 'sleeping') {
+          // Breathing slowly
+          const breath = 1.0 + Math.sin(t * 2 + offset) * 0.05;
+          body.scale.set(0.95 * breath, 0.9 * breath, 1.25);
+          if (zzzMesh) {
+            zzzMesh.position.y = 0.65 * s + Math.sin(t * 1.5 + offset) * 0.08;
+            zzzMesh.rotation.y = player.rotY; // Face player
+          }
+        } else if (cfg.behavior === 'hopping') {
+          // Hopping in small place
+          const hop = Math.max(0, Math.sin(t * 4.5 + offset)) * 0.14;
+          bg.position.y = cfg.pos.y + hop;
+          earL.rotation.x = Math.sin(t * 6) * 0.18;
+          earR.rotation.x = Math.sin(t * 6 + 0.5) * 0.18;
+        } else if (cfg.behavior === 'grooming') {
+          // Grooming cheeks
+          headGroup.rotation.z = Math.sin(t * 3 + offset) * 0.18;
+          headGroup.rotation.x = 0.15 + Math.sin(t * 4 + offset) * 0.08;
+        } else {
+          // 'headBob'
+          headGroup.rotation.y = Math.sin(t * 1.6 + offset) * 0.35;
+          earL.rotation.z = -0.15 + Math.sin(t * 3.5 + offset) * 0.08;
+          earR.rotation.z = 0.15 - Math.sin(t * 3.5 + offset) * 0.08;
+        }
+      }
+    };
+
+    animatedObjects.push({
+      update(t) {
+        bg.userData.animate(t);
+      }
+    });
+
+    return bg;
+  }
+
+  // BUILD THE COMPLETE 3D RABBIT MEADOW SANCTUARY IN ZONE 1 (x: -30, z: 26)
+  function buildRabbitMeadowZone1(parent) {
+    rabbitMeadowGroup = new THREE.Group();
+    rabbitMeadowGroup.name = 'RabbitMeadowSanctuary_Zone1';
+    rabbitMeadowGroup.position.set(-30, 0, 26);
+    decorativeRabbits = [];
+
+    // A. Lush Circular Meadow Turf Pad (radius 13.5m)
+    const meadowTurf = new THREE.Mesh(
+      new THREE.CircleGeometry(13.5, 24),
+      new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.85, flatShading: true })
+    );
+    meadowTurf.rotation.x = -Math.PI / 2;
+    meadowTurf.position.y = 0.015;
+    rabbitMeadowGroup.add(meadowTurf);
+
+    // Clover decorative patches
+    const cloverMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.85 });
+    const cloverPatches = [
+      { x: -5, z: -3, r: 2.5 },
+      { x: 5, z: -2, r: 2.8 },
+      { x: -4, z: 5, r: 2.2 },
+      { x: 4, z: 6, r: 2.4 }
+    ];
+    cloverPatches.forEach(cp => {
+      const cMesh = new THREE.Mesh(new THREE.CircleGeometry(cp.r, 12), cloverMat);
+      cMesh.rotation.x = -Math.PI / 2;
+      cMesh.position.set(cp.x, 0.02, cp.z);
+      rabbitMeadowGroup.add(cMesh);
+    });
+
+    // B. Rounded Cobblestone Enclosure Wall & Entrance Archway (Matching Reference Image)
+    const stoneBlockMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.9, flatShading: true });
+    const stoneDarkMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.9, flatShading: true });
+
+    // Cobblestone Perimeter Wall (radius ~8.2m)
+    const wallSegments = 26;
+    for (let wi = 0; wi < wallSegments; wi++) {
+      const wa = -Math.PI * 0.72 + (wi / (wallSegments - 1)) * Math.PI * 1.44;
+      // Leave entrance opening at south (around wa = Math.PI/2, z = 7.5 to 8.2)
+      if (Math.abs(wa - Math.PI / 2) < 0.26) continue;
+
+      const wx = Math.cos(wa) * 8.2;
+      const wz = Math.sin(wa) * 8.2;
+
+      // Stacked rounded chunky stone block
+      const sBlock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.38, 1),
+        (wi % 2 === 0) ? stoneBlockMat : stoneDarkMat
+      );
+      sBlock.scale.set(1.4, 0.9, 1.1);
+      sBlock.position.set(wx, 0.32, wz);
+      sBlock.rotation.y = wa + Math.PI / 2;
+      rabbitMeadowGroup.add(sBlock);
+    }
+
+    // Majestic Rounded Stone Archway at South Entrance (Clearance width 2.8m, height 3.2m)
+    const archGroup = new THREE.Group();
+    archGroup.position.set(0, 0, 7.5);
+
+    // Left & Right Stone Pillars
+    [-1.5, 1.5].forEach(px => {
+      for (let py = 0; py < 5; py++) {
+        const pillarBlock = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(0.36, 1),
+          py % 2 === 0 ? stoneBlockMat : stoneDarkMat
+        );
+        pillarBlock.scale.set(1.2, 0.9, 1.2);
+        pillarBlock.position.set(px, 0.3 + py * 0.52, 0);
+        archGroup.add(pillarBlock);
+      }
+    });
+
+    // Curved Stone Arch Lintels
+    for (let ai = -3; ai <= 3; ai++) {
+      const aAng = (ai / 3) * (Math.PI / 2.8);
+      const aX = Math.sin(aAng) * 1.5;
+      const aY = 2.6 + Math.cos(aAng) * 0.65;
+      const archStone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.34, 1), stoneBlockMat);
+      archStone.scale.set(1.3, 0.85, 1.1);
+      archStone.position.set(aX, aY, 0);
+      archStone.rotation.z = -aAng;
+      archGroup.add(archStone);
+    }
+
+    // Wooden Plank Boardwalk Railway Trail leading to Arch (Matching reference image)
+    const woodPlankMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.8 });
+    for (let pl = 0; pl < 8; pl++) {
+      const pz = 7.5 + pl * 0.65;
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.08, 0.38), woodPlankMat);
+      plank.position.set(0, 0.04, pz);
+      rabbitMeadowGroup.add(plank);
+    }
+
+    rabbitMeadowGroup.add(archGroup);
+
+    // C. Stone Water Well (Perigi Batu) (North end, matching reference image)
+    const wellGroup = new THREE.Group();
+    wellGroup.position.set(1.0, 0, -4.5);
+
+    const wellCylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.05, 0.7, 10), stoneBlockMat);
+    wellCylinder.position.y = 0.35;
+    const wellWater = new THREE.Mesh(
+      new THREE.CircleGeometry(0.8, 10),
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, transparent: true, opacity: 0.85 })
+    );
+    wellWater.rotation.x = -Math.PI / 2;
+    wellWater.position.y = 0.55;
+
+    // Upright timber posts & crossbeam
+    const wellWoodMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.75 });
+    const postL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 1.6, 6), wellWoodMat);
+    postL.position.set(-0.85, 0.8, 0);
+    const postR = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 1.6, 6), wellWoodMat);
+    postR.position.set(0.85, 0.8, 0);
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.1, 0.1), wellWoodMat);
+    beam.position.set(0, 1.55, 0);
+
+    // Pulley & Hanging Wooden Bucket
+    const pulley = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.02, 4, 8), new THREE.MeshStandardMaterial({ color: 0xfacc15 }));
+    pulley.position.set(0, 1.48, 0);
+    const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.6, 4), new THREE.MeshStandardMaterial({ color: 0xfef08a }));
+    rope.position.set(0, 1.18, 0);
+    const bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.14, 0.24, 7), wellWoodMat);
+    bucket.position.set(0, 0.82, 0);
+
+    wellGroup.add(wellCylinder, wellWater, postL, postR, beam, pulley, rope, bucket);
+    rabbitMeadowGroup.add(wellGroup);
+
+    // D. Carrot Garden (Taman Lobak Merah - 2 Plots, matching reference image)
+    const soilMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.95 });
+    const carrotMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.4 });
+    const carrotTopMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.6 });
+
+    function createCarrotPlot(px, pz) {
+      const plot = new THREE.Group();
+      plot.position.set(px, 0, pz);
+
+      // Mounded brown earth bed
+      const bed = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.18, 2.2), soilMat);
+      bed.position.y = 0.09;
+      plot.add(bed);
+
+      // Border stones/tiles
+      for (let bi = 0; bi < 8; bi++) {
+        const borderX = -1.2 + (bi / 7) * 2.4;
+        const bS1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.15), stoneBlockMat);
+        bS1.position.set(borderX, 0.12, -1.05);
+        const bS2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.15), stoneBlockMat);
+        bS2.position.set(borderX, 0.12, 1.05);
+        plot.add(bS1, bS2);
+      }
+
+      // Rows of carrots in ground
+      for (let row = -1; row <= 1; row++) {
+        for (let col = -1; col <= 1; col++) {
+          const cx = col * 0.75 + (row % 2 === 0 ? 0.1 : -0.1);
+          const cz = row * 0.6;
+          // Tapered carrot root peeking out
+          const carrot = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35, 6), carrotMat);
+          carrot.rotation.x = Math.PI;
+          carrot.position.set(cx, 0.22, cz);
+          // Leafy green carrot top
+          const top1 = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.22, 5), carrotTopMat);
+          top1.position.set(cx, 0.38, cz);
+          top1.rotation.z = 0.2;
+          const top2 = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.2, 5), carrotTopMat);
+          top2.position.set(cx, 0.38, cz);
+          top2.rotation.z = -0.22;
+          plot.add(carrot, top1, top2);
+        }
+      }
+
+      return plot;
+    }
+
+    const carrotPlot1 = createCarrotPlot(-3.5, -1.5);
+    const carrotPlot2 = createCarrotPlot(3.2, -1.5);
+    rabbitMeadowGroup.add(carrotPlot1, carrotPlot2);
+
+    // Carrot Garden Mini Signpost
+    const carrotSignCanvas = document.createElement('canvas');
+    carrotSignCanvas.width = 256;
+    carrotSignCanvas.height = 96;
+    const cCtx = carrotSignCanvas.getContext('2d');
+    cCtx.fillStyle = '#fef3c7';
+    cCtx.roundRect ? cCtx.roundRect(4, 4, 248, 88, 12) : cCtx.fillRect(4, 4, 248, 88);
+    cCtx.fill();
+    cCtx.strokeStyle = '#ea580c';
+    cCtx.lineWidth = 4;
+    cCtx.stroke();
+    cCtx.fillStyle = '#ea580c';
+    cCtx.font = 'bold 24px Nunito, sans-serif';
+    cCtx.textAlign = 'center';
+    cCtx.fillText('🥕 TAMAN LOBAK', 128, 42);
+    cCtx.font = 'bold 16px Nunito, sans-serif';
+    cCtx.fillStyle = '#15803d';
+    cCtx.fillText('Makanan Segar Arnab', 128, 72);
+
+    const cSignTex = new THREE.CanvasTexture(carrotSignCanvas);
+    const cSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.42), new THREE.MeshBasicMaterial({ map: cSignTex, side: THREE.DoubleSide }));
+    cSignMesh.position.set(-0.2, 0.65, -0.4);
+    const cPost = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.8, 6), wellWoodMat);
+    cPost.position.set(-0.2, 0.4, -0.42);
+    rabbitMeadowGroup.add(cSignMesh, cPost);
+
+    // Harvested carrot basket
+    const basketMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.8 });
+    const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.28, 8), basketMat);
+    basket.position.set(-1.8, 0.14, -1.6);
+    rabbitMeadowGroup.add(basket);
+
+    // E. 3 Cute Wooden Rabbit Cottages / Hutches (Rumah Arnab 3D)
+    function createRabbitCottage(x, z, roofCol = 0x15803d, rot = 0) {
+      const cottage = new THREE.Group();
+      cottage.position.set(x, 0, z);
+      cottage.rotation.y = rot;
+
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.85 });
+      const roofMat = new THREE.MeshStandardMaterial({ color: roofCol, roughness: 0.7, flatShading: true });
+      const doorMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
+
+      // Base Log Walls
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 1.6), wallMat);
+      walls.position.y = 0.6;
+      cottage.add(walls);
+
+      // Pitched Wooden Roof
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(1.5, 0.8, 4), roofMat);
+      roof.rotation.y = Math.PI / 4;
+      roof.position.y = 1.6;
+      roof.scale.set(1.2, 1.0, 1.1);
+      cottage.add(roof);
+
+      // Arched Bunny Doorway
+      const door = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.65, 8), doorMat);
+      door.position.set(0, 0.32, 0.81);
+      cottage.add(door);
+
+      // Window with Flower Planter Box
+      const win = new THREE.Mesh(new THREE.CircleGeometry(0.18, 8), new THREE.MeshBasicMaterial({ color: 0xbae6fd }));
+      win.position.set(0.5, 0.85, 0.81);
+      const fBox = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.15), new THREE.MeshStandardMaterial({ color: 0x78350f }));
+      fBox.position.set(0.5, 0.62, 0.85);
+      const flw1 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 4, 4), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+      flw1.position.set(0.4, 0.72, 0.88);
+      const flw2 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 4, 4), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+      flw2.position.set(0.6, 0.72, 0.88);
+      cottage.add(win, fBox, flw1, flw2);
+
+      return cottage;
+    }
+
+    const cottage1 = createRabbitCottage(7.2, 1.8, 0x15803d, -0.6); // Green roof
+    const cottage2 = createRabbitCottage(-7.5, 1.5, 0xb45309, 0.6); // Terracotta roof
+    const cottage3 = createRabbitCottage(-5.5, -5.8, 0x059669, 0.2); // Emerald roof
+    rabbitMeadowGroup.add(cottage1, cottage2, cottage3);
+
+    // F. Trees (Fruit Tree & Pink Blossom Tree, matching reference image)
+    // 1. Fruit Tree (Orange/Apple) on the West
+    const fruitTreeGroup = new THREE.Group();
+    fruitTreeGroup.position.set(-8.2, 0, 5.2);
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.9 });
+    const trunk1 = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.42, 2.4, 7), trunkMat);
+    trunk1.position.y = 1.2;
+    const foliageGreen = new THREE.MeshStandardMaterial({ color: 0x15803d, flatShading: true, roughness: 0.8 });
+    const canopy1 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0, 1), foliageGreen);
+    canopy1.position.y = 3.2;
+    fruitTreeGroup.add(trunk1, canopy1);
+
+    // Oranges & White Blossom Flowers on Fruit Tree
+    const orangeMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.5 });
+    const whitePetalMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    for (let fi = 0; fi < 8; fi++) {
+      const fa = (fi / 8) * Math.PI * 2;
+      const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.16, 5, 5), orangeMat);
+      fruit.position.set(Math.cos(fa) * 1.8, 3.0 + (fi % 3) * 0.4, Math.sin(fa) * 1.8);
+      const flower = new THREE.Mesh(new THREE.SphereGeometry(0.12, 4, 4), whitePetalMat);
+      flower.position.set(Math.cos(fa + 0.3) * 1.9, 3.4 - (fi % 2) * 0.5, Math.sin(fa + 0.3) * 1.9);
+      fruitTreeGroup.add(fruit, flower);
+    }
+    rabbitMeadowGroup.add(fruitTreeGroup);
+
+    // 2. Pink Blossom Tree (Sakura / Peach) on the East
+    const blossomTreeGroup = new THREE.Group();
+    blossomTreeGroup.position.set(8.2, 0, 5.2);
+    const trunk2 = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.42, 2.4, 7), trunkMat);
+    trunk2.position.y = 1.2;
+    const pinkFoliageMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, flatShading: true, roughness: 0.7 });
+    const canopy2 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0, 1), pinkFoliageMat);
+    canopy2.position.y = 3.2;
+    blossomTreeGroup.add(trunk2, canopy2);
+
+    for (let bi = 0; bi < 8; bi++) {
+      const ba = (bi / 8) * Math.PI * 2;
+      const bFlw = new THREE.Mesh(new THREE.SphereGeometry(0.14, 4, 4), whitePetalMat);
+      bFlw.position.set(Math.cos(ba) * 1.85, 3.2 + (bi % 3) * 0.3, Math.sin(ba) * 1.85);
+      blossomTreeGroup.add(bFlw);
+    }
+    rabbitMeadowGroup.add(blossomTreeGroup);
+
+    // G. Flower Beds, Hollow Log & Hay Bed
+    // Hollow Log Tunnel (x = -4.0, z = 4.0)
+    const logGroup = new THREE.Group();
+    logGroup.position.set(-4.0, 0.32, 4.0);
+    logGroup.rotation.y = 0.5;
+    const logOuter = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 1.6, 8, 1, true), trunkMat);
+    logOuter.rotation.x = Math.PI / 2;
+    logGroup.add(logOuter);
+    rabbitMeadowGroup.add(logGroup);
+
+    // Hay Bed / Straw mound
+    const hayMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.9 });
+    const hayMound = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.2, 0.25, 8), hayMat);
+    hayMound.position.set(5.0, 0.12, -4.5);
+    rabbitMeadowGroup.add(hayMound);
+
+    // Flower clusters
+    const flowerRed = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+    const flowerYellow = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+    const flowerTulips = [
+      { x: 3.2, z: -3.8 },
+      { x: -1.5, z: -4.2 },
+      { x: -5.5, z: 3.2 },
+      { x: 5.5, z: 3.8 }
+    ];
+    flowerTulips.forEach((tp, ti) => {
+      const fl = new THREE.Mesh(new THREE.SphereGeometry(0.12, 5, 5), ti % 2 === 0 ? flowerRed : flowerYellow);
+      fl.position.set(tp.x, 0.2, tp.z);
+      rabbitMeadowGroup.add(fl);
+    });
+
+    // H. Beautiful 3D Signboard (FASA 8)
+    const signGroup = new THREE.Group();
+    signGroup.position.set(-3.2, 0, 9.8);
+    signGroup.rotation.y = 0.25;
+
+    const signPole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 2.2, 8), wellWoodMat);
+    signPole.position.y = 1.1;
+    const signBoard = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.2, 0.1), wellWoodMat);
+    signBoard.position.y = 1.85;
+
+    const mainSignCanvas = document.createElement('canvas');
+    mainSignCanvas.width = 512;
+    mainSignCanvas.height = 240;
+    const msCtx = mainSignCanvas.getContext('2d');
+    msCtx.fillStyle = '#fef3c7';
+    msCtx.roundRect ? msCtx.roundRect(8, 8, 496, 224, 20) : msCtx.fillRect(8, 8, 496, 224);
+    msCtx.fill();
+    msCtx.strokeStyle = '#b45309';
+    msCtx.lineWidth = 8;
+    msCtx.stroke();
+
+    msCtx.fillStyle = '#78350f';
+    msCtx.font = 'bold 30px Nunito, sans-serif';
+    msCtx.textAlign = 'center';
+    msCtx.fillText('🐰 TAMAN ARNAB 3D 🥕', 256, 56);
+
+    msCtx.fillStyle = '#15803d';
+    msCtx.font = 'bold 24px Nunito, sans-serif';
+    msCtx.fillText('SELAMAT DATANG KE TAMAN ARNAB!', 256, 108);
+
+    msCtx.fillStyle = '#64748b';
+    msCtx.font = 'bold 18px Nunito, sans-serif';
+    msCtx.fillText('Temui Arnab Comel dan terokai rahsia sel haiwan.', 256, 156);
+
+    msCtx.fillStyle = '#d97706';
+    msCtx.font = 'bold 16px Nunito, sans-serif';
+    msCtx.fillText('ZON 1 • KSSM TINGKATAN 1 SAINS', 256, 196);
+
+    const msTex = new THREE.CanvasTexture(mainSignCanvas);
+    const msLabel = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.1), new THREE.MeshBasicMaterial({ map: msTex, side: THREE.DoubleSide }));
+    msLabel.position.set(0, 1.85, 0.06);
+
+    // Little flowers on sign frame corners
+    const sf1 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 4, 4), flowerRed);
+    sf1.position.set(-1.25, 2.4, 0.07);
+    const sf2 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 4, 4), flowerYellow);
+    sf2.position.set(1.25, 2.4, 0.07);
+    signGroup.add(signPole, signBoard, msLabel, sf1, sf2);
+    rabbitMeadowGroup.add(signGroup);
+
+    // I. 4 Animated Butterflies
+    const bFlyColors = [0xf472b6, 0xfacc15, 0x38bdf8, 0xa855f7];
+    const bFlyMeshes = [];
+    for (let bi = 0; bi < 4; bi++) {
+      const bFly = new THREE.Group();
+      const bMat = new THREE.MeshBasicMaterial({ color: bFlyColors[bi], side: THREE.DoubleSide });
+      const wGeo = new THREE.PlaneGeometry(0.14, 0.12);
+      const wL = new THREE.Mesh(wGeo, bMat);
+      wL.position.x = -0.07;
+      const wR = new THREE.Mesh(wGeo, bMat);
+      wR.position.x = 0.07;
+      bFly.add(wL, wR);
+
+      const bAngle = (bi / 4) * Math.PI * 2;
+      const bDist = 3.2 + (bi % 2) * 1.8;
+      bFly.position.set(Math.cos(bAngle) * bDist, 1.0 + (bi % 2) * 0.4, Math.sin(bAngle) * bDist);
+      bFly.userData = { wL, wR, baseAngle: bAngle, dist: bDist, baseY: bFly.position.y, speed: 0.7 + bi * 0.3 };
+      rabbitMeadowGroup.add(bFly);
+      bFlyMeshes.push(bFly);
+    }
+    animatedObjects.push({
+      update(t) {
+        bFlyMeshes.forEach((bf, idx) => {
+          const flap = Math.sin(t * 18 + idx) * 0.75;
+          bf.userData.wL.rotation.y = flap;
+          bf.userData.wR.rotation.y = -flap;
+          const a = bf.userData.baseAngle + t * bf.userData.speed * 0.35;
+          bf.position.x = Math.cos(a) * bf.userData.dist;
+          bf.position.z = Math.sin(a) * bf.userData.dist;
+          bf.position.y = bf.userData.baseY + Math.sin(t * 4 + idx) * 0.2;
+        });
+      }
+    });
+
+    // J. 7 Decorative NPC Rabbits (Purely Ambient Life - Non Interactive)
+    const npcRabbitConfigs = [
+      // 1. Caramel Bunny munching on a carrot at Plot 1
+      { id: 'npc-rabbit-caramel', name: 'Arnab Coklat Karamel', color: 0xb45309, scale: 0.68, pos: { x: -3.5, y: 0.12, z: -1.2 }, rotY: 0.4, behavior: 'munching' },
+      // 2. Cream Bunny near the water well
+      { id: 'npc-rabbit-cream', name: 'Arnab Krim Gebu', color: 0xfef3c7, scale: 0.65, pos: { x: 0.2, y: 0.02, z: -3.6 }, rotY: 0.1, behavior: 'headBob' },
+      // 3. Soft Grey Bunny sleeping under the fruit tree with floating Zzz
+      { id: 'npc-rabbit-grey-sleep', name: 'Arnab Kelabu Berehat', color: 0x94a3b8, scale: 0.7, pos: { x: -7.0, y: 0.02, z: 4.2 }, rotY: 0.8, behavior: 'sleeping' },
+      // 4. Dutch Spotted Bunny greeting at the stone arch entrance
+      { id: 'npc-rabbit-dutch', name: 'Arnab Corak Belang', color: 0xffffff, spotColor: 0x78350f, scale: 0.72, pos: { x: -1.2, y: 0.02, z: 6.2 }, rotY: 0.2, behavior: 'headBob' },
+      // 5. Snow White Bunny munching at Plot 2
+      { id: 'npc-rabbit-white-munch', name: 'Arnab Putih Salji', color: 0xffffff, scale: 0.68, pos: { x: 3.6, y: 0.12, z: -1.0 }, rotY: -0.4, behavior: 'munching' },
+      // 6. Brown Bunny grooming paws at Cottage 1 porch
+      { id: 'npc-rabbit-brown-porch', name: 'Arnab Coklat Porch', color: 0x78350f, scale: 0.7, pos: { x: 6.2, y: 0.02, z: 1.5 }, rotY: -1.2, behavior: 'grooming' },
+      // 7. Grey Hopper Bunny hopping along the wooden plank walkway
+      { id: 'npc-rabbit-grey-path', name: 'Arnab Kelabu Melompat', color: 0x64748b, scale: 0.64, pos: { x: 1.2, y: 0.04, z: 8.5 }, rotY: -Math.PI / 2, behavior: 'hopping' }
+    ];
+
+    npcRabbitConfigs.forEach((cfg, ci) => {
+      const rabbitMesh = createNPCRabbit(cfg, ci);
+      rabbitMeadowGroup.add(rabbitMesh);
+      decorativeRabbits.push(rabbitMesh);
+    });
+
+    parent.add(rabbitMeadowGroup);
+  }
+
 
   // B. Rusa 3D (Deer)
   function createDeerModel() {
@@ -1933,7 +2698,17 @@
       const isDone = State.completedZones.has(closestIndex);
       DOM.promptIcon.textContent = cz.emoji;
 
-      if (closestIndex === 3) {
+      if (closestIndex === 0) {
+        // Special custom prompt for Arnab Comel (Zone 1)
+        DOM.promptTitle.textContent = 'ARNAB COMEL DITEMUI!';
+        DOM.promptSub.textContent = 'Hebat! Anda telah menemui Arnab Comel. Jom terokai sel haiwan dan kenali struktur asasnya!';
+        DOM.promptBtnText.textContent = 'Teroka Sel Haiwan';
+
+        if (!animGroup_zone1_rabbitAudio) {
+          SafariAudio.rabbitPop && SafariAudio.rabbitPop();
+          animGroup_zone1_rabbitAudio = true;
+        }
+      } else if (closestIndex === 3) {
         // Special custom prompt for Burung Rimba (Zone 4)
         DOM.promptTitle.textContent = 'BURUNG RIMBA DITEMUI!';
         DOM.promptSub.textContent = 'Hebat! Anda berjaya menemui Burung Rimba. Jom terokai sel haiwan dan ketahui rahsia kehidupan!';
@@ -2921,9 +3696,15 @@
       fireflyCount: firefliesGroup ? 32 : 0,
       animalCount: animalMeshes ? animalMeshes.length : 0,
       sanctuary: !!birdSanctuaryGroup,
+      rabbitMeadow: !!rabbitMeadowGroup,
+      totalRabbitCount: decorativeRabbits.length + (animalMeshes[0] ? 1 : 0),
       totalBirdCount: decorativeBirds.length + (animalMeshes[3] ? 1 : 0)
     }),
     getAnimalZones: () => SAFARI_ZONES,
+    getRabbitMeadow: () => rabbitMeadowGroup,
+    getDecorativeRabbits: () => decorativeRabbits,
+    getTotalRabbitCount: () => decorativeRabbits.length + (animalMeshes[0] ? 1 : 0),
+    getInteractiveRabbit: () => (animalMeshes[0] ? animalMeshes[0].userData.creature : null),
     getBirdSanctuary: () => birdSanctuaryGroup,
     getDecorativeBirds: () => decorativeBirds,
     getTotalBirdCount: () => decorativeBirds.length + (animalMeshes[3] ? 1 : 0),
