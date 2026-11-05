@@ -690,9 +690,71 @@ async function main() {
     assert(rabbitProximityCheck && rabbitProximityCheck.isPromptHiddenFarFromHero, 'Arnab-arnab hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
 
     // -------------------------------------------------------------------------
-    // FASA 14: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // FASA 14: UJIAN KHAS ZON 2 — DEER VALLEY SANCTUARY & RUSA ANGGUN
     // -------------------------------------------------------------------------
-    console.log(`\n--- UJIAN 14: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
+    console.log(`\n--- UJIAN 14: DEER VALLEY SANCTUARY & RUSA ANGGUN ---`);
+    const deerValleyCheck = await evaluate(`(() => {
+      const valley = window.CellSafari.getDeerValley();
+      const decDeers = window.CellSafari.getDecorativeDeers();
+      const totalDeers = window.CellSafari.getTotalDeerCount();
+      const heroDeer = window.CellSafari.getInteractiveDeer();
+      const diag = window.CellSafari.getDiagnostics();
+
+      return {
+        hasValley: !!valley,
+        valleyX: valley ? valley.position.x : 0,
+        valleyZ: valley ? valley.position.z : 0,
+        totalDeers,
+        decorativeDeerCount: decDeers ? decDeers.length : 0,
+        hasHeroDeer: !!heroDeer,
+        heroDeerName: heroDeer ? heroDeer.name : '',
+        diagnosticValley: diag.deerValley
+      };
+    })()`);
+
+    assert(deerValleyCheck && deerValleyCheck.hasValley, 'Objek 3D Kumpulan Lembah Rusa wujud dalam persekitaran Cell Safari');
+    assert(deerValleyCheck && deerValleyCheck.valleyX === 32 && deerValleyCheck.valleyZ === 28, 'Lembah Rusa ditempatkan dengan tepat di Zon 2 (x: 32, z: 28)');
+    assert(deerValleyCheck && deerValleyCheck.totalDeers >= 5 && deerValleyCheck.totalDeers <= 8, `Jumlah rusa di Lembah Rusa dalam julat sasaran 5-8 ekor (Terkini: ${deerValleyCheck?.totalDeers} ekor)`);
+    assert(deerValleyCheck && deerValleyCheck.decorativeDeerCount === 5, '5 Ekor Rusa Hiasan NPC pelbagai saiz dan tingkah laku menghiasi lembah');
+    assert(deerValleyCheck && deerValleyCheck.hasHeroDeer, 'Rusa Anggun hero 3D wujud di atas pelantar khas bertingkat');
+
+    // Uji Eksklusiviti Interaksi Rusa Anggun
+    const deerProximityCheck = await evaluate(`(() => {
+      // Teleport tepat berdekatan Rusa Anggun di Zon 2 (32, 26.5)
+      window.CellSafari.teleport(32, 26.5);
+      window.CellSafari.updateProximity();
+
+      const prompt = document.getElementById('cs-prompt');
+      const title = document.getElementById('cs-prompt-title');
+      const subtitle = document.getElementById('cs-prompt-sub');
+      const btn = document.getElementById('cs-prompt-btn-text');
+      const isActive = prompt ? prompt.classList.contains('active') : false;
+
+      const res = {
+        isActive,
+        titleText: title ? title.textContent.trim() : '',
+        subtitleText: subtitle ? subtitle.textContent.trim() : '',
+        btnText: btn ? btn.textContent.trim() : ''
+      };
+
+      // Teleport ke kawasan yang tiada haiwan zon (cth: x: 10, z: 0)
+      window.CellSafari.teleport(10, 0);
+      window.CellSafari.updateProximity();
+      res.isPromptHiddenFarFromHero = prompt ? !prompt.classList.contains('active') : true;
+
+      return res;
+    })()`);
+
+    assert(deerProximityCheck && deerProximityCheck.isActive, 'Prompt interaksi terpapar apabila menghampiri Rusa Anggun (< 5.2m)');
+    assert(deerProximityCheck && deerProximityCheck.titleText === 'RUSA ANGGUN DITEMUI!', 'Tajuk prompt memaparkan "RUSA ANGGUN DITEMUI!"', deerProximityCheck?.titleText);
+    assert(deerProximityCheck && deerProximityCheck.subtitleText === 'Hebat, Saintis Muda! Anda telah menemui Rusa Anggun. Mari terokai nukleus, pusat kawalan sel haiwan!', 'Subtitle memaparkan ucapan eksplorasi sel nukleus rusa', deerProximityCheck?.subtitleText);
+    assert(deerProximityCheck && deerProximityCheck.btnText === 'Teroka Sel Haiwan', 'Butang tindakan memaparkan "Teroka Sel Haiwan"', deerProximityCheck?.btnText);
+    assert(deerProximityCheck && deerProximityCheck.isPromptHiddenFarFromHero, 'Rusa-rusa hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
+
+    // -------------------------------------------------------------------------
+    // FASA 15: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // -------------------------------------------------------------------------
+    console.log(`\n--- UJIAN 15: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
     const touchTargetTest = await evaluate(`(() => {
       const buttons = [
         document.getElementById('cs-v-lobby'),

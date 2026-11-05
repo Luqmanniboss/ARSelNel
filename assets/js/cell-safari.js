@@ -244,6 +244,28 @@
         osc.stop(now + 0.18);
       } catch (_) {}
     },
+    deerChime() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      try {
+        const now = this.ctx.currentTime;
+        const notes = [587.33, 739.99, 880.0]; // D5, F#5, A5 gentle forest chime
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.06, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.35);
+        });
+      } catch (_) {}
+    },
     victory() {
       const notes = [523.25, 659.25, 783.99, 1046.5];
       notes.forEach((f, idx) => setTimeout(() => this.play(f, 'sine', 0.5, 0.16), idx * 140));
@@ -316,6 +338,9 @@
   let animalMeshes = [];
   let firefliesGroup = null;
   let butterfliesGroup = null;
+  let deerValleyGroup = null;
+  let decorativeDeers = [];
+  let animGroup_zone2_deerAudio = false;
   let rabbitMeadowGroup = null;
   let decorativeRabbits = [];
   let animGroup_zone1_rabbitAudio = false;
@@ -564,11 +589,14 @@
     // 7. Zon 1: Rabbit Meadow Sanctuary (Taman Arnab 3D)
     buildRabbitMeadowZone1(forestEnvironmentGroup);
 
+    // 8. Zon 2: Deer Valley Sanctuary (Lembah Rusa Ajaib 3D)
+    buildDeerValleyZone2(forestEnvironmentGroup);
+
     scene.add(forestEnvironmentGroup);
   }
 
   function buildZoneSignpost(zoneTitle, x, z) {
-    if (zoneTitle.includes('Arnab')) return; // Replaced by bespoke 3D Rabbit Sanctuary Signboard
+    if (zoneTitle.includes('Arnab') || zoneTitle.includes('Rusa')) return; // Replaced by bespoke 3D Rabbit Sanctuary Signboard
     const postGroup = new THREE.Group();
     // Offset slightly from animal position
     postGroup.position.set(x - 3.5, 0, z + 2.5);
@@ -633,6 +661,8 @@
       if (Math.hypot(tx - (-32), tz - (-28)) < 16) continue;
       // Jangan tanam di dalam kawasan khas Zon 1 Taman Arnab (radius 15m dari x: -30, z: 26)
       if (Math.hypot(tx - (-30), tz - 26) < 15) continue;
+      // Jangan tanam di dalam kawasan khas Zon 2 Lembah Rusa (radius 16m dari x: 32, z: 28)
+      if (Math.hypot(tx - 32, tz - 28) < 16) continue;
       let tooCloseToAnimal = false;
       SAFARI_ZONES.forEach(z => {
         if (Math.hypot(tx - z.pos.x, tz - z.pos.z) < 4.5) tooCloseToAnimal = true;
@@ -689,6 +719,8 @@
       if (Math.hypot(fx - (-32), fz - (-28)) < 16) continue;
       // Elakkan bunga/batu rawak bertindih dengan elemen terperinci Taman Arnab
       if (Math.hypot(fx - (-30), fz - 26) < 15) continue;
+      // Elakkan bunga/batu rawak bertindih dengan elemen terperinci Lembah Rusa
+      if (Math.hypot(fx - 32, fz - 28) < 16) continue;
 
       if (i % 2 === 0) {
         // Flower Cluster
@@ -816,11 +848,11 @@
       animGroup.position.set(z.pos.x, 0, z.pos.z);
       animGroup.userData = { zoneIndex: index, zoneId: z.id, name: z.animal, emoji: z.emoji };
 
-      // Base Halo on ground (Hero animals: Arnab Comel & Burung Rimba)
-      const isHero = (index === 0 || index === 3);
-      const haloColor = (index === 0) ? 0x10b981 : (index === 3 ? 0xfbbf24 : z.colorHex);
+      // Base Halo on ground (Hero animals: Arnab Comel, Rusa Anggun & Burung Rimba)
+      const isHero = (index === 0 || index === 1 || index === 3);
+      const haloColor = (index === 0) ? 0x10b981 : (index === 1 ? 0x0ea5e9 : (index === 3 ? 0xfbbf24 : z.colorHex));
       const halo = new THREE.Mesh(
-        new THREE.RingGeometry(isHero ? 1.05 : 0.8, isHero ? 1.55 : 1.15, 24),
+        new THREE.RingGeometry(isHero ? 1.15 : 0.8, isHero ? 1.65 : 1.15, 24),
         new THREE.MeshBasicMaterial({ color: haloColor, side: THREE.DoubleSide, transparent: true, opacity: isHero ? 0.85 : 0.65 })
       );
       halo.rotation.x = -Math.PI / 2;
@@ -830,7 +862,7 @@
       // Model Haiwan Mengikut Zon
       let creatureMesh;
       if (index === 0) creatureMesh = createHeroRabbitModel();
-      else if (index === 1) creatureMesh = createDeerModel();
+      else if (index === 1) creatureMesh = createHeroDeerModel();
       else if (index === 2) creatureMesh = createMonkeyModel();
       else if (index === 3) creatureMesh = createBurungRimbaModel();
       else creatureMesh = createFoxModel();
@@ -845,7 +877,7 @@
       ctx.fillStyle = 'rgba(6, 78, 59, 0.9)';
       ctx.roundRect ? ctx.roundRect(4, 4, 248, 64, 16) : ctx.fillRect(4, 4, 248, 64);
       ctx.fill();
-      ctx.strokeStyle = (index === 0) ? '#10b981' : (index === 3 ? '#fbbf24' : z.color);
+      ctx.strokeStyle = (index === 0) ? '#10b981' : (index === 1 ? '#0ea5e9' : (index === 3 ? '#fbbf24' : z.color));
       ctx.lineWidth = 4;
       ctx.stroke();
       ctx.fillStyle = '#ffffff';
@@ -856,11 +888,11 @@
 
       const badgeTexture = new THREE.CanvasTexture(canvas);
       const badge = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.45), new THREE.MeshBasicMaterial({ map: badgeTexture, side: THREE.DoubleSide }));
-      badge.position.y = isHero ? 2.85 : 2.4;
+      badge.position.y = (index === 1) ? 3.1 : (isHero ? 2.85 : 2.4);
       animGroup.add(badge);
 
       // Floating Life Crystal / Mission Beacon Preview above animal
-      const beaconColor = (index === 0) ? 0x10b981 : (index === 3 ? 0xfbbf24 : z.colorHex);
+      const beaconColor = (index === 0) ? 0x10b981 : (index === 1 ? 0x0ea5e9 : (index === 3 ? 0xfbbf24 : z.colorHex));
       const crystalIco = new THREE.Mesh(
         new THREE.OctahedronGeometry(isHero ? 0.32 : 0.24, 0),
         new THREE.MeshStandardMaterial({
@@ -871,7 +903,7 @@
         })
       );
       crystalIco.scale.set(isHero ? 1.0 : 0.8, isHero ? 1.6 : 1.3, isHero ? 1.0 : 0.8);
-      crystalIco.position.y = isHero ? 3.4 : 2.95;
+      crystalIco.position.y = (index === 1) ? 3.65 : (isHero ? 3.4 : 2.95);
       animGroup.add(crystalIco);
 
       animGroup.userData.creature = creatureMesh;
@@ -1673,49 +1705,787 @@
   }
 
 
-  // B. Rusa 3D (Deer)
-  function createDeerModel() {
+  // ============================================================================
+  // DEER VALLEY SANCTUARY — LEMBAH RUSA AJAIB 3D (ZON 2: LEMBAH RUSA)
+  // ============================================================================
+
+  // Helper: Build Majestic Branching Antlers for Stags
+  function createBranchingAntlers(hornMat, s = 1.0) {
+    const antlers = new THREE.Group();
+    antlers.name = 'BranchingAntlers';
+
+    // Left main beam
+    const beamL = new THREE.Mesh(new THREE.CylinderGeometry(0.025 * s, 0.04 * s, 0.65 * s, 6), hornMat);
+    beamL.position.set(-0.18 * s, 0.3 * s, 0);
+    beamL.rotation.z = -0.42;
+    beamL.rotation.x = -0.15;
+
+    // Left Brow tine
+    const tineL1 = new THREE.Mesh(new THREE.CylinderGeometry(0.015 * s, 0.025 * s, 0.25 * s, 5), hornMat);
+    tineL1.position.set(-0.16 * s, 0.22 * s, 0.12 * s);
+    tineL1.rotation.x = 0.6;
+    tineL1.rotation.z = -0.2;
+
+    // Left Crown tine
+    const tineL2 = new THREE.Mesh(new THREE.CylinderGeometry(0.014 * s, 0.022 * s, 0.28 * s, 5), hornMat);
+    tineL2.position.set(-0.32 * s, 0.52 * s, -0.05 * s);
+    tineL2.rotation.z = -0.7;
+    tineL2.rotation.y = -0.25;
+
+    // Right main beam
+    const beamR = new THREE.Mesh(new THREE.CylinderGeometry(0.025 * s, 0.04 * s, 0.65 * s, 6), hornMat);
+    beamR.position.set(0.18 * s, 0.3 * s, 0);
+    beamR.rotation.z = 0.42;
+    beamR.rotation.x = -0.15;
+
+    // Right Brow tine
+    const tineR1 = new THREE.Mesh(new THREE.CylinderGeometry(0.015 * s, 0.025 * s, 0.25 * s, 5), hornMat);
+    tineR1.position.set(0.16 * s, 0.22 * s, 0.12 * s);
+    tineR1.rotation.x = 0.6;
+    tineR1.rotation.z = 0.2;
+
+    // Right Crown tine
+    const tineR2 = new THREE.Mesh(new THREE.CylinderGeometry(0.014 * s, 0.022 * s, 0.28 * s, 5), hornMat);
+    tineR2.position.set(0.32 * s, 0.52 * s, -0.05 * s);
+    tineR2.rotation.z = 0.7;
+    tineR2.rotation.y = 0.25;
+
+    antlers.add(beamL, tineL1, tineL2, beamR, tineR1, tineR2);
+    return antlers;
+  }
+
+  // B. Rusa Anggun Hero 3D (Hero Animal for Zone 2 - Only Interactive Target)
+  function createHeroDeerModel() {
     const g = new THREE.Group();
-    const coatMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.75, flatShading: true });
-    const hornMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 });
+    g.name = 'RusaAnggun_Hero';
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.65, 1.3), coatMat);
-    body.position.y = 1.0;
-    g.add(body);
+    // 1. Two-Tiered Magical Forest Dais
+    const daisMat1 = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.85, flatShading: true }); // Slate base
+    const daisMat2 = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4, metalness: 0.3 }); // Azure runic ring
+    const goldTrimMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.45, roughness: 0.2 });
 
-    // 4 Legs
-    const legGeo = new THREE.CylinderGeometry(0.06, 0.05, 0.8, 6);
-    [[-0.25, 0.4, 0.45], [0.25, 0.4, 0.45], [-0.25, 0.4, -0.45], [0.25, 0.4, -0.45]].forEach(p => {
-      const leg = new THREE.Mesh(legGeo, coatMat);
-      leg.position.set(...p);
-      g.add(leg);
+    // Tier 1: Slate base
+    const tier1 = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.8, 0.22, 12), daisMat1);
+    tier1.position.y = 0.11;
+
+    // Tier 2: Azure runic ring
+    const tier2 = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.35, 0.18, 12), daisMat2);
+    tier2.position.y = 0.29;
+
+    const runicTorus = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.04, 6, 16), goldTrimMat);
+    runicTorus.rotation.x = Math.PI / 2;
+    runicTorus.position.y = 0.37;
+
+    // Dais mountain flora
+    const flwPetalMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const flwWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    for (let di = 0; di < 8; di++) {
+      const da = (di / 8) * Math.PI * 2;
+      const fl = new THREE.Mesh(new THREE.SphereGeometry(0.065, 5, 5), (di % 2 === 0) ? flwPetalMat : flwWhiteMat);
+      fl.position.set(Math.cos(da) * 1.1, 0.39, Math.sin(da) * 1.1);
+      g.add(fl);
+    }
+
+    g.add(tier1, tier2, runicTorus);
+
+    // 2. Majestic Sculpted Rusa Anggun Stag
+    const coatMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.65, flatShading: true }); // Rich chestnut
+    const bellyMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.7 }); // Cream belly
+    const hornMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.75 }); // Dark antler horn
+    const muzzleMat = new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 0.5 }); // Dark muzzle
+    const hoofMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.8 }); // Black hooves
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0a });
+    const eyeDotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const innerEarMat = new THREE.MeshStandardMaterial({ color: 0xfbcfe8, roughness: 0.5 });
+
+    const deerRoot = new THREE.Group();
+    deerRoot.position.y = 0.38; // Atop tier 2
+
+    // Sculpted Slender Torso
+    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65, 1), coatMat);
+    body.scale.set(0.85, 0.95, 1.55);
+    body.position.y = 1.15;
+    deerRoot.add(body);
+
+    // Cream Belly Patch
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.42, 7, 7), bellyMat);
+    belly.position.set(0, 1.05, 0.15);
+    belly.scale.set(0.9, 0.9, 1.3);
+    deerRoot.add(belly);
+
+    // 4 Slender Legs with Joint Bends & Dark Hooves
+    function createDeerLeg(px, pz, isFront) {
+      const legGroup = new THREE.Group();
+      legGroup.position.set(px, 1.05, pz);
+
+      const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.055, 0.55, 6), coatMat);
+      upper.position.y = -0.25;
+      const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.55, 6), coatMat);
+      lower.position.y = -0.68;
+      const hoof = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.058, 0.12, 6), hoofMat);
+      hoof.position.y = -0.98;
+
+      if (isFront) {
+        upper.rotation.x = -0.06;
+        lower.rotation.x = 0.08;
+      } else {
+        upper.rotation.x = 0.12;
+        lower.rotation.x = -0.15;
+      }
+
+      legGroup.add(upper, lower, hoof);
+      return legGroup;
+    }
+
+    const legFL = createDeerLeg(-0.28, 0.55, true);
+    const legFR = createDeerLeg(0.28, 0.55, true);
+    const legBL = createDeerLeg(-0.28, -0.55, false);
+    const legBR = createDeerLeg(0.28, -0.55, false);
+    deerRoot.add(legFL, legFR, legBL, legBR);
+
+    // Perky Deer Tail
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.12), coatMat);
+    tail.position.set(0, 1.35, -0.85);
+    tail.rotation.x = -0.4;
+    deerRoot.add(tail);
+
+    // Slender Graceful Neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.24, 0.85, 7), coatMat);
+    neck.position.set(0, 1.62, 0.65);
+    neck.rotation.x = 0.45;
+    deerRoot.add(neck);
+
+    // Articulated Deer Head
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 2.05, 0.88);
+
+    const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.28, 1), coatMat);
+    head.scale.set(0.85, 0.9, 1.25);
+    headGroup.add(head);
+
+    // Tapered Snout & Dark Muzzle
+    const snout = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.35, 6), coatMat);
+    snout.rotation.x = Math.PI / 2;
+    snout.position.set(0, -0.04, 0.32);
+    const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), muzzleMat);
+    muzzle.position.set(0, -0.04, 0.48);
+    headGroup.add(snout, muzzle);
+
+    // Eyes with corneal reflection
+    [-0.15, 0.15].forEach(ex => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 6), eyeMat);
+      eye.position.set(ex, 0.08, 0.16);
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.016, 4, 4), eyeDotMat);
+      dot.position.set(ex + (ex > 0 ? 0.012 : -0.012), 0.095, 0.19);
+      headGroup.add(eye, dot);
     });
 
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 0.65, 6), coatMat);
-    neck.position.set(0, 1.45, 0.55);
-    neck.rotation.x = 0.4;
-    g.add(neck);
+    // Alert Pointed Ears
+    const earGeo = new THREE.ConeGeometry(0.07, 0.32, 5);
+    const earL = new THREE.Mesh(earGeo, coatMat);
+    earL.position.set(-0.18, 0.22, -0.08);
+    earL.rotation.z = -0.55;
+    earL.rotation.x = -0.2;
+    const earR = new THREE.Mesh(earGeo, coatMat);
+    earR.position.set(0.18, 0.22, -0.08);
+    earR.rotation.z = 0.55;
+    earR.rotation.x = -0.2;
+    headGroup.add(earL, earR);
 
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.28, 0.45), coatMat);
-    head.position.set(0, 1.75, 0.72);
-    g.add(head);
+    // Magnificent Branching Antlers
+    const antlers = createBranchingAntlers(hornMat, 1.15);
+    antlers.position.set(0, 0.26, -0.05);
+    headGroup.add(antlers);
 
-    // Antlers
-    const hL = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.45, 5), hornMat);
-    hL.position.set(-0.14, 2.05, 0.68);
-    hL.rotation.z = -0.35;
-    const hR = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.45, 5), hornMat);
-    hR.position.set(0.14, 2.05, 0.68);
-    hR.rotation.z = 0.35;
-    g.add(hL, hR);
+    deerRoot.add(headGroup);
+    g.add(deerRoot);
+
+    // 3. Orbiting Sparkles
+    const sparkleMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc });
+    const sparkles = [];
+    for (let si = 0; si < 4; si++) {
+      const sp = new THREE.Mesh(new THREE.OctahedronGeometry(0.065, 0), sparkleMat);
+      sp.position.set(Math.cos(si * 1.57) * 1.1, 1.6 + (si % 2) * 0.4, Math.sin(si * 1.57) * 1.1);
+      g.add(sp);
+      sparkles.push(sp);
+    }
 
     g.userData = {
+      deerRoot,
+      headGroup,
+      earL,
+      earR,
+      tail,
+      sparkles,
+      tier2,
       animate(t) {
-        head.rotation.y = Math.sin(t * 1.5) * 0.15;
+        // Stately calm head turns
+        headGroup.rotation.y = Math.sin(t * 1.2) * 0.25;
+        headGroup.rotation.x = Math.sin(t * 1.8) * 0.08;
+
+        // Ear twitches
+        earL.rotation.x = -0.2 + Math.sin(t * 4.5) * 0.12;
+        earR.rotation.x = -0.2 + Math.sin(t * 4.5 + 0.6) * 0.12;
+
+        // Tail gentle flick
+        tail.rotation.y = Math.sin(t * 3.5) * 0.25;
+
+        // Breathing animation
+        body.scale.set(0.85, 0.95 + Math.sin(t * 2) * 0.03, 1.55);
+
+        // Orbiting sparkles
+        sparkles.forEach((sp, i) => {
+          const sa = t * 1.6 + i * 1.57;
+          sp.position.x = Math.cos(sa) * 1.1;
+          sp.position.z = Math.sin(sa) * 1.1;
+          sp.position.y = 1.6 + Math.sin(t * 3 + i) * 0.2;
+          sp.rotation.y = t * 3;
+        });
+
+        // Pulsing runic dais
+        if (tier2.material) {
+          tier2.material.emissive = new THREE.Color(0x0284c7);
+          tier2.material.emissiveIntensity = 0.35 + Math.sin(t * 3) * 0.25;
+        }
       }
     };
+
     return g;
   }
+
+  // Backward compatibility alias
+  function createDeerModel() {
+    return createHeroDeerModel();
+  }
+
+  // Helper: Create Decorative NPC Deer (Purely Ambient Life - Non Interactive)
+  function createNPCDeer(cfg, index) {
+    const dg = new THREE.Group();
+    dg.name = cfg.id;
+    dg.position.set(cfg.pos.x, cfg.pos.y, cfg.pos.z);
+    if (cfg.rotY) dg.rotation.y = cfg.rotY;
+
+    const coatMat = new THREE.MeshStandardMaterial({ color: cfg.color, roughness: 0.7, flatShading: true });
+    const hornMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 });
+    const hoofMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.8 });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0a });
+    const muzzleMat = new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 0.6 });
+
+    const s = cfg.scale || 0.85;
+
+    // Body
+    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55 * s, 1), coatMat);
+    body.scale.set(0.85, 0.95, 1.5);
+    body.position.y = 0.95 * s;
+    dg.add(body);
+
+    // Optional Spots on Fawn
+    if (cfg.spotted) {
+      const spotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      for (let sp = 0; sp < 6; sp++) {
+        const spotL = new THREE.Mesh(new THREE.SphereGeometry(0.045 * s, 4, 4), spotMat);
+        spotL.position.set(-0.35 * s, (0.95 + (sp % 2) * 0.15) * s, (-0.35 + sp * 0.15) * s);
+        const spotR = new THREE.Mesh(new THREE.SphereGeometry(0.045 * s, 4, 4), spotMat);
+        spotR.position.set(0.35 * s, (0.95 + (sp % 2) * 0.15) * s, (-0.35 + sp * 0.15) * s);
+        dg.add(spotL, spotR);
+      }
+    }
+
+    // 4 Legs
+    function makeLeg(px, pz) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05 * s, 0.04 * s, 0.85 * s, 6), coatMat);
+      leg.position.set(px, 0.42 * s, pz);
+      const hoof = new THREE.Mesh(new THREE.CylinderGeometry(0.04 * s, 0.05 * s, 0.1 * s, 6), hoofMat);
+      hoof.position.set(px, 0.05 * s, pz);
+      dg.add(leg, hoof);
+    }
+    if (cfg.behavior !== 'resting') {
+      makeLeg(-0.22 * s, 0.45 * s);
+      makeLeg(0.22 * s, 0.45 * s);
+      makeLeg(-0.22 * s, -0.45 * s);
+      makeLeg(0.22 * s, -0.45 * s);
+    } else {
+      // Tucked legs for resting deer
+      body.position.y = 0.45 * s;
+    }
+
+    // Tail
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.1 * s, 0.14 * s, 0.1 * s), coatMat);
+    tail.position.set(0, (cfg.behavior === 'resting' ? 0.65 : 1.15) * s, -0.75 * s);
+    dg.add(tail);
+
+    // Neck & Head
+    const headGroup = new THREE.Group();
+    const neckY = cfg.behavior === 'resting' ? 0.7 * s : 1.35 * s;
+    headGroup.position.set(0, neckY, 0.55 * s);
+
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 0.65 * s, 6), coatMat);
+    neck.position.set(0, 0.25 * s, 0.15 * s);
+    neck.rotation.x = cfg.behavior === 'grazing' ? 0.95 : 0.4;
+    headGroup.add(neck);
+
+    const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22 * s, 1), coatMat);
+    head.scale.set(0.85, 0.9, 1.25);
+    const headOffsetY = cfg.behavior === 'grazing' ? -0.15 * s : 0.55 * s;
+    const headOffsetZ = cfg.behavior === 'grazing' ? 0.55 * s : 0.35 * s;
+    head.position.set(0, headOffsetY, headOffsetZ);
+    headGroup.add(head);
+
+    // Snout
+    const snout = new THREE.Mesh(new THREE.ConeGeometry(0.11 * s, 0.28 * s, 5), coatMat);
+    snout.rotation.x = Math.PI / 2;
+    snout.position.set(0, headOffsetY - 0.04 * s, headOffsetZ + 0.25 * s);
+    const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.06 * s, 5, 5), muzzleMat);
+    muzzle.position.set(0, headOffsetY - 0.04 * s, headOffsetZ + 0.38 * s);
+    headGroup.add(snout, muzzle);
+
+    // Eyes
+    [-0.12 * s, 0.12 * s].forEach(ex => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035 * s, 4, 4), eyeMat);
+      eye.position.set(ex, headOffsetY + 0.06 * s, headOffsetZ + 0.12 * s);
+      headGroup.add(eye);
+    });
+
+    // Ears
+    const earGeo = new THREE.ConeGeometry(0.06 * s, 0.26 * s, 4);
+    const earL = new THREE.Mesh(earGeo, coatMat);
+    earL.position.set(-0.15 * s, headOffsetY + 0.18 * s, headOffsetZ - 0.06 * s);
+    earL.rotation.z = -0.5;
+    const earR = new THREE.Mesh(earGeo, coatMat);
+    earR.position.set(0.15 * s, headOffsetY + 0.18 * s, headOffsetZ - 0.06 * s);
+    earR.rotation.z = 0.5;
+    headGroup.add(earL, earR);
+
+    // Optional Antlers for Stag NPC
+    if (cfg.hasAntlers) {
+      const antlers = createBranchingAntlers(hornMat, s * 0.9);
+      antlers.position.set(0, headOffsetY + 0.22 * s, headOffsetZ - 0.04 * s);
+      headGroup.add(antlers);
+    }
+
+    dg.add(headGroup);
+
+    dg.userData = {
+      cfg,
+      index,
+      headGroup,
+      earL,
+      earR,
+      tail,
+      basePos: { ...cfg.pos },
+      animate(t) {
+        const offset = index * 1.3;
+        if (cfg.behavior === 'grazing') {
+          // Nibbling grass rhythmically
+          headGroup.rotation.x = 0.35 + Math.sin(t * 3.5 + offset) * 0.15;
+          headGroup.rotation.y = Math.sin(t * 1.5 + offset) * 0.2;
+        } else if (cfg.behavior === 'drinking') {
+          // Drinking from river
+          const drink = Math.sin(t * 1.8 + offset);
+          headGroup.rotation.x = (drink > 0) ? 0.45 : 0.15;
+        } else if (cfg.behavior === 'resting') {
+          // Gentle breathing in shelter
+          body.scale.y = 0.95 + Math.sin(t * 2 + offset) * 0.04;
+          headGroup.rotation.y = Math.sin(t * 1.2 + offset) * 0.2;
+        } else if (cfg.behavior === 'hopping') {
+          // Fawn little playful hops
+          const hop = Math.max(0, Math.sin(t * 5 + offset)) * 0.12;
+          dg.position.y = cfg.pos.y + hop;
+          headGroup.rotation.y = Math.sin(t * 3 + offset) * 0.25;
+        } else {
+          // 'headBob'
+          headGroup.rotation.y = Math.sin(t * 1.6 + offset) * 0.3;
+          earL.rotation.x = Math.sin(t * 4 + offset) * 0.15;
+          earR.rotation.x = Math.sin(t * 4 + offset + 0.5) * 0.15;
+        }
+      }
+    };
+
+    animatedObjects.push({
+      update(t) {
+        dg.userData.animate(t);
+      }
+    });
+
+    return dg;
+  }
+
+  // BUILD THE COMPLETE 3D DEER VALLEY SANCTUARY IN ZONE 2 (x: 32, z: 28)
+  function buildDeerValleyZone2(parent) {
+    deerValleyGroup = new THREE.Group();
+    deerValleyGroup.name = 'DeerValleySanctuary_Zone2';
+    deerValleyGroup.position.set(32, 0, 28);
+    decorativeDeers = [];
+
+    // A. Lush Valley Pasture Turf (radius 15m)
+    const valleyTurf = new THREE.Mesh(
+      new THREE.CircleGeometry(15, 24),
+      new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.85, flatShading: true })
+    );
+    valleyTurf.rotation.x = -Math.PI / 2;
+    valleyTurf.position.y = 0.015;
+    deerValleyGroup.add(valleyTurf);
+
+    // Wildflower carpet patches (pink, yellow, violet, white flower dots matching Image 1)
+    const flwMatPink = new THREE.MeshBasicMaterial({ color: 0xf472b6 });
+    const flwMatYellow = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+    const flwMatViolet = new THREE.MeshBasicMaterial({ color: 0xa855f7 });
+    const flwMatWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const flwMats = [flwMatPink, flwMatYellow, flwMatViolet, flwMatWhite];
+
+    for (let f = 0; f < 36; f++) {
+      const fAng = (f / 36) * Math.PI * 2;
+      const fDist = 3.5 + (f % 5) * 2.2;
+      const fx = Math.cos(fAng) * fDist;
+      const fz = Math.sin(fAng) * fDist;
+      // Leave river corridor clear
+      if (Math.abs(fx - (fz * 0.7)) < 2.0) continue;
+
+      const fMesh = new THREE.Mesh(new THREE.SphereGeometry(0.12, 4, 4), flwMats[f % flwMats.length]);
+      fMesh.position.set(fx, 0.15, fz);
+      deerValleyGroup.add(fMesh);
+    }
+
+    // B. Mini Waterfall & Winding Stream (Sungai Kecil & Air Terjun Mini)
+    // 1. Mini Waterfall at North-East boundary (x = 7.5, z = -8.5)
+    const canyonRockMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.9, flatShading: true });
+    const waterfallRock1 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.8, 1), canyonRockMat);
+    waterfallRock1.position.set(7.5, 1.2, -8.5);
+    waterfallRock1.scale.set(1.4, 1.2, 1.2);
+    const waterfallRock2 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.4, 1), canyonRockMat);
+    waterfallRock2.position.set(9.2, 0.8, -7.5);
+    deerValleyGroup.add(waterfallRock1, waterfallRock2);
+
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.1,
+      metalness: 0.35,
+      transparent: true,
+      opacity: 0.85
+    });
+    // Cascading fall
+    const fallMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 2.2), waterMat);
+    fallMesh.position.set(7.5, 1.1, -8.2);
+    fallMesh.rotation.x = 0.2;
+    deerValleyGroup.add(fallMesh);
+
+    // Ripple ring at waterfall base
+    const rippleMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+    const ripple = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.95, 12), rippleMat);
+    ripple.rotation.x = -Math.PI / 2;
+    ripple.position.set(7.5, 0.05, -7.2);
+    deerValleyGroup.add(ripple);
+
+    animatedObjects.push({
+      update(t) {
+        fallMesh.position.y = 1.1 + Math.sin(t * 12) * 0.04;
+        const s = 1.0 + Math.sin(t * 5) * 0.18;
+        ripple.scale.set(s, s, s);
+        rippleMat.opacity = 0.45 + Math.sin(t * 5) * 0.25;
+      }
+    });
+
+    // 2. Winding Stream Bed (flowing from (7.5, -7.5) to (-6.0, 7.0))
+    const streamPoints = [
+      { x: 7.2, z: -7.0 },
+      { x: 5.5, z: -4.5 },
+      { x: 3.5, z: -2.5 },
+      { x: 1.0, z: -0.5 }, // Under the bridge
+      { x: -1.8, z: 2.0 },
+      { x: -4.2, z: 4.5 },
+      { x: -6.5, z: 7.5 }
+    ];
+
+    for (let sp = 0; sp < streamPoints.length - 1; sp++) {
+      const p1 = streamPoints[sp];
+      const p2 = streamPoints[sp + 1];
+      const sMidX = (p1.x + p2.x) / 2;
+      const sMidZ = (p1.z + p2.z) / 2;
+      const sLen = Math.hypot(p2.x - p1.x, p2.z - p1.z);
+      const sAng = Math.atan2(p2.x - p1.x, p2.z - p1.z);
+
+      const streamSegment = new THREE.Mesh(new THREE.PlaneGeometry(2.4, sLen + 0.2), waterMat);
+      streamSegment.rotation.x = -Math.PI / 2;
+      streamSegment.rotation.z = -sAng;
+      streamSegment.position.set(sMidX, 0.035, sMidZ);
+      deerValleyGroup.add(streamSegment);
+
+      // Riverbank pebbles
+      const pebbleMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, roughness: 0.85 });
+      const pbL = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 0), pebbleMat);
+      pbL.position.set(sMidX - Math.cos(sAng) * 1.3, 0.08, sMidZ + Math.sin(sAng) * 1.3);
+      const pbR = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24, 0), pebbleMat);
+      pbR.position.set(sMidX + Math.cos(sAng) * 1.3, 0.08, sMidZ - Math.sin(sAng) * 1.3);
+      deerValleyGroup.add(pbL, pbR);
+    }
+
+    // Riverside reeds & ferns
+    const reedMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 });
+    [
+      { x: 4.8, z: -3.5 },
+      { x: 2.2, z: -1.2 },
+      { x: -0.5, z: 1.2 },
+      { x: -3.2, z: 3.5 }
+    ].forEach(rp => {
+      for (let r = 0; r < 3; r++) {
+        const reed = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.75, 4), reedMat);
+        reed.position.set(rp.x + (r - 1) * 0.15, 0.38, rp.z + (r % 2 === 0 ? 0.1 : -0.1));
+        reed.rotation.z = (r - 1) * 0.15;
+        deerValleyGroup.add(reed);
+      }
+    });
+
+    // C. Rustic Arched Wooden Footbridge (Jambatan Kayu)
+    const bridgeGroup = new THREE.Group();
+    bridgeGroup.position.set(1.0, 0, -0.5);
+    bridgeGroup.rotation.y = 0.55; // Crossing perpendicular to stream
+
+    const bridgeWoodMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.8 });
+    const bridgeDarkWood = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.85 });
+
+    // Arched Planks Deck
+    const plankCount = 12;
+    for (let pk = 0; pk < plankCount; pk++) {
+      const prog = (pk / (plankCount - 1)) - 0.5;
+      const px = prog * 4.8;
+      const py = (1 - (prog * 2) * (prog * 2)) * 0.45 + 0.22;
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.08, 2.4), bridgeWoodMat);
+      plank.position.set(px, py, 0);
+      plank.rotation.z = -prog * 0.38;
+      bridgeGroup.add(plank);
+    }
+
+    // Railings with timber posts
+    [-1.15, 1.15].forEach(side => {
+      for (let rp = -2; rp <= 2; rp++) {
+        const prog = (rp / 2) * 0.5;
+        const postX = prog * 4.6;
+        const postY = (1 - (prog * 2) * (prog * 2)) * 0.45 + 0.22;
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.75, 6), bridgeDarkWood);
+        post.position.set(postX, postY + 0.38, side);
+        bridgeGroup.add(post);
+      }
+      for (let s = 0; s < 4; s++) {
+        const prog = (s / 3) - 0.5;
+        const railX = prog * 3.8;
+        const railY = (1 - (prog * 2) * (prog * 2)) * 0.45 + 0.85;
+        const railSeg = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.05, 0.07), bridgeWoodMat);
+        railSeg.position.set(railX, railY, side);
+        railSeg.rotation.z = -prog * 0.38;
+        bridgeGroup.add(railSeg);
+      }
+    });
+
+    deerValleyGroup.add(bridgeGroup);
+
+    // D. Open Timber Deer Shelter & Hay Feeder (Tempat Perlindungan Rusa)
+    const shelterGroup = new THREE.Group();
+    shelterGroup.position.set(-7.0, 0, -3.5);
+
+    const logMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
+    const shingleMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.8, flatShading: true });
+
+    // 4 Corner Timber Pillars
+    [[-1.5, -1.2], [1.5, -1.2], [-1.5, 1.2], [1.5, 1.2]].forEach(([px, pz]) => {
+      const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 2.6, 6), logMat);
+      pillar.position.set(px, 1.3, pz);
+      shelterGroup.add(pillar);
+    });
+
+    // Sloped Weathered Cedar Roof
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(2.5, 1.2, 4), shingleMat);
+    roof.rotation.y = Math.PI / 4;
+    roof.position.y = 3.1;
+    roof.scale.set(1.1, 1.0, 0.9);
+    shelterGroup.add(roof);
+
+    // Wooden Hay Feeder Trough inside
+    const troughMat = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.85 });
+    const trough = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.45, 0.65), troughMat);
+    trough.position.set(0, 0.35, 0);
+    const hayMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.9 });
+    const hayTrough = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.22, 0.5), hayMat);
+    hayTrough.position.set(0, 0.5, 0);
+    shelterGroup.add(trough, hayTrough);
+
+    // Low rustic split-rail fence around shelter paddock
+    const fenceMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.85 });
+    for (let f = 0; f < 4; f++) {
+      const fPost = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 1.0, 5), fenceMat);
+      fPost.position.set(-2.6 + f * 1.6, 0.5, 1.8);
+      shelterGroup.add(fPost);
+      if (f < 3) {
+        const fRail = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.06), fenceMat);
+        fRail.position.set(-1.8 + f * 1.6, 0.65, 1.8);
+        shelterGroup.add(fRail);
+      }
+    }
+
+    deerValleyGroup.add(shelterGroup);
+
+    // E. Trees & Foliage (Matching Reference Image 1 & 2)
+    // 1. Golden Amber / Fantasy Willow Tree (Image 1 highlight)
+    const goldenTreeGroup = new THREE.Group();
+    goldenTreeGroup.position.set(8.0, 0, 2.5);
+
+    const trunkWood = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
+    const amberFoliage = new THREE.MeshStandardMaterial({ color: 0xf59e0b, flatShading: true, roughness: 0.75 });
+    const honeyFoliage = new THREE.MeshStandardMaterial({ color: 0xd97706, flatShading: true, roughness: 0.75 });
+
+    const gTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.48, 2.8, 7), trunkWood);
+    gTrunk.position.y = 1.4;
+    gTrunk.rotation.z = 0.08;
+
+    const gCanopy1 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.9, 1), amberFoliage);
+    gCanopy1.position.set(0, 3.6, 0);
+    const gCanopy2 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.4, 1), honeyFoliage);
+    gCanopy2.position.set(-0.8, 3.1, 0.4);
+    const gCanopy3 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.3, 1), amberFoliage);
+    gCanopy3.position.set(0.9, 3.2, -0.3);
+
+    goldenTreeGroup.add(gTrunk, gCanopy1, gCanopy2, gCanopy3);
+    deerValleyGroup.add(goldenTreeGroup);
+
+    // 2. Lush Canopy Forest Shade Tree (West boundary)
+    const shadeTreeGroup = new THREE.Group();
+    shadeTreeGroup.position.set(-6.5, 0, 6.5);
+    const sTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.5, 2.8, 7), trunkWood);
+    sTrunk.position.y = 1.4;
+    const greenFoliage = new THREE.MeshStandardMaterial({ color: 0x15803d, flatShading: true, roughness: 0.8 });
+    const sCanopy = new THREE.Mesh(new THREE.DodecahedronGeometry(2.2, 1), greenFoliage);
+    sCanopy.position.y = 3.6;
+    shadeTreeGroup.add(sTrunk, sCanopy);
+    deerValleyGroup.add(shadeTreeGroup);
+
+    // 3. Two Evergreen Mountain Pines
+    const pineMat = new THREE.MeshStandardMaterial({ color: 0x047857, flatShading: true, roughness: 0.8 });
+    function createMountainPine(px, pz, s = 1.0) {
+      const pine = new THREE.Group();
+      pine.position.set(px, 0, pz);
+      const pTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * s, 0.32 * s, 1.8 * s, 6), trunkWood);
+      pTrunk.position.y = 0.9 * s;
+      const c1 = new THREE.Mesh(new THREE.ConeGeometry(1.5 * s, 1.8 * s, 7), pineMat);
+      c1.position.y = 2.2 * s;
+      const c2 = new THREE.Mesh(new THREE.ConeGeometry(1.2 * s, 1.6 * s, 7), pineMat);
+      c2.position.y = 3.1 * s;
+      const c3 = new THREE.Mesh(new THREE.ConeGeometry(0.85 * s, 1.3 * s, 7), pineMat);
+      c3.position.y = 3.9 * s;
+      pine.add(pTrunk, c1, c2, c3);
+      return pine;
+    }
+    const pine1 = createMountainPine(5.5, -10.0, 1.1);
+    const pine2 = createMountainPine(-8.5, -9.0, 1.0);
+    deerValleyGroup.add(pine1, pine2);
+
+    // F. 3D Signboard Lembah Rusa (FASA 7)
+    // Positioned neatly at entrance trail without any tree obstruction
+    const signGroup = new THREE.Group();
+    signGroup.position.set(-2.5, 0, 12.0);
+    signGroup.rotation.y = -0.25; // Facing arriving player
+
+    const signPole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 2.2, 8), logMat);
+    signPole.position.y = 1.1;
+    const signBoard = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.2, 0.1), logMat);
+    signBoard.position.y = 1.85;
+
+    const mainSignCanvas = document.createElement('canvas');
+    mainSignCanvas.width = 512;
+    mainSignCanvas.height = 240;
+    const msCtx = mainSignCanvas.getContext('2d');
+    msCtx.fillStyle = '#fef3c7';
+    msCtx.roundRect ? msCtx.roundRect(8, 8, 496, 224, 20) : msCtx.fillRect(8, 8, 496, 224);
+    msCtx.fill();
+    msCtx.strokeStyle = '#0284c7';
+    msCtx.lineWidth = 8;
+    msCtx.stroke();
+
+    msCtx.fillStyle = '#0369a1';
+    msCtx.font = 'bold 30px Nunito, sans-serif';
+    msCtx.textAlign = 'center';
+    msCtx.fillText('🦌 LEMBAH RUSA AJAIB 🌿', 256, 56);
+
+    msCtx.fillStyle = '#78350f';
+    msCtx.font = 'bold 24px Nunito, sans-serif';
+    msCtx.fillText('SELAMAT DATANG KE LEMBAH RUSA!', 256, 108);
+
+    msCtx.fillStyle = '#64748b';
+    msCtx.font = 'bold 18px Nunito, sans-serif';
+    msCtx.fillText('Temui Rusa Anggun dan terokai rahsia nukleus.', 256, 156);
+
+    msCtx.fillStyle = '#0284c7';
+    msCtx.font = 'bold 16px Nunito, sans-serif';
+    msCtx.fillText('ZON 2 • KSSM TINGKATAN 1 SAINS', 256, 196);
+
+    const msTex = new THREE.CanvasTexture(mainSignCanvas);
+    const msLabel = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.1), new THREE.MeshBasicMaterial({ map: msTex, side: THREE.DoubleSide }));
+    msLabel.position.set(0, 1.85, 0.06);
+
+    // Decorative leaf corners on sign
+    const leafMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+    const lf1 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 4, 4), leafMat);
+    lf1.position.set(-1.25, 2.4, 0.07);
+    const lf2 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 4, 4), leafMat);
+    lf2.position.set(1.25, 2.4, 0.07);
+    signGroup.add(signPole, signBoard, msLabel, lf1, lf2);
+    deerValleyGroup.add(signGroup);
+
+    // G. 4 Animated Butterflies
+    const bFlyColors = [0x38bdf8, 0xfacc15, 0xf472b6, 0xa855f7];
+    const bFlyMeshes = [];
+    for (let bi = 0; bi < 4; bi++) {
+      const bFly = new THREE.Group();
+      const bMat = new THREE.MeshBasicMaterial({ color: bFlyColors[bi], side: THREE.DoubleSide });
+      const wGeo = new THREE.PlaneGeometry(0.14, 0.12);
+      const wL = new THREE.Mesh(wGeo, bMat);
+      wL.position.x = -0.07;
+      const wR = new THREE.Mesh(wGeo, bMat);
+      wR.position.x = 0.07;
+      bFly.add(wL, wR);
+
+      const bAngle = (bi / 4) * Math.PI * 2;
+      const bDist = 3.6 + (bi % 2) * 2.0;
+      bFly.position.set(Math.cos(bAngle) * bDist, 1.2 + (bi % 2) * 0.4, Math.sin(bAngle) * bDist);
+      bFly.userData = { wL, wR, baseAngle: bAngle, dist: bDist, baseY: bFly.position.y, speed: 0.7 + bi * 0.25 };
+      deerValleyGroup.add(bFly);
+      bFlyMeshes.push(bFly);
+    }
+    animatedObjects.push({
+      update(t) {
+        bFlyMeshes.forEach((bf, idx) => {
+          const flap = Math.sin(t * 18 + idx) * 0.75;
+          bf.userData.wL.rotation.y = flap;
+          bf.userData.wR.rotation.y = -flap;
+          const a = bf.userData.baseAngle + t * bf.userData.speed * 0.35;
+          bf.position.x = Math.cos(a) * bf.userData.dist;
+          bf.position.z = Math.sin(a) * bf.userData.dist;
+          bf.position.y = bf.userData.baseY + Math.sin(t * 4 + idx) * 0.2;
+        });
+      }
+    });
+
+    // H. 5 Decorative NPC Deers (Ambient Life - Non Interactive)
+    const npcDeerConfigs = [
+      // 1. Grazing Stag in the wildflower meadow
+      { id: 'npc-deer-grazing', name: 'Rusa Jantan Meragut', color: 0x92400e, scale: 0.88, pos: { x: 4.5, y: 0.02, z: 4.0 }, rotY: -0.6, behavior: 'grazing', hasAntlers: true },
+      // 2. Graceful Doe by the riverbank near bridge
+      { id: 'npc-deer-doe', name: 'Rusa Betina di Sungai', color: 0xa16207, scale: 0.82, pos: { x: 2.8, y: 0.02, z: -3.5 }, rotY: 1.2, behavior: 'drinking', hasAntlers: false },
+      // 3. Playful Spotted Fawn 1 following Doe
+      { id: 'npc-deer-fawn1', name: 'Anak Rusa Bintik 1', color: 0xb45309, scale: 0.55, pos: { x: 4.2, y: 0.02, z: -4.5 }, rotY: 0.8, behavior: 'hopping', spotted: true, hasAntlers: false },
+      // 4. Resting Doe under the wooden shelter
+      { id: 'npc-deer-resting', name: 'Rusa Berehat di Pondok', color: 0x78350f, scale: 0.8, pos: { x: -6.5, y: 0.02, z: -3.2 }, rotY: 0.4, behavior: 'resting', hasAntlers: false },
+      // 5. Spotted Fawn 2 in the flower bed near Golden Willow
+      { id: 'npc-deer-fawn2', name: 'Anak Rusa Bintik 2', color: 0xa16207, scale: 0.58, pos: { x: 6.5, y: 0.02, z: 1.8 }, rotY: -1.4, behavior: 'headBob', spotted: true, hasAntlers: false }
+    ];
+
+    npcDeerConfigs.forEach((cfg, ci) => {
+      const deerMesh = createNPCDeer(cfg, ci);
+      deerValleyGroup.add(deerMesh);
+      decorativeDeers.push(deerMesh);
+    });
+
+    parent.add(deerValleyGroup);
+  }
+
 
   // C. Monyet 3D (Monkey)
   function createMonkeyModel() {
@@ -2708,6 +3478,16 @@
           SafariAudio.rabbitPop && SafariAudio.rabbitPop();
           animGroup_zone1_rabbitAudio = true;
         }
+      } else if (closestIndex === 1) {
+        // Special custom prompt for Rusa Anggun (Zone 2)
+        DOM.promptTitle.textContent = 'RUSA ANGGUN DITEMUI!';
+        DOM.promptSub.textContent = 'Hebat, Saintis Muda! Anda telah menemui Rusa Anggun. Mari terokai nukleus, pusat kawalan sel haiwan!';
+        DOM.promptBtnText.textContent = 'Teroka Sel Haiwan';
+
+        if (!animGroup_zone2_deerAudio) {
+          SafariAudio.deerChime && SafariAudio.deerChime();
+          animGroup_zone2_deerAudio = true;
+        }
       } else if (closestIndex === 3) {
         // Special custom prompt for Burung Rimba (Zone 4)
         DOM.promptTitle.textContent = 'BURUNG RIMBA DITEMUI!';
@@ -3697,10 +4477,16 @@
       animalCount: animalMeshes ? animalMeshes.length : 0,
       sanctuary: !!birdSanctuaryGroup,
       rabbitMeadow: !!rabbitMeadowGroup,
+      deerValley: !!deerValleyGroup,
+      totalDeerCount: decorativeDeers.length + (animalMeshes[1] ? 1 : 0),
       totalRabbitCount: decorativeRabbits.length + (animalMeshes[0] ? 1 : 0),
       totalBirdCount: decorativeBirds.length + (animalMeshes[3] ? 1 : 0)
     }),
     getAnimalZones: () => SAFARI_ZONES,
+    getDeerValley: () => deerValleyGroup,
+    getDecorativeDeers: () => decorativeDeers,
+    getTotalDeerCount: () => decorativeDeers.length + (animalMeshes[1] ? 1 : 0),
+    getInteractiveDeer: () => (animalMeshes[1] ? animalMeshes[1].userData.creature : null),
     getRabbitMeadow: () => rabbitMeadowGroup,
     getDecorativeRabbits: () => decorativeRabbits,
     getTotalRabbitCount: () => decorativeRabbits.length + (animalMeshes[0] ? 1 : 0),
