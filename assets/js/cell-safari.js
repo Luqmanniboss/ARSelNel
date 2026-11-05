@@ -373,6 +373,11 @@
   let birdSanctuaryGroup = null;
   let decorativeBirds = [];
   let animGroup_zone4_chirped = false;
+  let enchantedFoxForestGroup = null;
+  let decorativeFoxes = [];
+  let animGroup_zone5_foxAudio = false;
+  let foxPortalMesh = null;
+  let foxPortalVortex = null;
   let animatedObjects = [];
 
   // PLAYER FIRST-PERSON STATE
@@ -621,11 +626,14 @@
     // 9. Zon 3: Monkey Forest Sanctuary (Hutan Monyet Tropika 3D)
     buildMonkeyForestZone3(forestEnvironmentGroup);
 
+    // 10. Zon 5: Enchanted Fox Forest — Hutan Misteri Musang 3D
+    buildEnchantedFoxForestZone5(forestEnvironmentGroup);
+
     scene.add(forestEnvironmentGroup);
   }
 
   function buildZoneSignpost(zoneTitle, x, z) {
-    if (zoneTitle.includes('Arnab') || zoneTitle.includes('Rusa') || zoneTitle.includes('Monyet')) return; // Replaced by bespoke 3D Rabbit Sanctuary Signboard
+    if (zoneTitle.includes('Arnab') || zoneTitle.includes('Rusa') || zoneTitle.includes('Monyet') || zoneTitle.includes('Musang')) return; // Replaced by bespoke 3D Rabbit Sanctuary Signboard
     const postGroup = new THREE.Group();
     // Offset slightly from animal position
     postGroup.position.set(x - 3.5, 0, z + 2.5);
@@ -881,9 +889,9 @@
       animGroup.position.set(z.pos.x, 0, z.pos.z);
       animGroup.userData = { zoneIndex: index, zoneId: z.id, name: z.animal, emoji: z.emoji };
 
-      // Base Halo on ground (Hero animals: Arnab Comel, Rusa Anggun, Monyet Ceria & Burung Rimba)
-      const isHero = (index === 0 || index === 1 || index === 2 || index === 3);
-      const haloColor = (index === 0) ? 0x10b981 : (index === 1 ? 0x0ea5e9 : (index === 2 ? 0xf59e0b : (index === 3 ? 0xfbbf24 : z.colorHex)));
+      // Base Halo on ground (Hero animals: Arnab Comel, Rusa Anggun, Monyet Ceria, Burung Rimba & Musang Pintar)
+      const isHero = (index >= 0 && index <= 4);
+      const haloColor = (index === 0) ? 0x10b981 : (index === 1 ? 0x0ea5e9 : (index === 2 ? 0xf59e0b : (index === 3 ? 0xfbbf24 : 0xec4899)));
       const halo = new THREE.Mesh(
         new THREE.RingGeometry(isHero ? 1.15 : 0.8, isHero ? 1.65 : 1.15, 24),
         new THREE.MeshBasicMaterial({ color: haloColor, side: THREE.DoubleSide, transparent: true, opacity: isHero ? 0.85 : 0.65 })
@@ -898,7 +906,7 @@
       else if (index === 1) creatureMesh = createHeroDeerModel();
       else if (index === 2) creatureMesh = createHeroMonkeyModel();
       else if (index === 3) creatureMesh = createBurungRimbaModel();
-      else creatureMesh = createFoxModel();
+      else creatureMesh = createHeroFoxModel();
 
       animGroup.add(creatureMesh);
 
@@ -921,7 +929,7 @@
 
       const badgeTexture = new THREE.CanvasTexture(canvas);
       const badge = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.45), new THREE.MeshBasicMaterial({ map: badgeTexture, side: THREE.DoubleSide }));
-      badge.position.y = (index === 1) ? 3.1 : (isHero ? 2.85 : 2.4);
+      badge.position.y = (index === 1) ? 3.1 : ((index === 4) ? 2.75 : (isHero ? 2.85 : 2.4));
       animGroup.add(badge);
 
       // Floating Life Crystal / Mission Beacon Preview above animal
@@ -936,7 +944,7 @@
         })
       );
       crystalIco.scale.set(isHero ? 1.0 : 0.8, isHero ? 1.6 : 1.3, isHero ? 1.0 : 0.8);
-      crystalIco.position.y = (index === 1) ? 3.65 : (isHero ? 3.4 : 2.95);
+      crystalIco.position.y = (index === 1) ? 3.65 : ((index === 4) ? 3.35 : (isHero ? 3.4 : 2.95));
       animGroup.add(crystalIco);
 
       animGroup.userData.creature = creatureMesh;
@@ -4046,46 +4054,900 @@
     parent.add(birdSanctuaryGroup);
   }
 
-  // E. Musang 3D (Fox)
-  function createFoxModel() {
+  // ============================================================================
+  // ENCHANTED FOX FOREST — HUTAN MISTERI MUSANG 3D (ZON 5: pos { x: 0, z: -46 })
+  // ============================================================================
+
+  // A. Model Musang Pintar Hero 3D (Hanya Haiwan Ini Merupakan Sasaran Interaktif Misi)
+  function createHeroFoxModel() {
     const g = new THREE.Group();
-    const coatMat = new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.7, flatShading: true });
-    const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 });
+    g.name = 'MusangPintar_Hero';
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.48, 1.1), coatMat);
-    body.position.y = 0.65;
-    g.add(body);
+    // 1. Pelantar Batu Berlumut Bertingkat dengan Trim Kristal Ajaib
+    const daisMatSlate = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8, flatShading: true });
+    const daisMatMoss = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.65, flatShading: true });
+    const glowRuneMat = new THREE.MeshStandardMaterial({
+      color: 0xec4899,
+      emissive: 0xdb2777,
+      emissiveIntensity: 0.55,
+      roughness: 0.25
+    });
 
-    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.38, 0.35), whiteMat);
-    chest.position.set(0, 0.62, 0.4);
-    g.add(chest);
+    // Tier 1: Slate base plinth
+    const tier1 = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 0.22, 14), daisMatSlate);
+    tier1.position.y = 0.11;
+    g.add(tier1);
 
-    const head = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.5, 6), coatMat);
-    head.rotation.x = Math.PI / 2;
-    head.position.set(0, 0.95, 0.6);
-    g.add(head);
+    // Tier 2: Lush enchanted moss platform
+    const tier2 = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.25, 0.18, 14), daisMatMoss);
+    tier2.position.y = 0.31;
+    g.add(tier2);
 
-    // Ears
-    const earGeo = new THREE.ConeGeometry(0.08, 0.24, 4);
+    // Glowing magical runic ring on dais
+    const runeRing = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.045, 6, 20), glowRuneMat);
+    runeRing.rotation.x = Math.PI / 2;
+    runeRing.position.y = 0.40;
+    g.add(runeRing);
+
+    // 4 Tiny crystal spikes around plinth
+    const crystalMat = new THREE.MeshStandardMaterial({
+      color: 0xec4899,
+      emissive: 0xf472b6,
+      emissiveIntensity: 0.7,
+      roughness: 0.15
+    });
+    for (let c = 0; c < 4; c++) {
+      const ca = (c / 4) * Math.PI * 2 + 0.35;
+      const csp = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.25, 5), crystalMat);
+      csp.position.set(Math.cos(ca) * 1.15, 0.35, Math.sin(ca) * 1.15);
+      csp.rotation.x = (Math.random() - 0.5) * 0.2;
+      csp.rotation.z = (Math.random() - 0.5) * 0.2;
+      g.add(csp);
+    }
+
+    // 2. Model Musang Pintar Premium (Detailed Low-Poly Hero Fox)
+    const foxGroup = new THREE.Group();
+    foxGroup.position.y = 0.40;
+
+    const coatMat = new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.65, flatShading: true }); // Vibrant fox orange
+    const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6, flatShading: true }); // Clean chest / muzzle white
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8, flatShading: true }); // Paws / ear tips black
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a }); // Expressive eyes
+    const eyeHighlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff }); // Catchlight
+    const noseMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0a }); // Cute black nose
+
+    // A. Badan Musang (Fox Torso & Ribcage)
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.46, 0.96), coatMat);
+    body.position.set(0, 0.52, 0);
+    body.rotation.x = 0.05; // Slight forward tilt
+    foxGroup.add(body);
+
+    // Dada & Perut Putih Gebu (White Fluffy Chest & Belly)
+    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.38, 0.42), whiteMat);
+    chest.position.set(0, 0.54, 0.32);
+    foxGroup.add(chest);
+
+    // B. Kepala & Leher (Fox Head, Neck & Cheeks)
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.82, 0.48);
+
+    const headBase = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.38, 0.38), coatMat);
+    headGroup.add(headBase);
+
+    // Pipi Putih Gebu (Fluffy White Cheeks)
+    const cheekL = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.22, 4), whiteMat);
+    cheekL.rotation.z = Math.PI / 2.6;
+    cheekL.rotation.y = 0.2;
+    cheekL.position.set(-0.21, -0.06, 0.04);
+    const cheekR = cheekL.clone();
+    cheekR.rotation.z = -Math.PI / 2.6;
+    cheekR.rotation.y = -0.2;
+    cheekR.position.set(0.21, -0.06, 0.04);
+    headGroup.add(cheekL, cheekR);
+
+    // Muncung Tirus Jingga & Putih (Tapered Snout)
+    const snoutOrange = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.32, 5), coatMat);
+    snoutOrange.rotation.x = Math.PI / 2;
+    snoutOrange.position.set(0, -0.04, 0.26);
+    headGroup.add(snoutOrange);
+
+    const snoutUnder = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.28, 4), whiteMat);
+    snoutUnder.rotation.x = Math.PI / 2;
+    snoutUnder.position.set(0, -0.10, 0.25);
+    headGroup.add(snoutUnder);
+
+    // Hidung Hitam Comel (Cute Black Nose)
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 6), noseMat);
+    nose.position.set(0, -0.02, 0.43);
+    headGroup.add(nose);
+
+    // Mata Bulat Bersinar & Catchlight (Shining Eyes)
+    const eyeGeo = new THREE.SphereGeometry(0.048, 8, 8);
+    const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeL.position.set(-0.14, 0.06, 0.18);
+    const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeR.position.set(0.14, 0.06, 0.18);
+
+    const pupilGeo = new THREE.SphereGeometry(0.018, 6, 6);
+    const pupL = new THREE.Mesh(pupilGeo, eyeHighlightMat);
+    pupL.position.set(-0.13, 0.075, 0.22);
+    const pupR = new THREE.Mesh(pupilGeo, eyeHighlightMat);
+    pupR.position.set(0.15, 0.075, 0.22);
+
+    headGroup.add(eyeL, eyeR, pupL, pupR);
+
+    // Telinga Tajam Bersalut Dalam Putih & Hujung Gelap (Alert Fox Ears)
+    const earGeo = new THREE.ConeGeometry(0.11, 0.32, 5);
     const earL = new THREE.Mesh(earGeo, coatMat);
-    earL.position.set(-0.16, 1.22, 0.48);
-    const earR = new THREE.Mesh(earGeo, coatMat);
-    earR.position.set(0.16, 1.22, 0.48);
-    g.add(earL, earR);
+    earL.position.set(-0.16, 0.28, -0.04);
+    earL.rotation.z = 0.2;
+    earL.rotation.x = -0.1;
 
-    // Big Bushy Tail
-    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.75, 7), coatMat);
-    tail.rotation.x = -Math.PI / 3;
-    tail.position.set(0, 0.75, -0.75);
-    g.add(tail);
+    const earLInner = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.24, 4), whiteMat);
+    earLInner.position.set(-0.15, 0.27, -0.02);
+    earLInner.rotation.z = 0.2;
+
+    const earR = new THREE.Mesh(earGeo, coatMat);
+    earR.position.set(0.16, 0.28, -0.04);
+    earR.rotation.z = -0.2;
+    earR.rotation.x = -0.1;
+
+    const earRInner = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.24, 4), whiteMat);
+    earRInner.position.set(0.15, 0.27, -0.02);
+    earRInner.rotation.z = -0.2;
+
+    headGroup.add(earL, earLInner, earR, earRInner);
+    foxGroup.add(headGroup);
+
+    // C. 4 Kaki Bertumit Kemas (4 Fox Legs with Black Paws)
+    const legGeo = new THREE.CylinderGeometry(0.07, 0.08, 0.44, 6);
+    const pawGeo = new THREE.BoxGeometry(0.12, 0.08, 0.15);
+
+    function createLeg(x, z, isFront) {
+      const legGrp = new THREE.Group();
+      legGrp.position.set(x, isFront ? 0.26 : 0.26, z);
+      const upper = new THREE.Mesh(legGeo, coatMat);
+      upper.position.y = 0.04;
+      legGrp.add(upper);
+      const paw = new THREE.Mesh(pawGeo, darkMat);
+      paw.position.set(0, -0.18, 0.02);
+      legGrp.add(paw);
+      return legGrp;
+    }
+
+    const legFL = createLeg(-0.18, 0.32, true);
+    const legFR = createLeg(0.18, 0.32, true);
+    const legBL = createLeg(-0.18, -0.34, false);
+    const legBR = createLeg(0.18, -0.34, false);
+    foxGroup.add(legFL, legFR, legBL, legBR);
+
+    // D. Ekor Gebu Panjang Berhujung Putih (Luxurious Bushy Tail with Snow-White Tip)
+    const tailGroup = new THREE.Group();
+    tailGroup.position.set(0, 0.52, -0.46);
+
+    const tailBase = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.42, 8), coatMat);
+    tailBase.rotation.x = -Math.PI / 3.2;
+    tailBase.position.set(0, 0.08, -0.22);
+    tailGroup.add(tailBase);
+
+    const tailMid = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), coatMat);
+    tailMid.scale.set(1.0, 1.45, 1.0);
+    tailMid.position.set(0, 0.26, -0.42);
+    tailGroup.add(tailMid);
+
+    const tailTip = new THREE.Mesh(new THREE.ConeGeometry(0.19, 0.38, 8), whiteMat);
+    tailTip.rotation.x = -Math.PI / 4;
+    tailTip.position.set(0, 0.44, -0.56);
+    tailGroup.add(tailTip);
+
+    foxGroup.add(tailGroup);
+    g.add(foxGroup);
+
+    // Animasi Hero Musang Pintar (Idle Breathing, Head Turn, Tail Sway & Celebration)
+    let isCelebrating = false;
+    let celebTime = 0;
 
     g.userData = {
+      isHero: true,
+      celebrate() {
+        isCelebrating = true;
+        celebTime = 0;
+      },
       animate(t) {
-        tail.rotation.y = Math.sin(t * 2.5) * 0.3;
-        head.rotation.y = Math.sin(t * 1.2) * 0.15;
+        // Continuous organic tail wag
+        tailGroup.rotation.y = Math.sin(t * 2.8) * 0.32;
+        tailGroup.rotation.z = Math.cos(t * 1.4) * 0.12;
+
+        // Inquisitive head tilt
+        headGroup.rotation.y = Math.sin(t * 1.1) * 0.18;
+        headGroup.rotation.z = Math.cos(t * 0.7) * 0.06;
+
+        // Ear twitch
+        earL.rotation.x = -0.1 + Math.sin(t * 4.2) * 0.05;
+        earR.rotation.x = -0.1 + Math.cos(t * 3.8) * 0.05;
+
+        // Gentle breathing torso expansion
+        body.scale.x = 1.0 + Math.sin(t * 2.0) * 0.03;
+        body.scale.y = 1.0 + Math.sin(t * 2.0) * 0.02;
+
+        // Pulsing dais runic ring
+        runeRing.scale.setScalar(1.0 + Math.sin(t * 3.0) * 0.03);
+
+        // Victory celebration jump
+        if (isCelebrating) {
+          celebTime += 0.04;
+          const jumpH = Math.abs(Math.sin(celebTime * 6)) * 0.45;
+          foxGroup.position.y = 0.40 + jumpH;
+          headGroup.rotation.x = -Math.sin(celebTime * 6) * 0.2;
+          tailGroup.rotation.y = Math.sin(celebTime * 12) * 0.6;
+          if (celebTime > 5.0) {
+            isCelebrating = false;
+            foxGroup.position.y = 0.40;
+          }
+        }
       }
     };
+
     return g;
+  }
+
+  // B. Model Musang Hiasan NPC 3D (Pelbagai Warna, Saiz & Animasi Bebas)
+  function createNPCFox(cfg, index) {
+    const g = new THREE.Group();
+    g.name = `Fox_NPC_${index}_${cfg.type}`;
+    g.position.set(cfg.x, 0, cfg.z);
+    g.rotation.y = cfg.rotY || 0;
+
+    const coatMat = new THREE.MeshStandardMaterial({
+      color: cfg.coatColor || 0xea580c,
+      roughness: 0.7,
+      flatShading: true
+    });
+    const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.65, flatShading: true });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8, flatShading: true });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+
+    const scale = cfg.scale || 0.85;
+
+    // Body
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.48 * scale, 0.42 * scale, 0.88 * scale), coatMat);
+    body.position.set(0, 0.44 * scale, 0);
+    g.add(body);
+
+    // Chest
+    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.38 * scale, 0.32 * scale, 0.36 * scale), whiteMat);
+    chest.position.set(0, 0.46 * scale, 0.28 * scale);
+    g.add(chest);
+
+    // Head
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.70 * scale, 0.42 * scale);
+
+    const headBase = new THREE.Mesh(new THREE.BoxGeometry(0.36 * scale, 0.32 * scale, 0.34 * scale), coatMat);
+    headGroup.add(headBase);
+
+    // Snout
+    const snout = new THREE.Mesh(new THREE.ConeGeometry(0.15 * scale, 0.28 * scale, 5), coatMat);
+    snout.rotation.x = Math.PI / 2;
+    snout.position.set(0, -0.04 * scale, 0.22 * scale);
+    headGroup.add(snout);
+
+    // Eyes
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.04 * scale, 6, 6), eyeMat);
+    eyeL.position.set(-0.12 * scale, 0.05 * scale, 0.16 * scale);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.04 * scale, 6, 6), eyeMat);
+    eyeR.position.set(0.12 * scale, 0.05 * scale, 0.16 * scale);
+    headGroup.add(eyeL, eyeR);
+
+    // Ears
+    const earGeo = new THREE.ConeGeometry(0.09 * scale, 0.26 * scale, 4);
+    const earL = new THREE.Mesh(earGeo, coatMat);
+    earL.position.set(-0.13 * scale, 0.24 * scale, -0.02 * scale);
+    earL.rotation.z = 0.2;
+    const earR = new THREE.Mesh(earGeo, coatMat);
+    earR.position.set(0.13 * scale, 0.24 * scale, -0.02 * scale);
+    earR.rotation.z = -0.2;
+    headGroup.add(earL, earR);
+    g.add(headGroup);
+
+    // Legs
+    const legGeo = new THREE.CylinderGeometry(0.06 * scale, 0.07 * scale, 0.38 * scale, 5);
+    const legFL = new THREE.Mesh(legGeo, coatMat);
+    legFL.position.set(-0.15 * scale, 0.19 * scale, 0.28 * scale);
+    const legFR = new THREE.Mesh(legGeo, coatMat);
+    legFR.position.set(0.15 * scale, 0.19 * scale, 0.28 * scale);
+    const legBL = new THREE.Mesh(legGeo, coatMat);
+    legBL.position.set(-0.15 * scale, 0.19 * scale, -0.28 * scale);
+    const legBR = new THREE.Mesh(legGeo, coatMat);
+    legBR.position.set(0.15 * scale, 0.19 * scale, -0.28 * scale);
+    g.add(legFL, legFR, legBL, legBR);
+
+    // Tail
+    const tailGroup = new THREE.Group();
+    tailGroup.position.set(0, 0.44 * scale, -0.40 * scale);
+    const tailMesh = new THREE.Mesh(new THREE.ConeGeometry(0.18 * scale, 0.65 * scale, 7), coatMat);
+    tailMesh.rotation.x = -Math.PI / 3.4;
+    tailMesh.position.set(0, 0.16 * scale, -0.28 * scale);
+    tailGroup.add(tailMesh);
+    const tailTip = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.28 * scale, 7), whiteMat);
+    tailTip.rotation.x = -Math.PI / 3.4;
+    tailTip.position.set(0, 0.34 * scale, -0.44 * scale);
+    tailGroup.add(tailTip);
+    g.add(tailGroup);
+
+    // Specialized NPC behaviors
+    if (cfg.pose === 'sleep') {
+      body.rotation.z = 0.3;
+      body.position.y = 0.22 * scale;
+      headGroup.position.set(0.15 * scale, 0.20 * scale, 0.10 * scale);
+      headGroup.rotation.x = 0.4;
+      tailGroup.rotation.y = 1.6;
+      tailGroup.position.set(0.1 * scale, 0.18 * scale, -0.1 * scale);
+      legFL.position.y = 0.08 * scale;
+      legFR.position.y = 0.08 * scale;
+      legBL.position.y = 0.08 * scale;
+      legBR.position.y = 0.08 * scale;
+    }
+
+    g.userData = {
+      isHero: false,
+      animate(t) {
+        if (cfg.pose === 'sleep') {
+          // Gentle breathing rise and fall
+          body.scale.y = 1.0 + Math.sin(t * 1.5 + index) * 0.04;
+          tailGroup.rotation.y = 1.6 + Math.sin(t * 0.8 + index) * 0.05;
+        } else if (cfg.pose === 'stroll') {
+          // Walking back and forth
+          const walkOffset = Math.sin(t * 1.2 + index) * (cfg.range || 1.2);
+          g.position.x = cfg.x + Math.cos(cfg.rotY || 0) * walkOffset;
+          g.position.z = cfg.z + Math.sin(cfg.rotY || 0) * walkOffset;
+          tailGroup.rotation.y = Math.sin(t * 3.5 + index) * 0.35;
+          headGroup.rotation.y = Math.sin(t * 1.4 + index) * 0.2;
+          legFL.rotation.x = Math.sin(t * 3.5 + index) * 0.4;
+          legFR.rotation.x = -Math.sin(t * 3.5 + index) * 0.4;
+        } else if (cfg.pose === 'play') {
+          // Playful pounce / jump
+          const jump = Math.abs(Math.sin(t * 3.0 + index)) * 0.25;
+          g.position.y = jump;
+          tailGroup.rotation.y = Math.sin(t * 6.0 + index) * 0.5;
+          headGroup.rotation.x = -Math.sin(t * 3.0 + index) * 0.25;
+        } else {
+          // Watchful / idle sit
+          tailGroup.rotation.y = Math.sin(t * 2.2 + index) * 0.28;
+          headGroup.rotation.y = Math.sin(t * 0.9 + index) * 0.25;
+          earL.rotation.x = Math.sin(t * 3.0 + index) * 0.08;
+        }
+      }
+    };
+
+    return g;
+  }
+
+  // C. BUILD THE COMPLETE 3D ENCHANTED FOX FOREST IN ZONE 5 (x: 0, z: -46)
+  function buildEnchantedFoxForestZone5(parent) {
+    enchantedFoxForestGroup = new THREE.Group();
+    enchantedFoxForestGroup.name = 'EnchantedFoxForest_Zone5';
+    enchantedFoxForestGroup.position.set(0, 0, -46);
+
+    // Shared Palette Materials
+    const timberDarkMat = new THREE.MeshStandardMaterial({ color: 0x582f0e, roughness: 0.85, flatShading: true });
+    const timberLightMat = new THREE.MeshStandardMaterial({ color: 0x936639, roughness: 0.75, flatShading: true });
+    const stoneWallMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85, flatShading: true });
+    const roofShingleMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.7, flatShading: true });
+    const stoneSlateMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9, flatShading: true });
+    const dirtTrailMat = new THREE.MeshStandardMaterial({ color: 0xa07855, roughness: 0.9, flatShading: true });
+    const warmLightMat = new THREE.MeshStandardMaterial({
+      color: 0xfef08a,
+      emissive: 0xf59e0b,
+      emissiveIntensity: 0.85,
+      roughness: 0.2
+    });
+
+    // -------------------------------------------------------------------------
+    // 1. Laluan Tanah Berliku & Batu Pijakan (Winding Dirt Path & Stepping Stones)
+    // -------------------------------------------------------------------------
+    const trailSegments = [
+      { x: 0, z: 9.5, w: 2.6, d: 3.5, rot: 0 },
+      { x: 1.2, z: 6.5, w: 2.5, d: 3.5, rot: 0.25 },
+      { x: 2.8, z: 3.5, w: 2.6, d: 3.5, rot: 0.4 },
+      { x: 4.2, z: 0.5, w: 2.8, d: 3.8, rot: 0.15 }, // towards Fox House
+      { x: 0.5, z: 2.0, w: 2.4, d: 3.5, rot: -0.3 }, // towards Musang Pintar Dais
+      { x: -3.0, z: 0.0, w: 2.4, d: 4.0, rot: -0.4 }, // towards Bridge & Stream
+      { x: -5.5, z: -3.0, w: 2.2, d: 4.5, rot: -0.2 } // towards Portal
+    ];
+
+    trailSegments.forEach(seg => {
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(seg.w, seg.d), dirtTrailMat);
+      p.rotation.x = -Math.PI / 2;
+      p.rotation.z = seg.rot;
+      p.position.set(seg.x, 0.025, seg.z);
+      enchantedFoxForestGroup.add(p);
+    });
+
+    // 16 Stepping Stones
+    for (let s = 0; s < 16; s++) {
+      const sa = (s / 16) * Math.PI * 1.5;
+      const sr = 3.5 + (s % 3) * 1.4;
+      const stx = Math.sin(sa) * sr - 1.0;
+      const stz = 8.0 - s * 0.9;
+      const stone = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.35 + (s % 4) * 0.08, 0.45 + (s % 4) * 0.08, 0.08, 6),
+        stoneSlateMat
+      );
+      stone.position.set(stx, 0.04, stz);
+      stone.rotation.y = (s * 47) % 3;
+      enchantedFoxForestGroup.add(stone);
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. Rumah Musang 3D Fantasi (Fox Cottage / Burrow House at local 5.5, 0, -2.5)
+    // -------------------------------------------------------------------------
+    const houseGroup = new THREE.Group();
+    houseGroup.position.set(5.5, 0, -2.5);
+    houseGroup.rotation.y = -0.35; // Face path
+
+    // Foundation & Stone Walls
+    const foundation = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.35, 4.6), stoneSlateMat);
+    foundation.position.y = 0.175;
+    houseGroup.add(foundation);
+
+    const mainWalls = new THREE.Mesh(new THREE.BoxGeometry(4.0, 2.2, 4.2), stoneWallMat);
+    mainWalls.position.y = 1.4;
+    houseGroup.add(mainWalls);
+
+    // Timber Corner Posts
+    for (let cx of [-1.95, 1.95]) {
+      for (let cz of [-2.05, 2.05]) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.32, 2.3, 0.32), timberDarkMat);
+        post.position.set(cx, 1.45, cz);
+        houseGroup.add(post);
+      }
+    }
+
+    // Gable Triangular Front & Back
+    const gableGeo = new THREE.ConeGeometry(2.35, 1.6, 4);
+    const gableFront = new THREE.Mesh(gableGeo, timberLightMat);
+    gableFront.rotation.y = Math.PI / 4;
+    gableFront.position.set(0, 3.1, 0);
+    gableFront.scale.set(1.2, 1.0, 1.3);
+    houseGroup.add(gableFront);
+
+    // Steep Forest Roof with Moss Shingles
+    const roofLeft = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.22, 4.8), roofShingleMat);
+    roofLeft.rotation.z = 0.68;
+    roofLeft.position.set(-1.25, 3.0, 0);
+    const roofRight = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.22, 4.8), roofShingleMat);
+    roofRight.rotation.z = -0.68;
+    roofRight.position.set(1.25, 3.0, 0);
+    houseGroup.add(roofLeft, roofRight);
+
+    // Wooden Ridge Beam on top
+    const ridgeBeam = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 4.9, 6), timberDarkMat);
+    ridgeBeam.rotation.x = Math.PI / 2;
+    ridgeBeam.position.set(0, 3.85, 0);
+    houseGroup.add(ridgeBeam);
+
+    // Stone Chimney with Low-Poly Smoke
+    const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.65, 2.2, 0.65), stoneWallMat);
+    chimney.position.set(1.3, 3.6, -1.2);
+    houseGroup.add(chimney);
+
+    const chimneyCap = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.14, 0.85), stoneSlateMat);
+    chimneyCap.position.set(1.3, 4.75, -1.2);
+    houseGroup.add(chimneyCap);
+
+    // Arched Wooden Door with Brass Ironwork
+    const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(1.25, 1.7, 0.14), timberDarkMat);
+    doorFrame.position.set(0, 1.15, 2.14);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.5, 0.12), timberLightMat);
+    door.position.set(0, 1.05, 2.16);
+    houseGroup.add(doorFrame, door);
+
+    // 3 Stone Steps in front of door
+    for (let st = 0; st < 3; st++) {
+      const step = new THREE.Mesh(new THREE.BoxGeometry(1.6 - st * 0.2, 0.12, 0.5), stoneSlateMat);
+      step.position.set(0, 0.06 + (2 - st) * 0.08, 2.35 + st * 0.4);
+      houseGroup.add(step);
+    }
+
+    // Glowing Warm Windows (Round Attic Dormer & Side Windows)
+    const dormerFrame = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.06, 6, 12), timberDarkMat);
+    dormerFrame.position.set(0, 2.9, 2.16);
+    const dormerGlass = new THREE.Mesh(new THREE.CircleGeometry(0.3, 12), warmLightMat);
+    dormerGlass.position.set(0, 2.9, 2.17);
+    houseGroup.add(dormerFrame, dormerGlass);
+
+    // Side Windows
+    for (let sw of [-1.0, 1.0]) {
+      const sideWin = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.75, 0.08), warmLightMat);
+      sideWin.position.set(sw * 2.05, 1.45, 0.5);
+      sideWin.rotation.y = (sw > 0) ? Math.PI / 2 : -Math.PI / 2;
+      houseGroup.add(sideWin);
+    }
+
+    // Porch Lantern (Warm glowing hanging lamp)
+    const lampPost = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.35, 0.25), timberDarkMat);
+    lampPost.position.set(0.85, 1.75, 2.2);
+    const lantern = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.26, 0.18), warmLightMat);
+    lantern.position.set(0.85, 1.55, 2.3);
+    houseGroup.add(lampPost, lantern);
+
+    // Decorative Barrels & Potion Bottles next to house (as in concept art)
+    const barrelMat = new THREE.MeshStandardMaterial({ color: 0x7c2d12, roughness: 0.8 });
+    const b1 = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.36, 0.75, 8), barrelMat);
+    b1.position.set(-2.4, 0.38, 1.6);
+    const b2 = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.65, 8), barrelMat);
+    b2.position.set(-2.1, 0.33, 2.2);
+    houseGroup.add(b1, b2);
+
+    // Glowing Fantasy Potion Bottles
+    const potionMat1 = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.8,
+      transparent: true,
+      opacity: 0.85
+    });
+    const potionMat2 = new THREE.MeshStandardMaterial({
+      color: 0xf43f5e,
+      emissive: 0xe11d48,
+      emissiveIntensity: 0.8,
+      transparent: true,
+      opacity: 0.85
+    });
+    const pot1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.24, 6), potionMat1);
+    pot1.position.set(-2.4, 0.88, 1.6);
+    const pot2 = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.22, 6), potionMat2);
+    pot2.position.set(-2.2, 0.77, 2.2);
+    houseGroup.add(pot1, pot2);
+
+    enchantedFoxForestGroup.add(houseGroup);
+
+    // -------------------------------------------------------------------------
+    // 3. Gerbang Portal Purba Pokok Kehidupan (Ancient Stone Arch Portal at -6.5, 0, -5.0)
+    // -------------------------------------------------------------------------
+    const portalGroup = new THREE.Group();
+    portalGroup.position.set(-6.5, 0, -5.0);
+    portalGroup.rotation.y = 0.45;
+
+    // Stone Arch Columns
+    const archMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.85, flatShading: true });
+    const colLeft = new THREE.Mesh(new THREE.BoxGeometry(0.55, 3.2, 0.55), archMat);
+    colLeft.position.set(-1.3, 1.6, 0);
+    const colRight = new THREE.Mesh(new THREE.BoxGeometry(0.55, 3.2, 0.55), archMat);
+    colRight.position.set(1.3, 1.6, 0);
+
+    // Arch Curved Top
+    const archLintel = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.55, 0.65), archMat);
+    archLintel.position.set(0, 3.3, 0);
+
+    // Portal Crest Gemstone
+    const gemMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0ea5e9,
+      emissiveIntensity: 0.7,
+      roughness: 0.2
+    });
+    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), gemMat);
+    gem.position.set(0, 3.85, 0);
+    portalGroup.add(colLeft, colRight, archLintel, gem);
+
+    // Portal Vortex Energy Curtain (Becomes vibrant when all 5 crystals collected)
+    const vortexGeo = new THREE.PlaneGeometry(2.1, 2.8);
+    const vortexMat = new THREE.MeshBasicMaterial({
+      color: 0x67e8f9,
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.DoubleSide
+    });
+    foxPortalVortex = new THREE.Mesh(vortexGeo, vortexMat);
+    foxPortalVortex.position.set(0, 1.6, 0);
+    portalGroup.add(foxPortalVortex);
+
+    foxPortalMesh = portalGroup;
+    enchantedFoxForestGroup.add(portalGroup);
+
+    // -------------------------------------------------------------------------
+    // 4. Gua Kristal Bercahaya (Glowing Crystal Cavelet at 2.0, 0, -8.0)
+    // -------------------------------------------------------------------------
+    const caveGroup = new THREE.Group();
+    caveGroup.position.set(2.0, 0, -8.0);
+
+    const rockMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9, flatShading: true });
+    // Cave Mound
+    const mound = new THREE.Mesh(new THREE.DodecahedronGeometry(2.8, 1), rockMat);
+    mound.scale.set(1.4, 0.9, 1.2);
+    mound.position.set(0, 1.6, 0);
+    caveGroup.add(mound);
+
+    // Hollow Mouth of cave
+    const caveMouth = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.1, 1.8, 8), new THREE.MeshBasicMaterial({ color: 0x020617 }));
+    caveMouth.rotation.x = Math.PI / 2;
+    caveMouth.position.set(0, 1.0, 1.2);
+    caveGroup.add(caveMouth);
+
+    // Glowing Cyan Crystals inside cave
+    const caveCrystalMat = new THREE.MeshStandardMaterial({
+      color: 0x22d3ee,
+      emissive: 0x06b6d4,
+      emissiveIntensity: 0.9,
+      roughness: 0.2
+    });
+    for (let k = 0; k < 6; k++) {
+      const cr = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.45, 5), caveCrystalMat);
+      const ka = (k / 6) * Math.PI * 1.6 - 0.8;
+      cr.position.set(Math.sin(ka) * 0.5, 0.6 + (k % 3) * 0.15, 1.1 + Math.cos(ka) * 0.3);
+      cr.rotation.x = -0.3;
+      cr.rotation.z = (k % 2 === 0 ? 0.3 : -0.3);
+      caveGroup.add(cr);
+    }
+    enchantedFoxForestGroup.add(caveGroup);
+
+    // -------------------------------------------------------------------------
+    // 5. Pokok Cendawan Gergasi (Giant Fantasy Mushroom Trees)
+    // -------------------------------------------------------------------------
+    function createGiantMushroomTree(x, z, capColor, stemH, capR) {
+      const g = new THREE.Group();
+      g.position.set(x, 0, z);
+
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.75, flatShading: true });
+      const capMat = new THREE.MeshStandardMaterial({
+        color: capColor,
+        roughness: 0.5,
+        flatShading: true,
+        emissive: capColor,
+        emissiveIntensity: 0.22
+      });
+
+      // Stem (slight curve / flare at base)
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.65, stemH, 8), stemMat);
+      stem.position.y = stemH / 2;
+      g.add(stem);
+
+      // Huge Cap
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(capR, capR * 0.7, 9), capMat);
+      cap.position.y = stemH + capR * 0.25;
+      g.add(cap);
+
+      // Cap underbelly
+      const under = new THREE.Mesh(new THREE.CylinderGeometry(capR * 0.95, 0.38, 0.15, 9), stemMat);
+      under.position.y = stemH - 0.02;
+      g.add(under);
+
+      return g;
+    }
+
+    // 4 Giant Mushroom Trees (matching concept art: Purple, Orange, Teal, Deep Plum)
+    enchantedFoxForestGroup.add(createGiantMushroomTree(-5.5, 2.5, 0xa855f7, 3.6, 2.2)); // Soft Purple
+    enchantedFoxForestGroup.add(createGiantMushroomTree(-7.5, -1.0, 0xf97316, 4.2, 2.5)); // Vibrant Orange
+    enchantedFoxForestGroup.add(createGiantMushroomTree(4.0, -8.5, 0x06b6d4, 3.8, 2.3)); // Bright Teal
+    enchantedFoxForestGroup.add(createGiantMushroomTree(-2.0, -9.0, 0xec4899, 4.5, 2.6)); // Deep Rose/Plum
+
+    // -------------------------------------------------------------------------
+    // 6. Pokok Kon Pain Rendah & Batu Daun Purba (Stylized Pines & Rune Stele)
+    // -------------------------------------------------------------------------
+    const pinePurpleMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, flatShading: true, roughness: 0.75 });
+    const pineLimeMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, flatShading: true, roughness: 0.75 });
+
+    function createStylizedPine(x, z, mat, s) {
+      const p = new THREE.Group();
+      p.position.set(x, 0, z);
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 0.8 * s, 6), timberDarkMat);
+      trunk.position.y = 0.4 * s;
+      p.add(trunk);
+      for (let l = 0; l < 3; l++) {
+        const c = new THREE.Mesh(new THREE.ConeGeometry((0.95 - l * 0.22) * s, 0.85 * s, 6), mat);
+        c.position.y = (0.7 + l * 0.55) * s;
+        p.add(c);
+      }
+      return p;
+    }
+
+    enchantedFoxForestGroup.add(createStylizedPine(-4.0, 7.0, pinePurpleMat, 1.2));
+    enchantedFoxForestGroup.add(createStylizedPine(2.5, 7.5, pineLimeMat, 1.1));
+    enchantedFoxForestGroup.add(createStylizedPine(7.5, 3.0, pineLimeMat, 1.3));
+    enchantedFoxForestGroup.add(createStylizedPine(-8.0, 5.0, pinePurpleMat, 1.4));
+
+    // Ancient Leaf Rune Stele at local (3.5, 0, 5.0) (as in reference art!)
+    const steleGroup = new THREE.Group();
+    steleGroup.position.set(3.5, 0, 5.0);
+    steleGroup.rotation.y = -0.4;
+    const stele = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.4, 0.35), stoneWallMat);
+    stele.position.y = 0.7;
+    const runeLeaf = new THREE.Mesh(
+      new THREE.CircleGeometry(0.22, 5),
+      new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x16a34a, emissiveIntensity: 0.8 })
+    );
+    runeLeaf.position.set(0, 0.75, 0.18);
+    steleGroup.add(stele, runeLeaf);
+    enchantedFoxForestGroup.add(steleGroup);
+
+    // -------------------------------------------------------------------------
+    // 7. Obor Kayu Bernyala (Rustic Wood Torches along Trail)
+    // -------------------------------------------------------------------------
+    const torchPositions = [
+      { x: 1.6, z: 8.5 },
+      { x: 3.2, z: 4.8 },
+      { x: -1.2, z: 3.2 },
+      { x: 3.2, z: -5.5 }
+    ];
+
+    torchPositions.forEach(tp => {
+      const torch = new THREE.Group();
+      torch.position.set(tp.x, 0, tp.z);
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, 1.2, 6), timberDarkMat);
+      post.position.y = 0.6;
+      torch.add(post);
+      const head = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.28, 6), stoneSlateMat);
+      head.position.y = 1.25;
+      torch.add(head);
+      const flame = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.12, 0),
+        new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.9 })
+      );
+      flame.scale.set(0.9, 1.5, 0.9);
+      flame.position.y = 1.42;
+      torch.add(flame);
+      enchantedFoxForestGroup.add(torch);
+    });
+
+    // -------------------------------------------------------------------------
+    // 8. Anak Sungai & Jambatan Kayu Kecil (Enchanted Stream & Footbridge)
+    // -------------------------------------------------------------------------
+    const streamMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.1,
+      metalness: 0.25,
+      transparent: true,
+      opacity: 0.75
+    });
+    const stream = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 15), streamMat);
+    stream.rotation.x = -Math.PI / 2;
+    stream.rotation.z = 0.35;
+    stream.position.set(-4.5, 0.03, -0.5);
+    enchantedFoxForestGroup.add(stream);
+
+    // Small Footbridge
+    const bridge = new THREE.Group();
+    bridge.position.set(-4.2, 0.15, -0.8);
+    bridge.rotation.y = 0.35;
+    const planks = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.12, 3.2), timberLightMat);
+    bridge.add(planks);
+    // Railings
+    for (let rx of [-0.85, 0.85]) {
+      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.2, 6), timberDarkMat);
+      rail.rotation.x = Math.PI / 2;
+      rail.position.set(rx, 0.5, 0);
+      bridge.add(rail);
+      for (let rp of [-1.2, 0, 1.2]) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 6), timberDarkMat);
+        post.position.set(rx, 0.25, rp);
+        bridge.add(post);
+      }
+    }
+    enchantedFoxForestGroup.add(bridge);
+
+    // -------------------------------------------------------------------------
+    // 9. Cendawan Bercahaya Pelbagai Warna (Bioluminescent Glowing Mushrooms)
+    // -------------------------------------------------------------------------
+    const shroomColors = [0x22d3ee, 0xa855f7, 0xf472b6, 0xfb923c];
+    const shroomPositions = [
+      { x: -1.8, z: 7.2, c: 0, s: 0.9 },
+      { x: -2.3, z: 6.8, c: 2, s: 0.65 },
+      { x: -0.8, z: 5.5, c: 1, s: 0.85 },
+      { x: 1.8, z: 5.2, c: 3, s: 0.7 },
+      { x: 3.8, z: 2.2, c: 0, s: 1.1 },
+      { x: 4.4, z: 2.5, c: 1, s: 0.75 },
+      { x: 6.8, z: -0.5, c: 2, s: 0.85 },
+      { x: 7.2, z: -1.2, c: 0, s: 0.6 },
+      { x: -3.5, z: 2.8, c: 1, s: 1.0 },
+      { x: -4.0, z: 2.2, c: 3, s: 0.7 },
+      { x: -2.8, z: -2.5, c: 0, s: 0.9 },
+      { x: -5.0, z: -7.5, c: 1, s: 1.2 },
+      { x: 0.5, z: -6.5, c: 2, s: 0.8 },
+      { x: -1.2, z: -5.0, c: 3, s: 0.75 }
+    ];
+
+    shroomPositions.forEach(sp => {
+      const sh = new THREE.Group();
+      sh.position.set(sp.x, 0, sp.z);
+      const col = shroomColors[sp.c];
+      const s = sp.s;
+
+      const stem = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05 * s, 0.08 * s, 0.35 * s, 6),
+        new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.8 })
+      );
+      stem.position.y = 0.175 * s;
+      sh.add(stem);
+
+      const cap = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22 * s, 8, 8, 0, Math.PI * 2, 0, Math.PI * 0.5),
+        new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.75, roughness: 0.3 })
+      );
+      cap.position.y = 0.32 * s;
+      sh.add(cap);
+      enchantedFoxForestGroup.add(sh);
+    });
+
+    // -------------------------------------------------------------------------
+    // 10. Papan Tanda Khas 3D ("Hutan Misteri Musang" at front local -2.8, 0, 8.5)
+    // -------------------------------------------------------------------------
+    const signGroup = new THREE.Group();
+    signGroup.position.set(-2.8, 0, 8.5);
+    signGroup.rotation.y = 0.1; // Face arriving player
+
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 0.85 });
+    const pL = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 2.0, 8), poleMat);
+    pL.position.set(-0.85, 1.0, 0);
+    const pR = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 2.0, 8), poleMat);
+    pR.position.set(0.85, 1.0, 0);
+    signGroup.add(pL, pR);
+
+    // Carved Wood Board
+    const boardMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.8 });
+    const board = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.88, 0.14), boardMat);
+    board.position.set(0, 1.62, 0);
+    signGroup.add(board);
+
+    // Canvas Label
+    const canvas = document.createElement('canvas');
+    canvas.width = 384;
+    canvas.height = 144;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fef3c7';
+    ctx.fillRect(0, 0, 384, 144);
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(4, 4, 376, 136);
+
+    ctx.fillStyle = '#78350f';
+    ctx.font = 'bold 32px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🦊 Hutan Misteri Musang', 192, 52);
+
+    ctx.fillStyle = '#92400e';
+    ctx.font = 'bold 20px Nunito, sans-serif';
+    ctx.fillText('Temui Musang Pintar & selesaikan cabaran!', 192, 96);
+
+    const signTex = new THREE.CanvasTexture(canvas);
+    const signFace = new THREE.Mesh(new THREE.PlaneGeometry(1.95, 0.76), new THREE.MeshBasicMaterial({ map: signTex }));
+    signFace.position.set(0, 1.62, 0.08);
+    signGroup.add(signFace);
+
+    enchantedFoxForestGroup.add(signGroup);
+
+    // -------------------------------------------------------------------------
+    // 11. 5 Ekor Musang Hiasan NPC (Dekoratif, Tiada Interaksi / Kuiz)
+    // -------------------------------------------------------------------------
+    decorativeFoxes = [];
+    const npcFoxConfigs = [
+      { type: 'stream', x: -3.8, z: 0.2, rotY: 1.4, coatColor: 0xea580c, pose: 'sit', scale: 0.85 },
+      { type: 'stroll', x: -2.0, z: -3.8, rotY: 0.8, coatColor: 0xc2410c, pose: 'stroll', scale: 0.9, range: 1.2 },
+      { type: 'porch', x: 4.2, z: -0.6, rotY: -2.2, coatColor: 0xf97316, pose: 'sit', scale: 0.88 },
+      { type: 'kit', x: 2.6, z: 2.8, rotY: -0.5, coatColor: 0xfb923c, pose: 'play', scale: 0.65 },
+      { type: 'sleep', x: -4.8, z: 4.8, rotY: 0.4, coatColor: 0xea580c, pose: 'sleep', scale: 0.8 }
+    ];
+
+    npcFoxConfigs.forEach((cfg, ci) => {
+      const foxMesh = createNPCFox(cfg, ci);
+      enchantedFoxForestGroup.add(foxMesh);
+      decorativeFoxes.push(foxMesh);
+      animatedObjects.push({
+        update(t) {
+          if (foxMesh.userData && foxMesh.userData.animate) {
+            foxMesh.userData.animate(t);
+          }
+        }
+      });
+    });
+
+    parent.add(enchantedFoxForestGroup);
+  }
+
+  // Fallback E. Musang 3D (Fox)
+  function createFoxModel() {
+    return createHeroFoxModel();
   }
 
   // 11. FIREFLIES & BUTTERFLIES (FASA 5 & 11)
@@ -4255,6 +5117,16 @@
         if (!animGroup_zone4_chirped) {
           SafariAudio.birdChirp();
           animGroup_zone4_chirped = true;
+        }
+      } else if (closestIndex === 4) {
+        // Special custom prompt for Musang Pintar (Zone 5)
+        DOM.promptTitle.textContent = 'MUSANG PINTAR DITEMUI!';
+        DOM.promptSub.textContent = 'Tahniah, Saintis Muda! Anda berjaya menemui Musang Pintar di Hutan Misteri. Jom terokai sel haiwan dan selesaikan cabaran terakhir!';
+        DOM.promptBtnText.textContent = 'Teroka Sel Haiwan';
+
+        if (!animGroup_zone5_foxAudio) {
+          SafariAudio.foxYip && SafariAudio.foxYip();
+          animGroup_zone5_foxAudio = true;
         }
       } else {
         DOM.promptTitle.textContent = `${cz.animal.toUpperCase()} DITEMUI!`;
@@ -5240,9 +6112,16 @@
       totalMonkeyCount: decorativeMonkeys.length + (animalMeshes[2] ? 1 : 0),
       totalDeerCount: decorativeDeers.length + (animalMeshes[1] ? 1 : 0),
       totalRabbitCount: decorativeRabbits.length + (animalMeshes[0] ? 1 : 0),
-      totalBirdCount: decorativeBirds.length + (animalMeshes[3] ? 1 : 0)
+      totalBirdCount: decorativeBirds.length + (animalMeshes[3] ? 1 : 0),
+      foxForest: !!enchantedFoxForestGroup,
+      totalFoxCount: decorativeFoxes.length + (animalMeshes[4] ? 1 : 0)
     }),
     getAnimalZones: () => SAFARI_ZONES,
+    getEnchantedFoxForest: () => enchantedFoxForestGroup,
+    getDecorativeFoxes: () => decorativeFoxes,
+    getTotalFoxCount: () => decorativeFoxes.length + (animalMeshes[4] ? 1 : 0),
+    getInteractiveFox: () => (animalMeshes[4] ? animalMeshes[4].userData.creature : null),
+    getFoxPortal: () => foxPortalMesh,
     getMonkeyForest: () => monkeyForestGroup,
     getDecorativeMonkeys: () => decorativeMonkeys,
     getTotalMonkeyCount: () => decorativeMonkeys.length + (animalMeshes[2] ? 1 : 0),

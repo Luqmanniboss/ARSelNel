@@ -815,9 +815,75 @@ async function main() {
     assert(monkeyProximityCheck && monkeyProximityCheck.isPromptHiddenFarFromHero, 'Monyet-monyet hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
 
     // -------------------------------------------------------------------------
-    // FASA 16: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // FASA 16: UJIAN KHAS ZON 5 — ENCHANTED FOX FOREST & MUSANG PINTAR
     // -------------------------------------------------------------------------
-    console.log(`\n--- UJIAN 16: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
+    console.log(`\n--- UJIAN 16: ENCHANTED FOX FOREST 3D & EKSKLUSIVITI MUSANG PINTAR (ZON 5) ---`);
+    const foxForestCheck = await evaluate(`(() => {
+      if (!window.CellSafari) return null;
+      const forest = window.CellSafari.getEnchantedFoxForest();
+      const totalFoxes = window.CellSafari.getTotalFoxCount();
+      const decFoxes = window.CellSafari.getDecorativeFoxes();
+      const heroFox = window.CellSafari.getInteractiveFox();
+      const portal = window.CellSafari.getFoxPortal();
+      const diag = window.CellSafari.getDiagnostics();
+
+      return {
+        hasForest: !!forest,
+        forestX: forest ? forest.position.x : 0,
+        forestZ: forest ? forest.position.z : 0,
+        totalFoxes,
+        decorativeFoxCount: decFoxes ? decFoxes.length : 0,
+        hasHeroFox: !!heroFox,
+        heroFoxName: heroFox ? heroFox.name : '',
+        hasPortal: !!portal,
+        diagnosticForest: diag.foxForest
+      };
+    })()`);
+
+    assert(foxForestCheck && foxForestCheck.hasForest, 'Objek 3D Kumpulan Enchanted Fox Forest wujud dalam persekitaran Cell Safari');
+    assert(foxForestCheck && foxForestCheck.forestX === 0 && foxForestCheck.forestZ === -46, 'Hutan Misteri Musang ditempatkan dengan tepat di Zon 5 (x: 0, z: -46)');
+    assert(foxForestCheck && foxForestCheck.totalFoxes >= 5 && foxForestCheck.totalFoxes <= 7, `Jumlah musang di Hutan Misteri dalam julat sasaran 5-7 ekor (Terkini: ${foxForestCheck?.totalFoxes} ekor)`);
+    assert(foxForestCheck && foxForestCheck.decorativeFoxCount === 5, '5 Ekor Musang Hiasan NPC (sungai, bersiar cendawan, anjung rumah, bermain anak musang, tidur) wujud');
+    assert(foxForestCheck && foxForestCheck.hasHeroFox, 'Musang Pintar hero 3D wujud di atas pelantar batu lumut bertingkat');
+    assert(foxForestCheck && foxForestCheck.hasPortal, 'Gerbang Portal Purba Pokok Kehidupan wujud di kawasan Zon 5');
+
+    // Uji Eksklusiviti Interaksi Musang Pintar
+    const foxProximityCheck = await evaluate(`(() => {
+      // Teleport berdekatan Musang Pintar di Zon 5 (x: 0, z: -44.5)
+      window.CellSafari.teleport(0, -44.5);
+      window.CellSafari.updateProximity();
+
+      const prompt = document.getElementById('cs-prompt');
+      const title = document.getElementById('cs-prompt-title');
+      const subtitle = document.getElementById('cs-prompt-sub');
+      const btn = document.getElementById('cs-prompt-btn-text');
+      const isActive = prompt ? prompt.classList.contains('active') : false;
+
+      const res = {
+        isActive,
+        titleText: title ? title.textContent.trim() : '',
+        subtitleText: subtitle ? subtitle.textContent.trim() : '',
+        btnText: btn ? btn.textContent.trim() : ''
+      };
+
+      // Teleport jauh dari Musang Pintar (cth: x: 10, z: 0)
+      window.CellSafari.teleport(10, 0);
+      window.CellSafari.updateProximity();
+      res.isPromptHiddenFarFromHero = prompt ? !prompt.classList.contains('active') : true;
+
+      return res;
+    })()`);
+
+    assert(foxProximityCheck && foxProximityCheck.isActive, 'Prompt interaksi terpapar apabila menghampiri Musang Pintar (< 5.2m)');
+    assert(foxProximityCheck && foxProximityCheck.titleText === 'MUSANG PINTAR DITEMUI!', 'Tajuk prompt memaparkan "MUSANG PINTAR DITEMUI!"', foxProximityCheck?.titleText);
+    assert(foxProximityCheck && foxProximityCheck.subtitleText === 'Tahniah, Saintis Muda! Anda berjaya menemui Musang Pintar di Hutan Misteri. Jom terokai sel haiwan dan selesaikan cabaran terakhir!', 'Subtitle memaparkan ucapan eksplorasi sel Musang Pintar', foxProximityCheck?.subtitleText);
+    assert(foxProximityCheck && foxProximityCheck.btnText === 'Teroka Sel Haiwan', 'Butang tindakan memaparkan "Teroka Sel Haiwan"', foxProximityCheck?.btnText);
+    assert(foxProximityCheck && foxProximityCheck.isPromptHiddenFarFromHero, 'Musang-musang hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
+
+    // -------------------------------------------------------------------------
+    // FASA 17: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // -------------------------------------------------------------------------
+    console.log(`\n--- UJIAN 17: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
     const touchTargetTest = await evaluate(`(() => {
       const buttons = [
         document.getElementById('cs-v-lobby'),
