@@ -566,9 +566,71 @@ async function main() {
     assert(bookTest && bookTest.hasMinimap, 'Radar Minimap 2D aktif memaparkan kedudukan pemain dan 5 zon');
 
     // -------------------------------------------------------------------------
-    // FASA 12: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // FASA 12: UJIAN KHAS ZON 4 — MAGICAL COLOURFUL 3D BIRD SANCTUARY & BURUNG RIMBA
     // -------------------------------------------------------------------------
-    console.log(`\n--- UJIAN 12: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
+    console.log(`\n--- UJIAN 12: MAGICAL COLOURFUL 3D BIRD SANCTUARY & BURUNG RIMBA ---`);
+    const birdSanctuaryCheck = await evaluate(`(() => {
+      const sanctuary = window.CellSafari.getBirdSanctuary();
+      const decBirds = window.CellSafari.getDecorativeBirds();
+      const totalBirds = window.CellSafari.getTotalBirdCount();
+      const heroBird = window.CellSafari.getInteractiveBird();
+      const diag = window.CellSafari.getDiagnostics();
+
+      return {
+        hasSanctuary: !!sanctuary,
+        sanctuaryX: sanctuary ? sanctuary.position.x : 0,
+        sanctuaryZ: sanctuary ? sanctuary.position.z : 0,
+        totalBirds,
+        decorativeBirdCount: decBirds ? decBirds.length : 0,
+        hasHeroBird: !!heroBird,
+        heroBirdName: heroBird ? heroBird.name : '',
+        diagnosticSanctuary: diag.sanctuary
+      };
+    })()`);
+
+    assert(birdSanctuaryCheck && birdSanctuaryCheck.hasSanctuary, 'Objek 3D Kumpulan Taman Burung wujud dalam persekitaran Cell Safari');
+    assert(birdSanctuaryCheck && birdSanctuaryCheck.sanctuaryX === -32 && birdSanctuaryCheck.sanctuaryZ === -28, 'Taman Burung ditempatkan dengan tepat di Zon 4 (x: -32, z: -28)');
+    assert(birdSanctuaryCheck && birdSanctuaryCheck.totalBirds >= 10 && birdSanctuaryCheck.totalBirds <= 15, `Jumlah burung di Taman Burung dalam julat sasaran 10-15 ekor (Terkini: ${birdSanctuaryCheck?.totalBirds} ekor)`);
+    assert(birdSanctuaryCheck && birdSanctuaryCheck.decorativeBirdCount === 12, '12 Ekor Burung Hiasan NPC pelbagai warna dan tingkah laku menghiasi taman');
+    assert(birdSanctuaryCheck && birdSanctuaryCheck.hasHeroBird, 'Burung Rimba hero 3D wujud di atas pelantar khas 3 tingkat');
+
+    // Uji Eksklusiviti Interaksi Burung Rimba
+    const heroProximityCheck = await evaluate(`(() => {
+      // Teleport tepat berdekatan Burung Rimba di Zon 4 (-32, -26)
+      window.CellSafari.teleport(-32, -26);
+      window.CellSafari.updateProximity();
+
+      const prompt = document.getElementById('cs-prompt');
+      const title = document.getElementById('cs-prompt-title');
+      const subtitle = document.getElementById('cs-prompt-sub');
+      const btn = document.getElementById('cs-prompt-btn-text');
+      const isActive = prompt ? prompt.classList.contains('active') : false;
+
+      const res = {
+        isActive,
+        titleText: title ? title.textContent.trim() : '',
+        subtitleText: subtitle ? subtitle.textContent.trim() : '',
+        btnText: btn ? btn.textContent.trim() : ''
+      };
+
+      // Teleport ke kawasan yang tiada haiwan zon (cth: x: -10, z: 0)
+      window.CellSafari.teleport(-10, 0);
+      window.CellSafari.updateProximity();
+      res.isPromptHiddenFarFromHero = prompt ? !prompt.classList.contains('active') : true;
+
+      return res;
+    })()`);
+
+    assert(heroProximityCheck && heroProximityCheck.isActive, 'Prompt interaksi terpapar apabila menghampiri Burung Rimba (< 5.2m)');
+    assert(heroProximityCheck && heroProximityCheck.titleText === 'BURUNG RIMBA DITEMUI!', 'Tajuk prompt memaparkan "BURUNG RIMBA DITEMUI!"', heroProximityCheck?.titleText);
+    assert(heroProximityCheck && heroProximityCheck.subtitleText.includes('Hebat! Anda berjaya menemui Burung Rimba'), 'Subtitle memaparkan ucapan eksplorasi sel burung rimba', heroProximityCheck?.subtitleText);
+    assert(heroProximityCheck && heroProximityCheck.btnText === 'Teroka Sel Haiwan', 'Butang tindakan memaparkan "Teroka Sel Haiwan"', heroProximityCheck?.btnText);
+    assert(heroProximityCheck && heroProximityCheck.isPromptHiddenFarFromHero, 'Burung-burung hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
+
+    // -------------------------------------------------------------------------
+    // FASA 13: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // -------------------------------------------------------------------------
+    console.log(`\n--- UJIAN 13: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
     const touchTargetTest = await evaluate(`(() => {
       const buttons = [
         document.getElementById('cs-v-lobby'),

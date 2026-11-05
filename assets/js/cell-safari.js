@@ -226,6 +226,42 @@
     victory() {
       const notes = [523.25, 659.25, 783.99, 1046.5];
       notes.forEach((f, idx) => setTimeout(() => this.play(f, 'sine', 0.5, 0.16), idx * 140));
+    },
+    birdChirp() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      try {
+        const now = this.ctx.currentTime;
+        // Chirp 1
+        const osc1 = this.ctx.createOscillator();
+        const gain1 = this.ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(2800, now);
+        osc1.frequency.exponentialRampToValueAtTime(4200, now + 0.05);
+        osc1.frequency.exponentialRampToValueAtTime(2600, now + 0.11);
+        gain1.gain.setValueAtTime(0.08, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc1.connect(gain1);
+        gain1.connect(this.ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.12);
+
+        // Chirp 2 (sweeter second note)
+        const osc2 = this.ctx.createOscillator();
+        const gain2 = this.ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(3300, now + 0.13);
+        osc2.frequency.exponentialRampToValueAtTime(4700, now + 0.18);
+        osc2.frequency.exponentialRampToValueAtTime(3100, now + 0.24);
+        gain2.gain.setValueAtTime(0.07, now + 0.13);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+        osc2.connect(gain2);
+        gain2.connect(this.ctx.destination);
+        osc2.start(now + 0.13);
+        osc2.stop(now + 0.26);
+      } catch (_) {}
     }
   };
 
@@ -259,6 +295,9 @@
   let animalMeshes = [];
   let firefliesGroup = null;
   let butterfliesGroup = null;
+  let birdSanctuaryGroup = null;
+  let decorativeBirds = [];
+  let animGroup_zone4_chirped = false;
   let animatedObjects = [];
 
   // PLAYER FIRST-PERSON STATE
@@ -495,6 +534,9 @@
     // 5. Batu, Bunga & Cendawan Comel
     buildScatteredFlora(forestEnvironmentGroup);
 
+    // 6. Zon 4: Magical Colourful 3D Bird Sanctuary
+    buildBirdSanctuaryZone4(forestEnvironmentGroup);
+
     scene.add(forestEnvironmentGroup);
   }
 
@@ -559,6 +601,8 @@
 
       // Jangan tanam di atas laluan terus haiwan atau di tengah pokok kehidupan
       if (Math.hypot(tx, tz) < 9) continue;
+      // Jangan tanam di dalam kawasan khas Zon 4 Taman Burung (radius 16m dari x: -32, z: -28)
+      if (Math.hypot(tx - (-32), tz - (-28)) < 16) continue;
       let tooCloseToAnimal = false;
       SAFARI_ZONES.forEach(z => {
         if (Math.hypot(tx - z.pos.x, tz - z.pos.z) < 4.5) tooCloseToAnimal = true;
@@ -610,6 +654,9 @@
       const dist = 7 + Math.random() * 45;
       const fx = Math.cos(angle) * dist;
       const fz = Math.sin(angle) * dist;
+
+      // Elakkan bunga/batu rawak bertindih dengan elemen terperinci Taman Burung
+      if (Math.hypot(fx - (-32), fz - (-28)) < 16) continue;
 
       if (i % 2 === 0) {
         // Flower Cluster
@@ -737,10 +784,12 @@
       animGroup.position.set(z.pos.x, 0, z.pos.z);
       animGroup.userData = { zoneIndex: index, zoneId: z.id, name: z.animal, emoji: z.emoji };
 
-      // Base Halo on ground
+      // Base Halo on ground (Pulsing golden ring for Burung Rimba Hero)
+      const isHeroBird = (index === 3);
+      const haloColor = isHeroBird ? 0xfbbf24 : z.colorHex;
       const halo = new THREE.Mesh(
-        new THREE.RingGeometry(0.8, 1.15, 24),
-        new THREE.MeshBasicMaterial({ color: z.colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.65 })
+        new THREE.RingGeometry(isHeroBird ? 1.05 : 0.8, isHeroBird ? 1.55 : 1.15, 24),
+        new THREE.MeshBasicMaterial({ color: haloColor, side: THREE.DoubleSide, transparent: true, opacity: isHeroBird ? 0.85 : 0.65 })
       );
       halo.rotation.x = -Math.PI / 2;
       halo.position.y = 0.03;
@@ -751,7 +800,7 @@
       if (index === 0) creatureMesh = createRabbitModel();
       else if (index === 1) creatureMesh = createDeerModel();
       else if (index === 2) creatureMesh = createMonkeyModel();
-      else if (index === 3) creatureMesh = createBirdModel();
+      else if (index === 3) creatureMesh = createBurungRimbaModel();
       else creatureMesh = createFoxModel();
 
       animGroup.add(creatureMesh);
@@ -764,7 +813,7 @@
       ctx.fillStyle = 'rgba(6, 78, 59, 0.9)';
       ctx.roundRect ? ctx.roundRect(4, 4, 248, 64, 16) : ctx.fillRect(4, 4, 248, 64);
       ctx.fill();
-      ctx.strokeStyle = z.color;
+      ctx.strokeStyle = isHeroBird ? '#fbbf24' : z.color;
       ctx.lineWidth = 4;
       ctx.stroke();
       ctx.fillStyle = '#ffffff';
@@ -775,16 +824,21 @@
 
       const badgeTexture = new THREE.CanvasTexture(canvas);
       const badge = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.45), new THREE.MeshBasicMaterial({ map: badgeTexture, side: THREE.DoubleSide }));
-      badge.position.y = 2.4;
+      badge.position.y = isHeroBird ? 2.85 : 2.4;
       animGroup.add(badge);
 
-      // Floating Life Crystal Preview above animal
+      // Floating Life Crystal / Mission Beacon Preview above animal
       const crystalIco = new THREE.Mesh(
-        new THREE.OctahedronGeometry(0.24, 0),
-        new THREE.MeshStandardMaterial({ color: z.colorHex, emissive: z.colorHex, emissiveIntensity: 0.6, roughness: 0.2 })
+        new THREE.OctahedronGeometry(isHeroBird ? 0.32 : 0.24, 0),
+        new THREE.MeshStandardMaterial({
+          color: isHeroBird ? 0xfbbf24 : z.colorHex,
+          emissive: isHeroBird ? 0xf59e0b : z.colorHex,
+          emissiveIntensity: isHeroBird ? 0.85 : 0.6,
+          roughness: 0.15
+        })
       );
-      crystalIco.scale.set(0.8, 1.3, 0.8);
-      crystalIco.position.y = 2.95;
+      crystalIco.scale.set(isHeroBird ? 1.0 : 0.8, isHeroBird ? 1.6 : 1.3, isHeroBird ? 1.0 : 0.8);
+      crystalIco.position.y = isHeroBird ? 3.4 : 2.95;
       animGroup.add(crystalIco);
 
       animGroup.userData.creature = creatureMesh;
@@ -939,52 +993,774 @@
     return g;
   }
 
-  // D. Burung 3D (Bird)
-  function createBirdModel() {
+  // ============================================================================
+  // MAGICAL COLOURFUL 3D BIRD SANCTUARY (ZON 4: TAMAN BURUNG)
+  // ============================================================================
+
+  // D. Burung Rimba 3D (Hero Animal for Zone 4 - Only Interactive Target)
+  function createBurungRimbaModel() {
     const g = new THREE.Group();
-    const featherMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.6, flatShading: true });
-    const chestMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.6 });
-    const beakMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.5 });
+    g.name = 'BurungRimba_Hero';
 
-    // Nest / Perch plinth
-    const perch = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.75, 0.4, 12), new THREE.MeshStandardMaterial({ color: 0x713f12 }));
-    perch.position.y = 0.2;
-    g.add(perch);
+    // 1. 3-Tiered Magical Bird Discovery Platform (Dais)
+    const daisMat1 = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.85, flatShading: true }); // Carved slate
+    const daisMat2 = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4, metalness: 0.3 }); // Polished rune ring
+    const perchMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 }); // Hardwood perch plinth
 
-    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.35, 1), featherMat);
-    body.position.y = 0.7;
-    body.scale.set(0.9, 1.0, 1.3);
-    g.add(body);
+    // Tier 1: Slate base
+    const tier1 = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 0.22, 12), daisMat1);
+    tier1.position.y = 0.11;
+    // Tier 2: Glowing cyan runic ring
+    const tier2 = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.2, 0.18, 12), daisMat2);
+    tier2.position.y = 0.29;
+    // Tier 3: Natural wooden/stone plinth
+    const tier3 = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, 0.22, 10), perchMat);
+    tier3.position.y = 0.48;
+    g.add(tier1, tier2, tier3);
 
-    const chest = new THREE.Mesh(new THREE.SphereGeometry(0.24, 7, 7), chestMat);
-    chest.position.set(0, 0.68, 0.2);
-    g.add(chest);
+    // 2. Articulated Burung Rimba Body
+    const royalBlueMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.5, metalness: 0.15, flatShading: true });
+    const wingTipMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.5, flatShading: true });
+    const goldenChestMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xf59e0b, emissiveIntensity: 0.35, roughness: 0.4 });
+    const beakMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.4 });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+    const eyeDotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 7, 7), featherMat);
-    head.position.set(0, 1.05, 0.25);
-    g.add(head);
+    const birdRoot = new THREE.Group();
+    birdRoot.position.y = 0.6; // Sit atop Tier 3 plinth
 
-    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.2, 5), beakMat);
+    // Body
+    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.42, 1), royalBlueMat);
+    body.position.y = 0.42;
+    body.scale.set(0.9, 1.05, 1.35);
+    birdRoot.add(body);
+
+    // Glowing Golden Chest
+    const chest = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), goldenChestMat);
+    chest.position.set(0, 0.42, 0.22);
+    birdRoot.add(chest);
+
+    // Articulated Head & Royal Crest
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.86, 0.28);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 8, 8), royalBlueMat);
+    const crest = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.28, 4), goldenChestMat);
+    crest.rotation.x = -0.4;
+    crest.position.set(0, 0.3, -0.05);
+
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.26, 5), beakMat);
     beak.rotation.x = Math.PI / 2;
-    beak.position.set(0, 1.02, 0.48);
-    g.add(beak);
+    beak.position.set(0, -0.02, 0.32);
 
-    // Wings
-    const wingGeo = new THREE.BoxGeometry(0.48, 0.18, 0.04);
-    const wingL = new THREE.Mesh(wingGeo, featherMat);
-    wingL.position.set(-0.35, 0.78, 0);
-    const wingR = new THREE.Mesh(wingGeo, featherMat);
-    wingR.position.set(0.35, 0.78, 0);
-    g.add(wingL, wingR);
+    // Eyes with corneal reflection
+    [-0.17, 0.17].forEach(ex => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), eyeMat);
+      eye.position.set(ex, 0.05, 0.16);
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.015, 4, 4), eyeDotMat);
+      dot.position.set(ex + (ex > 0 ? 0.01 : -0.01), 0.065, 0.19);
+      headGroup.add(eye, dot);
+    });
+
+    headGroup.add(head, crest, beak);
+    birdRoot.add(headGroup);
+
+    // Layered Articulated Wings
+    const wingGeo = new THREE.BoxGeometry(0.55, 0.22, 0.05);
+    const wingTipGeo = new THREE.BoxGeometry(0.24, 0.16, 0.04);
+
+    const wingL = new THREE.Group();
+    wingL.position.set(-0.38, 0.52, 0);
+    const wBaseL = new THREE.Mesh(wingGeo, royalBlueMat);
+    const wTipL = new THREE.Mesh(wingTipGeo, wingTipMat);
+    wTipL.position.set(-0.32, -0.02, 0);
+    wingL.add(wBaseL, wTipL);
+
+    const wingR = new THREE.Group();
+    wingR.position.set(0.38, 0.52, 0);
+    const wBaseR = new THREE.Mesh(wingGeo, royalBlueMat);
+    const wTipR = new THREE.Mesh(wingTipGeo, wingTipMat);
+    wTipR.position.set(0.32, -0.02, 0);
+    wingR.add(wBaseR, wTipR);
+
+    birdRoot.add(wingL, wingR);
+
+    // Royal Long Tail Feathers
+    const tailFeather = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.04, 0.65), royalBlueMat);
+    tailFeather.position.set(0, 0.35, -0.55);
+    tailFeather.rotation.x = -0.45;
+    birdRoot.add(tailFeather);
+
+    g.add(birdRoot);
+
+    // 3. Orbiting Golden Sparkles
+    const sparkleMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+    const sparkles = [];
+    for (let si = 0; si < 4; si++) {
+      const sp = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), sparkleMat);
+      sp.position.set(Math.cos(si * 1.57) * 0.9, 1.2 + (si % 2) * 0.3, Math.sin(si * 1.57) * 0.9);
+      g.add(sp);
+      sparkles.push(sp);
+    }
 
     g.userData = {
+      birdRoot,
+      headGroup,
+      wingL,
+      wingR,
+      chest,
+      sparkles,
+      tier2,
       animate(t) {
-        wingL.rotation.z = Math.sin(t * 8) * 0.25;
-        wingR.rotation.z = -Math.sin(t * 8) * 0.25;
-        g.position.y = Math.sin(t * 3) * 0.05;
+        // Head looking around with alert curiosity
+        headGroup.rotation.y = Math.sin(t * 1.4) * 0.32;
+        headGroup.rotation.x = Math.sin(t * 2.1) * 0.12;
+
+        // Gentle wing flutter
+        const flap = Math.sin(t * 6) * 0.18;
+        wingL.rotation.z = flap;
+        wingR.rotation.z = -flap;
+
+        // Chest breathing
+        const breath = 1.0 + Math.sin(t * 3) * 0.06;
+        chest.scale.set(breath, breath, breath);
+
+        // Body gentle bob
+        birdRoot.position.y = 0.6 + Math.sin(t * 3) * 0.03;
+
+        // Sparkles orbiting
+        sparkles.forEach((sp, i) => {
+          const sa = t * 1.8 + i * 1.57;
+          sp.position.x = Math.cos(sa) * 0.9;
+          sp.position.z = Math.sin(sa) * 0.9;
+          sp.position.y = 1.2 + Math.sin(t * 3 + i) * 0.2;
+          sp.rotation.y = t * 4;
+        });
+
+        // Pulsing runic dais
+        if (tier2.material) {
+          tier2.material.emissive = new THREE.Color(0x0284c7);
+          tier2.material.emissiveIntensity = 0.3 + Math.sin(t * 3) * 0.25;
+        }
       }
     };
+
     return g;
+  }
+
+  // Backward compatibility alias
+  function createBirdModel() {
+    return createBurungRimbaModel();
+  }
+
+  // Helper: Create Decorative NPC Bird (Purely Ambient Life - Non Interactive)
+  function createNPCBird(cfg, index) {
+    const bg = new THREE.Group();
+    bg.name = cfg.id;
+    bg.position.set(cfg.pos.x, cfg.pos.y, cfg.pos.z);
+
+    const featherMat = new THREE.MeshStandardMaterial({ color: cfg.color, roughness: 0.65, flatShading: true });
+    const chestMat = new THREE.MeshStandardMaterial({ color: cfg.chestColor || 0xffffff, roughness: 0.6 });
+    const beakMat = new THREE.MeshStandardMaterial({ color: cfg.beakColor || 0xf97316, roughness: 0.5 });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+
+    const s = cfg.scale || 0.7;
+    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.28 * s, 1), featherMat);
+    body.scale.set(0.9, 1.0, 1.3);
+    const chest = new THREE.Mesh(new THREE.SphereGeometry(0.18 * s, 6, 6), chestMat);
+    chest.position.set(0, -0.02 * s, 0.16 * s);
+
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.28 * s, 0.2 * s);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.17 * s, 6, 6), featherMat);
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.045 * s, 0.16 * s, 4), beakMat);
+    beak.rotation.x = Math.PI / 2;
+    beak.position.set(0, -0.02 * s, 0.18 * s);
+    // Tiny eyes
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.025 * s, 4, 4), eyeMat);
+    eyeL.position.set(-0.11 * s, 0.04 * s, 0.09 * s);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.025 * s, 4, 4), eyeMat);
+    eyeR.position.set(0.11 * s, 0.04 * s, 0.09 * s);
+    headGroup.add(head, beak, eyeL, eyeR);
+
+    // Wings
+    const wingGeo = new THREE.BoxGeometry(0.36 * s, 0.12 * s, 0.03 * s);
+    const wingL = new THREE.Mesh(wingGeo, featherMat);
+    wingL.position.set(-0.25 * s, 0.05 * s, 0);
+    const wingR = new THREE.Mesh(wingGeo, featherMat);
+    wingR.position.set(0.25 * s, 0.05 * s, 0);
+
+    // Tail
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.14 * s, 0.03 * s, 0.3 * s), featherMat);
+    tail.position.set(0, -0.02 * s, -0.28 * s);
+    tail.rotation.x = -0.3;
+
+    bg.add(body, chest, headGroup, wingL, wingR, tail);
+
+    bg.userData = {
+      cfg,
+      index,
+      headGroup,
+      wingL,
+      wingR,
+      basePos: { ...cfg.pos },
+      animate(t) {
+        const offset = index * 0.9;
+        if (cfg.behavior === 'headBob') {
+          headGroup.rotation.y = Math.sin(t * 2.2 + offset) * 0.4;
+          headGroup.rotation.x = Math.sin(t * 3.5 + offset) * 0.15;
+          tail.rotation.y = Math.sin(t * 2.8 + offset) * 0.2;
+        } else if (cfg.behavior === 'pecking') {
+          const peckCycle = Math.sin(t * 4.5 + offset);
+          if (peckCycle > 0.4) {
+            headGroup.rotation.x = 0.65;
+            bg.position.y = cfg.pos.y - 0.04;
+          } else {
+            headGroup.rotation.x = 0.0;
+            bg.position.y = cfg.pos.y + Math.max(0, Math.sin(t * 5 + offset) * 0.06);
+          }
+        } else if (cfg.behavior === 'drinking') {
+          const drink = Math.sin(t * 1.6 + offset);
+          headGroup.rotation.x = (drink > 0) ? -0.4 : 0.55;
+        } else if (cfg.behavior === 'flyingCircle') {
+          const r = cfg.orbitRadius || 8.0;
+          const spd = cfg.orbitSpeed || 0.5;
+          const ang = t * spd + offset;
+          bg.position.x = Math.cos(ang) * r;
+          bg.position.z = -4.0 + Math.sin(ang) * r;
+          bg.rotation.y = -ang - Math.PI / 2;
+          const flap = Math.sin(t * 14) * 0.55;
+          wingL.rotation.z = flap;
+          wingR.rotation.z = -flap;
+        } else if (cfg.behavior === 'hovering') {
+          const buzz = Math.sin(t * 36) * 0.7;
+          wingL.rotation.z = buzz;
+          wingR.rotation.z = -buzz;
+          bg.position.x = cfg.pos.x + Math.sin(t * 4) * 0.14;
+          bg.position.y = cfg.pos.y + Math.sin(t * 8) * 0.06;
+          bg.position.z = cfg.pos.z + Math.cos(t * 3) * 0.08;
+        } else {
+          // 'perched'
+          body.scale.y = 1.0 + Math.sin(t * 2.5 + offset) * 0.03;
+          headGroup.rotation.y = Math.sin(t * 1.2 + offset) * 0.25;
+        }
+      }
+    };
+
+    animatedObjects.push({
+      update(t) {
+        bg.userData.animate(t);
+      }
+    });
+
+    return bg;
+  }
+
+  // BUILD THE COMPLETE 3D BIRD SANCTUARY IN ZONE 4 (x: -32, z: -28)
+  function buildBirdSanctuaryZone4(parent) {
+    birdSanctuaryGroup = new THREE.Group();
+    birdSanctuaryGroup.name = 'BirdSanctuaryZone4';
+    birdSanctuaryGroup.position.set(-32, 0, -28);
+    decorativeBirds = [];
+
+    // A. Lush circular turf pad (radius 14m)
+    const gardenTurf = new THREE.Mesh(
+      new THREE.CircleGeometry(14, 24),
+      new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.85, flatShading: true })
+    );
+    gardenTurf.rotation.x = -Math.PI / 2;
+    gardenTurf.position.y = 0.015;
+    birdSanctuaryGroup.add(gardenTurf);
+
+    // B. Rocky Canyon Backdrop & Amphitheater
+    const canyonRockMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.9, flatShading: true });
+    const canyonDarkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9, flatShading: true });
+    const mossRockMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.85, flatShading: true });
+
+    const canyonRocks = [
+      { x: -9, y: 3.5, z: -11, w: 4.5, h: 7.0, d: 3.5, mat: canyonRockMat },
+      { x: -5, y: 3.2, z: -12, w: 5.0, h: 6.5, d: 4.0, mat: canyonDarkMat },
+      { x: 0, y: 4.0, z: -13, w: 6.0, h: 8.0, d: 3.5, mat: canyonRockMat },
+      { x: 5, y: 3.4, z: -12, w: 5.5, h: 6.8, d: 4.0, mat: canyonDarkMat },
+      { x: 9, y: 3.0, z: -11, w: 4.8, h: 6.0, d: 3.5, mat: canyonRockMat },
+      { x: -2.5, y: 1.8, z: -10, w: 3.2, h: 3.6, d: 2.8, mat: mossRockMat },
+      { x: 2.5, y: 1.6, z: -10, w: 3.5, h: 3.2, d: 2.5, mat: mossRockMat }
+    ];
+
+    canyonRocks.forEach(r => {
+      const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(r.h * 0.45, 1), r.mat);
+      rock.position.set(r.x, r.y, r.z);
+      rock.scale.set(r.w / (r.h * 0.45), 1.0, r.d / (r.h * 0.45));
+      birdSanctuaryGroup.add(rock);
+    });
+
+    // C. Stepped Waterfall cascading down into the pond
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.1,
+      metalness: 0.4,
+      transparent: true,
+      opacity: 0.85
+    });
+    const waterfallUpper = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.8), waterMat);
+    waterfallUpper.position.set(0, 4.2, -11.5);
+    const waterfallLower = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.5), waterMat);
+    waterfallLower.position.set(0, 1.4, -9.8);
+    waterfallLower.rotation.x = 0.15;
+    birdSanctuaryGroup.add(waterfallUpper, waterfallLower);
+
+    // Waterfall Splash Ring & Ripples
+    const splashMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.75, side: THREE.DoubleSide });
+    const splashRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.8, 16), splashMat);
+    splashRing.rotation.x = -Math.PI / 2;
+    splashRing.position.set(0, 0.08, -8.6);
+    birdSanctuaryGroup.add(splashRing);
+
+    animatedObjects.push({
+      update(t) {
+        waterfallUpper.position.y = 4.2 + Math.sin(t * 12) * 0.05;
+        waterfallLower.position.y = 1.4 + Math.cos(t * 14) * 0.05;
+        const s = 1.0 + Math.sin(t * 6) * 0.2;
+        splashRing.scale.set(s, s, s);
+        splashMat.opacity = 0.5 + Math.sin(t * 6) * 0.25;
+      }
+    });
+
+    // D. Turquoise Pond
+    const pondGeo = new THREE.CircleGeometry(5.2, 24);
+    const pondMat = new THREE.MeshStandardMaterial({
+      color: 0x06b6d4,
+      roughness: 0.08,
+      metalness: 0.25,
+      transparent: true,
+      opacity: 0.82
+    });
+    const pond = new THREE.Mesh(pondGeo, pondMat);
+    pond.rotation.x = -Math.PI / 2;
+    pond.scale.set(1.15, 0.85, 1.0); // Oval shape
+    pond.position.set(3.5, 0.04, -5.0);
+    birdSanctuaryGroup.add(pond);
+
+    // Shoreline Pebbles
+    const pebbleMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.85 });
+    for (let p = 0; p < 18; p++) {
+      const pAngle = (p / 18) * Math.PI * 2;
+      const px = 3.5 + Math.cos(pAngle) * 5.3 * 1.15;
+      const pz = -5.0 + Math.sin(pAngle) * 4.3;
+      const pebble = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3 + (p % 3) * 0.1, 0), pebbleMat);
+      pebble.position.set(px, 0.12, pz);
+      birdSanctuaryGroup.add(pebble);
+    }
+
+    // Water Lily Pads & Lotus Flowers
+    const lilyMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 });
+    const lotusPinkMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.5 });
+    const lotusWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+    const lilyPositions = [
+      { x: 1.8, z: -4.0 },
+      { x: 4.8, z: -6.2 },
+      { x: 5.5, z: -3.8 },
+      { x: 2.2, z: -6.5 }
+    ];
+    lilyPositions.forEach((lp, li) => {
+      const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.02, 12), lilyMat);
+      pad.position.set(lp.x, 0.05, lp.z);
+      const lotus = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.22, 6), li % 2 === 0 ? lotusPinkMat : lotusWhiteMat);
+      lotus.position.set(lp.x, 0.15, lp.z);
+      birdSanctuaryGroup.add(pad, lotus);
+    });
+
+    // E. Arched Wooden Footbridge across the pond (with Flower Planter Boxes)
+    const bridgeWoodMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.75 });
+    const bridgeDarkWood = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.8 });
+    const bridgeGroup = new THREE.Group();
+    bridgeGroup.position.set(3.5, 0, -4.5);
+    bridgeGroup.rotation.y = -0.45;
+
+    // Arched Planks Deck
+    const deckPlanks = 14;
+    for (let k = 0; k < deckPlanks; k++) {
+      const prog = (k / (deckPlanks - 1)) - 0.5;
+      const plankX = prog * 7.0;
+      const plankY = (1 - (prog * 2) * (prog * 2)) * 0.75 + 0.3;
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.09, 2.2), bridgeWoodMat);
+      plank.position.set(plankX, plankY, 0);
+      plank.rotation.z = -prog * 0.45;
+      bridgeGroup.add(plank);
+    }
+
+    // Railings both sides
+    [-1.0, 1.0].forEach(side => {
+      for (let rp = -3; rp <= 3; rp++) {
+        const prog = (rp / 3) * 0.5;
+        const postX = prog * 7.0;
+        const postY = (1 - (prog * 2) * (prog * 2)) * 0.75 + 0.3;
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.8, 6), bridgeDarkWood);
+        post.position.set(postX, postY + 0.4, side);
+        bridgeGroup.add(post);
+      }
+      for (let s = 0; s < 6; s++) {
+        const prog = (s / 5) - 0.5;
+        const railX = prog * 5.8;
+        const railY = (1 - (prog * 2) * (prog * 2)) * 0.75 + 0.95;
+        const railSeg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 0.08), bridgeWoodMat);
+        railSeg.position.set(railX, railY, side);
+        railSeg.rotation.z = -prog * 0.45;
+        bridgeGroup.add(railSeg);
+      }
+    });
+
+    // Flower Planter Boxes Mounted on Bridge Handrails
+    const flowerBoxMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.8 });
+    const flowerColors = [0xef4444, 0xf59e0b, 0xec4899, 0x3b82f6, 0xa855f7];
+    [-1.0, 1.0].forEach(side => {
+      [-1.4, 1.4].forEach(bx => {
+        const prog = bx / 3.5;
+        const by = (1 - (prog * 2) * (prog * 2)) * 0.75 + 0.7;
+        const box = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.22, 0.35), flowerBoxMat);
+        box.position.set(bx, by, side + (side > 0 ? 0.2 : -0.2));
+        bridgeGroup.add(box);
+
+        for (let fl = 0; fl < 5; fl++) {
+          const flower = new THREE.Mesh(
+            new THREE.SphereGeometry(0.1, 5, 5),
+            new THREE.MeshStandardMaterial({ color: flowerColors[(fl + (side > 0 ? 1 : 0)) % flowerColors.length] })
+          );
+          flower.position.set(bx - 0.4 + fl * 0.2, by + 0.16, side + (side > 0 ? 0.2 : -0.2) + (fl % 2 === 0 ? 0.05 : -0.05));
+          bridgeGroup.add(flower);
+        }
+      });
+    });
+
+    birdSanctuaryGroup.add(bridgeGroup);
+
+    // F. Wooden Entrance Archway (Pergola Arch) at South Entrance
+    const archGroup = new THREE.Group();
+    archGroup.position.set(0, 0, 13.0);
+
+    const archPostMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+    const archBeamMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.75 });
+
+    const postL = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 3.6, 8), archPostMat);
+    postL.position.set(-2.0, 1.8, 0);
+    const postR = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 3.6, 8), archPostMat);
+    postR.position.set(2.0, 1.8, 0);
+    archGroup.add(postL, postR);
+
+    const crossBeam = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.24, 0.45), archBeamMat);
+    crossBeam.position.set(0, 3.4, 0);
+    archGroup.add(crossBeam);
+    for (let sl = -3; sl <= 3; sl++) {
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 1.1), archBeamMat);
+      slat.position.set(sl * 0.65, 3.6, 0);
+      archGroup.add(slat);
+    }
+
+    // Wooden Signboard Canvas Texture
+    const signCanvas = document.createElement('canvas');
+    signCanvas.width = 512;
+    signCanvas.height = 140;
+    const sCtx = signCanvas.getContext('2d');
+    sCtx.fillStyle = '#78350f';
+    sCtx.roundRect ? sCtx.roundRect(8, 8, 496, 124, 20) : sCtx.fillRect(8, 8, 496, 124);
+    sCtx.fill();
+    sCtx.strokeStyle = '#fef08a';
+    sCtx.lineWidth = 6;
+    sCtx.stroke();
+    sCtx.fillStyle = '#fef08a';
+    sCtx.font = 'bold 36px Nunito, sans-serif';
+    sCtx.textAlign = 'center';
+    sCtx.textBaseline = 'middle';
+    sCtx.fillText('🌸 TAMAN BURUNG 🐦', 256, 52);
+    sCtx.font = 'bold 20px Nunito, sans-serif';
+    sCtx.fillStyle = '#a7f3d0';
+    sCtx.fillText('ZON 4: CELL SAFARI SANCTUARY', 256, 96);
+
+    const signTex = new THREE.CanvasTexture(signCanvas);
+    const signBoard = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.88), new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide }));
+    signBoard.position.set(0, 2.7, 0.05);
+    archGroup.add(signBoard);
+
+    // Hanging Wicker Flower Baskets on Arch
+    [-1.8, 1.8].forEach(hx => {
+      const basket = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.4, 7), new THREE.MeshStandardMaterial({ color: 0x92400e }));
+      basket.rotation.x = Math.PI;
+      basket.position.set(hx, 2.7, 0);
+      const hangingChain = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0x475569 }));
+      hangingChain.position.set(hx, 3.1, 0);
+      const flowerBall = new THREE.Mesh(new THREE.SphereGeometry(0.28, 6, 6), new THREE.MeshStandardMaterial({ color: 0xec4899 }));
+      flowerBall.position.set(hx, 2.75, 0);
+      archGroup.add(basket, hangingChain, flowerBall);
+    });
+
+    birdSanctuaryGroup.add(archGroup);
+
+    // G. Curved Stepping-Stone Pathway
+    const stonePathMat = new THREE.MeshStandardMaterial({ color: 0xcfd8dc, roughness: 0.9, flatShading: true });
+    const steppingStones = [
+      { x: 0, z: 12.0 },
+      { x: -0.4, z: 10.2 },
+      { x: -0.7, z: 8.5 },
+      { x: -0.8, z: 6.8 },
+      { x: -0.6, z: 5.0 },
+      { x: -0.3, z: 3.2 },
+      { x: -0.1, z: 1.5 },
+      // Towards Gazebo
+      { x: -2.2, z: 2.2 },
+      { x: -4.2, z: 2.5 },
+      { x: -6.0, z: 2.8 },
+      // Towards Bridge
+      { x: 1.2, z: 0.5 },
+      { x: 2.2, z: -1.2 },
+      { x: 3.0, z: -2.8 },
+      { x: 3.5, z: -4.5 }
+    ];
+    steppingStones.forEach(st => {
+      const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.08, 7), stonePathMat);
+      stone.position.set(st.x, 0.04, st.z);
+      stone.rotation.y = Math.random() * Math.PI;
+      birdSanctuaryGroup.add(stone);
+    });
+
+    // H. Hexagonal Wooden Gazebo (Astaka Taman)
+    const gazeboGroup = new THREE.Group();
+    gazeboGroup.position.set(-8.0, 0, 3.0);
+
+    const gazeboWood = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.8 });
+    const gazeboRoofMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.7, flatShading: true });
+
+    const floor = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 0.25, 6), gazeboWood);
+    floor.position.y = 0.125;
+    gazeboGroup.add(floor);
+
+    for (let gp = 0; gp < 6; gp++) {
+      const ga = (gp / 6) * Math.PI * 2;
+      const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.8, 6), gazeboWood);
+      pillar.position.set(Math.cos(ga) * 2.3, 1.52, Math.sin(ga) * 2.3);
+      gazeboGroup.add(pillar);
+    }
+
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(3.3, 1.6, 6), gazeboRoofMat);
+    roof.position.y = 3.6;
+    const roofFinial = new THREE.Mesh(new THREE.SphereGeometry(0.2, 6, 6), new THREE.MeshStandardMaterial({ color: 0xfbbf24 }));
+    roofFinial.position.y = 4.5;
+    gazeboGroup.add(roof, roofFinial);
+
+    const bench = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.12, 0.45), new THREE.MeshStandardMaterial({ color: 0x78350f }));
+    bench.position.set(0, 0.45, -0.8);
+    const benchLeg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.35, 5), gazeboWood);
+    benchLeg1.position.set(-0.6, 0.25, -0.8);
+    const benchLeg2 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.35, 5), gazeboWood);
+    benchLeg2.position.set(0.6, 0.25, -0.8);
+    gazeboGroup.add(bench, benchLeg1, benchLeg2);
+
+    birdSanctuaryGroup.add(gazeboGroup);
+
+    // I. 2 Sakura / Cherry Blossom Trees
+    const sakuraTrunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
+    const sakuraPinkMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, flatShading: true, roughness: 0.7 });
+    const sakuraLightMat = new THREE.MeshStandardMaterial({ color: 0xfbcfe8, flatShading: true, roughness: 0.7 });
+
+    function createSakuraTree(x, z, s = 1.0) {
+      const tree = new THREE.Group();
+      tree.position.set(x, 0, z);
+
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28 * s, 0.45 * s, 2.6 * s, 7), sakuraTrunkMat);
+      trunk.position.set(0, 1.3 * s, 0);
+      trunk.rotation.z = 0.08;
+      tree.add(trunk);
+
+      const b1 = new THREE.Mesh(new THREE.CylinderGeometry(0.14 * s, 0.2 * s, 1.5 * s, 6), sakuraTrunkMat);
+      b1.position.set(-0.5 * s, 2.3 * s, 0);
+      b1.rotation.z = 0.6;
+      const b2 = new THREE.Mesh(new THREE.CylinderGeometry(0.14 * s, 0.2 * s, 1.5 * s, 6), sakuraTrunkMat);
+      b2.position.set(0.5 * s, 2.3 * s, 0.2 * s);
+      b2.rotation.z = -0.55;
+      tree.add(b1, b2);
+
+      const clusters = [
+        { x: 0, y: 3.5 * s, z: 0, r: 1.6 * s, mat: sakuraPinkMat },
+        { x: -1.0 * s, y: 3.0 * s, z: 0.2 * s, r: 1.3 * s, mat: sakuraLightMat },
+        { x: 1.0 * s, y: 2.9 * s, z: -0.2 * s, r: 1.3 * s, mat: sakuraPinkMat },
+        { x: 0.2 * s, y: 3.2 * s, z: 1.0 * s, r: 1.2 * s, mat: sakuraLightMat }
+      ];
+      clusters.forEach(c => {
+        const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(c.r, 1), c.mat);
+        puff.position.set(c.x, c.y, c.z);
+        tree.add(puff);
+      });
+      return tree;
+    }
+
+    const sakuraTree1 = createSakuraTree(6.0, 6.0, 1.1);
+    const sakuraTree2 = createSakuraTree(-9.0, -7.0, 0.95);
+    birdSanctuaryGroup.add(sakuraTree1, sakuraTree2);
+
+    // 2 Canopy Shade Trees
+    const canopyTrunk = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.9 });
+    const canopyGreen = new THREE.MeshStandardMaterial({ color: 0x15803d, flatShading: true, roughness: 0.8 });
+    function createShadeTree(x, z, s = 1.0) {
+      const tree = new THREE.Group();
+      tree.position.set(x, 0, z);
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3 * s, 0.5 * s, 2.8 * s, 7), canopyTrunk);
+      trunk.position.y = 1.4 * s;
+      const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(2.1 * s, 1), canopyGreen);
+      foliage.position.y = 3.6 * s;
+      tree.add(trunk, foliage);
+      return tree;
+    }
+    const shadeTree1 = createShadeTree(-8.0, 10.0, 1.0);
+    const shadeTree2 = createShadeTree(9.0, -10.0, 1.05);
+    birdSanctuaryGroup.add(shadeTree1, shadeTree2);
+
+    // J. 2 Wooden Birdhouses on Posts
+    function createBirdhouse(x, z, roofCol = 0x16a34a) {
+      const bh = new THREE.Group();
+      bh.position.set(x, 0, z);
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.8, 6), archPostMat);
+      post.position.y = 0.9;
+      const house = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.55, 0.45), new THREE.MeshStandardMaterial({ color: 0xfde047 }));
+      house.position.y = 1.95;
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.35, 4), new THREE.MeshStandardMaterial({ color: roofCol }));
+      roof.rotation.y = Math.PI / 4;
+      roof.position.y = 2.35;
+      const hole = new THREE.Mesh(new THREE.CircleGeometry(0.09, 8), new THREE.MeshBasicMaterial({ color: 0x1f2937 }));
+      hole.position.set(0, 1.98, 0.23);
+      const perch = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.2, 5), archPostMat);
+      perch.rotation.x = Math.PI / 2;
+      perch.position.set(0, 1.82, 0.3);
+      bh.add(post, house, roof, hole, perch);
+      return bh;
+    }
+    const birdhouse1 = createBirdhouse(-5.0, 8.0, 0x16a34a);
+    const birdhouse2 = createBirdhouse(7.5, -4.0, 0xef4444);
+    birdSanctuaryGroup.add(birdhouse1, birdhouse2);
+
+    // K. 2 Woven Twig Nests with Speckled Eggs
+    const nestMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.95 });
+    const eggMat = new THREE.MeshStandardMaterial({ color: 0xbae6fd, roughness: 0.4 });
+    function createNest(x, y, z) {
+      const ng = new THREE.Group();
+      ng.position.set(x, y, z);
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.2, 0.16, 8), nestMat);
+      const egg1 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), eggMat);
+      egg1.scale.set(0.8, 1.2, 0.8);
+      egg1.position.set(-0.06, 0.08, 0);
+      const egg2 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), eggMat);
+      egg2.scale.set(0.8, 1.2, 0.8);
+      egg2.position.set(0.06, 0.08, 0.04);
+      ng.add(bowl, egg1, egg2);
+      return ng;
+    }
+    const nest1 = createNest(5.8, 2.4, 5.8);
+    const nest2 = createNest(-4.0, 2.8, -10.5);
+    birdSanctuaryGroup.add(nest1, nest2);
+
+    // L. Stone Bird Bath with Sparkling Water
+    const stoneBathMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+    const bathWaterMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, transparent: true, opacity: 0.9 });
+    const bathGroup = new THREE.Group();
+    bathGroup.position.set(-4.0, 0, -2.0);
+    const bathBase = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.15, 8), stoneBathMat);
+    bathBase.position.y = 0.075;
+    const bathPedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.7, 8), stoneBathMat);
+    bathPedestal.position.y = 0.45;
+    const bathBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.4, 0.22, 10), stoneBathMat);
+    bathBowl.position.y = 0.85;
+    const bathWater = new THREE.Mesh(new THREE.CircleGeometry(0.55, 10), bathWaterMat);
+    bathWater.rotation.x = -Math.PI / 2;
+    bathWater.position.y = 0.93;
+    bathGroup.add(bathBase, bathPedestal, bathBowl, bathWater);
+    birdSanctuaryGroup.add(bathGroup);
+
+    // M. Rustic Wooden Split-Rail Perimeter Fence
+    const fenceMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.85 });
+    for (let f = 0; f < 12; f++) {
+      const fa = -Math.PI * 0.7 + (f / 11) * Math.PI * 1.4;
+      if (Math.abs(fa - Math.PI / 2) < 0.28) continue;
+      const fx = Math.cos(fa) * 13.5;
+      const fz = Math.sin(fa) * 13.5;
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 1.1, 6), fenceMat);
+      post.position.set(fx, 0.55, fz);
+      birdSanctuaryGroup.add(post);
+
+      if (f < 11) {
+        const nextFa = -Math.PI * 0.7 + ((f + 1) / 11) * Math.PI * 1.4;
+        if (Math.abs(nextFa - Math.PI / 2) >= 0.28) {
+          const nfx = Math.cos(nextFa) * 13.5;
+          const nfz = Math.sin(nextFa) * 13.5;
+          const midX = (fx + nfx) / 2;
+          const midZ = (fz + nfz) / 2;
+          const len = Math.hypot(nfx - fx, nfz - fz);
+          const ang = Math.atan2(nfx - fx, nfz - fz);
+          const railTop = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, len), fenceMat);
+          railTop.position.set(midX, 0.85, midZ);
+          railTop.rotation.y = ang;
+          const railBot = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, len), fenceMat);
+          railBot.position.set(midX, 0.45, midZ);
+          railBot.rotation.y = ang;
+          birdSanctuaryGroup.add(railTop, railBot);
+        }
+      }
+    }
+
+    // N. 6 Animated Butterflies
+    const bFlyColors = [0xf472b6, 0xfacc15, 0x38bdf8, 0xa855f7, 0x34d399, 0xf97316];
+    const bFlyMeshes = [];
+    for (let bi = 0; bi < 6; bi++) {
+      const bFly = new THREE.Group();
+      const bMat = new THREE.MeshBasicMaterial({ color: bFlyColors[bi], side: THREE.DoubleSide });
+      const wGeo = new THREE.PlaneGeometry(0.14, 0.12);
+      const wL = new THREE.Mesh(wGeo, bMat);
+      wL.position.x = -0.07;
+      const wR = new THREE.Mesh(wGeo, bMat);
+      wR.position.x = 0.07;
+      bFly.add(wL, wR);
+
+      const bAngle = (bi / 6) * Math.PI * 2;
+      const bDist = 3.5 + (bi % 3) * 2.2;
+      bFly.position.set(Math.cos(bAngle) * bDist, 1.2 + (bi % 2) * 0.5, Math.sin(bAngle) * bDist);
+      bFly.userData = { wL, wR, baseAngle: bAngle, dist: bDist, baseY: bFly.position.y, speed: 0.8 + (bi % 3) * 0.4 };
+      birdSanctuaryGroup.add(bFly);
+      bFlyMeshes.push(bFly);
+    }
+    animatedObjects.push({
+      update(t) {
+        bFlyMeshes.forEach((bf, idx) => {
+          const flap = Math.sin(t * 18 + idx) * 0.75;
+          bf.userData.wL.rotation.y = flap;
+          bf.userData.wR.rotation.y = -flap;
+          const a = bf.userData.baseAngle + t * bf.userData.speed * 0.35;
+          bf.position.x = Math.cos(a) * bf.userData.dist;
+          bf.position.z = Math.sin(a) * bf.userData.dist;
+          bf.position.y = bf.userData.baseY + Math.sin(t * 4 + idx) * 0.25;
+        });
+      }
+    });
+
+    // O. 12 Decorative NPC Birds (Ambient Life - Non-Interactive)
+    const npcBirdConfigs = [
+      { id: 'npc-canary', name: 'Canary Kuning', color: 0xfacc15, chestColor: 0xfef08a, beakColor: 0xf97316, scale: 0.65, pos: { x: -8.0, y: 4.65, z: 3.0 }, behavior: 'headBob' },
+      { id: 'npc-cardinal', name: 'Cardinal Merah', color: 0xef4444, chestColor: 0xb91c1c, beakColor: 0x1f2937, scale: 0.7, pos: { x: 5.4, y: 2.7, z: 5.6 }, behavior: 'headBob' },
+      { id: 'npc-parakeet', name: 'Parkit Zamrud', color: 0x22c55e, chestColor: 0xfacc15, beakColor: 0xf97316, scale: 0.68, pos: { x: 4.2, y: 1.35, z: -4.5 }, behavior: 'headBob' },
+      { id: 'npc-violet', name: 'Pipit Ungu', color: 0xa855f7, chestColor: 0xf472b6, beakColor: 0xfbbf24, scale: 0.62, pos: { x: -3.6, y: 0.95, z: -2.0 }, behavior: 'drinking' },
+      { id: 'npc-sunconure', name: 'Nuri Oren', color: 0xf97316, chestColor: 0xfacc15, beakColor: 0x1f2937, scale: 0.7, pos: { x: -5.0, y: 2.15, z: 8.3 }, behavior: 'headBob' },
+      { id: 'npc-rosefinch', name: 'Pipit Merah Jambu', color: 0xf472b6, chestColor: 0xffffff, beakColor: 0xfbbf24, scale: 0.65, pos: { x: -8.5, y: 2.55, z: -6.8 }, behavior: 'perched' },
+      { id: 'npc-bluebird', name: 'Burung Biru Nilam', color: 0x3b82f6, chestColor: 0xf97316, beakColor: 0x1f2937, scale: 0.68, pos: { x: -2.8, y: 1.15, z: 13.5 }, behavior: 'headBob' },
+      { id: 'npc-whitedove', name: 'Merpati Putih', color: 0xf8fafc, chestColor: 0xf1f5f9, beakColor: 0xf472b6, scale: 0.72, pos: { x: -7.6, y: 0.68, z: 2.3 }, behavior: 'perched' },
+      { id: 'npc-goldfinch', name: 'Goldfinch Kuning', color: 0xfde047, chestColor: 0x65a30d, beakColor: 0xf97316, scale: 0.6, pos: { x: -1.6, y: 0.12, z: 4.8 }, behavior: 'pecking' },
+      { id: 'npc-flamerobin', name: 'Robin Merah', color: 0xf97316, chestColor: 0xef4444, beakColor: 0x1f2937, scale: 0.62, pos: { x: 1.8, y: 0.12, z: 2.4 }, behavior: 'pecking' },
+      { id: 'npc-falcon', name: 'Helang Mini', color: 0x78350f, chestColor: 0xf8fafc, beakColor: 0xfacc15, scale: 0.85, pos: { x: 0, y: 6.8, z: -4 }, behavior: 'flyingCircle', orbitRadius: 9.5, orbitSpeed: 0.6 },
+      { id: 'npc-hummingbird', name: 'Kelicap Madu', color: 0x06b6d4, chestColor: 0x10b981, beakColor: 0x0f172a, scale: 0.45, pos: { x: 1.8, y: 2.75, z: 13.0 }, behavior: 'hovering' }
+    ];
+
+    npcBirdConfigs.forEach((cfg, ci) => {
+      const birdMesh = createNPCBird(cfg, ci);
+      birdSanctuaryGroup.add(birdMesh);
+      decorativeBirds.push(birdMesh);
+    });
+
+    parent.add(birdSanctuaryGroup);
   }
 
   // E. Musang 3D (Fox)
@@ -1156,11 +1932,26 @@
       const cz = SAFARI_ZONES[closestIndex];
       const isDone = State.completedZones.has(closestIndex);
       DOM.promptIcon.textContent = cz.emoji;
-      DOM.promptTitle.textContent = `${cz.animal.toUpperCase()} DITEMUI!`;
-      DOM.promptSub.textContent = `${cz.name} • ${cz.topic} ${isDone ? '✓ (Kristal Telah Dituntut)' : ''}`;
-      DOM.promptBtnText.textContent = isDone ? 'Teroka Semula Sel' : 'Teroka Sel Haiwan';
+
+      if (closestIndex === 3) {
+        // Special custom prompt for Burung Rimba (Zone 4)
+        DOM.promptTitle.textContent = 'BURUNG RIMBA DITEMUI!';
+        DOM.promptSub.textContent = 'Hebat! Anda berjaya menemui Burung Rimba. Jom terokai sel haiwan dan ketahui rahsia kehidupan!';
+        DOM.promptBtnText.textContent = 'Teroka Sel Haiwan';
+
+        if (!animGroup_zone4_chirped) {
+          SafariAudio.birdChirp();
+          animGroup_zone4_chirped = true;
+        }
+      } else {
+        DOM.promptTitle.textContent = `${cz.animal.toUpperCase()} DITEMUI!`;
+        DOM.promptSub.textContent = `${cz.name} • ${cz.topic} ${isDone ? '✓ (Kristal Telah Dituntut)' : ''}`;
+        DOM.promptBtnText.textContent = isDone ? 'Teroka Semula Sel' : 'Teroka Sel Haiwan';
+      }
+
       DOM.prompt.classList.add('active');
     } else {
+      animGroup_zone4_chirped = false;
       DOM.prompt.classList.remove('active');
     }
   }
@@ -2128,9 +2919,15 @@
         ? treeOfLifeGroup.userData.slots.length
         : 5,
       fireflyCount: firefliesGroup ? 32 : 0,
-      animalCount: animalMeshes ? animalMeshes.length : 0
+      animalCount: animalMeshes ? animalMeshes.length : 0,
+      sanctuary: !!birdSanctuaryGroup,
+      totalBirdCount: decorativeBirds.length + (animalMeshes[3] ? 1 : 0)
     }),
     getAnimalZones: () => SAFARI_ZONES,
+    getBirdSanctuary: () => birdSanctuaryGroup,
+    getDecorativeBirds: () => decorativeBirds,
+    getTotalBirdCount: () => decorativeBirds.length + (animalMeshes[3] ? 1 : 0),
+    getInteractiveBird: () => (animalMeshes[3] ? animalMeshes[3].userData.creature : null),
     openCellExplorer,
     closeCellExplorer,
     awardLifeCrystal,
