@@ -1149,15 +1149,24 @@
       side: THREE.DoubleSide
     });
 
+    // Jalur pemandu neon tengah yang menghubungkan anak panah terus ke Pintu Teras Sel
+    const runwayLine = new THREE.Mesh(
+      new THREE.BoxGeometry(0.035, 0.012, 7.8),
+      new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.35 })
+    );
+    runwayLine.position.set(0, 0.015, -5.6);
+    trailGroup.add(runwayLine);
+
     for (let i = 0; i < chevronCount; i++) {
       const zPos = -2.0 - (i * 1.15);
       const shape = new THREE.Shape();
-      shape.moveTo(-0.45, 0.25);
-      shape.lineTo(0, -0.2);
-      shape.lineTo(0.45, 0.25);
-      shape.lineTo(0.32, 0.35);
-      shape.lineTo(0, 0.0);
-      shape.lineTo(-0.32, 0.35);
+      // Puncak anak panah menghala tepat ke hadapan (+Y dalam 2D = -Z dunia ke arah Pintu Teras Sel)
+      shape.moveTo(0, 0.35);
+      shape.lineTo(0.45, -0.2);
+      shape.lineTo(0.32, -0.32);
+      shape.lineTo(0, 0.05);
+      shape.lineTo(-0.32, -0.32);
+      shape.lineTo(-0.45, -0.2);
       shape.closePath();
 
       const geo = new THREE.ShapeGeometry(shape);
@@ -4512,6 +4521,10 @@
   }
 
   function handlePlayerInteract() {
+    const distToCrystal = Math.hypot(player.x - 0, player.z - (-19.0));
+    if (distToCrystal <= 3.5 && exitDoorMeshes && exitDoorMeshes.unlocked) {
+      State.nearCellCoreCrystal = true;
+    }
     if (State.nearCellCoreCrystal) {
       activateCellCoreCrystal();
       return;
