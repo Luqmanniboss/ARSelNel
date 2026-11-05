@@ -752,9 +752,72 @@ async function main() {
     assert(deerProximityCheck && deerProximityCheck.isPromptHiddenFarFromHero, 'Rusa-rusa hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
 
     // -------------------------------------------------------------------------
-    // FASA 15: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // FASA 15: UJIAN KHAS ZON 3 — HUTAN MONYET 3D & MONYET CERIA
     // -------------------------------------------------------------------------
-    console.log(`\n--- UJIAN 15: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
+    console.log(`\n--- UJIAN 15: HUTAN MONYET 3D & EKSKLUSIVITI MONYET CERIA (ZON 3) ---`);
+    const monkeyForestCheck = await evaluate(`(() => {
+      if (!window.CellSafari) return null;
+      const forest = window.CellSafari.getMonkeyForest();
+      const totalMonkeys = window.CellSafari.getTotalMonkeyCount();
+      const decMonkeys = window.CellSafari.getDecorativeMonkeys();
+      const heroMonkey = window.CellSafari.getInteractiveMonkey();
+      const diag = window.CellSafari.getDiagnostics();
+
+      return {
+        hasForest: !!forest,
+        forestX: forest ? forest.position.x : 0,
+        forestZ: forest ? forest.position.z : 0,
+        totalMonkeys,
+        decorativeMonkeyCount: decMonkeys ? decMonkeys.length : 0,
+        hasHeroMonkey: !!heroMonkey,
+        heroMonkeyName: heroMonkey ? heroMonkey.name : '',
+        diagnosticForest: diag.monkeyForest
+      };
+    })()`);
+
+    assert(monkeyForestCheck && monkeyForestCheck.hasForest, 'Objek 3D Kumpulan Hutan Monyet wujud dalam persekitaran Cell Safari');
+    assert(monkeyForestCheck && monkeyForestCheck.forestX === 34 && monkeyForestCheck.forestZ === -30, 'Hutan Monyet ditempatkan dengan tepat di Zon 3 (x: 34, z: -30)');
+    assert(monkeyForestCheck && monkeyForestCheck.totalMonkeys >= 5 && monkeyForestCheck.totalMonkeys <= 8, `Jumlah monyet di Hutan Monyet dalam julat sasaran 5-8 ekor (Terkini: ${monkeyForestCheck?.totalMonkeys} ekor)`);
+    assert(monkeyForestCheck && monkeyForestCheck.decorativeMonkeyCount === 5, '5 Ekor Monyet Hiasan NPC (makan pisang, bergayut dahan, melompat, berehat bumbung & pelantar) wujud');
+    assert(monkeyForestCheck && monkeyForestCheck.hasHeroMonkey, 'Monyet Ceria hero 3D wujud di atas dais batu khas');
+
+    // Uji Eksklusiviti Interaksi Monyet Ceria
+    const monkeyProximityCheck = await evaluate(`(() => {
+      // Teleport berdekatan Monyet Ceria di Zon 3 (x: 38.2, z: -28.0)
+      window.CellSafari.teleport(38.2, -28.0);
+      window.CellSafari.updateProximity();
+
+      const prompt = document.getElementById('cs-prompt');
+      const title = document.getElementById('cs-prompt-title');
+      const subtitle = document.getElementById('cs-prompt-sub');
+      const btn = document.getElementById('cs-prompt-btn-text');
+      const isActive = prompt ? prompt.classList.contains('active') : false;
+
+      const res = {
+        isActive,
+        titleText: title ? title.textContent.trim() : '',
+        subtitleText: subtitle ? subtitle.textContent.trim() : '',
+        btnText: btn ? btn.textContent.trim() : ''
+      };
+
+      // Teleport jauh dari Monyet Ceria (cth: x: 10, z: 0)
+      window.CellSafari.teleport(10, 0);
+      window.CellSafari.updateProximity();
+      res.isPromptHiddenFarFromHero = prompt ? !prompt.classList.contains('active') : true;
+
+      return res;
+    })()`);
+
+    assert(monkeyProximityCheck && monkeyProximityCheck.isActive, 'Prompt interaksi terpapar apabila menghampiri Monyet Ceria (< 5.2m)');
+    assert(monkeyProximityCheck && monkeyProximityCheck.titleText === 'MONYET CERIA DITEMUI!', 'Tajuk prompt memaparkan "MONYET CERIA DITEMUI!"', monkeyProximityCheck?.titleText);
+    assert(monkeyProximityCheck && monkeyProximityCheck.subtitleText === 'Tahniah, Saintis Muda! Anda berjaya menemui Monyet Ceria. Jom terokai struktur sel haiwan!', 'Subtitle memaparkan ucapan eksplorasi sel Monyet Ceria', monkeyProximityCheck?.subtitleText);
+    assert(monkeyProximityCheck && monkeyProximityCheck.btnText === 'Teroka Sel Haiwan', 'Butang tindakan memaparkan "Teroka Sel Haiwan"', monkeyProximityCheck?.btnText);
+    assert(monkeyProximityCheck && monkeyProximityCheck.isPromptHiddenFarFromHero, 'Monyet-monyet hiasan lain bersifat NPC semata-mata (tiada prompt/kuiz)');
+
+    // -------------------------------------------------------------------------
+    // FASA 16: KEPATUHAN TOUCH TARGET IPAD (>= 44PX) & KONSOL
+    // -------------------------------------------------------------------------
+    console.log(`\n--- UJIAN 16: KEPATUHAN TOUCH TARGET IPAD & SIFAR RALAT KONSOL ---`);
     const touchTargetTest = await evaluate(`(() => {
       const buttons = [
         document.getElementById('cs-v-lobby'),

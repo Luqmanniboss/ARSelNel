@@ -266,6 +266,29 @@
         });
       } catch (_) {}
     },
+    monkeyCall() {
+      if (this.muted) return;
+      this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      try {
+        const now = this.ctx.currentTime;
+        [440, 660, 880].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+          osc.frequency.exponentialRampToValueAtTime(freq * 1.3, now + idx * 0.09 + 0.05);
+          osc.frequency.exponentialRampToValueAtTime(freq * 0.9, now + idx * 0.09 + 0.12);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.14);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 0.14);
+        });
+      } catch (_) {}
+    },
     victory() {
       const notes = [523.25, 659.25, 783.99, 1046.5];
       notes.forEach((f, idx) => setTimeout(() => this.play(f, 'sine', 0.5, 0.16), idx * 140));
@@ -338,6 +361,9 @@
   let animalMeshes = [];
   let firefliesGroup = null;
   let butterfliesGroup = null;
+  let monkeyForestGroup = null;
+  let decorativeMonkeys = [];
+  let animGroup_zone3_monkeyAudio = false;
   let deerValleyGroup = null;
   let decorativeDeers = [];
   let animGroup_zone2_deerAudio = false;
@@ -592,11 +618,14 @@
     // 8. Zon 2: Deer Valley Sanctuary (Lembah Rusa Ajaib 3D)
     buildDeerValleyZone2(forestEnvironmentGroup);
 
+    // 9. Zon 3: Monkey Forest Sanctuary (Hutan Monyet Tropika 3D)
+    buildMonkeyForestZone3(forestEnvironmentGroup);
+
     scene.add(forestEnvironmentGroup);
   }
 
   function buildZoneSignpost(zoneTitle, x, z) {
-    if (zoneTitle.includes('Arnab') || zoneTitle.includes('Rusa')) return; // Replaced by bespoke 3D Rabbit Sanctuary Signboard
+    if (zoneTitle.includes('Arnab') || zoneTitle.includes('Rusa') || zoneTitle.includes('Monyet')) return; // Replaced by bespoke 3D Rabbit Sanctuary Signboard
     const postGroup = new THREE.Group();
     // Offset slightly from animal position
     postGroup.position.set(x - 3.5, 0, z + 2.5);
@@ -663,6 +692,8 @@
       if (Math.hypot(tx - (-30), tz - 26) < 15) continue;
       // Jangan tanam di dalam kawasan khas Zon 2 Lembah Rusa (radius 16m dari x: 32, z: 28)
       if (Math.hypot(tx - 32, tz - 28) < 16) continue;
+      // Jangan tanam di dalam kawasan khas Zon 3 Hutan Monyet (radius 16m dari x: 34, z: -30)
+      if (Math.hypot(tx - 34, tz - (-30)) < 16) continue;
       let tooCloseToAnimal = false;
       SAFARI_ZONES.forEach(z => {
         if (Math.hypot(tx - z.pos.x, tz - z.pos.z) < 4.5) tooCloseToAnimal = true;
@@ -721,6 +752,8 @@
       if (Math.hypot(fx - (-30), fz - 26) < 15) continue;
       // Elakkan bunga/batu rawak bertindih dengan elemen terperinci Lembah Rusa
       if (Math.hypot(fx - 32, fz - 28) < 16) continue;
+      // Elakkan bunga/batu rawak bertindih dengan elemen terperinci Hutan Monyet
+      if (Math.hypot(fx - 34, fz - (-30)) < 16) continue;
 
       if (i % 2 === 0) {
         // Flower Cluster
@@ -848,9 +881,9 @@
       animGroup.position.set(z.pos.x, 0, z.pos.z);
       animGroup.userData = { zoneIndex: index, zoneId: z.id, name: z.animal, emoji: z.emoji };
 
-      // Base Halo on ground (Hero animals: Arnab Comel, Rusa Anggun & Burung Rimba)
-      const isHero = (index === 0 || index === 1 || index === 3);
-      const haloColor = (index === 0) ? 0x10b981 : (index === 1 ? 0x0ea5e9 : (index === 3 ? 0xfbbf24 : z.colorHex));
+      // Base Halo on ground (Hero animals: Arnab Comel, Rusa Anggun, Monyet Ceria & Burung Rimba)
+      const isHero = (index === 0 || index === 1 || index === 2 || index === 3);
+      const haloColor = (index === 0) ? 0x10b981 : (index === 1 ? 0x0ea5e9 : (index === 2 ? 0xf59e0b : (index === 3 ? 0xfbbf24 : z.colorHex)));
       const halo = new THREE.Mesh(
         new THREE.RingGeometry(isHero ? 1.15 : 0.8, isHero ? 1.65 : 1.15, 24),
         new THREE.MeshBasicMaterial({ color: haloColor, side: THREE.DoubleSide, transparent: true, opacity: isHero ? 0.85 : 0.65 })
@@ -863,7 +896,7 @@
       let creatureMesh;
       if (index === 0) creatureMesh = createHeroRabbitModel();
       else if (index === 1) creatureMesh = createHeroDeerModel();
-      else if (index === 2) creatureMesh = createMonkeyModel();
+      else if (index === 2) creatureMesh = createHeroMonkeyModel();
       else if (index === 3) creatureMesh = createBurungRimbaModel();
       else creatureMesh = createFoxModel();
 
@@ -877,7 +910,7 @@
       ctx.fillStyle = 'rgba(6, 78, 59, 0.9)';
       ctx.roundRect ? ctx.roundRect(4, 4, 248, 64, 16) : ctx.fillRect(4, 4, 248, 64);
       ctx.fill();
-      ctx.strokeStyle = (index === 0) ? '#10b981' : (index === 1 ? '#0ea5e9' : (index === 3 ? '#fbbf24' : z.color));
+      ctx.strokeStyle = (index === 0) ? '#10b981' : (index === 1 ? '#0ea5e9' : (index === 2 ? '#f59e0b' : (index === 3 ? '#fbbf24' : z.color)));
       ctx.lineWidth = 4;
       ctx.stroke();
       ctx.fillStyle = '#ffffff';
@@ -892,7 +925,7 @@
       animGroup.add(badge);
 
       // Floating Life Crystal / Mission Beacon Preview above animal
-      const beaconColor = (index === 0) ? 0x10b981 : (index === 1 ? 0x0ea5e9 : (index === 3 ? 0xfbbf24 : z.colorHex));
+      const beaconColor = (index === 0) ? 0x10b981 : (index === 1 ? 0x0ea5e9 : (index === 2 ? 0xf59e0b : (index === 3 ? 0xfbbf24 : z.colorHex)));
       const crystalIco = new THREE.Mesh(
         new THREE.OctahedronGeometry(isHero ? 0.32 : 0.24, 0),
         new THREE.MeshStandardMaterial({
@@ -2487,46 +2520,761 @@
   }
 
 
-  // C. Monyet 3D (Monkey)
-  function createMonkeyModel() {
+  // ============================================================================
+  // MAGICAL TROPICAL MONKEY FOREST — HUTAN MONYET 3D (ZON 3: HUTAN MONYET)
+  // ============================================================================
+
+  // Helper: Build a peeled yellow banana
+  function createBananaModel(s = 1.0) {
+    const bg = new THREE.Group();
+    const peelMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
+    const pulpMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.6 });
+    const tipMat = new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 0.8 });
+
+    // Inner delicious banana pulp
+    const pulp = new THREE.Mesh(new THREE.CylinderGeometry(0.045 * s, 0.05 * s, 0.28 * s, 6), pulpMat);
+    pulp.position.y = 0.14 * s;
+    pulp.rotation.x = 0.12;
+    bg.add(pulp);
+
+    // 3 Opened Peels
+    for (let pi = 0; pi < 3; pi++) {
+      const pa = (pi / 3) * Math.PI * 2;
+      const peel = new THREE.Mesh(new THREE.ConeGeometry(0.04 * s, 0.2 * s, 4), peelMat);
+      peel.position.set(Math.cos(pa) * 0.04 * s, 0.06 * s, Math.sin(pa) * 0.04 * s);
+      peel.rotation.x = 0.6 * Math.sin(pa);
+      peel.rotation.z = -0.6 * Math.cos(pa);
+      bg.add(peel);
+    }
+
+    // Stem base
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02 * s, 0.03 * s, 0.1 * s, 5), tipMat);
+    stem.position.y = -0.04 * s;
+    bg.add(stem);
+
+    return bg;
+  }
+
+  // C. Monyet Ceria Hero 3D (Hero Animal for Zone 3 - Only Interactive Target)
+  function createHeroMonkeyModel() {
     const g = new THREE.Group();
-    const furMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8, flatShading: true });
-    const faceMat = new THREE.MeshStandardMaterial({ color: 0xfed7aa, roughness: 0.6 });
+    g.name = 'MonyetCeria_Hero';
 
-    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.42, 1), furMat);
-    body.position.y = 0.75;
-    g.add(body);
+    // 1. Two-Tiered Magical Tropical Dais
+    const daisMat1 = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.85, flatShading: true }); // Carved river slate
+    const daisMat2 = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.4, metalness: 0.25 }); // Amber runic plinth
+    const goldTrimMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xf59e0b, emissiveIntensity: 0.45, roughness: 0.2 });
 
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), furMat);
-    head.position.set(0, 1.2, 0.1);
-    g.add(head);
+    // Tier 1: Slate base
+    const tier1 = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 0.22, 12), daisMat1);
+    tier1.position.y = 0.11;
 
-    const face = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), faceMat);
-    face.position.set(0, 1.18, 0.24);
-    face.scale.set(1.0, 0.8, 0.5);
-    g.add(face);
+    // Tier 2: Amber runic plinth
+    const tier2 = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.2, 0.18, 12), daisMat2);
+    tier2.position.y = 0.29;
 
-    // Ears
-    const earL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 6), faceMat);
-    earL.position.set(-0.28, 1.25, 0.08);
-    const earR = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 6), faceMat);
-    earR.position.set(0.28, 1.25, 0.08);
-    g.add(earL, earR);
+    const runicTorus = new THREE.Mesh(new THREE.TorusGeometry(1.06, 0.04, 6, 16), goldTrimMat);
+    runicTorus.rotation.x = Math.PI / 2;
+    runicTorus.position.y = 0.37;
 
-    // Tail
-    const tail = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.045, 6, 16, Math.PI * 1.2), furMat);
-    tail.position.set(0, 0.65, -0.45);
-    tail.rotation.y = Math.PI / 2;
-    g.add(tail);
+    // Dais Tropical Hibiscus Flowers
+    const petalMat = new THREE.MeshBasicMaterial({ color: 0xec4899 });
+    const centerMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+    for (let di = 0; di < 6; di++) {
+      const da = (di / 6) * Math.PI * 2;
+      const fl = new THREE.Mesh(new THREE.SphereGeometry(0.065, 5, 5), petalMat);
+      fl.position.set(Math.cos(da) * 0.95, 0.39, Math.sin(da) * 0.95);
+      const ct = new THREE.Mesh(new THREE.SphereGeometry(0.03, 4, 4), centerMat);
+      ct.position.set(Math.cos(da) * 0.95, 0.43, Math.sin(da) * 0.95);
+      g.add(fl, ct);
+    }
+
+    g.add(tier1, tier2, runicTorus);
+
+    // 2. Sculpted Expressive Monyet Ceria Body
+    const furMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7, flatShading: true }); // Warm chestnut brown
+    const creamFaceMat = new THREE.MeshStandardMaterial({ color: 0xfed7aa, roughness: 0.55 }); // Peach/cream face & belly
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0a });
+    const eyeHighlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const pinkEarMat = new THREE.MeshStandardMaterial({ color: 0xfbcfe8, roughness: 0.5 });
+    const noseMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.6 });
+
+    const monkeyRoot = new THREE.Group();
+    monkeyRoot.position.y = 0.38; // Atop tier 2
+
+    // Torso sitting upright
+    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.44, 1), furMat);
+    body.scale.set(0.9, 1.05, 0.9);
+    body.position.y = 0.52;
+    monkeyRoot.add(body);
+
+    // Cream Belly Patch
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.28, 7, 7), creamFaceMat);
+    belly.position.set(0, 0.5, 0.2);
+    belly.scale.set(0.9, 1.0, 0.6);
+    monkeyRoot.add(belly);
+
+    // Sitting Legs & Feet
+    const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.45, 6), furMat);
+    legL.position.set(-0.25, 0.22, 0.15);
+    legL.rotation.z = 0.7;
+    legL.rotation.x = -0.3;
+    const footL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 6), creamFaceMat);
+    footL.position.set(-0.38, 0.1, 0.28);
+
+    const legR = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.45, 6), furMat);
+    legR.position.set(0.25, 0.22, 0.15);
+    legR.rotation.z = -0.7;
+    legR.rotation.x = -0.3;
+    const footR = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 6), creamFaceMat);
+    footR.position.set(0.38, 0.1, 0.28);
+    monkeyRoot.add(legL, footL, legR, footR);
+
+    // Flexible Arms resting cutely forward
+    const armL = new THREE.Group();
+    armL.position.set(-0.35, 0.72, 0.05);
+    const armMeshL = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.055, 0.48, 6), furMat);
+    armMeshL.position.y = -0.22;
+    armMeshL.rotation.z = 0.25;
+    const handL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), creamFaceMat);
+    handL.position.set(-0.06, -0.42, 0.12);
+    armL.add(armMeshL, handL);
+
+    const armR = new THREE.Group();
+    armR.position.set(0.35, 0.72, 0.05);
+    const armMeshR = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.055, 0.48, 6), furMat);
+    armMeshR.position.y = -0.22;
+    armMeshR.rotation.z = -0.25;
+    const handR = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), creamFaceMat);
+    handR.position.set(0.06, -0.42, 0.12);
+    armR.add(armMeshR, handR);
+    monkeyRoot.add(armL, armR);
+
+    // Prehensile Curved Spiral Tail
+    const tailGroup = new THREE.Group();
+    tailGroup.position.set(0, 0.38, -0.38);
+    const tailCurve = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.05, 6, 16, Math.PI * 1.35), furMat);
+    tailCurve.rotation.y = Math.PI / 2;
+    tailCurve.rotation.z = 0.4;
+    tailGroup.add(tailCurve);
+    monkeyRoot.add(tailGroup);
+
+    // Round Cheerful Head
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 1.05, 0.12);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 8, 8), furMat);
+    headGroup.add(head);
+
+    // Cream Face Mask with Chubby Cheeks
+    const faceMask = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), creamFaceMat);
+    faceMask.position.set(0, -0.02, 0.2);
+    faceMask.scale.set(1.05, 0.95, 0.65);
+    headGroup.add(faceMask);
+
+    // Muzzle & Smiling Mouth
+    const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.14, 6, 6), creamFaceMat);
+    muzzle.position.set(0, -0.09, 0.3);
+    muzzle.scale.set(1.2, 0.8, 0.8);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.035, 5, 5), noseMat);
+    nose.position.set(0, -0.05, 0.39);
+    headGroup.add(muzzle, nose);
+
+    // Big Shiny Cheerful Eyes
+    [-0.11, 0.11].forEach(ex => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 6), eyeMat);
+      eye.position.set(ex, 0.06, 0.28);
+      const hl = new THREE.Mesh(new THREE.SphereGeometry(0.02, 4, 4), eyeHighlightMat);
+      hl.position.set(ex + (ex > 0 ? 0.015 : -0.015), 0.08, 0.32);
+      headGroup.add(eye, hl);
+    });
+
+    // Big Round Ears with Pinkish Inners
+    [-0.32, 0.32].forEach(ex => {
+      const earOuter = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.04, 8), furMat);
+      earOuter.rotation.z = Math.PI / 2;
+      earOuter.position.set(ex, 0.02, 0.02);
+      const earInner = new THREE.Mesh(new THREE.CircleGeometry(0.08, 8), pinkEarMat);
+      earInner.rotation.y = ex > 0 ? -Math.PI / 2 : Math.PI / 2;
+      earInner.position.set(ex + (ex > 0 ? -0.025 : 0.025), 0.02, 0.02);
+      headGroup.add(earOuter, earInner);
+    });
+
+    monkeyRoot.add(headGroup);
+    g.add(monkeyRoot);
+
+    // 3. Orbiting Golden/Amber Sparkles
+    const sparkleMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+    const sparkles = [];
+    for (let si = 0; si < 4; si++) {
+      const sp = new THREE.Mesh(new THREE.OctahedronGeometry(0.065, 0), sparkleMat);
+      sp.position.set(Math.cos(si * 1.57) * 1.0, 1.2 + (si % 2) * 0.35, Math.sin(si * 1.57) * 1.0);
+      g.add(sp);
+      sparkles.push(sp);
+    }
 
     g.userData = {
+      monkeyRoot,
+      headGroup,
+      armL,
+      armR,
+      tailGroup,
+      sparkles,
+      tier2,
       animate(t) {
-        g.rotation.y = Math.sin(t * 1.8) * 0.2;
-        tail.rotation.z = Math.sin(t * 3) * 0.25;
+        // Cheerful head looking around
+        headGroup.rotation.y = Math.sin(t * 1.4) * 0.3;
+        headGroup.rotation.x = Math.sin(t * 2.2) * 0.1;
+
+        // Tail swish
+        tailGroup.rotation.z = Math.sin(t * 3.5) * 0.35;
+        tailGroup.rotation.y = Math.sin(t * 2.5) * 0.2;
+
+        // Playful arm wave
+        armR.rotation.z = Math.sin(t * 4) * 0.2;
+        armL.rotation.z = -Math.sin(t * 3.5) * 0.15;
+
+        // Body gentle bob
+        monkeyRoot.position.y = 0.38 + Math.sin(t * 3) * 0.04;
+
+        // Orbiting sparkles
+        sparkles.forEach((sp, i) => {
+          const sa = t * 1.8 + i * 1.57;
+          sp.position.x = Math.cos(sa) * 1.0;
+          sp.position.z = Math.sin(sa) * 1.0;
+          sp.position.y = 1.2 + Math.sin(t * 3 + i) * 0.2;
+          sp.rotation.y = t * 3.5;
+        });
+
+        // Pulsing runic dais
+        if (tier2.material) {
+          tier2.material.emissive = new THREE.Color(0xf59e0b);
+          tier2.material.emissiveIntensity = 0.35 + Math.sin(t * 3) * 0.25;
+        }
       }
     };
+
     return g;
   }
+
+  // Backward compatibility alias
+  function createMonkeyModel() {
+    return createHeroMonkeyModel();
+  }
+
+  // Helper: Create Decorative NPC Monkey (Purely Ambient Life - Non Interactive)
+  function createNPCMonkey(cfg, index) {
+    const mg = new THREE.Group();
+    mg.name = cfg.id;
+    mg.position.set(cfg.pos.x, cfg.pos.y, cfg.pos.z);
+    if (cfg.rotY) mg.rotation.y = cfg.rotY;
+
+    const furMat = new THREE.MeshStandardMaterial({ color: cfg.color || 0x78350f, roughness: 0.75, flatShading: true });
+    const creamFaceMat = new THREE.MeshStandardMaterial({ color: 0xfed7aa, roughness: 0.6 });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0a });
+
+    const s = cfg.scale || 0.75;
+
+    // Body
+    const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.38 * s, 1), furMat);
+    body.position.y = 0.45 * s;
+    mg.add(body);
+
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.24 * s, 6, 6), creamFaceMat);
+    belly.position.set(0, 0.42 * s, 0.16 * s);
+    belly.scale.set(0.9, 1.0, 0.6);
+    mg.add(belly);
+
+    // Head
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.88 * s, 0.1 * s);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.28 * s, 7, 7), furMat);
+    headGroup.add(head);
+
+    const face = new THREE.Mesh(new THREE.SphereGeometry(0.2 * s, 7, 7), creamFaceMat);
+    face.position.set(0, -0.02 * s, 0.16 * s);
+    face.scale.set(1.0, 0.9, 0.6);
+    headGroup.add(face);
+
+    // Eyes
+    [-0.09 * s, 0.09 * s].forEach(ex => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045 * s, 4, 4), eyeMat);
+      eye.position.set(ex, 0.05 * s, 0.22 * s);
+      headGroup.add(eye);
+    });
+
+    // Ears
+    [-0.26 * s, 0.26 * s].forEach(ex => {
+      const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.09 * s, 0.09 * s, 0.03 * s, 6), furMat);
+      ear.rotation.z = Math.PI / 2;
+      ear.position.set(ex, 0.02 * s, 0);
+      headGroup.add(ear);
+    });
+
+    mg.add(headGroup);
+
+    // Tail
+    const tail = new THREE.Mesh(new THREE.TorusGeometry(0.3 * s, 0.04 * s, 5, 12, Math.PI * 1.3), furMat);
+    tail.position.set(0, 0.35 * s, -0.32 * s);
+    tail.rotation.y = Math.PI / 2;
+    mg.add(tail);
+
+    // Limbs depending on behavior
+    let bananaProp = null;
+    let armL = null;
+    let armR = null;
+
+    if (cfg.behavior === 'eatingBanana') {
+      // Sitting on rock holding peeled banana
+      bananaProp = createBananaModel(s * 1.1);
+      bananaProp.position.set(0, 0.48 * s, 0.32 * s);
+      bananaProp.rotation.x = 0.4;
+      mg.add(bananaProp);
+    } else if (cfg.behavior === 'swinging') {
+      // Arms raised holding overhead vine
+      armL = new THREE.Mesh(new THREE.CylinderGeometry(0.05 * s, 0.05 * s, 0.6 * s, 5), furMat);
+      armL.position.set(-0.25 * s, 0.85 * s, 0);
+      armL.rotation.z = 0.4;
+      armR = new THREE.Mesh(new THREE.CylinderGeometry(0.05 * s, 0.05 * s, 0.6 * s, 5), furMat);
+      armR.position.set(0.25 * s, 0.85 * s, 0);
+      armR.rotation.z = -0.4;
+      mg.add(armL, armR);
+    } else {
+      // General playful arms
+      armL = new THREE.Mesh(new THREE.CylinderGeometry(0.05 * s, 0.05 * s, 0.45 * s, 5), furMat);
+      armL.position.set(-0.28 * s, 0.45 * s, 0.1 * s);
+      armR = new THREE.Mesh(new THREE.CylinderGeometry(0.05 * s, 0.05 * s, 0.45 * s, 5), furMat);
+      armR.position.set(0.28 * s, 0.45 * s, 0.1 * s);
+      mg.add(armL, armR);
+    }
+
+    mg.userData = {
+      cfg,
+      index,
+      headGroup,
+      tail,
+      bananaProp,
+      basePos: { ...cfg.pos },
+      animate(t) {
+        const offset = index * 1.2;
+        if (cfg.behavior === 'eatingBanana') {
+          // Nibbling banana
+          const chew = Math.sin(t * 7 + offset) * 0.12;
+          headGroup.rotation.x = 0.2 + chew;
+          if (bananaProp) bananaProp.position.y = (0.48 + chew * 0.05) * s;
+          tail.rotation.z = Math.sin(t * 3 + offset) * 0.2;
+        } else if (cfg.behavior === 'swinging') {
+          // Swinging from vine
+          const swing = Math.sin(t * 2.5 + offset) * 0.35;
+          mg.rotation.z = swing;
+          mg.position.x = cfg.pos.x + Math.sin(swing) * 0.6;
+          tail.rotation.z = -swing * 0.8;
+        } else if (cfg.behavior === 'hoppingPath') {
+          // Hopping on all fours
+          const hop = Math.max(0, Math.sin(t * 5 + offset)) * 0.14;
+          mg.position.y = cfg.pos.y + hop;
+          headGroup.rotation.y = Math.sin(t * 2 + offset) * 0.25;
+        } else {
+          // 'perched' / looking around
+          headGroup.rotation.y = Math.sin(t * 1.5 + offset) * 0.35;
+          headGroup.rotation.x = Math.sin(t * 2.5 + offset) * 0.1;
+          tail.rotation.z = Math.sin(t * 3 + offset) * 0.25;
+        }
+      }
+    };
+
+    animatedObjects.push({
+      update(t) {
+        mg.userData.animate(t);
+      }
+    });
+
+    return mg;
+  }
+
+  // BUILD THE COMPLETE 3D MONKEY FOREST SANCTUARY IN ZONE 3 (x: 34, z: -30)
+  function buildMonkeyForestZone3(parent) {
+    monkeyForestGroup = new THREE.Group();
+    monkeyForestGroup.name = 'MonkeyForestSanctuary_Zone3';
+    monkeyForestGroup.position.set(34, 0, -30);
+    decorativeMonkeys = [];
+
+    // A. Lush Tropical Forest Turf (radius 15m)
+    const forestTurf = new THREE.Mesh(
+      new THREE.CircleGeometry(15, 24),
+      new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.85, flatShading: true })
+    );
+    forestTurf.rotation.x = -Math.PI / 2;
+    forestTurf.position.y = 0.015;
+    monkeyForestGroup.add(forestTurf);
+
+    // B. Winding Curved Stepping Stone Pathway (matching reference image!)
+    const stonePathMat = new THREE.MeshStandardMaterial({ color: 0xcfd8dc, roughness: 0.9, flatShading: true });
+    const steppingStones = [
+      { x: -3.5, z: 12.0 },
+      { x: -3.2, z: 10.2 },
+      { x: -2.8, z: 8.5 },
+      { x: -2.2, z: 6.8 },
+      { x: -1.2, z: 5.0 },
+      { x: 0.2, z: 3.5 },
+      { x: 1.8, z: 2.2 },
+      { x: 3.2, z: 1.2 }, // Branching to Monyet Ceria dais (x: 4.2, z: 2.0)
+      // Branching towards the treehouse ladder
+      { x: 4.5, z: 0.0 },
+      { x: 5.8, z: -1.5 },
+      { x: 6.8, z: -2.8 }
+    ];
+    steppingStones.forEach(st => {
+      const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.08, 7), stonePathMat);
+      stone.position.set(st.x, 0.04, st.z);
+      stone.rotation.y = Math.random() * Math.PI;
+      monkeyForestGroup.add(stone);
+    });
+
+    // C. Natural Hollow Fallen Log (Batang Pokok Tumbang - matching image!)
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.9 });
+    const hollowLog = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 2.4, 8, 1, true), trunkMat);
+    hollowLog.rotation.z = Math.PI / 2;
+    hollowLog.position.set(-2.0, 0.35, 2.5);
+    hollowLog.rotation.y = 0.2;
+    monkeyForestGroup.add(hollowLog);
+
+    // D. Tropical Banana Plants (Pokok Pisang - matching image!)
+    function createBananaPlant(px, pz, s = 1.0) {
+      const bPlant = new THREE.Group();
+      bPlant.position.set(px, 0, pz);
+
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.7 });
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.6, side: THREE.DoubleSide });
+
+      // Fleshy green stem
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.14 * s, 0.22 * s, 2.2 * s, 6), stemMat);
+      stem.position.y = 1.1 * s;
+      bPlant.add(stem);
+
+      // Arching broad leaves
+      for (let li = 0; li < 5; li++) {
+        const la = (li / 5) * Math.PI * 2;
+        const leaf = new THREE.Mesh(new THREE.PlaneGeometry(0.5 * s, 1.6 * s), leafMat);
+        leaf.position.set(Math.cos(la) * 0.5 * s, 2.1 * s, Math.sin(la) * 0.5 * s);
+        leaf.rotation.x = 0.7;
+        leaf.rotation.y = la;
+        bPlant.add(leaf);
+      }
+
+      // Hanging banana bunch
+      const bunch = new THREE.Group();
+      bunch.position.set(0.1 * s, 1.8 * s, 0.2 * s);
+      const bColor = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
+      for (let bn = 0; bn < 4; bn++) {
+        const b = new THREE.Mesh(new THREE.ConeGeometry(0.04 * s, 0.22 * s, 4), bColor);
+        b.rotation.x = Math.PI - 0.3;
+        b.position.set((bn % 2) * 0.06 * s, -(bn * 0.04) * s, 0);
+        bunch.add(b);
+      }
+      bPlant.add(bunch);
+
+      return bPlant;
+    }
+
+    const banana1 = createBananaPlant(-7.5, 2.0, 1.1);
+    const banana2 = createBananaPlant(-8.5, -2.5, 0.95);
+    monkeyForestGroup.add(banana1, banana2);
+
+    // E. Large Tropical Banyan Tree with Treehouse (Rumah Pokok - matching image!)
+    const treehouseGroup = new THREE.Group();
+    treehouseGroup.position.set(7.5, 0, -3.5);
+
+    const banyanWoodMat = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.9 });
+    const thatchMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.8, flatShading: true });
+    const deckWoodMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.75 });
+    const canopyMat = new THREE.MeshStandardMaterial({ color: 0x15803d, flatShading: true, roughness: 0.8 });
+
+    // Massive twisting trunk & buttress roots
+    const mainTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 1.1, 4.8, 8), banyanWoodMat);
+    mainTrunk.position.y = 2.4;
+    treehouseGroup.add(mainTrunk);
+
+    // Lush Treehouse Canopy
+    const tCanopy1 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5, 1), canopyMat);
+    tCanopy1.position.set(0, 5.5, 0);
+    const tCanopy2 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.8, 1), canopyMat);
+    tCanopy2.position.set(-1.2, 4.8, 0.8);
+    treehouseGroup.add(tCanopy1, tCanopy2);
+
+    // Elevated Balcony Platform (y = 2.8m)
+    const deck = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 0.22, 8), deckWoodMat);
+    deck.position.y = 2.8;
+    treehouseGroup.add(deck);
+
+    // Balcony safety railing
+    for (let rp = 0; rp < 8; rp++) {
+      const ra = (rp / 8) * Math.PI * 2;
+      // Leave ladder gap at south
+      if (Math.abs(ra - Math.PI / 2) < 0.35) continue;
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.75, 5), deckWoodMat);
+      post.position.set(Math.cos(ra) * 1.6, 3.25, Math.sin(ra) * 1.6);
+      treehouseGroup.add(post);
+    }
+    const handrail = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.04, 5, 16, Math.PI * 1.6), deckWoodMat);
+    handrail.rotation.x = Math.PI / 2;
+    handrail.rotation.z = 0.6;
+    handrail.position.y = 3.6;
+    treehouseGroup.add(handrail);
+
+    // Conical Thatch Roof
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(2.1, 1.4, 7), thatchMat);
+    roof.position.y = 4.6;
+    treehouseGroup.add(roof);
+
+    // Wooden Climbing Ladder with Rungs
+    const ladderGroup = new THREE.Group();
+    ladderGroup.position.set(0, 0, 1.55);
+    const railL = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 3.0, 5), deckWoodMat);
+    railL.position.set(-0.35, 1.45, 0);
+    railL.rotation.x = -0.15;
+    const railR = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 3.0, 5), deckWoodMat);
+    railR.position.set(0.35, 1.45, 0);
+    railR.rotation.x = -0.15;
+    ladderGroup.add(railL, railR);
+
+    for (let rg = 0; rg < 7; rg++) {
+      const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.65, 5), deckWoodMat);
+      rung.rotation.z = Math.PI / 2;
+      rung.position.set(0, 0.4 + rg * 0.38, -rg * 0.06);
+      ladderGroup.add(rung);
+    }
+    treehouseGroup.add(ladderGroup);
+
+    monkeyForestGroup.add(treehouseGroup);
+
+    // F. Second Tree & Suspended Rope Bridge (Jambatan Tali - matching image!)
+    const secondTree = new THREE.Group();
+    secondTree.position.set(-1.5, 0, -8.0);
+    const sTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.75, 4.5, 7), banyanWoodMat);
+    sTrunk.position.y = 2.25;
+    const sCanopy = new THREE.Mesh(new THREE.DodecahedronGeometry(2.2, 1), canopyMat);
+    sCanopy.position.y = 5.0;
+    const sDeck = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.2, 7), deckWoodMat);
+    sDeck.position.y = 2.8;
+    secondTree.add(sTrunk, sCanopy, sDeck);
+    monkeyForestGroup.add(secondTree);
+
+    // Rope Bridge spanning from treehouse (7.5, 2.8, -3.5) to second tree (-1.5, 2.8, -8.0)
+    const bridgeGroup = new THREE.Group();
+    const pStart = new THREE.Vector3(6.0, 2.8, -3.8);
+    const pEnd = new THREE.Vector3(-0.3, 2.8, -7.5);
+    const bridgePlankCount = 12;
+
+    const ropeMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.85 });
+    for (let bi = 0; bi < bridgePlankCount; bi++) {
+      const t = bi / (bridgePlankCount - 1);
+      const px = pStart.x + (pEnd.x - pStart.x) * t;
+      const pz = pStart.z + (pEnd.z - pStart.z) * t;
+      // Catenary dip in middle
+      const sag = Math.sin(t * Math.PI) * 0.45;
+      const py = 2.8 - sag;
+
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.06, 0.3), deckWoodMat);
+      plank.position.set(px, py, pz);
+      const ang = Math.atan2(pEnd.x - pStart.x, pEnd.z - pStart.z);
+      plank.rotation.y = ang + Math.PI / 2;
+      bridgeGroup.add(plank);
+    }
+
+    // Trailing Liana Vine for monkey swinging (overhead branch, center of image!)
+    const vineMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.9 });
+    const swingVine = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.6, 5), vineMat);
+    swingVine.position.set(-1.2, 4.6, 0.5);
+    monkeyForestGroup.add(swingVine);
+
+    monkeyForestGroup.add(bridgeGroup);
+
+    // G. Tropical Waterfall & Lagoon Pond (Latar Belakang Air Terjun - matching image!)
+    const waterfallRockMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9, flatShading: true });
+    const waterMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, metalness: 0.35, transparent: true, opacity: 0.85 });
+
+    const rockWall1 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0, 1), waterfallRockMat);
+    rockWall1.position.set(2.0, 1.4, -11.5);
+    rockWall1.scale.set(1.6, 1.4, 1.0);
+    const rockWall2 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.6, 1), waterfallRockMat);
+    rockWall2.position.set(4.5, 1.2, -10.5);
+    monkeyForestGroup.add(rockWall1, rockWall2);
+
+    const fallMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.6), waterMat);
+    fallMesh.position.set(2.0, 1.3, -11.0);
+    fallMesh.rotation.x = 0.15;
+    monkeyForestGroup.add(fallMesh);
+
+    // Lagoon Pond
+    const lagoonPond = new THREE.Mesh(new THREE.CircleGeometry(4.5, 18), waterMat);
+    lagoonPond.rotation.x = -Math.PI / 2;
+    lagoonPond.scale.set(1.2, 0.8, 1.0);
+    lagoonPond.position.set(2.5, 0.04, -8.5);
+    monkeyForestGroup.add(lagoonPond);
+
+    // Animated splash ripples
+    const rippleMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+    const ripple = new THREE.Mesh(new THREE.RingGeometry(0.4, 1.1, 14), rippleMat);
+    ripple.rotation.x = -Math.PI / 2;
+    ripple.position.set(2.0, 0.06, -9.8);
+    monkeyForestGroup.add(ripple);
+
+    animatedObjects.push({
+      update(t) {
+        fallMesh.position.y = 1.3 + Math.sin(t * 12) * 0.04;
+        const s = 1.0 + Math.sin(t * 5.5) * 0.2;
+        ripple.scale.set(s, s, s);
+        rippleMat.opacity = 0.45 + Math.sin(t * 5.5) * 0.25;
+      }
+    });
+
+    // H. Tropical Hibiscus Flowers & Low Split-Rail Fence (matching image!)
+    const flowerPink = new THREE.MeshBasicMaterial({ color: 0xec4899 });
+    const flowerYellow = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+    const flowerClusters = [
+      { x: -5.0, z: 7.5 },
+      { x: -3.8, z: 6.2 },
+      { x: -0.5, z: 7.2 },
+      { x: 3.2, z: 4.8 },
+      { x: 6.5, z: 4.5 }
+    ];
+    flowerClusters.forEach((fc, fi) => {
+      const fl = new THREE.Mesh(new THREE.SphereGeometry(0.14, 5, 5), (fi % 2 === 0) ? flowerPink : flowerYellow);
+      fl.position.set(fc.x, 0.2, fc.z);
+      monkeyForestGroup.add(fl);
+    });
+
+    // Low Rustic Wooden Split-Rail Fence
+    const fenceMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.85 });
+    for (let fp = 0; fp < 5; fp++) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 1.0, 5), fenceMat);
+      post.position.set(2.5 + fp * 1.5, 0.5, 4.8);
+      monkeyForestGroup.add(post);
+      if (fp < 4) {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.08, 0.06), fenceMat);
+        rail.position.set(3.25 + fp * 1.5, 0.65, 4.8);
+        monkeyForestGroup.add(rail);
+      }
+    }
+
+    // I. Custom 3D Signboard "HUTAN MONYET" (Left entrance, matching image!)
+    const signGroup = new THREE.Group();
+    signGroup.position.set(-6.5, 0, 9.5);
+    signGroup.rotation.y = 0.25;
+
+    const signPole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.2, 8), banyanWoodMat);
+    signPole.position.y = 1.1;
+    const signBoard = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.25, 0.1), banyanWoodMat);
+    signBoard.position.y = 1.85;
+
+    const mainSignCanvas = document.createElement('canvas');
+    mainSignCanvas.width = 512;
+    mainSignCanvas.height = 240;
+    const msCtx = mainSignCanvas.getContext('2d');
+    msCtx.fillStyle = '#fef3c7';
+    msCtx.roundRect ? msCtx.roundRect(8, 8, 496, 224, 20) : msCtx.fillRect(8, 8, 496, 224);
+    msCtx.fill();
+    msCtx.strokeStyle = '#b45309';
+    msCtx.lineWidth = 8;
+    msCtx.stroke();
+
+    msCtx.fillStyle = '#d97706';
+    msCtx.font = 'bold 32px Nunito, sans-serif';
+    msCtx.textAlign = 'center';
+    msCtx.fillText('🐵 HUTAN MONYET 🌴', 256, 58);
+
+    msCtx.fillStyle = '#78350f';
+    msCtx.font = 'bold 24px Nunito, sans-serif';
+    msCtx.fillText('SELAMAT DATANG KE HUTAN MONYET!', 256, 110);
+
+    msCtx.fillStyle = '#15803d';
+    msCtx.font = 'bold 18px Nunito, sans-serif';
+    msCtx.fillText('Terokai hutan dan temui Monyet Ceria!', 256, 156);
+
+    msCtx.fillStyle = '#0284c7';
+    msCtx.font = 'bold 16px Nunito, sans-serif';
+    msCtx.fillText('ZON 3 • KSSM TINGKATAN 1 SAINS', 256, 196);
+
+    const msTex = new THREE.CanvasTexture(mainSignCanvas);
+    const msLabel = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.15), new THREE.MeshBasicMaterial({ map: msTex, side: THREE.DoubleSide }));
+    msLabel.position.set(0, 1.85, 0.06);
+
+    // Decorative palm leaves at sign corners
+    const palmLeafMat = new THREE.MeshBasicMaterial({ color: 0x16a34a });
+    const pl1 = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.35, 4), palmLeafMat);
+    pl1.position.set(-1.25, 2.45, 0.07);
+    pl1.rotation.z = 0.5;
+    const pl2 = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.35, 4), palmLeafMat);
+    pl2.position.set(1.25, 2.45, 0.07);
+    pl2.rotation.z = -0.5;
+    signGroup.add(signPole, signBoard, msLabel, pl1, pl2);
+    monkeyForestGroup.add(signGroup);
+
+    // J. 4 Animated Butterflies
+    const bFlyColors = [0xfacc15, 0xec4899, 0x38bdf8, 0xa855f7];
+    const bFlyMeshes = [];
+    for (let bi = 0; bi < 4; bi++) {
+      const bFly = new THREE.Group();
+      const bMat = new THREE.MeshBasicMaterial({ color: bFlyColors[bi], side: THREE.DoubleSide });
+      const wGeo = new THREE.PlaneGeometry(0.14, 0.12);
+      const wL = new THREE.Mesh(wGeo, bMat);
+      wL.position.x = -0.07;
+      const wR = new THREE.Mesh(wGeo, bMat);
+      wR.position.x = 0.07;
+      bFly.add(wL, wR);
+
+      const bAngle = (bi / 4) * Math.PI * 2;
+      const bDist = 3.5 + (bi % 2) * 1.8;
+      bFly.position.set(Math.cos(bAngle) * bDist, 1.2 + (bi % 2) * 0.4, Math.sin(bAngle) * bDist);
+      bFly.userData = { wL, wR, baseAngle: bAngle, dist: bDist, baseY: bFly.position.y, speed: 0.75 + bi * 0.25 };
+      monkeyForestGroup.add(bFly);
+      bFlyMeshes.push(bFly);
+    }
+    animatedObjects.push({
+      update(t) {
+        bFlyMeshes.forEach((bf, idx) => {
+          const flap = Math.sin(t * 18 + idx) * 0.75;
+          bf.userData.wL.rotation.y = flap;
+          bf.userData.wR.rotation.y = -flap;
+          const a = bf.userData.baseAngle + t * bf.userData.speed * 0.35;
+          bf.position.x = Math.cos(a) * bf.userData.dist;
+          bf.position.z = Math.sin(a) * bf.userData.dist;
+          bf.position.y = bf.userData.baseY + Math.sin(t * 4 + idx) * 0.2;
+        });
+      }
+    });
+
+    // K. 5 Decorative NPC Monkeys (Purely Ambient Life - Matching Reference Image!)
+    // 1. Rock plinth for NPC 1 (left side of image)
+    const rockPlinth = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65, 1), waterfallRockMat);
+    rockPlinth.position.set(-6.8, 0.35, 4.2);
+    rockPlinth.scale.set(1.2, 0.7, 1.2);
+    monkeyForestGroup.add(rockPlinth);
+
+    const npcMonkeyConfigs = [
+      // 1. Monkey on rock on the left eating a peeled banana (matching image!)
+      { id: 'npc-monkey-banana', name: 'Monyet Makan Pisang', color: 0x92400e, scale: 0.78, pos: { x: -6.8, y: 0.65, z: 4.2 }, rotY: 0.6, behavior: 'eatingBanana' },
+      // 2. Monkey swinging from overhead vine branch in center (matching image!)
+      { id: 'npc-monkey-swing', name: 'Monyet Bergayut', color: 0x78350f, scale: 0.75, pos: { x: -1.2, y: 3.6, z: 0.5 }, rotY: 0.2, behavior: 'swinging' },
+      // 3. Monkey on the treehouse deck balcony looking out (matching image!)
+      { id: 'npc-monkey-treehouse', name: 'Monyet di Rumah Pokok', color: 0x854d0e, scale: 0.74, pos: { x: 7.8, y: 2.9, z: -3.2 }, rotY: -0.8, behavior: 'perched' },
+      // 4. Monkey walking/hopping along the stepping stones on all fours (matching image!)
+      { id: 'npc-monkey-path', name: 'Monyet Melompat Laluan', color: 0x713f12, scale: 0.72, pos: { x: -1.5, y: 0.05, z: 5.2 }, rotY: -0.4, behavior: 'hoppingPath' },
+      // 5. Playful baby monkey perched atop the fallen tree log (matching image!)
+      { id: 'npc-monkey-log', name: 'Anak Monyet di Batang Kayu', color: 0x92400e, scale: 0.58, pos: { x: -2.0, y: 0.58, z: 2.5 }, rotY: 1.1, behavior: 'perched' }
+    ];
+
+    npcMonkeyConfigs.forEach((cfg, ci) => {
+      const monkeyMesh = createNPCMonkey(cfg, ci);
+      monkeyForestGroup.add(monkeyMesh);
+      decorativeMonkeys.push(monkeyMesh);
+    });
+
+    parent.add(monkeyForestGroup);
+  }
+
 
   // ============================================================================
   // MAGICAL COLOURFUL 3D BIRD SANCTUARY (ZON 4: TAMAN BURUNG)
@@ -3487,6 +4235,16 @@
         if (!animGroup_zone2_deerAudio) {
           SafariAudio.deerChime && SafariAudio.deerChime();
           animGroup_zone2_deerAudio = true;
+        }
+      } else if (closestIndex === 2) {
+        // Special custom prompt for Monyet Ceria (Zone 3)
+        DOM.promptTitle.textContent = 'MONYET CERIA DITEMUI!';
+        DOM.promptSub.textContent = 'Tahniah, Saintis Muda! Anda berjaya menemui Monyet Ceria. Jom terokai struktur sel haiwan!';
+        DOM.promptBtnText.textContent = 'Teroka Sel Haiwan';
+
+        if (!animGroup_zone3_monkeyAudio) {
+          SafariAudio.monkeyCall && SafariAudio.monkeyCall();
+          animGroup_zone3_monkeyAudio = true;
         }
       } else if (closestIndex === 3) {
         // Special custom prompt for Burung Rimba (Zone 4)
@@ -4478,11 +5236,17 @@
       sanctuary: !!birdSanctuaryGroup,
       rabbitMeadow: !!rabbitMeadowGroup,
       deerValley: !!deerValleyGroup,
+      monkeyForest: !!monkeyForestGroup,
+      totalMonkeyCount: decorativeMonkeys.length + (animalMeshes[2] ? 1 : 0),
       totalDeerCount: decorativeDeers.length + (animalMeshes[1] ? 1 : 0),
       totalRabbitCount: decorativeRabbits.length + (animalMeshes[0] ? 1 : 0),
       totalBirdCount: decorativeBirds.length + (animalMeshes[3] ? 1 : 0)
     }),
     getAnimalZones: () => SAFARI_ZONES,
+    getMonkeyForest: () => monkeyForestGroup,
+    getDecorativeMonkeys: () => decorativeMonkeys,
+    getTotalMonkeyCount: () => decorativeMonkeys.length + (animalMeshes[2] ? 1 : 0),
+    getInteractiveMonkey: () => (animalMeshes[2] ? animalMeshes[2].userData.creature : null),
     getDeerValley: () => deerValleyGroup,
     getDecorativeDeers: () => decorativeDeers,
     getTotalDeerCount: () => decorativeDeers.length + (animalMeshes[1] ? 1 : 0),
