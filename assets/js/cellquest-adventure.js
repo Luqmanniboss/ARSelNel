@@ -841,6 +841,14 @@
     DOM.galleryDetailImg = document.getElementById('gallery-detail-img');
     DOM.galleryDetailNotes = document.getElementById('gallery-detail-notes');
     DOM.hud3dBackBtn = document.getElementById('hud-3d-back-btn');
+
+    // Misi AR Orientasi & Modal Cerita Pra-Permainan
+    DOM.arStoryMissionModal = document.getElementById('ar-story-mission-modal');
+    DOM.closeArMissionBtn = document.getElementById('close-ar-mission-btn');
+    DOM.arMissionBackBtn = document.getElementById('ar-mission-back-btn');
+    DOM.arMissionStartBtn = document.getElementById('ar-mission-start-btn');
+    DOM.arMissionBanner = document.getElementById('ar-mission-banner');
+    DOM.arMissionStatusText = document.getElementById('ar-mission-status-text');
   }
 
   function loadUser() {
@@ -3282,7 +3290,22 @@
       DOM.lobbyBtnModA.addEventListener('click', () => launchMode('3d'));
     }
     if (DOM.lobbyBtnModB) {
-      DOM.lobbyBtnModB.addEventListener('click', () => launchMode('camera-ar'));
+      DOM.lobbyBtnModB.addEventListener('click', () => {
+        openARStoryMissionModal();
+      });
+    }
+
+    if (DOM.closeArMissionBtn) {
+      DOM.closeArMissionBtn.addEventListener('click', () => closeARStoryMissionModal());
+    }
+    if (DOM.arMissionBackBtn) {
+      DOM.arMissionBackBtn.addEventListener('click', () => closeARStoryMissionModal());
+    }
+    if (DOM.arMissionStartBtn) {
+      DOM.arMissionStartBtn.addEventListener('click', () => {
+        closeARStoryMissionModal();
+        launchMode('camera-ar');
+      });
     }
     if (DOM.lobbyBtnModC) {
       DOM.lobbyBtnModC.addEventListener('click', () => launchMode('marker-ar'));
@@ -4058,6 +4081,7 @@
 
   // Station completed visual feedback in 3D world, AR mini lab & HUD
   function markStationCompleted(stationNumber) {
+    State.completedStations.add(stationNumber);
     State.lastCompletedStationNumber = stationNumber;
     const stnMesh = stationMeshes.find(s => s.data.number === stationNumber);
     if (stnMesh) {
@@ -4132,6 +4156,11 @@
       DOM.arCardBadge.textContent = `Lencana Stesen ${stationNumber} Selesai ✓`;
       DOM.arCardBadge.classList.add('completed');
     }
+
+    if (DOM.arMissionStatusText) {
+      DOM.arMissionStatusText.textContent = `Stesen Dipulihkan: ${State.completedStations.size}/8`;
+    }
+    alertToast('TAHNIAH! Tenaga organel berjaya dipulihkan!');
 
     // Semak sama ada semua 8 stesen telah selesai
     if (State.completedStations.size >= 8) {
@@ -4413,8 +4442,8 @@
     const lastStn = AR_WORLD_STATIONS.find(s => s.stationNumber === lastStnNum) || AR_WORLD_STATIONS[7];
     const lastAz = typeof lastStn.azimuthDeg === 'number' ? lastStn.azimuthDeg : 315;
     const chestAz = ((lastAz + 67.5) % 360 + 360) % 360;
-    const chestEl = 6;
-    const chestRadius = 4.8;
+    const chestEl = -22; // Elevasi -22° (aras terendah, jauh di bawah semua 8 stesen)
+    const chestRadius = 4.5;
     const dirName = getDirectionNameFromAzimuth(chestAz);
     return {
       azimuthDeg: chestAz,
@@ -4432,114 +4461,236 @@
     const group = new THREE.Group();
     group.name = 'ARWorld_TreasureChest';
 
-    // 1. Badan Peti (Deep turquoise metal container dengan aksen emas ARSELNel)
-    const bodyGeo = new THREE.BoxGeometry(0.72, 0.42, 0.52);
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x0f766e,
-      metalness: 0.6,
-      roughness: 0.35
+    // Dimensi Peti: Lebar 1.45m, Tinggi 0.92m, Kedalaman 0.92m (Gaya 3D Fantasy Golden Treasure Chest)
+    const chestW = 1.45;
+    const chestH = 0.46; // Ketinggian badan bawah peti
+    const chestD = 0.92;
+
+    // Bahan Kayu Oak Coklat Keemasan Stylized (Warm Golden Oak Wood)
+    const woodMat = new THREE.MeshStandardMaterial({
+      color: 0x854d0e,
+      roughness: 0.62,
+      metalness: 0.12
     });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    body.position.y = 0.21;
+    const woodGrooveMat = new THREE.MeshStandardMaterial({
+      color: 0x451a03,
+      roughness: 0.85
+    });
+
+    // Bahan Emas / Gangsa Bersinar (Polished Fantasy Gold & Bronze Brackets)
+    const goldMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      metalness: 0.88,
+      roughness: 0.22
+    });
+    const brightGoldMat = new THREE.MeshStandardMaterial({
+      color: 0xfbbf24,
+      metalness: 0.92,
+      roughness: 0.16
+    });
+
+    // 1. Badan Peti Bawah (Oak Wood Box)
+    const bodyGeo = new THREE.BoxGeometry(chestW, chestH, chestD);
+    const body = new THREE.Mesh(bodyGeo, woodMat);
+    body.position.y = chestH / 2;
     group.add(body);
 
-    const bandMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
-      metalness: 0.85,
-      roughness: 0.25
+    // Jalur Alur Papan Kayu Horizontal (Plank Grooves)
+    for (const gy of [0.15, 0.31]) {
+      const gMesh = new THREE.Mesh(new THREE.BoxGeometry(chestW + 0.005, 0.02, chestD + 0.005), woodGrooveMat);
+      gMesh.position.y = gy;
+      group.add(gMesh);
+    }
+
+    // Plat Sudut Logam Keemasan & Rivet (4 Sudut Menegak)
+    const cornerW = 0.08;
+    const cornerH = chestH + 0.01;
+    const cornerD = 0.08;
+    const cornerPositions = [
+      [-chestW / 2 + cornerW / 2, chestH / 2, -chestD / 2 + cornerD / 2],
+      [ chestW / 2 - cornerW / 2, chestH / 2, -chestD / 2 + cornerD / 2],
+      [-chestW / 2 + cornerW / 2, chestH / 2,  chestD / 2 - cornerD / 2],
+      [ chestW / 2 - cornerW / 2, chestH / 2,  chestD / 2 - cornerD / 2]
+    ];
+    cornerPositions.forEach(pos => {
+      const cMesh = new THREE.Mesh(new THREE.BoxGeometry(cornerW, cornerH, cornerD), goldMat);
+      cMesh.position.set(pos[0], pos[1], pos[2]);
+      group.add(cMesh);
+
+      // Rivet keemasan di atas setiap plat sudut
+      for (const ry of [0.08, 0.23, 0.38]) {
+        const rivet = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), brightGoldMat);
+        rivet.position.set(pos[0] * 1.01, ry, pos[2] * 1.01);
+        group.add(rivet);
+      }
     });
-    const band1 = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.05, 0.54), bandMat);
-    band1.position.y = 0.38;
-    group.add(band1);
 
-    // 2. Penutup Peti Berengsel (Hinged Lid)
+    // Jalur Logam Keemasan Bawah & Rim Atas Badan
+    const bottomTrim = new THREE.Mesh(new THREE.BoxGeometry(chestW + 0.03, 0.06, chestD + 0.03), goldMat);
+    bottomTrim.position.y = 0.03;
+    group.add(bottomTrim);
+
+    const midTrim = new THREE.Mesh(new THREE.BoxGeometry(chestW + 0.025, 0.05, chestD + 0.025), goldMat);
+    midTrim.position.y = chestH - 0.03;
+    group.add(midTrim);
+
+    // 2. Bahagian Dalam Peti (Treasure Interior): Timbunan Emas & Kristal Tenaga
+    const interiorGroup = new THREE.Group();
+    interiorGroup.position.set(0, chestH - 0.05, 0);
+
+    // Timbunan Syiling Emas / Gold Mound
+    const moundGeo = new THREE.CylinderGeometry(0.42, 0.65, 0.22, 16);
+    const moundMesh = new THREE.Mesh(moundGeo, brightGoldMat);
+    interiorGroup.add(moundMesh);
+
+    // Syiling Emas bertaburan di atas timbunan
+    const coinGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.016, 12);
+    for (let i = 0; i < 14; i++) {
+      const coin = new THREE.Mesh(coinGeo, brightGoldMat);
+      const angle = (i / 14) * Math.PI * 2;
+      const dist = 0.15 + (i % 3) * 0.12;
+      coin.position.set(Math.cos(angle) * dist, 0.12 + Math.random() * 0.03, Math.sin(angle) * dist);
+      coin.rotation.set((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4);
+      interiorGroup.add(coin);
+    }
+
+    // Kristal Tenaga Pirus / Cyan ARSELNEL Crystals mencuar dari emas
+    const cryMat = new THREE.MeshStandardMaterial({
+      color: 0x22d3ee,
+      emissive: 0x06b6d4,
+      emissiveIntensity: 0.9,
+      roughness: 0.15,
+      metalness: 0.3
+    });
+    const cryGeo = new THREE.OctahedronGeometry(0.09, 0);
+    const cryOffsets = [[-0.22, 0.14, -0.05], [0.24, 0.15, 0.08], [0.02, 0.18, 0.18], [-0.10, 0.16, 0.14]];
+    cryOffsets.forEach((co, idx) => {
+      const cry = new THREE.Mesh(cryGeo, cryMat);
+      cry.position.set(co[0], co[1], co[2]);
+      cry.scale.set(0.8, 1.6, 0.8);
+      cry.rotation.set((idx % 2 ? 0.3 : -0.2), idx * 0.8, 0.2);
+      interiorGroup.add(cry);
+    });
+
+    // Rasuk Cahaya Emas / God Rays memancar ke atas apabila peti dibuka
+    const beamGeo = new THREE.CylinderGeometry(0.18, 0.85, 2.8, 18, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0xfef08a,
+      transparent: true,
+      opacity: 0.0,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+    beamMesh.position.y = 1.35;
+    interiorGroup.add(beamMesh);
+    arWorldState.chestBeamMesh = beamMesh;
+
+    group.add(interiorGroup);
+
+    // 3. Penutup Peti Berengsel Melengkung (Arched Hinged Lid)
     const lidPivot = new THREE.Group();
-    lidPivot.position.set(0, 0.42, -0.26);
+    // Engsel berputar di bahagian atas belakang peti
+    lidPivot.position.set(0, chestH, -chestD / 2);
 
-    const lidMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.27, 0.27, 0.72, 24, 1, false, 0, Math.PI),
-      new THREE.MeshStandardMaterial({
-        color: 0x0d9488,
-        metalness: 0.6,
-        roughness: 0.35,
-        side: THREE.DoubleSide
-      })
-    );
+    const lidRadius = chestD / 2; // 0.46m
+    // Bentuk silinder separuh melengkung untuk bumbung penutup peti
+    const lidArchGeo = new THREE.CylinderGeometry(lidRadius, lidRadius, chestW, 36, 1, false, 0, Math.PI);
+    const lidMesh = new THREE.Mesh(lidArchGeo, woodMat);
     lidMesh.rotation.z = Math.PI / 2;
     lidMesh.rotation.y = Math.PI / 2;
-    lidMesh.position.set(0, 0, 0.26);
+    lidMesh.position.set(0, 0, lidRadius);
     lidPivot.add(lidMesh);
 
-    const lidRim = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.05, 0.54), bandMat);
-    lidRim.position.set(0, 0, 0.26);
+    // Penutup Kayu Sisi Kiri & Kanan (End Caps)
+    const capGeo = new THREE.CircleGeometry(lidRadius, 32, 0, Math.PI);
+    const capL = new THREE.Mesh(capGeo, woodMat);
+    capL.rotation.y = -Math.PI / 2;
+    capL.position.set(-chestW / 2 - 0.002, 0, lidRadius);
+    lidPivot.add(capL);
+
+    const capR = new THREE.Mesh(capGeo, woodMat);
+    capR.rotation.y = Math.PI / 2;
+    capR.position.set(chestW / 2 + 0.002, 0, lidRadius);
+    lidPivot.add(capR);
+
+    // Rim Bawah Penutup Peti
+    const lidRim = new THREE.Mesh(new THREE.BoxGeometry(chestW + 0.035, 0.055, chestD + 0.035), goldMat);
+    lidRim.position.set(0, 0.025, lidRadius);
     lidPivot.add(lidRim);
 
-    const lock = new THREE.Mesh(
-      new THREE.BoxGeometry(0.12, 0.12, 0.06),
-      new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.9, roughness: 0.15 })
-    );
-    lock.position.set(0, 0, 0.54);
-    lidPivot.add(lock);
+    // 3 Jalur Logam Lengkung Keemasan di atas penutup melengkung (Arched Straps)
+    [-chestW / 2 + 0.12, 0, chestW / 2 - 0.12].forEach(strapX => {
+      const strapGeo = new THREE.CylinderGeometry(lidRadius + 0.012, lidRadius + 0.012, 0.09, 36, 1, false, 0, Math.PI);
+      const strapMesh = new THREE.Mesh(strapGeo, goldMat);
+      strapMesh.rotation.z = Math.PI / 2;
+      strapMesh.rotation.y = Math.PI / 2;
+      strapMesh.position.set(strapX, 0, lidRadius);
+      lidPivot.add(strapMesh);
 
+      // Rivet pada jalur lengkung
+      for (let a = 0.3; a <= 2.8; a += 0.6) {
+        const sr = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 8), brightGoldMat);
+        const rx = strapX;
+        const ry = Math.sin(a) * (lidRadius + 0.022);
+        const rz = lidRadius - Math.cos(a) * (lidRadius + 0.022);
+        sr.position.set(rx, ry, rz);
+        lidPivot.add(sr);
+      }
+    });
+
+    // 4. Plat Kunci Keemasan di Depan & Kristal Tenaga Pirus Bercahaya (ARSELNEL Core Clasp)
+    const claspGroup = new THREE.Group();
+    claspGroup.position.set(0, 0.02, lidRadius * 2);
+
+    const claspPlate = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.28, 0.08), goldMat);
+    claspPlate.position.y = -0.05;
+    claspGroup.add(claspPlate);
+
+    const coreGem = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.085, 0),
+      new THREE.MeshStandardMaterial({
+        color: 0x22d3ee,
+        emissive: 0x06b6d4,
+        emissiveIntensity: 1.0,
+        roughness: 0.1,
+        metalness: 0.2
+      })
+    );
+    coreGem.position.set(0, -0.05, 0.045);
+    claspGroup.add(coreGem);
+
+    // Cahaya Pirus Lembut dari Kristal Kunci
+    const gemLight = new THREE.PointLight(0x06b6d4, 0.8, 1.8);
+    gemLight.position.set(0, -0.05, 0.15);
+    claspGroup.add(gemLight);
+
+    lidPivot.add(claspGroup);
     group.add(lidPivot);
     arWorldState.chestLidPivot = lidPivot;
 
-    // Muatkan pek GLB Peti Harta Karun (models/treasure_chests_asset_pack.glb) secara asynchronous
-    const glbChestSlot = new THREE.Group();
-    glbChestSlot.position.set(0, 0.22, 0);
-    group.add(glbChestSlot);
-
-    mountGLBIntoContainer(glbChestSlot, 'chest', 'ar-world', {
-      organelleId: 'treasure_chest',
-      stationId: 'treasure_chest',
-      stationNumber: 99,
-      customTargetSize: 0.95,
-      alignOnTable: false
-    }).then(ok => {
-      if (ok) {
-        let foundClosed = false;
-        glbChestSlot.traverse(child => {
-          if (child.isMesh) {
-            if (child.name.includes('Chest1_closed')) {
-              child.visible = true;
-              foundClosed = true;
-            } else {
-              child.visible = false;
-            }
-          }
-        });
-        if (foundClosed) {
-          body.visible = false;
-          band1.visible = false;
-          lidPivot.visible = false;
-          group.userData.glbChestSlot = glbChestSlot;
-        }
-      }
-    }).catch(() => {
-      // Fallback geometri peti ARSELNel kekal sedia ada
-    });
-
-    // 3. Sumber Cahaya Emas di dalam Peti (Glow memancar apabila dibuka)
-    const chestLight = new THREE.PointLight(0xfbbf24, 0.6, 4.0);
-    chestLight.position.set(0, 0.35, 0);
+    // 5. Sumber Cahaya Emas di dalam Peti (Glow memancar apabila dibuka)
+    const chestLight = new THREE.PointLight(0xfbbf24, 0.8, 5.0);
+    chestLight.position.set(0, chestH + 0.2, 0);
     group.add(chestLight);
     arWorldState.chestLight = chestLight;
 
-    // 4. Zarah Cahaya Bintang / Sparkles
+    // 6. Zarah Cahaya Bintang Emas & Pirus (Sparkles)
     const partGroup = new THREE.Group();
-    const partMat = new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.85 });
-    const partGeo = new THREE.OctahedronGeometry(0.045, 0);
+    const partMat = new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.9 });
+    const partGeo = new THREE.OctahedronGeometry(0.055, 0);
     arWorldState.chestParticles = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 16; i++) {
       const p = new THREE.Mesh(partGeo, partMat.clone());
       p.position.set(
-        (Math.random() - 0.5) * 0.48,
-        0.35 + Math.random() * 0.35,
-        (Math.random() - 0.5) * 0.38
+        (Math.random() - 0.5) * 1.0,
+        chestH + 0.1 + Math.random() * 0.6,
+        (Math.random() - 0.5) * 0.7
       );
       p.userData = {
         baseY: p.position.y,
-        speed: 1.2 + Math.random() * 1.6,
+        speed: 1.0 + Math.random() * 1.8,
         offset: Math.random() * Math.PI * 2
       };
       partGroup.add(p);
@@ -4547,21 +4698,21 @@
     }
     group.add(partGroup);
 
-    // 5. Hologram Gelang Penanda Terapung (tanpa piring/pedestal tebal)
+    // 7. Hologram Gelang Penanda Terapung di Lantai
     const chestHoloGroup = new THREE.Group();
     chestHoloGroup.position.y = 0.01;
 
-    const ringGeo1 = new THREE.RingGeometry(0.60, 0.65, 48);
+    const ringGeo1 = new THREE.RingGeometry(0.95, 1.05, 48);
     const ringMat1 = new THREE.MeshBasicMaterial({
-      color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.8, depthWrite: false
+      color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.85, depthWrite: false
     });
     const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
     ring1.rotation.x = -Math.PI / 2;
     chestHoloGroup.add(ring1);
 
-    const ringGeo2 = new THREE.RingGeometry(0.82, 0.88, 48);
+    const ringGeo2 = new THREE.RingGeometry(1.25, 1.35, 48);
     const ringMat2 = new THREE.MeshBasicMaterial({
-      color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.6, depthWrite: false
+      color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.65, depthWrite: false
     });
     const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
     ring2.rotation.x = -Math.PI / 2;
@@ -4569,23 +4720,23 @@
 
     group.add(chestHoloGroup);
 
-    // 6. Penanda Interaksi (Glowing Diamond Beacon di atas peti)
+    // 8. Penanda Interaksi (Glowing Diamond Beacon di atas peti)
     const beacon = createBeaconMesh(0xf59e0b);
-    beacon.scale.setScalar(0.7);
-    beacon.position.set(0, 1.55, 0);
+    beacon.scale.setScalar(0.85);
+    beacon.position.set(0, 2.05, 0);
     group.add(beacon);
 
-    // 7. Papan Nama 3D Peti Harta Karun
+    // 9. Papan Nama 3D Peti Harta Karun
     const labelGroup = buildStationLabel('🎁 Peti Harta Karun ARSELNel', 'Misi Akhir • Ketik Buka', '🎁', 0xf59e0b, 99);
-    labelGroup.position.set(0, 1.05, 0);
+    labelGroup.position.set(0, 1.45, 0);
     group.add(labelGroup);
 
-    // 8. Sfera Collider Besar untuk Ketikan Skrin Sentuh
+    // 10. Sfera Collider Besar untuk Ketikan Skrin Sentuh (Radius 1.65m)
     const hitCollider = new THREE.Mesh(
-      new THREE.SphereGeometry(1.25, 12, 12),
+      new THREE.SphereGeometry(1.65, 14, 14),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
     );
-    hitCollider.position.set(0, 0.4, 0);
+    hitCollider.position.set(0, 0.5, 0);
     hitCollider.userData = {
       pickable: true,
       isTreasureChest: true,
@@ -4606,7 +4757,7 @@
     const chestCfg = arWorldState.treasureChestConfig;
     const azRad = THREE.MathUtils.degToRad(chestCfg.azimuthDeg);
     const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg);
-    const R = chestCfg.radius || 4.8;
+    const R = chestCfg.radius || 4.5;
     const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
     const horizR = Math.cos(elRad) * R;
     group.position.x = Math.sin(azRad) * horizR;
@@ -4786,14 +4937,25 @@
     State.treasureHuntCompleted = true;
     arWorldState.isChestLidOpen = true;
 
-    // Buka penutup model GLB Peti jika pek aset GLB sedang digunakan
-    if (arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.userData && arWorldState.treasureChestGroup.userData.glbChestSlot) {
-      arWorldState.treasureChestGroup.userData.glbChestSlot.traverse(child => {
-        if (child.isMesh) {
-          if (child.name.includes('Chest1_open')) child.visible = true;
-          if (child.name.includes('Chest1_closed')) child.visible = false;
+    // Animasi penutup melengkung dibuka ke belakang & cahaya emas memancar
+    if (arWorldState.chestLidPivot) {
+      let openProgress = 0;
+      const openInterval = setInterval(() => {
+        openProgress += 0.08;
+        if (openProgress >= 1) {
+          openProgress = 1;
+          clearInterval(openInterval);
         }
-      });
+        if (arWorldState.chestLidPivot) {
+          arWorldState.chestLidPivot.rotation.x = -openProgress * 1.85;
+        }
+        if (arWorldState.chestLight) {
+          arWorldState.chestLight.intensity = 0.8 + openProgress * 2.7;
+        }
+        if (arWorldState.chestBeamMesh) {
+          arWorldState.chestBeamMesh.material.opacity = openProgress * 0.45;
+        }
+      }, 30);
     }
 
     // Berikan 300 markah bonus SEKALI SAHAJA
@@ -7281,14 +7443,27 @@
       if (isTargetDiscovered) {
         coachEl.textContent = isChestTarget ? 'Peti Harta Karun ARSELNel ditemui! Ketik untuk buka.' : `Stesen ${targetCfg.label} ditemui! Ketik untuk meneroka.`;
         coachEl.style.color = '#34d399';
+      } else if (isChestTarget && azAligned && !elAligned) {
+        const verb = deltaEl > 0 ? 'Naikkan' : 'Turunkan';
+        const arrow = deltaEl > 0 ? '⬆' : '⬇';
+        coachEl.textContent = `${arrow} ${verb} kamera ${absEl}° untuk mencari Peti Harta Karun!`;
+        coachEl.style.color = '#38bdf8';
       } else if (!azAligned && absAz <= 28) {
-        coachEl.textContent = `Bagus! Anda hampir menghadap ${targetCfg.label}. Pusing ${turnWord} ${absAz}° lagi.`;
+        coachEl.textContent = isChestTarget
+          ? `Bagus! Anda hampir menghadap Peti Harta Karun. Pusing ${turnWord} ${absAz}° lagi.`
+          : `Bagus! Anda hampir menghadap ${targetCfg.label}. Pusing ${turnWord} ${absAz}° lagi.`;
         coachEl.style.color = '#fde047';
       } else if (!azAligned) {
-        coachEl.textContent = `${targetCfg.label} berada di sebelah ${targetCfg.directionName.toLowerCase()}. Pusing ${turnWord} ${absAz}° lagi.`;
+        coachEl.textContent = isChestTarget
+          ? `Peti Harta Karun berada di sebelah ${targetCfg.directionName.toLowerCase()}. Pusing ${turnWord} ${absAz}° lagi.`
+          : `${targetCfg.label} berada di sebelah ${targetCfg.directionName.toLowerCase()}. Pusing ${turnWord} ${absAz}° lagi.`;
         coachEl.style.color = '#5eead4';
       } else if (!elAligned) {
-        coachEl.textContent = `Halakan kamera sedikit ke ${deltaEl > 0 ? 'atas' : 'bawah'} (${absEl}° lagi).`;
+        const verb = deltaEl > 0 ? 'Naikkan' : 'Turunkan';
+        const arrow = deltaEl > 0 ? '⬆' : '⬇';
+        coachEl.textContent = isChestTarget
+          ? `${arrow} ${verb} kamera ${absEl}° untuk mencari Peti Harta Karun!`
+          : `Halakan kamera sedikit ke ${deltaEl > 0 ? 'atas' : 'bawah'} (${absEl}° lagi).`;
         coachEl.style.color = '#38bdf8';
       }
     }
@@ -7329,16 +7504,18 @@
     if (DOM.arSingleInstruction && DOM.arSingleInstructionText && arWorldState.active) {
       DOM.arSingleInstruction.style.display = 'block';
       if (isTargetDiscovered) {
-        DOM.arSingleInstructionText.textContent = `✓ ${targetCfg.label} ditemui! Ketik untuk teroka.`;
+        DOM.arSingleInstructionText.textContent = isChestTarget ? '✓ Peti Harta Karun Ditemui! Ketik untuk membuka.' : `✓ ${targetCfg.label} ditemui! Ketik untuk teroka.`;
         DOM.arSingleInstruction.classList.add('discovered');
       } else if (!azAligned) {
         const arrow = deltaAz > 0 ? '↷' : '↶';
-        DOM.arSingleInstructionText.textContent = `${arrow} Pusing ${turnWord} ${absAz}° untuk mencari ${targetCfg.label}.`;
+        const lbl = isChestTarget ? 'Peti Harta Karun' : targetCfg.label;
+        DOM.arSingleInstructionText.textContent = `${arrow} Pusing ${turnWord} ${absAz}° untuk mencari ${lbl}.`;
         DOM.arSingleInstruction.classList.remove('discovered');
       } else {
         const arrow = deltaEl > 0 ? '↑' : '↓';
         const verb = deltaEl > 0 ? 'Naikkan' : 'Turunkan';
-        DOM.arSingleInstructionText.textContent = `${arrow} ${verb} kamera ${absEl}° untuk mencari ${targetCfg.label}.`;
+        const lbl = isChestTarget ? 'Peti Harta Karun!' : targetCfg.label;
+        DOM.arSingleInstructionText.textContent = `${arrow} ${verb} kamera ${absEl}° untuk mencari ${lbl}`;
         DOM.arSingleInstruction.classList.remove('discovered');
       }
     }
@@ -7526,10 +7703,10 @@
     calUI.style.display = 'block';
     const needsIOSPerm = (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function');
     calUI.innerHTML = `
-      <div style="font-size:14px; margin-bottom:6px; color:#2dd4bf; font-weight:900;">🧭 Kalibrasi Arah Dunia AR (Mod C)</div>
+      <div style="font-size:14px; margin-bottom:6px; color:#2dd4bf; font-weight:900;">🧭 Kalibrasi Arah Dunia AR (Mod B)</div>
       <div style="font-size:12px; margin-bottom:12px; color:#cbd5e1; line-height:1.45;">
-        Hadapkan iPad / kamera ke arah hadapan yang selesa dan tekan <strong>Kalibrasi &amp; Aktifkan Sensor</strong>.<br>
-        <span style="color:#94a3b8; font-size:11px;">Kanan (90°): Nukleus • Kiri (270°): Mitokondrion • Belakang (180°): Vakuol • Hadapan (0°): Stesen 8</span>
+        Hadapkan peranti / kamera ke arah hadapan yang selesa dan tekan <strong>Kalibrasi &amp; Aktifkan Sensor</strong>.<br>
+        <span style="color:#94a3b8; font-size:11px;">Arah 360°: Hadapan (0°): Nukleus • Kanan (90°): Sitoplasma • Belakang (180°): Kloroplas • Kiri (270°): Vakuol</span>
       </div>
       <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
         <button type="button" id="ar-world-calibrate-btn" style="
@@ -9471,6 +9648,21 @@
     }
   }
 
+  // Fungsi Buka & Tutup Modal Arahan Misi Pra-Permainan AR Orientasi (Mod B)
+  function openARStoryMissionModal() {
+    if (DOM.arStoryMissionModal) {
+      DOM.arStoryMissionModal.classList.add('open');
+      SoundFX.interact();
+    }
+  }
+
+  function closeARStoryMissionModal() {
+    if (DOM.arStoryMissionModal) {
+      DOM.arStoryMissionModal.classList.remove('open');
+      SoundFX.interact();
+    }
+  }
+
   function openCellGalleryModal(type) {
     SoundFX.interact();
   }
@@ -9496,6 +9688,9 @@
   // ==============================================================================
 
   function updateHUD() {
+    if (DOM.arMissionStatusText) {
+      DOM.arMissionStatusText.textContent = `Stesen Dipulihkan: ${State.completedStations.size}/8`;
+    }
     if (DOM.badgeCount) DOM.badgeCount.textContent = `${State.completedStations.size}/8`;
     if (DOM.score) DOM.score.textContent = String(State.score);
     if (DOM.arHudBadges) DOM.arHudBadges.textContent = `${State.completedStations.size}/8`;
@@ -9704,6 +9899,8 @@
     closeScienceLabLobby: () => closeScienceLabLobby(),
     isLobbyActive: () => isLobbyActive,
     launchMode: (m) => launchMode(m),
+    openARStoryMissionModal: () => openARStoryMissionModal(),
+    closeARStoryMissionModal: () => closeARStoryMissionModal(),
     openCellGalleryModal: (t) => openCellGalleryModal(t),
     closeCellGalleryModal: () => closeCellGalleryModal(),
     getLobbyState: () => ({

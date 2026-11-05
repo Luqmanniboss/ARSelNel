@@ -3226,3 +3226,475 @@ body.cq-ar-mode {
 
 
 
+
+/* ==============================================================================
+   MOD B: PRE-GAME BRIEFING MODAL & MISSION HUD PILL
+   ============================================================================== */
+.cq-ar-mission-hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1.5px solid rgba(56, 189, 248, 0.6);
+  border-radius: 999px;
+  padding: 5px 14px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.cq-ar-mission-hud-pill .mission-kicker {
+  font-size: 12.5px;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.3px;
+}
+
+.cq-ar-mission-hud-pill .mission-separator {
+  color: rgba(148, 163, 184, 0.5);
+  font-size: 13px;
+}
+
+.cq-ar-mission-hud-pill .mission-status {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #fde047;
+}
+
+/* Modal Backdrop Soft Blur */
+#ar-story-mission-modal {
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  background: rgba(15, 23, 42, 0.48) !important;
+}
+
+/* Main Modal Card: Crisp Bright White with Soft Glow (Optimized Spacing for Full View) */
+.cq-mission-briefing-card {
+  background: #ffffff !important;
+  border: 2px solid #e0f2fe !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(224, 242, 254, 0.9) !important;
+  max-width: 1040px !important;
+  width: min(1040px, 94vw) !important;
+  max-height: 94vh !important;
+  overflow-y: auto !important;
+  padding: 22px 28px !important;
+  text-align: left !important;
+  color: #1e293b !important;
+}
+
+/* Sleek Scrollbar */
+.cq-mission-briefing-card::-webkit-scrollbar {
+  width: 6px;
+}
+.cq-mission-briefing-card::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+.cq-mission-briefing-card::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+.cq-mission-briefing-card::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Close Button on White Card */
+#ar-story-mission-modal .cq-modal-close {
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 18px;
+  right: 18px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  z-index: 10;
+}
+#ar-story-mission-modal .cq-modal-close:hover {
+  color: #0f172a;
+  background: #e2e8f0;
+  transform: rotate(90deg);
+}
+
+/* Hero Header */
+.cq-mission-hero {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.cq-mission-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e0f2fe;
+  border: 1.5px solid #7dd3fc;
+  border-radius: 999px;
+  padding: 3px 14px;
+  color: #0284c7;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.cq-mission-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.3px;
+}
+
+.cq-mission-subtitle {
+  font-size: 13.5px;
+  color: #475569;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Kotak Cerita Misi (Emergency Alert Box) */
+.cq-mission-story-box {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border: 1.5px solid #fcd34d !important;
+  border-left: 5px solid #f59e0b !important;
+  border-radius: 16px !important;
+  padding: 12px 18px !important;
+  margin-bottom: 14px !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.10) !important;
+}
+
+.cq-mission-alert-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+
+.cq-mission-alert-heading .alert-pulse-icon {
+  font-size: 18px;
+  animation: pulse-alert 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-alert {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.cq-mission-alert-body .story-p {
+  color: #451a03;
+  font-size: 12.8px;
+  line-height: 1.5;
+  margin: 0 0 4px 0;
+  font-weight: 500;
+}
+.cq-mission-alert-body .story-p:last-child {
+  margin-bottom: 0;
+}
+.cq-mission-alert-body strong {
+  color: #78350f;
+}
+
+/* Section Title */
+.cq-mission-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 900;
+  color: #0284c7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.cq-mission-section-title .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* 6 Langkah Grid */
+.cq-mission-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* Base Step Card */
+.cq-mission-step-card {
+  border-radius: 15px !important;
+  padding: 10px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+}
+
+.cq-mission-step-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 10px 20px -4px rgba(15, 23, 42, 0.10) !important;
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.step-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.step-icon {
+  font-size: 20px;
+}
+
+.step-card-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.step-desc {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #334155;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Step 1: Pastel Blue */
+.cq-mission-step-card.step-blue {
+  background: #F0F9FF !important;
+  border: 1.5px solid #BAE6FD !important;
+}
+.cq-mission-step-card.step-blue .step-badge {
+  background: #0284C7;
+}
+.cq-mission-step-card.step-blue .step-icon {
+  color: #0284C7;
+}
+.cq-mission-step-card.step-blue .step-title {
+  color: #0369A1;
+}
+
+/* Step 2: Mint Green */
+.cq-mission-step-card.step-mint {
+  background: #F0FDF4 !important;
+  border: 1.5px solid #A7F3D0 !important;
+}
+.cq-mission-step-card.step-mint .step-badge {
+  background: #059669;
+}
+.cq-mission-step-card.step-mint .step-icon {
+  color: #059669;
+}
+.cq-mission-step-card.step-mint .step-title {
+  color: #047857;
+}
+
+/* Step 3: Pastel Yellow */
+.cq-mission-step-card.step-yellow {
+  background: #FEFCE8 !important;
+  border: 1.5px solid #FDE68A !important;
+}
+.cq-mission-step-card.step-yellow .step-badge {
+  background: #D97706;
+}
+.cq-mission-step-card.step-yellow .step-icon {
+  color: #D97706;
+}
+.cq-mission-step-card.step-yellow .step-title {
+  color: #B45309;
+}
+
+/* Step 4: Lavender Purple */
+.cq-mission-step-card.step-lavender {
+  background: #FAF5FF !important;
+  border: 1.5px solid #DDD6FE !important;
+}
+.cq-mission-step-card.step-lavender .step-badge {
+  background: #7C3AED;
+}
+.cq-mission-step-card.step-lavender .step-icon {
+  color: #7C3AED;
+}
+.cq-mission-step-card.step-lavender .step-title {
+  color: #6D28D9;
+}
+
+/* Step 5: Pastel Pink */
+.cq-mission-step-card.step-pink {
+  background: #FFF1F2 !important;
+  border: 1.5px solid #FECDD3 !important;
+}
+.cq-mission-step-card.step-pink .step-badge {
+  background: #E11D48;
+}
+.cq-mission-step-card.step-pink .step-icon {
+  color: #E11D48;
+}
+.cq-mission-step-card.step-pink .step-title {
+  color: #BE123C;
+}
+
+/* Step 6: Pastel Orange */
+.cq-mission-step-card.step-orange {
+  background: #FFF7ED !important;
+  border: 1.5px solid #FED7AA !important;
+}
+.cq-mission-step-card.step-orange .step-badge {
+  background: #EA580C;
+}
+.cq-mission-step-card.step-orange .step-icon {
+  color: #EA580C;
+}
+.cq-mission-step-card.step-orange .step-title {
+  color: #C2410C;
+}
+
+/* Tip Keselamatan Saintis Muda Card */
+.cq-mission-safety-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+  border: 1.5px solid #bae6fd;
+  border-radius: 14px;
+  padding: 9px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.05);
+}
+
+.safety-icon-wrapper {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.safety-text-wrapper strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0369a1;
+  margin-bottom: 1px;
+}
+
+.safety-text-wrapper p {
+  font-size: 12px;
+  color: #334155;
+  margin: 0;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.cq-mission-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  border-top: 1.5px solid #e2e8f0;
+  padding-top: 14px;
+}
+
+.btn-mission-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid #bae6fd;
+  border-radius: 12px;
+  padding: 10px 22px;
+  color: #0284c7;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-mission-back:hover {
+  background: #f0f9ff;
+  border-color: #7dd3fc;
+  color: #0369a1;
+  transform: translateY(-1px);
+}
+
+.btn-mission-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 11px 30px;
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-mission-start:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(2, 132, 199, 0.45);
+  filter: brightness(1.05);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 992px) {
+  .cq-mission-briefing-card {
+    padding: 18px 20px !important;
+  }
+  .cq-mission-steps-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .cq-mission-briefing-card {
+    padding: 16px 14px !important;
+    border-radius: 18px !important;
+  }
+  .cq-mission-steps-grid {
+    grid-template-columns: 1fr;
+  }
+  .cq-mission-actions {
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+  .btn-mission-back,
+  .btn-mission-start {
+    width: 100%;
+    justify-content: center;
+  }
+  .cq-ar-mission-hud-pill {
+    display: none !important;
+  }
+}
