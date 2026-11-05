@@ -355,7 +355,7 @@
   };
 
   // 4. THREE.JS ENGINE COMPONENTS (MAIN FOREST 3D)
-  let scene, camera, renderer;
+  let scene, camera, renderer, sunLight = null;
   let forestEnvironmentGroup = null;
   let treeOfLifeGroup = null;
   let animalMeshes = [];
@@ -604,7 +604,7 @@
     const hemiLight = new THREE.HemisphereLight(0x7dd3fc, 0x10b981, 0.95);
     scene.add(hemiLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfef08a, 0.95);
+    sunLight = new THREE.DirectionalLight(0xfef08a, 0.95);
     sunLight.position.set(45, 60, 30);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 1024;
@@ -644,25 +644,39 @@
   // ============================================================================
   // SUIS KUALITI GRAFIK ADAPTIF (BALANCED UNTUK IPAD & HIGH UNTUK DESKTOP)
   // ============================================================================
+  let currentQualityMode = 'high';
   function setQuality(mode) {
     if (!renderer) return;
-    if (mode === 'low') {
-      renderer.setPixelRatio(1.0);
-      renderer.shadowMap.enabled = false;
-      renderer.shadowMap.needsUpdate = true;
-    } else if (mode === 'balanced' || mode === 'medium') {
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    currentQualityMode = mode;
+    if (mode === 'ultra') {
+      // 4K Ultra Preset: Native high-DPI scaling, 2048px soft shadows
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.5));
       renderer.shadowMap.enabled = true;
-      if (renderer.shadowMap.type !== THREE.BasicShadowMap) {
-        renderer.shadowMap.type = THREE.BasicShadowMap;
-        renderer.shadowMap.needsUpdate = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      if (sunLight && sunLight.shadow) {
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
       }
-    } else { // 'high'
+    } else if (mode === 'high') {
+      // 1080p/1440p High Preset: 1024px soft shadows
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.0));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.shadowMap.needsUpdate = true;
+      if (sunLight && sunLight.shadow) {
+        sunLight.shadow.mapSize.width = 1024;
+        sunLight.shadow.mapSize.height = 1024;
+      }
+    } else if (mode === 'balanced' || mode === 'medium') {
+      // Balanced / Laptop Preset
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.BasicShadowMap;
+    } else { // 'low'
+      // Mobile / Power-saver Preset
+      renderer.setPixelRatio(1.0);
+      renderer.shadowMap.enabled = false;
     }
+    renderer.shadowMap.needsUpdate = true;
   }
 
     // 8. BUILD COLOURFUL LOW-POLY FANTASY FOREST (FASA 5 & 6)
@@ -792,25 +806,42 @@
 
     // Canvas label
     const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 96;
+    canvas.width = 512;
+    canvas.height = 192;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fef3c7';
-    ctx.fillRect(0, 0, 256, 96);
-    ctx.strokeStyle = '#b45309';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(3, 3, 250, 90);
+    // 100% Solid Opaque Backing (Dark Walnut Frame)
     ctx.fillStyle = '#78350f';
-    ctx.font = 'bold 24px Nunito, sans-serif';
+    ctx.fillRect(0, 0, 512, 192);
+    // 100% Solid Opaque Cream Plate
+    ctx.fillStyle = '#fffdf0';
+    ctx.fillRect(10, 10, 492, 172);
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(10, 10, 492, 172);
+    ctx.fillStyle = '#451a03';
+    ctx.font = '900 44px Nunito, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(zoneTitle.split(' ')[0] || 'ZON', 128, 34);
-    ctx.font = 'bold 20px Nunito, sans-serif';
-    ctx.fillText(zoneTitle.split(' ').slice(1).join(' ') || '', 128, 64);
+    ctx.fillText(zoneTitle.split(' ')[0] || 'ZON', 256, 64);
+    ctx.font = 'bold 36px Nunito, sans-serif';
+    ctx.fillStyle = '#15803d';
+    ctx.fillText(zoneTitle.split(' ').slice(1).join(' ') || '', 256, 128);
 
     const texture = new THREE.CanvasTexture(canvas);
-    const labelMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.4), new THREE.MeshBasicMaterial({ map: texture }));
-    labelMesh.position.set(0, 1.6, 0.05);
+    texture.needsUpdate = true;
+    const labelMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.32, 0.42),
+      new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: 0.6,
+        metalness: 0.05,
+        transparent: false,
+        opacity: 1.0,
+        depthWrite: true,
+        depthTest: true
+      })
+    );
+    labelMesh.position.set(0, 1.6, 0.055);
     postGroup.add(labelMesh);
 
     forestEnvironmentGroup.add(postGroup);
@@ -1550,7 +1581,7 @@
       rabbitMeadowGroup.add(sBlock);
     }
 
-    // Majestic Rounded Stone Archway at South Entrance (Clearance width 2.8m, height 3.2m)
+    // Majestic Rounded Stone Archway at South Entrance with Climbing Vines & Garden Lanterns
     const archGroup = new THREE.Group();
     archGroup.position.set(0, 0, 7.5);
 
@@ -1558,34 +1589,113 @@
     [-1.5, 1.5].forEach(px => {
       for (let py = 0; py < 5; py++) {
         const pillarBlock = new THREE.Mesh(
-          new THREE.DodecahedronGeometry(0.36, 1),
+          new THREE.DodecahedronGeometry(0.38, 1),
           py % 2 === 0 ? stoneBlockMat : stoneDarkMat
         );
-        pillarBlock.scale.set(1.2, 0.9, 1.2);
+        pillarBlock.scale.set(1.25, 0.92, 1.25);
         pillarBlock.position.set(px, 0.3 + py * 0.52, 0);
+        pillarBlock.castShadow = true;
+        pillarBlock.receiveShadow = true;
         archGroup.add(pillarBlock);
       }
     });
 
     // Curved Stone Arch Lintels
-    for (let ai = -3; ai <= 3; ai++) {
-      const aAng = (ai / 3) * (Math.PI / 2.8);
-      const aX = Math.sin(aAng) * 1.5;
-      const aY = 2.6 + Math.cos(aAng) * 0.65;
-      const archStone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.34, 1), stoneBlockMat);
-      archStone.scale.set(1.3, 0.85, 1.1);
+    for (let ai = -4; ai <= 4; ai++) {
+      const aAng = (ai / 4) * (Math.PI / 2.5);
+      const aX = Math.sin(aAng) * 1.55;
+      const aY = 2.65 + Math.cos(aAng) * 0.72;
+      const archStone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.36, 1), stoneBlockMat);
+      archStone.scale.set(1.3, 0.85, 1.15);
       archStone.position.set(aX, aY, 0);
       archStone.rotation.z = -aAng;
+      archStone.castShadow = true;
+      archStone.receiveShadow = true;
       archGroup.add(archStone);
     }
 
-    // Wooden Plank Boardwalk Railway Trail leading to Arch (Matching reference image)
-    const woodPlankMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.8 });
-    for (let pl = 0; pl < 8; pl++) {
-      const pz = 7.5 + pl * 0.65;
-      const plank = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.08, 0.38), woodPlankMat);
+    // Climbing Green Ivy Foliage on Arch Stones
+    const ivyMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.7, flatShading: true });
+    [-1.55, 1.55].forEach((ix, idx) => {
+      for (let iv = 0; iv < 6; iv++) {
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.12, 4, 4), ivyMat);
+        leaf.scale.set(1.4, 0.6, 1.2);
+        leaf.position.set(ix + (idx === 0 ? 0.28 : -0.28), 0.6 + iv * 0.45, 0.22);
+        leaf.rotation.set(0.2, (iv % 2 === 0 ? 0.3 : -0.3), (iv % 2 === 0 ? 0.4 : -0.4));
+        archGroup.add(leaf);
+      }
+    });
+
+    // Traditional Stone Garden Pagoda Lanterns flanking Arch Entrance (Warm Glowing Amber)
+    function createStonePagodaLantern(lx, lz) {
+      const lanternGroup = new THREE.Group();
+      lanternGroup.position.set(lx, 0, lz);
+
+      const lStoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85, flatShading: true });
+      const lAmberGlowMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+      const lRoofMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9, flatShading: true });
+
+      // Stepped Stone Pedestal
+      const lBase = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.32, 0.55), lStoneMat);
+      lBase.position.y = 0.16;
+      const lPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.18, 0.42, 6), lStoneMat);
+      lPillar.position.y = 0.53;
+      const lMidPlate = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.12, 0.68), lStoneMat);
+      lMidPlate.position.y = 0.8;
+
+      // Glowing Amber Lantern Chamber
+      const lLightChamber = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.36, 0.4), lAmberGlowMat);
+      lLightChamber.position.y = 1.04;
+
+      // 4 Stone Struts
+      for (let s = 0; s < 4; s++) {
+        const sa = (s / 4) * Math.PI * 2 + Math.PI / 4;
+        const strut = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.38, 0.06), lStoneMat);
+        strut.position.set(Math.cos(sa) * 0.23, 1.04, Math.sin(sa) * 0.23);
+        lanternGroup.add(strut);
+      }
+
+      // Stepped Pagoda Roof
+      const lRoofEaves = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.1, 0.78), lRoofMat);
+      lRoofEaves.position.y = 1.28;
+      const lRoofCone = new THREE.Mesh(new THREE.ConeGeometry(0.48, 0.28, 4), lRoofMat);
+      lRoofCone.rotation.y = Math.PI / 4;
+      lRoofCone.position.y = 1.45;
+      const lFinial = new THREE.Mesh(new THREE.SphereGeometry(0.065, 6, 6), lStoneMat);
+      lFinial.position.y = 1.62;
+
+      // Warm Interior PointLight casting illumination onto path & stone blocks
+      const lLight = new THREE.PointLight(0xfbbf24, 0.85, 4.8);
+      lLight.position.set(0, 1.04, 0);
+
+      lanternGroup.add(lBase, lPillar, lMidPlate, lLightChamber, lRoofEaves, lRoofCone, lFinial, lLight);
+      return lanternGroup;
+    }
+
+    const lanternLeft = createStonePagodaLantern(-2.15, 7.6);
+    const lanternRight = createStonePagodaLantern(2.15, 7.6);
+    archGroup.add(lanternLeft, lanternRight);
+
+    // Wooden Plank Boardwalk Railway Trail with Rounded Border Stones (Matching reference image)
+    const woodPlankMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.75 });
+    const borderStoneMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9, flatShading: true });
+    for (let pl = 0; pl < 9; pl++) {
+      const pz = 7.2 + pl * 0.68;
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.08, 0.42), woodPlankMat);
       plank.position.set(0, 0.04, pz);
+      plank.receiveShadow = true;
       rabbitMeadowGroup.add(plank);
+
+      // Flanking cobblestones along trail border
+      const bStoneL = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24, 1), borderStoneMat);
+      bStoneL.scale.set(1.2, 0.8, 1.1);
+      bStoneL.position.set(-1.42, 0.12, pz);
+      bStoneL.rotation.y = pl * 0.8;
+      const bStoneR = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24, 1), borderStoneMat);
+      bStoneR.scale.set(1.2, 0.8, 1.1);
+      bStoneR.position.set(1.42, 0.12, pz);
+      bStoneR.rotation.y = pl * 1.1;
+      rabbitMeadowGroup.add(bStoneL, bStoneR);
     }
 
     rabbitMeadowGroup.add(archGroup);
@@ -1706,50 +1816,85 @@
     basket.position.set(-1.8, 0.14, -1.6);
     rabbitMeadowGroup.add(basket);
 
-    // E. 3 Cute Wooden Rabbit Cottages / Hutches (Rumah Arnab 3D)
-    function createRabbitCottage(x, z, roofCol = 0x15803d, rot = 0) {
+    // E. 3 Cute Wooden Rabbit Cottages / Hutches (Rumah Arnab 3D - Matching Reference Image)
+    function createRabbitCottage(x, z, roofCol = 0x15803d, rot = 0, wallCol = 0xa16207, hasRabbitBadge = false) {
       const cottage = new THREE.Group();
       cottage.position.set(x, 0, z);
       cottage.rotation.y = rot;
 
-      const wallMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.85 });
-      const roofMat = new THREE.MeshStandardMaterial({ color: roofCol, roughness: 0.7, flatShading: true });
-      const doorMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
+      const wallMat = new THREE.MeshStandardMaterial({ color: wallCol, roughness: 0.65 });
+      const roofMat = new THREE.MeshStandardMaterial({ color: roofCol, roughness: 0.65, flatShading: true });
+      const doorMat = new THREE.MeshStandardMaterial({ color: 0x3d1a04, roughness: 0.9 });
+      const baseWoodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.85 });
 
-      // Base Log Walls
-      const walls = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 1.6), wallMat);
-      walls.position.y = 0.6;
+      // Dark Wood Foundation Plinth
+      const foundation = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.18, 1.8), baseWoodMat);
+      foundation.position.y = 0.09;
+      foundation.castShadow = true;
+      foundation.receiveShadow = true;
+      cottage.add(foundation);
+
+      // Base Cottage Walls
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(1.85, 1.25, 1.65), wallMat);
+      walls.position.y = 0.72;
+      walls.castShadow = true;
+      walls.receiveShadow = true;
       cottage.add(walls);
 
-      // Pitched Wooden Roof
-      const roof = new THREE.Mesh(new THREE.ConeGeometry(1.5, 0.8, 4), roofMat);
+      // Pitched Wooden Roof with Overhang
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(1.55, 0.9, 4), roofMat);
       roof.rotation.y = Math.PI / 4;
-      roof.position.y = 1.6;
-      roof.scale.set(1.2, 1.0, 1.1);
+      roof.position.y = 1.75;
+      roof.scale.set(1.28, 1.05, 1.15);
+      roof.castShadow = true;
+      roof.receiveShadow = true;
       cottage.add(roof);
 
       // Arched Bunny Doorway
-      const door = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.65, 8), doorMat);
-      door.position.set(0, 0.32, 0.81);
+      const door = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.75, 8), doorMat);
+      door.position.set(-0.25, 0.42, 0.84);
       cottage.add(door);
+
+      // White Rabbit Silhouette Badge on Wall (Matching Reference Image)
+      if (hasRabbitBadge) {
+        const badgeCanvas = document.createElement('canvas');
+        badgeCanvas.width = 128;
+        badgeCanvas.height = 128;
+        const bCtx = badgeCanvas.getContext('2d');
+        bCtx.clearRect(0, 0, 128, 128);
+        bCtx.fillStyle = '#ffffff';
+        bCtx.beginPath();
+        bCtx.arc(55, 78, 26, 0, Math.PI * 2); // Body
+        bCtx.arc(78, 52, 18, 0, Math.PI * 2); // Head
+        bCtx.ellipse(72, 22, 6, 18, -0.2, 0, Math.PI * 2); // Ear L
+        bCtx.ellipse(84, 22, 6, 18, 0.2, 0, Math.PI * 2); // Ear R
+        bCtx.fill();
+        const badgeTex = new THREE.CanvasTexture(badgeCanvas);
+        const badgeMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), new THREE.MeshBasicMaterial({ map: badgeTex, transparent: true }));
+        badgeMesh.position.set(0.42, 0.82, 0.84);
+        cottage.add(badgeMesh);
+      }
 
       // Window with Flower Planter Box
       const win = new THREE.Mesh(new THREE.CircleGeometry(0.18, 8), new THREE.MeshBasicMaterial({ color: 0xbae6fd }));
-      win.position.set(0.5, 0.85, 0.81);
-      const fBox = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.15), new THREE.MeshStandardMaterial({ color: 0x78350f }));
-      fBox.position.set(0.5, 0.62, 0.85);
+      win.position.set(0.42, 0.85, 0.84);
+      const fBox = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.15), baseWoodMat);
+      fBox.position.set(0.42, 0.62, 0.88);
       const flw1 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 4, 4), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-      flw1.position.set(0.4, 0.72, 0.88);
+      flw1.position.set(0.32, 0.72, 0.91);
       const flw2 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 4, 4), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
-      flw2.position.set(0.6, 0.72, 0.88);
+      flw2.position.set(0.52, 0.72, 0.91);
       cottage.add(win, fBox, flw1, flw2);
 
       return cottage;
     }
 
-    const cottage1 = createRabbitCottage(7.2, 1.8, 0x15803d, -0.6); // Green roof
-    const cottage2 = createRabbitCottage(-7.5, 1.5, 0xb45309, 0.6); // Terracotta roof
-    const cottage3 = createRabbitCottage(-5.5, -5.8, 0x059669, 0.2); // Emerald roof
+    // Cottage 1: Sunshine Yellow Rabbit House right on the entrance path (Matching reference image)
+    const cottage1 = createRabbitCottage(5.6, 6.8, 0x15803d, -0.35, 0xfacc15, true);
+    // Cottage 2: Terracotta roof cottage on the left
+    const cottage2 = createRabbitCottage(-7.5, 1.5, 0xb45309, 0.6, 0xa16207, false);
+    // Cottage 3: Emerald roof cottage at north-west
+    const cottage3 = createRabbitCottage(-5.5, -5.8, 0x059669, 0.2, 0xa16207, false);
     rabbitMeadowGroup.add(cottage1, cottage2, cottage3);
 
     // F. Trees (Fruit Tree & Pink Blossom Tree, matching reference image)
@@ -1826,54 +1971,155 @@
       rabbitMeadowGroup.add(fl);
     });
 
-    // H. Beautiful 3D Signboard (FASA 8)
+    // H. Premium 4K Solid Opaque 3D Welcome Signboard (Exact Match to Reference Image)
     const signGroup = new THREE.Group();
-    signGroup.position.set(-3.2, 0, 9.8);
-    signGroup.rotation.y = 0.25;
+    signGroup.position.set(-4.0, 0, 9.4);
+    signGroup.rotation.y = 0.14; // Angled gracefully towards player entrance viewpoint
 
-    const signPole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 2.2, 8), wellWoodMat);
-    signPole.position.y = 1.1;
-    const signBoard = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.2, 0.1), wellWoodMat);
-    signBoard.position.y = 1.85;
+    // 1. Two Sturdy Square Timber Support Posts with Pyramid Caps
+    const postTimberMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.85 });
+    const postCapMat = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.8 });
+    const signPostL = new THREE.Mesh(new THREE.BoxGeometry(0.32, 2.7, 0.32), postTimberMat);
+    signPostL.position.set(-1.45, 1.35, 0);
+    signPostL.castShadow = true;
+    const signCapL = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.16, 4), postCapMat);
+    signCapL.rotation.y = Math.PI / 4;
+    signCapL.position.set(-1.45, 2.78, 0);
 
+    const signPostR = new THREE.Mesh(new THREE.BoxGeometry(0.32, 2.7, 0.32), postTimberMat);
+    signPostR.position.set(1.45, 1.35, 0);
+    signPostR.castShadow = true;
+    const signCapR = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.16, 4), postCapMat);
+    signCapR.rotation.y = Math.PI / 4;
+    signCapR.position.set(1.45, 2.78, 0);
+
+    // Bottom crossbeam timber brace
+    const crossBeam = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.22, 0.18), postTimberMat);
+    crossBeam.position.set(0, 0.65, 0);
+    crossBeam.castShadow = true;
+
+    // 2. Solid Heavy Wooden Backing Board (Thick 3D Box - Absolutely Opaque)
+    const boardWoodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.75 });
+    const mainBackBoard = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.9, 0.22), boardWoodMat);
+    mainBackBoard.position.set(0, 1.85, 0.05);
+    mainBackBoard.castShadow = true;
+    mainBackBoard.receiveShadow = true;
+
+    // Raised outer bevel trim frame
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x582a0a, roughness: 0.8 });
+    const frameTop = new THREE.Mesh(new THREE.BoxGeometry(3.56, 0.14, 0.24), frameMat);
+    frameTop.position.set(0, 2.76, 0.06);
+    const frameBot = new THREE.Mesh(new THREE.BoxGeometry(3.56, 0.14, 0.24), frameMat);
+    frameBot.position.set(0, 0.94, 0.06);
+    const frameLeft = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.72, 0.24), frameMat);
+    frameLeft.position.set(-1.71, 1.85, 0.06);
+    const frameRight = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.72, 0.24), frameMat);
+    frameRight.position.set(1.71, 1.85, 0.06);
+
+    // 4 Brass Corner Rivets / Bolts
+    const boltMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.8, roughness: 0.25 });
+    [
+      [-1.52, 2.65], [1.52, 2.65],
+      [-1.52, 1.05], [1.52, 1.05]
+    ].forEach(([bx, by]) => {
+      const bolt = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), boltMat);
+      bolt.position.set(bx, by, 0.18);
+      signGroup.add(bolt);
+    });
+
+    // 3. High-Res 1024x480 Opaque Canvas Plaque Texture (Crisp 4K Quality)
     const mainSignCanvas = document.createElement('canvas');
-    mainSignCanvas.width = 512;
-    mainSignCanvas.height = 240;
+    mainSignCanvas.width = 1024;
+    mainSignCanvas.height = 480;
     const msCtx = mainSignCanvas.getContext('2d');
-    msCtx.fillStyle = '#fef3c7';
-    msCtx.roundRect ? msCtx.roundRect(8, 8, 496, 224, 20) : msCtx.fillRect(8, 8, 496, 224);
+
+    // 100% Solid Opaque Backing (Dark walnut border margin)
+    msCtx.fillStyle = '#78350f';
+    msCtx.fillRect(0, 0, 1024, 480);
+
+    // 100% Solid Opaque Cream Card Plaque
+    msCtx.fillStyle = '#fffdf0';
+    msCtx.roundRect ? msCtx.roundRect(16, 16, 992, 448, 24) : msCtx.fillRect(16, 16, 992, 448);
+    msCtx.fill();
+
+    // Outer and Inner Gold Borders
+    msCtx.strokeStyle = '#d97706';
+    msCtx.lineWidth = 10;
+    msCtx.stroke();
+
+    msCtx.strokeStyle = '#f59e0b';
+    msCtx.lineWidth = 4;
+    msCtx.strokeRect(32, 32, 960, 416);
+
+    // Microscope 🔬 left, DNA 🧬 right, Header
+    msCtx.font = '54px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+    msCtx.fillText('🔬', 110, 115);
+    msCtx.fillText('🧬', 914, 115);
+
+    msCtx.fillStyle = '#451a03';
+    msCtx.font = '900 52px Nunito, sans-serif';
+    msCtx.textAlign = 'center';
+    msCtx.fillText('TAMAN ARNAB 3D', 512, 115);
+
+    // Subtitle
+    msCtx.fillStyle = '#15803d';
+    msCtx.font = '800 36px Nunito, sans-serif';
+    msCtx.fillText('SELAMAT DATANG KE TAMAN ARNAB!', 512, 185);
+
+    // Description text
+    msCtx.fillStyle = '#334155';
+    msCtx.font = '700 26px Nunito, sans-serif';
+    msCtx.fillText('Terokai Arnab Sebenar dalam Bentuk Model 3D Interaktif.', 512, 250);
+
+    // Bottom Ribbon Banner (Zon 1 • Kenali Haiwan • Tingkatan 1 Sains)
+    msCtx.fillStyle = '#f59e0b';
+    msCtx.roundRect ? msCtx.roundRect(120, 310, 784, 80, 20) : msCtx.fillRect(120, 310, 784, 80);
     msCtx.fill();
     msCtx.strokeStyle = '#b45309';
-    msCtx.lineWidth = 8;
+    msCtx.lineWidth = 4;
     msCtx.stroke();
 
     msCtx.fillStyle = '#78350f';
-    msCtx.font = 'bold 30px Nunito, sans-serif';
-    msCtx.textAlign = 'center';
-    msCtx.fillText('🐰 TAMAN ARNAB 3D 🥕', 256, 56);
-
-    msCtx.fillStyle = '#15803d';
-    msCtx.font = 'bold 24px Nunito, sans-serif';
-    msCtx.fillText('SELAMAT DATANG KE TAMAN ARNAB!', 256, 108);
-
-    msCtx.fillStyle = '#64748b';
-    msCtx.font = 'bold 18px Nunito, sans-serif';
-    msCtx.fillText('Temui Arnab Comel dan terokai rahsia sel haiwan.', 256, 156);
-
-    msCtx.fillStyle = '#d97706';
-    msCtx.font = 'bold 16px Nunito, sans-serif';
-    msCtx.fillText('ZON 1 • KSSM TINGKATAN 1 SAINS', 256, 196);
+    msCtx.font = '900 28px Nunito, sans-serif';
+    msCtx.fillText('ZON 1 • KENALI HAIWAN • TINGKATAN 1 SAINS', 512, 360);
 
     const msTex = new THREE.CanvasTexture(mainSignCanvas);
-    const msLabel = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.1), new THREE.MeshBasicMaterial({ map: msTex, side: THREE.DoubleSide }));
-    msLabel.position.set(0, 1.85, 0.06);
+    msTex.needsUpdate = true;
+    const plaqueMat = new THREE.MeshStandardMaterial({
+      map: msTex,
+      roughness: 0.5,
+      metalness: 0.05,
+      transparent: false,
+      opacity: 1.0,
+      depthWrite: true,
+      depthTest: true
+    });
+    const msLabel = new THREE.Mesh(new THREE.PlaneGeometry(3.24, 1.54), plaqueMat);
+    msLabel.position.set(0, 1.85, 0.17); // Snug against front surface
 
-    // Little flowers on sign frame corners
-    const sf1 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 4, 4), flowerRed);
-    sf1.position.set(-1.25, 2.4, 0.07);
-    const sf2 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 4, 4), flowerYellow);
-    sf2.position.set(1.25, 2.4, 0.07);
-    signGroup.add(signPole, signBoard, msLabel, sf1, sf2);
+    // Contact shadow on ground below signboard
+    const shadowGeo = new THREE.CircleGeometry(1.6, 16);
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x052e16, transparent: true, opacity: 0.45 });
+    const contactShadow = new THREE.Mesh(shadowGeo, shadowMat);
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.set(0, 0.02, 0);
+
+    // Large Natural Gray Boulders & Flower Bushes at base of Signboard
+    const signRockMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9, flatShading: true });
+    const sRock1 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 1), signRockMat);
+    sRock1.position.set(-1.2, 0.35, 0.45);
+    const sRock2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.42, 1), signRockMat);
+    sRock2.position.set(1.3, 0.28, 0.42);
+
+    const pinkFlowerMat = new THREE.MeshBasicMaterial({ color: 0xf472b6 });
+    for (let pf = 0; pf < 6; pf++) {
+      const pa = (pf / 6) * Math.PI * 2;
+      const flw = new THREE.Mesh(new THREE.SphereGeometry(0.1, 5, 5), pinkFlowerMat);
+      flw.position.set(-0.8 + Math.cos(pa) * 0.35, 0.25, 0.55 + Math.sin(pa) * 0.35);
+      signGroup.add(flw);
+    }
+
+    signGroup.add(signPostL, signCapL, signPostR, signCapR, crossBeam, mainBackBoard, frameTop, frameBot, frameLeft, frameRight, msLabel, contactShadow, sRock1, sRock2);
     rabbitMeadowGroup.add(signGroup);
 
     // I. 4 Animated Butterflies
@@ -2650,8 +2896,20 @@
     msCtx.fillText('ZON 2 • KSSM TINGKATAN 1 SAINS', 256, 196);
 
     const msTex = new THREE.CanvasTexture(mainSignCanvas);
-    const msLabel = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.1), new THREE.MeshBasicMaterial({ map: msTex, side: THREE.DoubleSide }));
-    msLabel.position.set(0, 1.85, 0.06);
+    msTex.needsUpdate = true;
+    const msLabel = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.4, 1.1),
+      new THREE.MeshStandardMaterial({
+        map: msTex,
+        roughness: 0.6,
+        metalness: 0.05,
+        transparent: false,
+        opacity: 1.0,
+        depthWrite: true,
+        depthTest: true
+      })
+    );
+    msLabel.position.set(0, 1.85, 0.065);
 
     // Decorative leaf corners on sign
     const leafMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
@@ -3398,8 +3656,20 @@
     msCtx.fillText('ZON 3 • KSSM TINGKATAN 1 SAINS', 256, 196);
 
     const msTex = new THREE.CanvasTexture(mainSignCanvas);
-    const msLabel = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.15), new THREE.MeshBasicMaterial({ map: msTex, side: THREE.DoubleSide }));
-    msLabel.position.set(0, 1.85, 0.06);
+    msTex.needsUpdate = true;
+    const msLabel = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.4, 1.15),
+      new THREE.MeshStandardMaterial({
+        map: msTex,
+        roughness: 0.6,
+        metalness: 0.05,
+        transparent: false,
+        opacity: 1.0,
+        depthWrite: true,
+        depthTest: true
+      })
+    );
+    msLabel.position.set(0, 1.85, 0.065);
 
     // Decorative palm leaves at sign corners
     const palmLeafMat = new THREE.MeshBasicMaterial({ color: 0x16a34a });
@@ -3959,9 +4229,25 @@
     sCtx.fillStyle = '#a7f3d0';
     sCtx.fillText('ZON 4: CELL SAFARI SANCTUARY', 256, 96);
 
+    const archBackBoard = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.98, 0.14), new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 }));
+    archBackBoard.position.set(0, 2.7, 0);
+    archGroup.add(archBackBoard);
+
     const signTex = new THREE.CanvasTexture(signCanvas);
-    const signBoard = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.88), new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide }));
-    signBoard.position.set(0, 2.7, 0.05);
+    signTex.needsUpdate = true;
+    const signBoard = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.2, 0.88),
+      new THREE.MeshStandardMaterial({
+        map: signTex,
+        roughness: 0.6,
+        metalness: 0.05,
+        transparent: false,
+        opacity: 1.0,
+        depthWrite: true,
+        depthTest: true
+      })
+    );
+    signBoard.position.set(0, 2.7, 0.075);
     archGroup.add(signBoard);
 
     // Hanging Wicker Flower Baskets on Arch
@@ -5103,8 +5389,20 @@
     ctx.fillText('Temui Musang Pintar & selesaikan cabaran!', 192, 96);
 
     const signTex = new THREE.CanvasTexture(canvas);
-    const signFace = new THREE.Mesh(new THREE.PlaneGeometry(1.95, 0.76), new THREE.MeshBasicMaterial({ map: signTex }));
-    signFace.position.set(0, 1.62, 0.08);
+    signTex.needsUpdate = true;
+    const signFace = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.95, 0.76),
+      new THREE.MeshStandardMaterial({
+        map: signTex,
+        roughness: 0.6,
+        metalness: 0.05,
+        transparent: false,
+        opacity: 1.0,
+        depthWrite: true,
+        depthTest: true
+      })
+    );
+    signFace.position.set(0, 1.62, 0.085);
     signGroup.add(signFace);
 
     enchantedFoxForestGroup.add(signGroup);
@@ -6306,7 +6604,8 @@
       totalDeerCount: decorativeDeers.length + (animalMeshes[1] ? 1 : 0),
       totalRabbitCount: decorativeRabbits.length + (animalMeshes[0] ? 1 : 0),
       totalBirdCount: decorativeBirds.length + (animalMeshes[3] ? 1 : 0),
-      graphicsQuality: renderer ? (renderer.shadowMap.enabled ? 'Stylized HD (Soft Shadows)' : 'Standard') : 'None',
+      graphicsQuality: renderer ? (renderer.shadowMap.enabled ? (renderer.shadowMap.type === THREE.PCFSoftShadowMap ? 'Stylized HD 4K (Soft Shadows)' : 'Medium (Basic Shadows)') : 'Low (Performance)') : 'None',
+      resolutionPreset: currentQualityMode,
       toneMapping: renderer ? 'ACESFilmicToneMapping' : 'None',
       foxForest: !!enchantedFoxForestGroup,
       totalFoxCount: decorativeFoxes.length + (animalMeshes[4] ? 1 : 0)
