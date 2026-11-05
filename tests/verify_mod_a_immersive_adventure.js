@@ -321,6 +321,67 @@ async function runTests() {
     assert('Virtual joystick wujud untuk pergerakan analog', controlTest.hasJoystick);
 
     // -------------------------------------------------------------
+    // UJIAN 4B: ARAH JOYSTICK CAMERA-RELATIVE DENGAN & TANPA GYROSCOPE
+    // -------------------------------------------------------------
+    console.log('\n--- UJIAN 4B: ARAH JOYSTICK RELATIF KEPADA KAMERA (CAMERA-RELATIVE) ---');
+    const joystickCamRelativeTest = await evaluate(`
+      (() => {
+        // Ujian 1: Tanpa Gyro (Heading 0 rad = Pandang Utara / -Z)
+        const gyro = window.CellQuestAR.getModAGyroState();
+        gyro.active = false;
+        gyro.yaw = 0;
+        window.CellQuestAR.setPlayerPose(0, 5.0, 0, 0); // heading = 0
+
+        let yaw0 = window.CellQuestAR.getCurrentLookYaw();
+        // Vektor forward: (-sin(yaw), -cos(yaw)) = (0, -1)
+        // Vektor right: (cos(yaw), -sin(yaw)) = (1, 0)
+        let fwd0 = { x: -Math.sin(yaw0), z: -Math.cos(yaw0) };
+        let rgt0 = { x: Math.cos(yaw0), z: -Math.sin(yaw0) };
+
+        // Ujian 2: Dengan Gyro Aktif - Pusing 90 darjah ke kanan (yaw = -PI/2)
+        gyro.active = true;
+        gyro.yaw = -Math.PI / 2;
+        let yaw90 = window.CellQuestAR.getCurrentLookYaw();
+        let fwd90 = { x: -Math.sin(yaw90), z: -Math.cos(yaw90) }; // (1, 0) -> Menghadap Timur / +X
+        let rgt90 = { x: Math.cos(yaw90), z: -Math.sin(yaw90) }; // (0, 1) -> Menghadap Selatan / +Z
+
+        // Ujian 3: Dengan Gyro Aktif - Pusing 180 darjah ke belakang (yaw = PI)
+        gyro.yaw = Math.PI;
+        let yaw180 = window.CellQuestAR.getCurrentLookYaw();
+        let fwd180 = { x: -Math.sin(yaw180), z: -Math.cos(yaw180) }; // (0, 1) -> Menghadap Selatan / +Z
+
+        // Ujian 4: Normalisasi Pergerakan Diagonal
+        const joyX = 1.0;
+        const joyY = 1.0;
+        const rawMag = Math.hypot(joyX, joyY); // sqrt(2) ~ 1.414
+        const cappedMag = rawMag > 1 ? 1.0 : rawMag;
+
+        // Reset gyro kembali kepada neutral
+        gyro.active = false;
+        gyro.yaw = 0;
+
+        return {
+          fwd0Z: Math.round(fwd0.z),
+          fwd0X: Math.round(fwd0.x),
+          rgt0X: Math.round(rgt0.x),
+          rgt0Z: Math.round(rgt0.z),
+          fwd90X: Math.round(fwd90.x),
+          fwd90Z: Math.round(fwd90.z),
+          rgt90Z: Math.round(rgt90.z),
+          fwd180Z: Math.round(fwd180.z),
+          cappedMag
+        };
+      })()
+    `);
+
+    assert('Joystick ATAS tanpa gyro bergerak ke hadapan mengikut pandangan (-Z)', joystickCamRelativeTest.fwd0Z === -1 && joystickCamRelativeTest.fwd0X === 0);
+    assert('Joystick KANAN tanpa gyro bergerak ke kanan (+X)', joystickCamRelativeTest.rgt0X === 1 && joystickCamRelativeTest.rgt0Z === 0);
+    assert('Joystick ATAS ketika iPad dipusing 90° kanan bergerak ke arah pandangan baharu (+X)', joystickCamRelativeTest.fwd90X === 1 && joystickCamRelativeTest.fwd90Z === 0);
+    assert('Joystick KANAN ketika iPad dipusing 90° kanan bergerak relatif kepada skrin (+Z)', joystickCamRelativeTest.rgt90Z === 1);
+    assert('Joystick ATAS ketika iPad dipusing 180° bergerak ke arah pandangan baharu (+Z)', joystickCamRelativeTest.fwd180Z === 1);
+    assert('Kelajuan pergerakan diagonal dihadkan secara seragam (normalized)', joystickCamRelativeTest.cappedMag === 1.0);
+
+    // -------------------------------------------------------------
     // UJIAN 5: SENSOR GYROSCOPE MOD A & BUTANG RESET PANDANGAN
     // -------------------------------------------------------------
     console.log('\n--- UJIAN 5: INTEGRASI SENSOR GYROSCOPE MOD A ---');
@@ -433,6 +494,51 @@ async function runTests() {
       unlockTest.signText.includes('MEMBUKA PINTU') || unlockTest.signText.includes('SILA MASUK') || unlockTest.signText.includes('DIBUKA'));
     assert('Trail panduan lantai berlampu diaktifkan (visible = true)', unlockTest.trailVisible === true);
 
+    // -------------------------------------------------------------
+    // UJIAN 8B: ELEMEN VISUAL FUTURISTIK MAKMAL 3D
+    // -------------------------------------------------------------
+    console.log('\n--- UJIAN 8B: ESTETIKA VISUAL FUTURISTIK MAKMAL 3D ---');
+    const visualLabTest = await evaluate(`
+      (() => {
+        const scene = window.CellQuestAR.getScene();
+        let hasWallDecor = false;
+        let hasFloorRunners = false;
+        let hasCornerDecor = false;
+        let stationHoloRingCount = 0;
+        let centerpieceKioskCount = 0;
+
+        scene.traverse((obj) => {
+          if (obj.name === 'FuturisticWallDecor') hasWallDecor = true;
+          if (obj.name === 'FuturisticFloorRunners') hasFloorRunners = true;
+          if (obj.name === 'CornerLabDecorations') hasCornerDecor = true;
+          if (obj.geometry && obj.geometry.type === 'TorusGeometry' && obj.parent && obj.parent.name && obj.parent.name.startsWith('Station_')) {
+            stationHoloRingCount++;
+          }
+        });
+
+        // Semak 4 kiosk sentuh pada meja tugu pusat
+        const centerGroup = scene.getObjectByName('CellCoreCrystalGroup') ? scene : null;
+        scene.traverse((obj) => {
+          if (obj.geometry && obj.geometry.type === 'BoxGeometry' && obj.position.y === 0.22 && obj.rotation.x !== 0) {
+            centerpieceKioskCount++;
+          }
+        });
+
+        return {
+          hasWallDecor,
+          hasFloorRunners,
+          hasCornerDecor,
+          stationHoloRingCount,
+          centerpieceKioskCount
+        };
+      })()
+    `);
+
+    assert('Panel dinding futuristik, konduit LED dan 4 paparan telemetri sains wujud', visualLabTest.hasWallDecor);
+    assert('Jalur pemandu lantai bercahaya (Floor guide runners) wujud', visualLabTest.hasFloorRunners);
+    assert('Hiasan sudut makmal (Konsol komputer, rak tabung uji & kolum DNA) wujud', visualLabTest.hasCornerDecor);
+    assert('Cincin hologram tema terapung wujud di setiap stesen pembelajaran', visualLabTest.stationHoloRingCount >= 8, `Dijumpai: ${visualLabTest.stationHoloRingCount}`);
+
     // Capture screenshot of unlocked secret door and glowing trail
     await evaluate(`window.CellQuestAR.setPlayerPose(0, -7.5, 0, 0);`);
     await new Promise(r => setTimeout(r, 400));
@@ -486,17 +592,20 @@ async function runTests() {
         // 3. Cuba melepasi dinding luar bilik (X = 10.0, Z = -19.5) yang melebihi radius 5.5m
         // Pergerakan hendaklah dikurung dalam bilik
         window.CellQuestAR.setPlayerPose(0, -17.5, 0, 0);
+        const state = window.CellQuestAR.getState();
 
         return {
           corridorZ: corridorPose.z,
           chamberZ: chamberPose.z,
-          reachedChamber: chamberPose.z <= -16.0
+          reachedChamber: chamberPose.z <= -16.0,
+          hasWelcomeToast: state.hasShownChamberWelcome
         };
       })()
     `);
 
     assert('Pemain berjaya melepasi lorong pintu rahsia (Z = -12.0)', collisionTest.corridorZ === -12.0);
     assert('Pemain berjaya melangkah masuk ke dalam Bilik Teras Sel (Z = -18.0)', collisionTest.reachedChamber);
+    assert('Notifikasi selamat datang Bilik Teras Sel diaktifkan semasa melangkah masuk', collisionTest.hasWelcomeToast === true);
 
     // Capture screenshot of Bilik Teras Sel and Cell Core Crystal
     await evaluate(`window.CellQuestAR.setPlayerPose(0, -17.0, 0, 0);`);

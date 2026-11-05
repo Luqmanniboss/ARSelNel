@@ -263,6 +263,7 @@
     cellCoreChamberUnlocked: false,
     nearCellCoreCrystal: false,
     nearSecretDoor: false,
+    hasShownChamberWelcome: false,
     // Misi Akhir: Treasure Hunt ARSELNel State
     treasureHuntUnlocked: false,
     treasureHuntActive: false,
@@ -1128,6 +1129,15 @@
     // 6. Pameran Tambahan: Retikulum Endoplasma (Supplementary Exhibit using endoplasmic_reticulum.glb)
     buildSupplementaryERExhibit(labGroup);
 
+    // 7. Futuristic Wall Panels, LED Conduits & Telemetry Displays
+    buildFuturisticWallDecorations(labGroup);
+
+    // 8. Glowing Floor Guide Runners & Station Connectors
+    buildFuturisticFloorRunners(labGroup);
+
+    // 9. Corner Sci-Fi Lab Equipment & Holographic DNA Columns
+    buildCornerLabDecorations(labGroup);
+
     labEnvironmentGroup = labGroup;
     if (walkthroughStationsGroup && walkthroughStationsGroup.parent !== labGroup) {
       labGroup.add(walkthroughStationsGroup);
@@ -1838,6 +1848,31 @@
     rim.position.y = 0.92;
     centerGroup.add(rim);
 
+    // 4 Angled Interactive Touch Kiosk Terminals around table edge (referencing science lab kiosks)
+    [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4].forEach((angle, kIdx) => {
+      const kioskGroup = new THREE.Group();
+      const kDist = 2.15;
+      kioskGroup.position.set(Math.cos(angle) * kDist, 0.92, Math.sin(angle) * kDist);
+      kioskGroup.rotation.y = angle + Math.PI / 2;
+
+      const kPed = new THREE.Mesh(
+        new THREE.BoxGeometry(0.35, 0.12, 0.25),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.2 })
+      );
+      kPed.position.y = 0.06;
+      kioskGroup.add(kPed);
+
+      const kScreen = new THREE.Mesh(
+        new THREE.BoxGeometry(0.45, 0.28, 0.04),
+        new THREE.MeshBasicMaterial({ color: kIdx % 2 === 0 ? 0x22d3ee : 0x38bdf8 })
+      );
+      kScreen.position.set(0, 0.22, 0);
+      kScreen.rotation.x = -Math.PI / 4;
+      kioskGroup.add(kScreen);
+
+      centerGroup.add(kioskGroup);
+    });
+
     // Hologram Emitter Platform in Center of table
     const emitterGeo = new THREE.CylinderGeometry(1.0, 1.15, 0.16, 24);
     const emitterMat = new THREE.MeshStandardMaterial({ color: 0x091720, metalness: 0.8, roughness: 0.2 });
@@ -2069,6 +2104,27 @@
       flask.position.set(Math.cos(angle) * 1.6, 1.08, Math.sin(angle) * 1.6);
       parent.add(flask);
     });
+
+    // Colorful Test Tube Rack on central table
+    const ttRack = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.14, 0.14),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.5, roughness: 0.3 })
+    );
+    ttRack.position.set(-1.4, 0.98, 0.6);
+    ttRack.rotation.y = Math.PI / 4;
+    parent.add(ttRack);
+
+    const ttColors = [0x22c55e, 0x06b6d4, 0xec4899, 0xf59e0b];
+    ttColors.forEach((col, idx) => {
+      const tube = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.022, 0.022, 0.24, 8),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.85 })
+      );
+      const angle = Math.PI / 4;
+      const offDist = -0.18 + idx * 0.12;
+      tube.position.set(-1.4 + offDist * Math.cos(angle), 1.08, 0.6 - offDist * Math.sin(angle));
+      parent.add(tube);
+    });
   }
 
   // Wall posters: KSSM Animal Cell and Plant Cell
@@ -2092,6 +2148,288 @@
     plantPoster.position.set(5, 2.8, 10.7);
     plantPoster.rotation.y = Math.PI;
     parent.add(plantPoster);
+  }
+
+  // Futuristic Wall Panels, Glowing LED Conduits, and Science Telemetry Displays
+  function buildFuturisticWallDecorations(parent) {
+    const wallDecorGroup = new THREE.Group();
+    wallDecorGroup.name = 'FuturisticWallDecor';
+
+    // 1. Dual Glowing Neon Conduit Lines running horizontally along walls
+    // Upper line (Lavender / Purple at Y = 4.2)
+    const upperTrimMat = new THREE.MeshBasicMaterial({ color: 0xc084fc });
+    const trimLeftUpper = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 21.6), upperTrimMat);
+    trimLeftUpper.position.set(-8.78, 4.2, 0);
+    wallDecorGroup.add(trimLeftUpper);
+
+    const trimRightUpper = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 21.6), upperTrimMat);
+    trimRightUpper.position.set(8.78, 4.2, 0);
+    wallDecorGroup.add(trimRightUpper);
+
+    // Mid line (Cyan / Turquoise at Y = 2.4)
+    const midTrimMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee });
+    const trimLeftMid = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 21.6), midTrimMat);
+    trimLeftMid.position.set(-8.78, 2.4, 0);
+    wallDecorGroup.add(trimLeftMid);
+
+    const trimRightMid = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 21.6), midTrimMat);
+    trimRightMid.position.set(8.78, 2.4, 0);
+    wallDecorGroup.add(trimRightMid);
+
+    // 2. Vertical LED Accent Pillars between station bays (at Z = -8, -4, 0, 4, 8)
+    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.2 });
+    [-8, -4, 0, 4, 8].forEach(z => {
+      // Left Wall Pillars
+      const pL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 4.6, 0.35), pillarMat);
+      pL.position.set(-8.82, 2.5, z);
+      wallDecorGroup.add(pL);
+
+      const pLightL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 4.4, 0.1), (z % 8 === 0 ? upperTrimMat : midTrimMat));
+      pLightL.position.set(-8.72, 2.5, z);
+      wallDecorGroup.add(pLightL);
+
+      // Right Wall Pillars
+      const pR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 4.6, 0.35), pillarMat);
+      pR.position.set(8.82, 2.5, z);
+      wallDecorGroup.add(pR);
+
+      const pLightR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 4.4, 0.1), (z % 8 === 0 ? upperTrimMat : midTrimMat));
+      pLightR.position.set(8.72, 2.5, z);
+      wallDecorGroup.add(pLightR);
+    });
+
+    // 3. Four Science Wall Displays on side walls
+    const display1 = createPosterPlane(
+      '🧬 ANALISIS STRUKTUR DNA',
+      ['• Heliks ganda di dalam nukleus', '• Mengawal pewarisan genetik sel', '• Menentukan sintesis protein'],
+      '#8b5cf6'
+    );
+    display1.scale.set(0.72, 0.72, 1);
+    display1.position.set(-8.72, 3.2, 4);
+    display1.rotation.y = Math.PI / 2;
+    wallDecorGroup.add(display1);
+
+    const display2 = createPosterPlane(
+      '⚡ PENJANAAN TENAGA ATP',
+      ['• Mitokondrion: Pusat Tenaga Sel', '• Respirasi sel menghasilkan tenaga', '• Membebaskan molekul ATP'],
+      '#f97316'
+    );
+    display2.scale.set(0.72, 0.72, 1);
+    display2.position.set(-8.72, 3.2, -4);
+    display2.rotation.y = Math.PI / 2;
+    wallDecorGroup.add(display2);
+
+    const display3 = createPosterPlane(
+      '🌿 FOTOSINTESIS KLOROPLAS',
+      ['• Klorofil menyerap cahaya suria', '• Karbon dioksida + Air -> Glukosa', '• Membebaskan oksigen ke udara'],
+      '#22c55e'
+    );
+    display3.scale.set(0.72, 0.72, 1);
+    display3.position.set(8.72, 3.2, -4);
+    display3.rotation.y = -Math.PI / 2;
+    wallDecorGroup.add(display3);
+
+    const display4 = createPosterPlane(
+      '🛡️ MEMBRAN & TEKANAN TURGOR',
+      ['• Membran sel bersifat separa telap', '• Vakuol besar mengekalkan kesegahan', '• Dinding sel memberi sokongan'],
+      '#06b6d4'
+    );
+    display4.scale.set(0.72, 0.72, 1);
+    display4.position.set(8.72, 3.2, 4);
+    display4.rotation.y = -Math.PI / 2;
+    wallDecorGroup.add(display4);
+
+    parent.add(wallDecorGroup);
+  }
+
+  // Glowing Cyan & Violet Floor Guide Lines & Station Connectors
+  function buildFuturisticFloorRunners(parent) {
+    const floorRunnersGroup = new THREE.Group();
+    floorRunnersGroup.name = 'FuturisticFloorRunners';
+
+    const runnerMat = new THREE.MeshBasicMaterial({
+      color: 0x22d3ee,
+      transparent: true,
+      opacity: 0.45
+    });
+    const crossMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.35
+    });
+
+    // Left and right main walkway runners (running along Z from -8.5 to 8.5 at X = -5.0 and X = 5.0)
+    const runnerL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.012, 17.0), runnerMat);
+    runnerL.position.set(-5.0, 0.015, 0);
+    floorRunnersGroup.add(runnerL);
+
+    const runnerR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.012, 17.0), runnerMat);
+    runnerR.position.set(5.0, 0.015, 0);
+    floorRunnersGroup.add(runnerR);
+
+    // Cross connectors leading to station rows at Z = -6, -2, 2, 6
+    [-6, -2, 2, 6].forEach(z => {
+      // Line from center corridor to left station
+      const branchL = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.012, 0.035), crossMat);
+      branchL.position.set(-6.15, 0.015, z);
+      floorRunnersGroup.add(branchL);
+
+      // Line from center corridor to right station
+      const branchR = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.012, 0.035), crossMat);
+      branchR.position.set(6.15, 0.015, z);
+      floorRunnersGroup.add(branchR);
+
+      // Chevrons pointing towards stations
+      const arrowGeo = new THREE.ConeGeometry(0.12, 0.22, 3);
+      const arrL = new THREE.Mesh(arrowGeo, runnerMat);
+      arrL.rotation.z = Math.PI / 2;
+      arrL.rotation.x = -Math.PI / 2;
+      arrL.position.set(-6.0, 0.018, z);
+      floorRunnersGroup.add(arrL);
+
+      const arrR = new THREE.Mesh(arrowGeo, runnerMat);
+      arrR.rotation.z = -Math.PI / 2;
+      arrR.rotation.x = -Math.PI / 2;
+      arrR.position.set(6.0, 0.018, z);
+      floorRunnersGroup.add(arrR);
+    });
+
+    parent.add(floorRunnersGroup);
+  }
+
+  // Corner Sci-Fi Lab Equipment: Computer Console, DNA Pillars & Secondary Workbench
+  function buildCornerLabDecorations(parent) {
+    const cornerGroup = new THREE.Group();
+    cornerGroup.name = 'CornerLabDecorations';
+
+    // 1. Futuristic Computer Server Console (Back-Left Corner: X = -6.8, Z = 9.2)
+    const consoleGroup = new THREE.Group();
+    consoleGroup.position.set(-6.8, 0, 9.2);
+    consoleGroup.rotation.y = Math.PI / 4;
+
+    const deskMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.7 });
+    const desk = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.85, 0.8), deskMat);
+    desk.position.y = 0.425;
+    consoleGroup.add(desk);
+
+    // Glowing Cyan Desk Trim
+    const deskTrim = new THREE.Mesh(
+      new THREE.BoxGeometry(1.82, 0.04, 0.82),
+      new THREE.MeshBasicMaterial({ color: 0x22d3ee })
+    );
+    deskTrim.position.y = 0.85;
+    consoleGroup.add(deskTrim);
+
+    // Curved Sci-Fi Monitor Screen
+    const screenMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+    const screen = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16, 1, true, -Math.PI / 6, Math.PI / 3), screenMat);
+    screen.position.set(0, 1.15, -0.15);
+    screen.rotation.y = Math.PI;
+    consoleGroup.add(screen);
+
+    // Keyboard & Server Lights
+    const kb = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.02, 0.3), new THREE.MeshBasicMaterial({ color: 0x334155 }));
+    kb.position.set(0, 0.86, 0.15);
+    consoleGroup.add(kb);
+
+    cornerGroup.add(consoleGroup);
+
+    // 2. Secondary Science Workbench (Back-Right Corner: X = 6.8, Z = 9.2)
+    const benchGroup = new THREE.Group();
+    benchGroup.position.set(6.8, 0, 9.2);
+    benchGroup.rotation.y = -Math.PI / 4;
+
+    const bench = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.85, 0.8), deskMat);
+    bench.position.y = 0.425;
+    benchGroup.add(bench);
+
+    const benchTrim = new THREE.Mesh(
+      new THREE.BoxGeometry(1.82, 0.04, 0.82),
+      new THREE.MeshBasicMaterial({ color: 0xa855f7 })
+    );
+    benchTrim.position.y = 0.85;
+    benchGroup.add(benchTrim);
+
+    // Test Tube Rack on bench
+    const rackMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+    const rack = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.22, 0.18), rackMat);
+    rack.position.set(0, 0.96, 0);
+    benchGroup.add(rack);
+
+    const ttColors = [0x22c55e, 0x06b6d4, 0xec4899, 0xf59e0b];
+    ttColors.forEach((c, idx) => {
+      const tube = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.025, 0.025, 0.28, 8),
+        new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.85 })
+      );
+      tube.position.set(-0.2 + idx * 0.13, 1.05, 0);
+      benchGroup.add(tube);
+    });
+
+    cornerGroup.add(benchGroup);
+
+    // 3. Two Decorative Rotating DNA Hologram Columns in Front Corners (X = -7.5, Z = -9.2 and X = 7.5, Z = -9.2)
+    const createDnaColumn = (x, z) => {
+      const dnaGroup = new THREE.Group();
+      dnaGroup.position.set(x, 0, z);
+
+      // Base & Top Pedestal Caps
+      const capMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.2 });
+      const baseCap = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 0.25, 16), capMat);
+      baseCap.position.y = 0.125;
+      dnaGroup.add(baseCap);
+
+      const topCap = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.45, 0.25, 16), capMat);
+      topCap.position.y = 4.75;
+      dnaGroup.add(topCap);
+
+      // Glass Enclosure Cylinder
+      const glass = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.42, 4.4, 16, 1, true),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+      );
+      glass.position.y = 2.45;
+      dnaGroup.add(glass);
+
+      // Rotating Helix Rungs inside
+      const helixGroup = new THREE.Group();
+      helixGroup.position.y = 0.4;
+      const rungCount = 14;
+      const rungColors = [0x22c55e, 0x38bdf8, 0xa855f7, 0xf43f5e];
+      for (let r = 0; r < rungCount; r++) {
+        const rungMat = new THREE.MeshBasicMaterial({ color: rungColors[r % rungColors.length] });
+        const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.52, 6), rungMat);
+        const yPos = 0.25 + (r * 0.26);
+        const rotY = (r * 0.45);
+        rung.rotation.z = Math.PI / 2;
+        rung.rotation.y = rotY;
+        rung.position.set(0, yPos, 0);
+        helixGroup.add(rung);
+
+        const nodeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const nodeL = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 8), nodeMat);
+        nodeL.position.set(Math.cos(rotY) * 0.26, yPos, Math.sin(rotY) * 0.26);
+        helixGroup.add(nodeL);
+
+        const nodeR = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 8), nodeMat);
+        nodeR.position.set(-Math.cos(rotY) * 0.26, yPos, -Math.sin(rotY) * 0.26);
+        helixGroup.add(nodeR);
+      }
+      dnaGroup.add(helixGroup);
+
+      animatedObjects.push({
+        update(t) {
+          helixGroup.rotation.y = t * 0.75;
+        }
+      });
+
+      return dnaGroup;
+    };
+
+    cornerGroup.add(createDnaColumn(-7.5, -9.2));
+    cornerGroup.add(createDnaColumn(7.5, -9.2));
+
+    parent.add(cornerGroup);
   }
 
   // ==============================================================================
@@ -3138,6 +3476,20 @@
       halo.position.set(0, 0.02, 0.6);
       stnGroup.add(halo);
 
+      // Rotating Holographic Theme Ring hovering on the display plinth below the organelle
+      const stnHoloRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.52, 0.018, 8, 32),
+        new THREE.MeshBasicMaterial({
+          color: stn.colorHex,
+          transparent: true,
+          opacity: 0.75,
+          side: THREE.DoubleSide
+        })
+      );
+      stnHoloRing.rotation.x = Math.PI / 2;
+      stnHoloRing.position.set(0, 1.02, 0.16);
+      stnGroup.add(stnHoloRing);
+
       // Generous invisible raycast collider box around the organelle model & kiosk top for effortless click/tap on iPad/desktop
       const stationHitBox = new THREE.Mesh(
         new THREE.BoxGeometry(1.85, 1.45, 1.25),
@@ -3187,6 +3539,7 @@
           }
           halo.material.opacity = isNearby ? (0.85 + Math.sin(t * 4) * 0.15) : 0.55;
           badgeBeacon.rotation.y = t * 1.2;
+          stnHoloRing.rotation.z = t * 0.9;
         }
       });
 
@@ -4551,11 +4904,18 @@
         (DOM.lab3dCrystalVictoryModal && DOM.lab3dCrystalVictoryModal.classList.contains('open'))) return;
 
     // In Three.js standard coordinates, the camera looks down -Z when rotY = 0.
-    // Horizontal Forward Unit Vector (where the camera is looking):
-    const forwardX = -Math.sin(player.rotY);
-    const forwardZ = -Math.cos(player.rotY);
-    const rightX = Math.cos(player.rotY);
-    const rightZ = -Math.sin(player.rotY);
+    // CAMERA-RELATIVE MOVEMENT:
+    // Compute the actual horizontal look heading (yaw), blending player.rotY with
+    // modAGyro.yaw when device orientation / gyroscope is active on iPad or mobile.
+    let currentLookYaw = player.rotY;
+    if (State.mode === '3d' && modAGyro.active) {
+      currentLookYaw += modAGyro.yaw;
+    }
+
+    const forwardX = -Math.sin(currentLookYaw);
+    const forwardZ = -Math.cos(currentLookYaw);
+    const rightX = Math.cos(currentLookYaw);
+    const rightZ = -Math.sin(currentLookYaw);
 
     let inputFwd = 0;
     let inputStr = 0;
@@ -4608,6 +4968,11 @@
           candidateX = Math.max(-1.7, Math.min(1.7, candidateX));
         } else {
           // Di dalam Bilik Teras Sel (Pusat bilik oktagon: X = 0, Z = -19.0)
+          if (candidateZ <= -14.8 && !State.hasShownChamberWelcome) {
+            State.hasShownChamberWelcome = true;
+            alertToast('✨ SELAMAT DATANG KE BILIK TERAS SEL!\nAnda telah berjaya membuka bilik rahsia. Aktifkan kristal tenaga untuk menyelesaikan misi!');
+          }
+
           const chamberCenterZ = -19.0;
           const distToChamberCenter = Math.hypot(candidateX, candidateZ - chamberCenterZ);
           if (distToChamberCenter > 5.5) {
@@ -10857,6 +11222,8 @@
     handlePlayerInteract,
     updateSecretDoorSign,
     getModAGyroState: () => modAGyro,
+    getJoystickState: () => joystickState,
+    getCurrentLookYaw: () => player.rotY + (State.mode === '3d' && modAGyro.active ? modAGyro.yaw : 0),
     getCellCoreCrystalGroup: () => cellCoreCrystalGroup,
     getFloorGuideTrailGroup: () => floorGuideTrailGroup,
     getExitDoorMeshes: () => exitDoorMeshes,
@@ -10877,6 +11244,10 @@
       player.z = z;
       player.rotY = rotY;
       player.pitch = pitch;
+      if (z <= -14.8 && !State.hasShownChamberWelcome) {
+        State.hasShownChamberWelcome = true;
+        alertToast('✨ SELAMAT DATANG KE BILIK TERAS SEL!\nAnda telah berjaya membuka bilik rahsia. Aktifkan kristal tenaga untuk menyelesaikan misi!');
+      }
       camera.position.set(player.x, player.y, player.z);
       camera.rotation.set(player.pitch, player.rotY, 0, 'YXZ');
     },
