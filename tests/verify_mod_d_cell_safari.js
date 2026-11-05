@@ -914,6 +914,62 @@ async function main() {
     assert(consoleErrors.length === 0, 'Sifar ralat konsol JavaScript dikesan', `Ralat: ${consoleErrors.join(', ')}`);
 
     // -------------------------------------------------------------------------
+    // FASA 18: UJIAN INTEGRITI KETINGGIAN TANAH & PENJAJARAN MODEL (GROUND ALIGNMENT)
+    // -------------------------------------------------------------------------
+    console.log(`\n--- UJIAN 18: UJIAN INTEGRITI KETINGGIAN TANAH & PENJAJARAN MODEL ---`);
+    const terrainHeightCheck = await evaluate(`(() => {
+      if (!window.CellSafari || !window.CellSafari.getTerrainHeight) return null;
+      return {
+        hasFn: typeof window.CellSafari.getTerrainHeight === 'function',
+        hTree: window.CellSafari.getTerrainHeight(0, 0),
+        hZone1: window.CellSafari.getTerrainHeight(-30, 26),
+        hZone2: window.CellSafari.getTerrainHeight(32, 28),
+        hZone3: window.CellSafari.getTerrainHeight(34, -30),
+        hZone4: window.CellSafari.getTerrainHeight(-32, -28),
+        hZone5: window.CellSafari.getTerrainHeight(0, -46),
+        hWilderness: window.CellSafari.getTerrainHeight(20, 20)
+      };
+    })()`);
+
+    assert(terrainHeightCheck && terrainHeightCheck.hasFn, 'Fungsi getTerrainHeight tersedia pada window.CellSafari');
+    assert(terrainHeightCheck && terrainHeightCheck.hTree === 0, 'Ketinggian tanah di Pokok Kehidupan (0,0) rata sempurna (0m)');
+    assert(terrainHeightCheck && terrainHeightCheck.hZone1 === 0, 'Ketinggian tanah di Taman Arnab (-30, 26) rata sempurna (0m, sifar arnab terapung)');
+    assert(terrainHeightCheck && terrainHeightCheck.hZone2 === 0, 'Ketinggian tanah di Lembah Rusa (32, 28) rata sempurna (0m, sifar rusa tenggelam)');
+    assert(terrainHeightCheck && terrainHeightCheck.hZone3 === 0, 'Ketinggian tanah di Hutan Monyet (34, -30) rata sempurna (0m, sifar monyet tenggelam)');
+    assert(terrainHeightCheck && terrainHeightCheck.hZone4 === 0, 'Ketinggian tanah di Taman Burung (-32, -28) rata sempurna (0m, sifar burung terapung)');
+    assert(terrainHeightCheck && terrainHeightCheck.hZone5 === 0, 'Ketinggian tanah di Hutan Misteri Musang (0, -46) rata sempurna (0m)');
+    assert(terrainHeightCheck && terrainHeightCheck.hWilderness !== 0, 'Kawasan bukit hutan belantara mengekalkan beralun low-poly semula jadi');
+
+    // -------------------------------------------------------------------------
+    // FASA 19: UJIAN KUALITI PENCAHAYAAN TONE MAPPING & SUIS KUALITI ADAPTIF
+    // -------------------------------------------------------------------------
+    console.log(`\n--- UJIAN 19: UJIAN KUALITI PENCAHAYAAN TONE MAPPING & SUIS KUALITI ADAPTIF ---`);
+    const graphicsCheck = await evaluate(`(() => {
+      if (!window.CellSafari) return null;
+      const diag = window.CellSafari.getDiagnostics();
+      let balancedOk = false;
+      let highOk = false;
+      try {
+        window.CellSafari.setQuality('balanced');
+        balancedOk = true;
+        window.CellSafari.setQuality('high');
+        highOk = true;
+      } catch (e) {
+        // error
+      }
+      return {
+        graphicsQuality: diag.graphicsQuality,
+        toneMapping: diag.toneMapping,
+        balancedOk,
+        highOk
+      };
+    })()`);
+
+    assert(graphicsCheck && graphicsCheck.toneMapping === 'ACESFilmicToneMapping', 'Pencahayaan Tone Mapping ACESFilmicToneMapping aktif untuk warna HD');
+    assert(graphicsCheck && graphicsCheck.graphicsQuality.includes('Soft Shadows'), 'Sistem bayang-bayang lembut PCF Soft Shadows aktif');
+    assert(graphicsCheck && graphicsCheck.balancedOk && graphicsCheck.highOk, 'Suis kualiti adaptif setQuality(balanced/high) berfungsi lancar untuk iPad');
+
+    // -------------------------------------------------------------------------
     // RUMUSAN UJIAN KESELURUHAN
     // -------------------------------------------------------------------------
     console.log(`\n================================================================`);

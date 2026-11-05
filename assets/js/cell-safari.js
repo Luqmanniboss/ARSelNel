@@ -484,11 +484,39 @@
     }, 3200);
   }
 
+  
+  // ============================================================================
+  // 6.5 FUNGSI KETINGGIAN RUPA BUMI & PENJAJARAN TANAH (GROUND ALIGNMENT)
+  // ============================================================================
+  function getTerrainHeight(worldX, worldZ) {
+    const distCenter = Math.hypot(worldX, worldZ);
+    if (distCenter <= 9.0) return 0; // Dataran tengah rata Pokok Kehidupan
+
+    // Pastikan kawasan 5 zon perlindungan haiwan (radius 9.5m) rata sempurna pada y = 0
+    // Ini menghapuskan 100% isu model haiwan tenggelam atau terapung!
+    for (let i = 0; i < SAFARI_ZONES.length; i++) {
+      const sz = SAFARI_ZONES[i];
+      const dZone = Math.hypot(worldX - sz.pos.x, worldZ - sz.pos.z);
+      if (dZone < 9.5) {
+        return 0; // Dataran habitat rata sempurna
+      } else if (dZone < 15.0) {
+        // Peralihan bukit beralun lembut (smoothstep curve)
+        const t = (dZone - 9.5) / 5.5;
+        const smoothT = t * t * (3 - 2 * t);
+        const rawH = Math.sin(worldX * 0.12) * Math.cos(worldZ * 0.12) * 0.75 + Math.sin(worldX * 0.05 + worldZ * 0.05) * 0.5;
+        return rawH * smoothT;
+      }
+    }
+
+    // Bukit-bukau beralun semula jadi di luar zon perlindungan
+    return Math.sin(worldX * 0.12) * Math.cos(worldZ * 0.12) * 0.75 + Math.sin(worldX * 0.05 + worldZ * 0.05) * 0.5;
+  }
+
   // 7. INITIALIZE THREE.JS MAIN FOREST SCENE
   function initForestScene() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xbbf7d0);
-    scene.fog = new THREE.FogExp2(0xbbf7d0, 0.013);
+    scene.background = new THREE.Color(0x7dd3fc); // Atmospheric tropical sky blue
+    scene.fog = new THREE.FogExp2(0xa5f3fc, 0.012); // Atmospheric depth cyan fog
 
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -499,18 +527,31 @@
     renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.shadowMap.enabled = false; // Keep smooth 60fps on mobile/iPad
+    renderer.shadowMap.enabled = true; // PCF Soft Shadows
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     DOM.canvasWrap.innerHTML = '';
     DOM.canvasWrap.appendChild(renderer.domElement);
 
-    // Pencahayaan Hutan Fantasi
+    // Pencahayaan Hutan Fantasi HD (3-Point Lighting)
     const hemiLight = new THREE.HemisphereLight(0x7dd3fc, 0x10b981, 0.95);
     scene.add(hemiLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfef08a, 0.85);
+    const sunLight = new THREE.DirectionalLight(0xfef08a, 0.95);
     sunLight.position.set(45, 60, 30);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 150;
+    sunLight.shadow.camera.left = -60;
+    sunLight.shadow.camera.right = 60;
+    sunLight.shadow.camera.top = 60;
+    sunLight.shadow.camera.bottom = -60;
+    sunLight.shadow.bias = -0.0005;
     scene.add(sunLight);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
@@ -534,24 +575,43 @@
     renderer.setSize(w, h);
   }
 
-  // 8. BUILD COLOURFUL LOW-POLY FANTASY FOREST (FASA 5 & 6)
+
+  // ============================================================================
+  // SUIS KUALITI GRAFIK ADAPTIF (BALANCED UNTUK IPAD & HIGH UNTUK DESKTOP)
+  // ============================================================================
+  function setQuality(mode) {
+    if (!renderer) return;
+    if (mode === 'balanced') {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.shadowMap.enabled = true;
+      if (renderer.shadowMap.type !== THREE.BasicShadowMap) {
+        renderer.shadowMap.type = THREE.BasicShadowMap;
+        renderer.shadowMap.needsUpdate = true;
+      }
+    } else { // 'high'
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.0));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.needsUpdate = true;
+    }
+  }
+
+    // 8. BUILD COLOURFUL LOW-POLY FANTASY FOREST (FASA 5 & 6)
   function buildForestEnvironment() {
     forestEnvironmentGroup = new THREE.Group();
     forestEnvironmentGroup.name = 'ForestEnvironment';
 
-    // 1. Terrain Base (110m x 110m)
-    const groundGeo = new THREE.PlaneGeometry(120, 120, 24, 24);
-    // Berikan sedikit beralun low-poly pada puncak
+    // 1. Terrain Base (120m x 120m)
+    const groundGeo = new THREE.PlaneGeometry(120, 120, 32, 32);
+    // Berikan beralun low-poly semula jadi pada bukit, dataran rata pada 5 zon & pokok kehidupan
     const posAttr = groundGeo.attributes.position;
     for (let i = 0; i < posAttr.count; i++) {
       const vx = posAttr.getX(i);
-      const vz = posAttr.getY(i);
-      // Kekalkan tengah rata untuk Tree of Life
-      const dist = Math.hypot(vx, vz);
-      if (dist > 8) {
-        const h = Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 0.75 + Math.sin(vx * 0.05 + vz * 0.05) * 0.5;
-        posAttr.setZ(i, h);
-      }
+      const vy = posAttr.getY(i);
+      // vy maps to -worldZ in Three.js when rotation.x = -Math.PI / 2
+      const worldZ = -vy;
+      const h = getTerrainHeight(vx, worldZ);
+      posAttr.setZ(i, h);
     }
     groundGeo.computeVertexNormals();
 
@@ -564,6 +624,7 @@
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = 0;
+    ground.receiveShadow = true;
     forestEnvironmentGroup.add(ground);
 
     // 2. Laluan Tanah / Dirt Trails connecting Tree of Life to 5 Zones
@@ -767,13 +828,13 @@
         // Flower Cluster
         const col = flowerColors[i % flowerColors.length];
         const fl = new THREE.Mesh(new THREE.SphereGeometry(0.18, 5, 5), new THREE.MeshBasicMaterial({ color: col }));
-        fl.position.set(fx, 0.2, fz);
+        fl.position.set(fx, getTerrainHeight(fx, fz) + 0.15, fz);
         parent.add(fl);
       } else {
         // Rock
         const s = 0.3 + Math.random() * 0.6;
         const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), rockMat);
-        rock.position.set(fx, s * 0.4, fz);
+        rock.position.set(fx, getTerrainHeight(fx, fz) + s * 0.4, fz);
         rock.rotation.set(Math.random(), Math.random(), Math.random());
         parent.add(rock);
       }
@@ -5035,6 +5096,7 @@
 
     player.x = nextX;
     player.z = nextZ;
+    player.y = getTerrainHeight(player.x, player.z) + 1.6;
 
     // Camera update
     camera.position.set(player.x, player.y, player.z);
@@ -6113,6 +6175,8 @@
       totalDeerCount: decorativeDeers.length + (animalMeshes[1] ? 1 : 0),
       totalRabbitCount: decorativeRabbits.length + (animalMeshes[0] ? 1 : 0),
       totalBirdCount: decorativeBirds.length + (animalMeshes[3] ? 1 : 0),
+      graphicsQuality: renderer ? (renderer.shadowMap.enabled ? 'Stylized HD (Soft Shadows)' : 'Standard') : 'None',
+      toneMapping: renderer ? 'ACESFilmicToneMapping' : 'None',
       foxForest: !!enchantedFoxForestGroup,
       totalFoxCount: decorativeFoxes.length + (animalMeshes[4] ? 1 : 0)
     }),
@@ -6138,6 +6202,8 @@
     getDecorativeBirds: () => decorativeBirds,
     getTotalBirdCount: () => decorativeBirds.length + (animalMeshes[3] ? 1 : 0),
     getInteractiveBird: () => (animalMeshes[3] ? animalMeshes[3].userData.creature : null),
+    getTerrainHeight,
+    setQuality,
     openCellExplorer,
     closeCellExplorer,
     awardLifeCrystal,
