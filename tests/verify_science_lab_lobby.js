@@ -278,7 +278,7 @@ async function runVerification() {
         const has6DOFInModB = cardBText.toLowerCase().includes('6dof');
 
         return {
-          pass: !!btnA && !!btnB && !!btnC && modeCards.length === 3 && !has6DOFInModB,
+          pass: !!btnA && !!btnB && !!btnC && (modeCards.length === 3 || modeCards.length === 4) && !has6DOFInModB,
           cardsCount: modeCards.length,
           hasBtnA: !!btnA,
           hasBtnB: !!btnB,
@@ -289,7 +289,7 @@ async function runVerification() {
     `);
 
     if (test2.pass) {
-      recordPass(2, 'Susunan Tepat 3 Mod & Tiada Tuntutan 6DOF pada Mod B', `3 Kad Mod (3D, AR Orientasi, Kad Penanda), Mod B bebas daripada salah nyata 6DOF`);
+      recordPass(2, 'Susunan Tepat Kad Mod & Tiada Tuntutan 6DOF pada Mod B', `${test2.cardsCount} Kad Mod aktif, Mod B bebas daripada salah nyata 6DOF`);
     } else {
       recordFail(2, 'Susunan Tepat 3 Mod', JSON.stringify(test2));
     }

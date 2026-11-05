@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>MOD D • Cell Safari: Jelajah Hutan Sel 3D | ARSELNEL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/cell-safari.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body class="cs-body">
+
+  <!-- ======================= KANVAS DUNIA HUTAN 3D ======================= -->
+  <div id="cs-canvas-wrap" class="cs-canvas-wrap" aria-label="Dunia Hutan 3D Cell Safari"></div>
+
+  <!-- ======================= HUD ======================= -->
+  <div id="cs-hud" class="cs-hud hidden">
+    <div class="cs-hud-top">
+      <div class="cs-hud-left">
+        <button type="button" class="cs-pill-btn" id="cs-back-btn" title="Kembali ke Lobi">
+          <span class="material-symbols-outlined">arrow_back</span><span class="hide-sm">Lobi</span>
+        </button>
+        <div class="cs-hud-title">
+          <strong>Cell Safari</strong>
+          <small>MOD D • Jelajah Hutan Sel 3D</small>
+        </div>
+      </div>
+      <div class="cs-hud-stats">
+        <div class="cs-stat stat-animal" title="Haiwan ditemui">🐾 <span id="cs-stat-found">0/5</span></div>
+        <div class="cs-stat stat-crystal" title="Kristal Kehidupan">💎 <span id="cs-stat-crystal">0/5</span></div>
+        <div class="cs-stat stat-score" title="Markah">⭐ <span id="cs-stat-score">0</span></div>
+        <div class="cs-stat stat-time" title="Masa">⏱️ <span id="cs-stat-time">00:00</span></div>
+      </div>
+      <div class="cs-hud-right">
+        <button type="button" class="cs-icon-btn" id="cs-book-btn" title="Buku Safari ARSELNEL"><span class="material-symbols-outlined">menu_book</span></button>
+        <button type="button" class="cs-icon-btn" id="cs-gyro-btn" title="Aktifkan / kalibrasi sensor pandangan"><span class="material-symbols-outlined">screen_rotation</span></button>
+        <button type="button" class="cs-icon-btn" id="cs-sound-btn" title="Bunyi"><span class="material-symbols-outlined">volume_up</span></button>
+        <button type="button" class="cs-icon-btn" id="cs-help-btn" title="Cara Bermain"><span class="material-symbols-outlined">help</span></button>
+      </div>
+    </div>
+
+    <!-- Objektif & Mini Map -->
+    <div class="cs-map-panel">
+      <div class="cs-objective" id="cs-objective">🎯 Ikuti kelip-kelip untuk mencari haiwan pertama!</div>
+      <canvas id="cs-minimap" class="cs-minimap" width="300" height="300" aria-label="Mini Map"></canvas>
+    </div>
+
+    <!-- Joystick -->
+    <div class="cs-joystick" id="cs-joystick">
+      <div class="cs-joystick-base" id="cs-joystick-base">
+        <div class="cs-joystick-thumb" id="cs-joystick-thumb"></div>
+        <span class="cs-joy-arrow up">▲</span><span class="cs-joy-arrow down">▼</span>
+        <span class="cs-joy-arrow left">◀</span><span class="cs-joy-arrow right">▶</span>
+      </div>
+    </div>
+
+    <!-- Kawasan sentuhan pandangan (touch look fallback) -->
+    <div class="cs-touch-look" id="cs-touch-look"></div>
+
+    <!-- Prompt interaksi -->
+    <div class="cs-prompt" id="cs-prompt">
+      <div class="cs-prompt-icon" id="cs-prompt-icon">🐰</div>
+      <div class="cs-prompt-text">
+        <strong id="cs-prompt-title">ARNAB DITEMUI!</strong>
+        <small id="cs-prompt-sub">Padang Rumput Arnab</small>
+      </div>
+      <button type="button" class="cs-btn cs-btn-green" id="cs-prompt-btn">
+        <span class="material-symbols-outlined">biotech</span><span id="cs-prompt-btn-text">Teroka Sel Haiwan</span>
+        <kbd class="hide-touch">E</kbd>
+      </button>
+    </div>
+
+    <div class="cs-toast" id="cs-toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <!-- ======================= INTRO / PENGENALAN MISI ======================= -->
+  <div class="cs-overlay open" id="cs-intro">
+    <div class="cs-intro-card">
+      <div class="cs-intro-badge">MOD D • HUTAN 3D</div>
+      <h1 class="cs-intro-title" id="cs-intro-title">MISI RAHSIA: SELAMATKAN HUTAN ARSELNEL!</h1>
+      <p class="cs-intro-sub">Jom jadi Saintis Muda! Terokai hutan, temui haiwan dan bongkar rahsia sel haiwan!</p>
+
+      <div class="cs-story-box" id="cs-story-box">
+        <div class="cs-story-head">⚠️ AMARAN! HUTAN ARSELNEL DALAM BAHAYA!</div>
+        <p>Oh tidak! <strong>Pokok Kehidupan</strong> yang membekalkan tenaga kepada Hutan ARSELNEL semakin kehilangan cahayanya!</p>
+        <p>Lima haiwan di dalam hutan memerlukan bantuan Saintis Muda untuk memulihkan tenaga sel mereka. Anda telah dipilih untuk menjalankan misi khas!</p>
+        <p>Terokai hutan 3D, cari haiwan, ketik untuk menyiasat sel haiwan dan kenali fungsi organel. Selesaikan cabaran sains bagi setiap haiwan untuk memperoleh <strong>Kristal Kehidupan</strong>.</p>
+        <p>Kumpulkan kelima-lima Kristal Kehidupan dan kembali ke Pokok Kehidupan untuk menyelamatkan seluruh hutan!</p>
+      </div>
+
+      <h2 class="cs-steps-head">🎮 CARA BERMAIN (6 LANGKAH MUDAH)</h2>
+      <div class="cs-steps-grid">
+        <div class="cs-step-card s1"><span class="cs-step-num">1</span><div><strong>🌲 Terokai Hutan</strong><p>Gunakan joystick atau WASD untuk berjalan di dalam hutan 3D.</p></div></div>
+        <div class="cs-step-card s2"><span class="cs-step-num">2</span><div><strong>👀 Lihat Sekeliling</strong><p>Pusingkan iPad atau telefon untuk melihat sekeliling. Anda juga boleh menggunakan mouse atau kawalan sentuhan.</p></div></div>
+        <div class="cs-step-card s3"><span class="cs-step-num">3</span><div><strong>✨ Cari Haiwan</strong><p>Ikuti jejak kelip-kelip dan gunakan Mini Map untuk mencari lima haiwan.</p></div></div>
+        <div class="cs-step-card s4"><span class="cs-step-num">4</span><div><strong>🔬 Imbas Sel Haiwan</strong><p>Dekati dan ketik haiwan untuk membuka model sel haiwan 3D.</p></div></div>
+        <div class="cs-step-card s5"><span class="cs-step-num">5</span><div><strong>🧠 Selesaikan Cabaran</strong><p>Kenali organel dan jawab kuiz untuk memperoleh Kristal Kehidupan.</p></div></div>
+        <div class="cs-step-card s6"><span class="cs-step-num">6</span><div><strong>🌳 Pulihkan Pokok Kehidupan</strong><p>Selepas mengumpulkan lima kristal, kembali ke Pokok Kehidupan untuk menamatkan misi!</p></div></div>
+      </div>
+
+      <div class="cs-safety">🛡️ <strong>Tip Keselamatan:</strong> Gunakan peranti di tempat yang selamat. Anda tidak perlu berjalan secara fizikal untuk bermain.</div>
+
+      <div class="cs-intro-actions">
+        <button type="button" class="cs-btn cs-btn-ghost" id="cs-intro-back">
+          <span class="material-symbols-outlined">arrow_back</span>Kembali
+        </button>
+        <button type="button" class="cs-btn cs-btn-green cs-btn-lg" id="cs-intro-start">
+          <span class="material-symbols-outlined">forest</span>Mulakan Pengembaraan
+        </button>
+      </div>
+      <div class="cs-loading" id="cs-loading">Memuatkan hutan 3D…</div>
+    </div>
+  </div>
+
+  <!-- ======================= CELL EXPLORER 3D ======================= -->
+  <div class="cs-overlay" id="cs-explorer" aria-modal="true" role="dialog">
+    <div class="cs-explorer-card">
+      <div class="cs-explorer-head">
+        <div>
+          <div class="cs-explorer-kicker" id="cs-explorer-kicker">🐰 ARNAB • PADANG RUMPUT ARNAB</div>
+          <h2>🔬 TEROKA SEL HAIWAN</h2>
+        </div>
+        <button type="button" class="cs-icon-btn light" id="cs-explorer-close" title="Kembali ke Hutan"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="cs-explorer-body">
+        <div class="cs-explorer-stage">
+          <div id="cs-explorer-canvas" class="cs-explorer-canvas"></div>
+          <div class="cs-explorer-hint">👆 Seret untuk pusing 360° • Cubit / roda tetikus untuk zum • Ketik organel</div>
+          <div class="cs-zoom-btns">
+            <button type="button" class="cs-icon-btn light" id="cs-zoom-in" title="Zum masuk"><span class="material-symbols-outlined">zoom_in</span></button>
+            <button type="button" class="cs-icon-btn light" id="cs-zoom-out" title="Zum keluar"><span class="material-symbols-outlined">zoom_out</span></button>
+          </div>
+        </div>
+        <div class="cs-explorer-side">
+          <div class="cs-focus-note" id="cs-focus-note"></div>
+          <div class="cs-organelle-chips" id="cs-organelle-chips"></div>
+          <div class="cs-organelle-info" id="cs-organelle-info">
+            <strong>Ketik satu organel</strong>
+            <p>Pilih bahagian sel pada model 3D atau butang di atas untuk melihat nama dan fungsinya.</p>
+          </div>
+          <div class="cs-challenge" id="cs-challenge"></div>
+          <div class="cs-explorer-actions">
+            <button type="button" class="cs-btn cs-btn-ghost" id="cs-explorer-back"><span class="material-symbols-outlined">forest</span>Kembali ke Hutan</button>
+            <button type="button" class="cs-btn cs-btn-green" id="cs-challenge-start"><span class="material-symbols-outlined">emoji_events</span><span id="cs-challenge-start-text">Mula Cabaran</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= BUKU SAFARI ======================= -->
+  <div class="cs-overlay" id="cs-book" aria-modal="true" role="dialog">
+    <div class="cs-book-card">
+      <div class="cs-explorer-head">
+        <h2>📖 BUKU SAFARI ARSELNEL</h2>
+        <button type="button" class="cs-icon-btn light" id="cs-book-close" title="Tutup"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <p class="cs-book-note">Semua haiwan mempunyai <strong>sel haiwan dengan struktur asas yang sama</strong> (nukleus, membran sel, sitoplasma dan mitokondrion). Setiap zon memberi fokus kepada topik yang berbeza.</p>
+      <div class="cs-book-grid" id="cs-book-grid"></div>
+    </div>
+  </div>
+
+  <!-- ======================= KEMENANGAN ======================= -->
+  <div class="cs-overlay" id="cs-victory" aria-modal="true" role="dialog">
+    <div class="cs-victory-card">
+      <div class="cs-victory-badge">🌳🏅</div>
+      <h2 id="cs-victory-title">TAHNIAH, PENJAGA HUTAN SEL!</h2>
+      <p>Anda berjaya menyelamatkan lima haiwan dan memulihkan Pokok Kehidupan!</p>
+      <div class="cs-victory-stats">
+        <div><span>Haiwan diselamatkan</span><strong id="cs-v-animals">5/5</strong></div>
+        <div><span>Markah</span><strong id="cs-v-score">0</strong></div>
+        <div><span>Masa</span><strong id="cs-v-time">00:00</strong></div>
+        <div><span>Lencana</span><strong>🏅 Penjaga Hutan Sel</strong></div>
+      </div>
+      <div class="cs-save-status" id="cs-save-status"></div>
+      <div class="cs-intro-actions">
+        <button type="button" class="cs-btn cs-btn-ghost" id="cs-v-explore"><span class="material-symbols-outlined">forest</span>Teroka Hutan Semula</button>
+        <button type="button" class="cs-btn cs-btn-green" id="cs-v-lobby"><span class="material-symbols-outlined">home</span>Kembali ke Lobi</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/cell-safari.js"></script>
+</body>
+</html>
+
