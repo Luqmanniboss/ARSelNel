@@ -378,6 +378,7 @@
   let animGroup_zone5_foxAudio = false;
   let foxPortalMesh = null;
   let foxPortalVortex = null;
+  let cloudsGroup = null;
   let animatedObjects = [];
 
   // PLAYER FIRST-PERSON STATE
@@ -512,6 +513,69 @@
     return Math.sin(worldX * 0.12) * Math.cos(worldZ * 0.12) * 0.75 + Math.sin(worldX * 0.05 + worldZ * 0.05) * 0.5;
   }
 
+
+  // ============================================================================
+  // FLUFFY STYLIZED 3D CLOUDS (ATMOSPHERIC SAFARI SKY - FASA 2 & 5)
+  // ============================================================================
+  function buildStylizedClouds(parent) {
+    cloudsGroup = new THREE.Group();
+    cloudsGroup.name = 'StylizedSkyClouds';
+    const cloudMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.35,
+      metalness: 0.05,
+      flatShading: true
+    });
+
+    const cloudData = [
+      { x: -45, y: 35, z: -35, scale: 1.4, speed: 0.7 },
+      { x: -10, y: 38, z: -48, scale: 1.8, speed: 0.85 },
+      { x: 30,  y: 33, z: -25, scale: 1.2, speed: 0.65 },
+      { x: -50, y: 36, z: 10,  scale: 1.6, speed: 0.8 },
+      { x: -15, y: 40, z: 25,  scale: 2.0, speed: 0.9 },
+      { x: 25,  y: 34, z: 35,  scale: 1.5, speed: 0.75 },
+      { x: 50,  y: 37, z: -10, scale: 1.7, speed: 0.82 },
+      { x: -30, y: 32, z: 45,  scale: 1.3, speed: 0.7 },
+      { x: 10,  y: 36, z: -15, scale: 1.5, speed: 0.78 },
+      { x: 45,  y: 39, z: 20,  scale: 1.9, speed: 0.88 },
+      { x: -60, y: 35, z: -15, scale: 1.4, speed: 0.72 },
+      { x: 60,  y: 33, z: -40, scale: 1.6, speed: 0.8 }
+    ];
+
+    cloudData.forEach(cd => {
+      const c = new THREE.Group();
+      c.position.set(cd.x, cd.y, cd.z);
+      // Puff balls forming stylized fluffy cloud
+      const p1 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.2 * cd.scale, 1), cloudMat);
+      const p2 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.6 * cd.scale, 1), cloudMat);
+      p2.position.set(-1.8 * cd.scale, -0.2 * cd.scale, 0);
+      const p3 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.5 * cd.scale, 1), cloudMat);
+      p3.position.set(1.8 * cd.scale, -0.3 * cd.scale, 0.2 * cd.scale);
+      const p4 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.3 * cd.scale, 1), cloudMat);
+      p4.position.set(0.5 * cd.scale, 0.9 * cd.scale, -0.3 * cd.scale);
+      const p5 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 * cd.scale, 1), cloudMat);
+      p5.position.set(-0.9 * cd.scale, 0.8 * cd.scale, 0.2 * cd.scale);
+      c.add(p1, p2, p3, p4, p5);
+      c.userData = { speed: cd.speed, baseZ: cd.z };
+      cloudsGroup.add(c);
+    });
+
+    animatedObjects.push({
+      update(t) {
+        if (!cloudsGroup) return;
+        const dt = 0.016;
+        cloudsGroup.children.forEach(c => {
+          c.position.x += dt * c.userData.speed * 1.5;
+          if (c.position.x > 75) {
+            c.position.x = -75;
+          }
+        });
+      }
+    });
+
+    parent.add(cloudsGroup);
+  }
+
   // 7. INITIALIZE THREE.JS MAIN FOREST SCENE
   function initForestScene() {
     scene = new THREE.Scene();
@@ -561,6 +625,7 @@
     buildTreeOfLife();
     buildSafariAnimals();
     buildFirefliesAndButterflies();
+    buildStylizedClouds(scene);
 
     window.addEventListener('resize', onWindowResize);
     requestAnimationFrame(renderLoop);
@@ -581,7 +646,11 @@
   // ============================================================================
   function setQuality(mode) {
     if (!renderer) return;
-    if (mode === 'balanced') {
+    if (mode === 'low') {
+      renderer.setPixelRatio(1.0);
+      renderer.shadowMap.enabled = false;
+      renderer.shadowMap.needsUpdate = true;
+    } else if (mode === 'balanced' || mode === 'medium') {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.shadowMap.enabled = true;
       if (renderer.shadowMap.type !== THREE.BasicShadowMap) {
@@ -643,6 +712,19 @@
       trail.rotation.z = -angle;
       trail.position.set(dx / 2, 0.02, dz / 2);
       forestEnvironmentGroup.add(trail);
+
+      // Cobblestone stepping stones along explorer trail
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9, flatShading: true });
+      const numStones = Math.floor(len / 2.8);
+      for (let s = 1; s < numStones; s++) {
+        const tDist = s * 2.8;
+        const sx = (dx * tDist) / len;
+        const sz = (dz * tDist) / len;
+        const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.04, 6), stoneMat);
+        stone.position.set(sx, getTerrainHeight(sx, sz) + 0.025, sz);
+        stone.rotation.y = s * 1.3;
+        forestEnvironmentGroup.add(stone);
+      }
 
       // Papan Tanda Kawasan di zon
       buildZoneSignpost(z.name, z.pos.x, z.pos.z);
@@ -770,9 +852,9 @@
       if (tooCloseToAnimal) continue;
 
       const tree = new THREE.Group();
-      tree.position.set(tx, 0, tz);
+      tree.position.set(tx, getTerrainHeight(tx, tz), tz);
 
-      const type = Math.floor(rnd() * 3);
+      const type = Math.floor(rnd() * 4);
       const scale = 0.8 + rnd() * 0.6;
 
       // Trunk
@@ -794,6 +876,22 @@
         const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(1.7 * scale, 1), treeMatGreen);
         foliage.position.y = (1.8 + 1.2) * scale;
         tree.add(foliage);
+      } else if (type === 2) {
+        // Stylized Safari Flat-Top Acacia Tree
+        const acaciaMat = new THREE.MeshStandardMaterial({ color: 0x65a30d, flatShading: true, roughness: 0.8 });
+        const branch1 = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * scale, 0.16 * scale, 1.2 * scale, 5), trunkMat);
+        branch1.position.set(-0.35 * scale, 1.8 * scale, 0);
+        branch1.rotation.z = 0.55;
+        const branch2 = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * scale, 0.16 * scale, 1.2 * scale, 5), trunkMat);
+        branch2.position.set(0.35 * scale, 1.8 * scale, 0);
+        branch2.rotation.z = -0.55;
+        const d1 = new THREE.Mesh(new THREE.CylinderGeometry(1.6 * scale, 1.8 * scale, 0.35 * scale, 8), acaciaMat);
+        d1.position.set(0, (1.8 + 1.2) * scale, 0);
+        const d2 = new THREE.Mesh(new THREE.CylinderGeometry(1.2 * scale, 1.4 * scale, 0.28 * scale, 8), acaciaMat);
+        d2.position.set(-0.4 * scale, (1.8 + 1.6) * scale, 0);
+        const d3 = new THREE.Mesh(new THREE.CylinderGeometry(0.9 * scale, 1.1 * scale, 0.25 * scale, 8), acaciaMat);
+        d3.position.set(0.35 * scale, (1.8 + 1.9) * scale, 0);
+        tree.add(branch1, branch2, d1, d2, d3);
       } else {
         // Fantasy Teal Tree
         const f1 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5 * scale, 0), treeMatFantasy);
@@ -961,6 +1059,27 @@
       halo.position.y = 0.03;
       animGroup.add(halo);
 
+      // Outer orbiting runic node ring for Quiz Station Platform
+      const outerRing = new THREE.Mesh(
+        new THREE.RingGeometry(1.9, 2.05, 24),
+        new THREE.MeshBasicMaterial({ color: haloColor, side: THREE.DoubleSide, transparent: true, opacity: 0.4 })
+      );
+      outerRing.rotation.x = -Math.PI / 2;
+      outerRing.position.y = 0.032;
+      animGroup.add(outerRing);
+
+      // 4 Orbital runic glowing nodes revolving around platform
+      const orbitNodesGroup = new THREE.Group();
+      orbitNodesGroup.position.y = 0.04;
+      const nodeMat = new THREE.MeshBasicMaterial({ color: haloColor });
+      for (let ni = 0; ni < 4; ni++) {
+        const na = (ni / 4) * Math.PI * 2;
+        const nodeMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.08, 0), nodeMat);
+        nodeMesh.position.set(Math.cos(na) * 1.98, 0, Math.sin(na) * 1.98);
+        orbitNodesGroup.add(nodeMesh);
+      }
+      animGroup.add(orbitNodesGroup);
+
       // Model Haiwan Mengikut Zon
       let creatureMesh;
       if (index === 0) creatureMesh = createHeroRabbitModel();
@@ -1018,7 +1137,19 @@
           badge.rotation.y = player.rotY; // Face player
           crystalIco.rotation.y = t * 1.5;
           crystalIco.position.y = 2.95 + Math.sin(t * 3 + index) * 0.08;
-          halo.material.opacity = (State.nearbyZoneIndex === index) ? 0.9 : 0.55;
+          orbitNodesGroup.rotation.y = t * 1.2;
+          const isDone = State.completedZones.has(index);
+          if (isDone) {
+            halo.material.color.setHex(0x10b981);
+            outerRing.material.color.setHex(0x10b981);
+            nodeMat.color.setHex(0x10b981);
+            halo.material.opacity = 0.9;
+            outerRing.material.opacity = 0.6;
+          } else {
+            const isNear = (State.nearbyZoneIndex === index);
+            halo.material.opacity = isNear ? (0.7 + Math.sin(t * 6) * 0.25) : 0.55;
+            outerRing.material.opacity = isNear ? (0.45 + Math.sin(t * 4) * 0.2) : 0.3;
+          }
           if (creatureMesh.userData && creatureMesh.userData.animate) {
             creatureMesh.userData.animate(t);
           }
