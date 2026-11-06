@@ -28,8 +28,9 @@
         detail: { stationId, score, details: parsedDetails, timestamp: Date.now() }
       }));
 
-      // Calculate progress percentage based on 3 stations
-      const progressPercent = Math.min(100, Math.round((Number(stationId) || 1) / 3 * 100));
+      // Calculate progress percentage based on 8 learning stations
+      const totalStations = Number(details?.totalStations) || 8;
+      const progressPercent = Math.min(100, Math.round((Number(stationId) || 1) / totalStations * 100));
 
       if (global.ARSupabase && typeof global.ARSupabase.saveProgress === 'function') {
         try {
@@ -53,11 +54,11 @@
      * @param {number} stationsCount - Total stations completed (default 3)
      */
     onGameCompleted: async function (finalScore, timeSeconds, stationsCount) {
-      const stations = Number(stationsCount) || 3;
-      const score = Math.max(0, Math.round(Number(finalScore) || 100));
+      const stations = Number(stationsCount) || 8;
+      const score = Math.max(0, Math.round(Number(finalScore) || 200));
       const timeSpent = Math.max(0, Math.round(Number(timeSeconds) || 0));
 
-      console.log(`${BRIDGE_LOG_PREFIX} Permainan Selesai! Skor: ${score}, Masa: ${timeSpent}s, Stesen: ${stations}/3`);
+      console.log(`${BRIDGE_LOG_PREFIX} Permainan Selesai! Skor: ${score}, Masa: ${timeSpent}s, Stesen: ${stations}/8`);
 
       global.dispatchEvent(new CustomEvent('safari:game_completed', {
         detail: { score, timeSpent, stations, timestamp: Date.now() }
@@ -65,10 +66,10 @@
 
       const record = {
         quizId: 'cellquest-safari3d',
-        title: 'Taman Arnab 3D Safari Adventure',
+        title: 'Safari Sel: Misi Saintis Muda (Taman Arnab 3D)',
         score: score,
         correct: stations,
-        total: 3,
+        total: 8,
         timeSpent: timeSpent,
         timestamp: new Date().toISOString()
       };
