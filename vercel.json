@@ -40,9 +40,38 @@
       "headers": [
         { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
       ]
+    },
+    {
+      "source": "/(.*)\\.wasm\\.br",
+      "headers": [
+        { "key": "Content-Type", "value": "application/wasm" },
+        { "key": "Content-Encoding", "value": "br" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.js\\.br",
+      "headers": [
+        { "key": "Content-Type", "value": "application/javascript; charset=utf-8" },
+        { "key": "Content-Encoding", "value": "br" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.data\\.br",
+      "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Content-Encoding", "value": "br" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.wasm",
+      "headers": [
+        { "key": "Content-Type", "value": "application/wasm" }
+      ]
     }
   ],
   "rewrites": [
+    { "source": "/cellquest/safari3d", "destination": "/cellquest/safari3d.html" },
+    { "source": "/safari3d", "destination": "/cellquest/safari3d.html" },
     { "source": "/api/admin/users/:path*", "destination": "/api/admin/users" },
     { "source": "/", "destination": "/auth/login.html" },
     { "source": "/login", "destination": "/auth/login.html" },

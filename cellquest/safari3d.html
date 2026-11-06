@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ARSELNEL — Taman Arnab 3D Safari Adventure (Unity URP)</title>
+
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet">
+
+  <!-- Core ARSELNEL Scripts for Session & Progress Persistence -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script>
+    // Ensure guest session fallback so students can explore even without prior login
+    if (window.AuthGuard && !window.AuthGuard.getUser()) {
+      window.AuthGuard.setGuestSession();
+    }
+  </script>
+  <script src="./safari-bridge.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: #09131f;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Top Floating Navigation Bar */
+    .top-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(12px, 3vw, 24px);
+      background: linear-gradient(180deg, rgba(9, 19, 31, 0.92) 0%, rgba(9, 19, 31, 0.4) 80%, transparent 100%);
+      z-index: 60;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .top-nav > * {
+      pointer-events: auto;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      background: rgba(15, 30, 48, 0.85);
+      border: 1px solid rgba(45, 212, 191, 0.35);
+      color: #5eead4;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.15s, background 0.2s, border-color 0.2s;
+    }
+    .back-btn:hover {
+      background: rgba(20, 184, 166, 0.25);
+      border-color: #2dd4bf;
+      transform: translateX(-2px);
+    }
+    .nav-title {
+      display: flex;
+      flex-direction: column;
+    }
+    .nav-title strong {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(13px, 2.5vw, 15px);
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.01em;
+    }
+    .nav-title small {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #4ade80;
+      font-size: 12px;
+      font-weight: 800;
+      backdrop-filter: blur(8px);
+    }
+    .icon-action-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(15, 30, 48, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #fff;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s, transform 0.1s;
+    }
+    .icon-action-btn:hover {
+      background: rgba(45, 212, 191, 0.25);
+      border-color: #2dd4bf;
+      transform: scale(1.05);
+    }
+
+    /* Unity Canvas Container */
+    #unity-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #09131f;
+    }
+    #unity-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      outline: none;
+      background: #09131f;
+      touch-action: none;
+    }
+
+    /* Loading Overlay */
+    #loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #0f2738 0%, #06111a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.6s ease-out;
+      color: #f8fafc;
+      padding: 24px;
+      text-align: center;
+    }
+    .badge-sub {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      background: rgba(45, 212, 191, 0.16);
+      border: 1px solid rgba(45, 212, 191, 0.4);
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .title-main {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(26px, 5.5vw, 42px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #fef08a;
+      text-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      margin-bottom: 6px;
+    }
+    .title-sub {
+      font-size: clamp(14px, 2.8vw, 17px);
+      color: #94a3b8;
+      max-width: 520px;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+    .progress-track {
+      width: min(400px, 86vw);
+      height: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      margin-bottom: 12px;
+    }
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #2dd4bf, #f59e0b);
+      border-radius: 9999px;
+      transition: width 0.25s ease-out;
+    }
+    .status-text {
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+
+    /* Warning Banner */
+    #warning-banner {
+      position: absolute;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ef4444;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+      z-index: 200;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 640px) {
+      .hide-mobile { display: none !important; }
+      .nav-title strong { font-size: 13px; }
+      .top-nav { height: 50px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Floating HUD Bar -->
+  <header class="top-nav" id="top-nav">
+    <div class="nav-left">
+      <a href="adventure.html" class="back-btn" title="Kembali ke Lobi Pengembaraan CellQuest">
+        <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
+        <span>Lobi CellQuest</span>
+      </a>
+      <div class="nav-title hide-mobile">
+        <strong>Taman Arnab 3D • Safari Adventure</strong>
+        <small>Sains Tingkatan 1: Ekosistem & Sel Haiwan</small>
+      </div>
+    </div>
+
+    <div class="nav-right">
+      <div class="hud-badge hide-mobile">
+        <span class="material-symbols-outlined" style="font-size:16px;">view_in_ar</span>
+        <span>Unity 6.5 URP</span>
+      </div>
+      <button type="button" class="icon-action-btn" id="btn-fullscreen" title="Skrin Penuh (Fullscreen)">
+        <span class="material-symbols-outlined" style="font-size:22px;">fullscreen</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Unity 3D Canvas Stage -->
+  <main id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+    <!-- Custom ARSELNEL Loading Screen -->
+    <div id="loading-overlay">
+      <div class="badge-sub">
+        <span class="material-symbols-outlined" style="font-size:15px;">science</span>
+        ARSELNEL Sains Tingkatan 1
+      </div>
+      <h1 class="title-main">TAMAN ARNAB 3D</h1>
+      <p class="title-sub">Eksplorasi Maya Ekosistem, Rangkaian Makanan & Struktur Sel Hidupan</p>
+      
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-bar"></div>
+      </div>
+      <div class="status-text" id="status-label">Menyediakan enjin grafik Unity 3D... (0%)</div>
+    </div>
+
+    <div id="warning-banner"></div>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // Detect embed mode
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('embed') === 'true') {
+        const nav = document.getElementById('top-nav');
+        if (nav) nav.style.display = 'none';
+      }
+
+      const canvas = document.querySelector("#unity-canvas");
+      const loadingOverlay = document.querySelector("#loading-overlay");
+      const progressBar = document.querySelector("#progress-bar");
+      const statusLabel = document.querySelector("#status-label");
+      const btnFullscreen = document.querySelector("#btn-fullscreen");
+      const warningBanner = document.querySelector("#warning-banner");
+
+      function showBanner(msg, type) {
+        warningBanner.textContent = msg;
+        warningBanner.style.background = type === 'error' ? '#ef4444' : '#f59e0b';
+        warningBanner.style.display = 'block';
+        if (type !== 'error') {
+          setTimeout(() => { warningBanner.style.display = 'none'; }, 5000);
+        }
+      }
+
+      // Paths relative to cellquest/ directory
+      const buildUrl = "safari3d/Build";
+      const loaderUrl = buildUrl + "/WebGL.loader.js";
+      const config = {
+        arguments: [],
+        dataUrl: buildUrl + "/WebGL.data.br",
+        frameworkUrl: buildUrl + "/WebGL.framework.js.br",
+        codeUrl: buildUrl + "/WebGL.wasm.br",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "ARSELNEL",
+        productName: "Taman Arnab 3D Safari Adventure",
+        productVersion: "1.0.0",
+        showBanner: showBanner,
+        // Capping DPR prevents canvas buffer crashes on mobile/retina displays
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2.0)
+      };
+
+      // Ensure keyboard focus when canvas is clicked or touched
+      canvas.addEventListener('click', () => { window.focus(); canvas.focus(); });
+      canvas.addEventListener('touchstart', () => { window.focus(); canvas.focus(); }, { passive: true });
+
+      const script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          const pct = Math.round(progress * 100);
+          progressBar.style.width = pct + "%";
+          if (pct < 90) {
+            statusLabel.textContent = `Memuatkan aset safari 3D... (${pct}%)`;
+          } else if (pct < 100) {
+            statusLabel.textContent = `Mengoptimumkan tekstur dan pencahayaan URP... (${pct}%)`;
+          } else {
+            statusLabel.textContent = "Sedia untuk diteroka!";
+          }
+        }).then((unityInstance) => {
+          window.unityInstance = unityInstance;
+
+          setTimeout(() => {
+            loadingOverlay.style.opacity = "0";
+            setTimeout(() => { loadingOverlay.style.display = "none"; }, 600);
+          }, 350);
+
+          if (btnFullscreen) {
+            btnFullscreen.onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+          }
+        }).catch((err) => {
+          showBanner("Ralat memuatkan SafariAdventure 3D: " + err, "error");
+        });
+      };
+      document.body.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

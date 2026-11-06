@@ -45,6 +45,9 @@ const MIME_TYPES = {
   '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   '.glb': 'model/gltf-binary',
   '.gltf': 'model/gltf+json',
+  '.wasm': 'application/wasm',
+  '.data': 'application/octet-stream',
+  '.br': 'application/octet-stream',
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
   '.ttf': 'font/ttf'
@@ -185,7 +188,9 @@ const server = http.createServer(async (req, res) => {
     '/pengimbas_ar': 'pengimbas_ar/code.html',
     '/paparan_model_ar': 'paparan_model_ar/code.html',
     '/modul_pembelajaran': 'modul_pembelajaran/code.html',
-    '/keputusan_permainan': 'keputusan_permainan/code.html'
+    '/keputusan_permainan': 'keputusan_permainan/code.html',
+    '/cellquest/safari3d': 'cellquest/safari3d.html',
+    '/safari3d': 'cellquest/safari3d.html'
   };
 
   let targetRelative = ROUTE_ALIASES[pathname] || (pathname.startsWith('/') ? pathname.slice(1) : pathname);
@@ -220,9 +225,26 @@ const server = http.createServer(async (req, res) => {
     }
 
     const ext = path.extname(filePath).toLowerCase();
-    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    let contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-    res.writeHead(200, { 'Content-Type': contentType });
+    // Handle pre-compressed WebGL files (.br / .gz) and underlying MIME types
+    const headers = { 'Content-Type': contentType };
+    if (filePath.endsWith('.wasm.br') || filePath.endsWith('.wasm.gz')) {
+      headers['Content-Type'] = 'application/wasm';
+      headers['Content-Encoding'] = filePath.endsWith('.wasm.br') ? 'br' : 'gzip';
+    } else if (filePath.endsWith('.js.br') || filePath.endsWith('.js.gz')) {
+      headers['Content-Type'] = 'application/javascript; charset=utf-8';
+      headers['Content-Encoding'] = filePath.endsWith('.js.br') ? 'br' : 'gzip';
+    } else if (filePath.endsWith('.data.br') || filePath.endsWith('.data.gz')) {
+      headers['Content-Type'] = 'application/octet-stream';
+      headers['Content-Encoding'] = filePath.endsWith('.data.br') ? 'br' : 'gzip';
+    } else if (ext === '.br') {
+      headers['Content-Encoding'] = 'br';
+    } else if (ext === '.gz') {
+      headers['Content-Encoding'] = 'gzip';
+    }
+
+    res.writeHead(200, headers);
     const stream = fs.createReadStream(filePath);
     stream.pipe(res);
   });
