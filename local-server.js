@@ -188,9 +188,7 @@ const server = http.createServer(async (req, res) => {
     '/pengimbas_ar': 'pengimbas_ar/code.html',
     '/paparan_model_ar': 'paparan_model_ar/code.html',
     '/modul_pembelajaran': 'modul_pembelajaran/code.html',
-    '/keputusan_permainan': 'keputusan_permainan/code.html',
-    '/cellquest/safari3d': 'cellquest/safari3d.html',
-    '/safari3d': 'cellquest/safari3d.html'
+    '/keputusan_permainan': 'keputusan_permainan/code.html'
   };
 
   let targetRelative = ROUTE_ALIASES[pathname] || (pathname.startsWith('/') ? pathname.slice(1) : pathname);

@@ -831,7 +831,6 @@
     DOM.lobbyBtnModA = document.getElementById('lobby-btn-mod-a');
     DOM.lobbyBtnModB = document.getElementById('lobby-btn-mod-b');
     DOM.lobbyBtnModC = document.getElementById('lobby-btn-mod-c');
-    DOM.lobbyBtnModD = document.getElementById('lobby-btn-mod-d');
     DOM.lobbyPrintMarkersBtn = document.getElementById('lobby-print-markers-btn');
     DOM.lobbyUserName = document.getElementById('lobby-user-name');
     DOM.lobbyUserRole = document.getElementById('lobby-user-role');
@@ -4405,11 +4404,6 @@
     }
     if (DOM.lobbyBtnModC) {
       DOM.lobbyBtnModC.addEventListener('click', () => launchMode('marker-ar'));
-    }
-    if (DOM.lobbyBtnModD) {
-      DOM.lobbyBtnModD.addEventListener('click', () => {
-        window.location.href = 'safari.html';
-      });
     }
     if (DOM.lobbyBtnNotes) {
       DOM.lobbyBtnNotes.addEventListener('click', () => SoundFX.interact());
