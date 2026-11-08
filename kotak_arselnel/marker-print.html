@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marker Video — Kotak ARSELNEL (Imbas & Cetak)</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,600,0,0" rel="stylesheet" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    .font-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .header-box {
+      max-width: 680px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(249, 115, 22, 0.2);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      color: #fb923c;
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    p.desc {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 10px 22px;
+      border-radius: 16px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 13.5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(234, 88, 12, 0.55);
+    }
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.9);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: #38bdf8;
+    }
+    .marker-frame {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(249, 115, 22, 0.25);
+      border: 3px solid #f97316;
+      max-width: 540px;
+      width: 100%;
+      text-align: center;
+    }
+    .marker-frame img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      display: block;
+    }
+    .marker-specs {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .instructions-card {
+      max-width: 680px;
+      width: 100%;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 20px 24px;
+      margin-top: 28px;
+    }
+    .instructions-card h3 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px;
+      color: #facc15;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .instructions-card ol {
+      padding-left: 20px;
+      font-size: 13.5px;
+      color: #cbd5e1;
+      line-height: 1.8;
+    }
+
+    /* Print Styles (Strict Clean Output for A4 Paper) */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .marker-frame {
+        box-shadow: none !important;
+        border: 2px dashed #000 !important;
+        max-width: 18cm !important;
+        margin: 0 auto !important;
+        padding: 1cm !important;
+      }
+      .marker-frame img {
+        width: 16cm !important;
+        height: 16cm !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-box no-print">
+    <div class="badge">
+      <span class="material-symbols-outlined" style="font-size:16px;">view_in_ar</span>
+      <span>Kotak ARSELNEL • Kategori 1: Video</span>
+    </div>
+    <h1>Marker Video Rasmi (Fasa 2)</h1>
+    <p class="desc">
+      Gunakan marker berkontras tinggi ini untuk menguji penjejakan 3D MindAR. Anda boleh mencetaknya di atas kertas A4 atau memaparkannya pada skrin tablet / monitor untuk diimbas dengan telefon.
+    </p>
+  </div>
+
+  <div class="actions-bar no-print">
+    <button type="button" class="btn btn-primary" onclick="window.print()">
+      <span class="material-symbols-outlined">print</span>
+      <span>Cetak Marker (A4)</span>
+    </button>
+
+    <a href="code.html" class="btn btn-secondary">
+      <span class="material-symbols-outlined">view_in_ar</span>
+      <span>Buka Pengimbas AR (Kamera)</span>
+    </a>
+  </div>
+
+  <!-- THE MARKER TO BE SCANNED OR PRINTED -->
+  <div class="marker-frame">
+    <img src="assets/markers/marker-video.png" alt="Kotak ARSELNEL - Marker Video Pembelajaran" id="marker-img" />
+    <div class="marker-specs">
+      <span>KOTAK ARSELNEL • MUKA VIDEO</span>
+      <span>SASARAN: 20 × 20 CM</span>
+    </div>
+  </div>
+
+  <!-- HOW TO TEST INSTRUCTIONS -->
+  <div class="instructions-card no-print">
+    <h3>
+      <span class="material-symbols-outlined">lightbulb</span>
+      <span>Cara Menguji Menggunakan Telefon Pintar:</span>
+    </h3>
+    <ol>
+      <li><strong>Kaedah 1 (Paling Mudah):</strong> Biarkan halaman ini terbuka di komputer riba atau tablet anda. Buka <strong>Pengimbas AR</strong> pada telefon anda dan halakan kamera ke arah gambar marker di atas.</li>
+      <li><strong>Kaedah 2 (Cetak):</strong> Tekan butang <em>Cetak Marker (A4)</em> di atas. Lekatkan cetakan pada satu muka kotak kadbod. Halakan kamera telefon ke kotak tersebut.</li>
+      <li><strong>Keputusan yang Dijangka:</strong> Apabila kamera mengesan marker ini, reticle akan bertukar warna hijau dan <strong>Panel Video Pembelajaran Terapung</strong> akan muncul di atas marker bersama senarai video sains silibus KSSM Tingkatan 1!</li>
+    </ol>
+  </div>
+
+</body>
+</html>
