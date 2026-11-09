@@ -5092,9 +5092,59 @@ body.cellquest-active #ar-container canvas {
   color: #ffffff !important;
 }
 
-/* Responsive & Layout Support for Dual Independent Panels (Natural spatial alignment) */
+/* 3. Kuiz & Permainan Panel Visual Theme (Ungu #a855f7) - FASA 4E-C.2 */
+.pov-panel-kuiz {
+  z-index: 43;
+}
+
+.pov-card-kuiz {
+  border: 1.5px solid rgba(168, 85, 247, 0.55) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 35px rgba(168, 85, 247, 0.28) !important;
+}
+
+.pov-tag-kuiz {
+  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%) !important;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35) !important;
+  color: #ffffff !important;
+}
+
+.pov-header-kuiz {
+  border-bottom: 1px solid rgba(168, 85, 247, 0.25);
+}
+
+.pov-kuiz-sensor-pill {
+  border-color: rgba(168, 85, 247, 0.4) !important;
+  color: #c084fc !important;
+}
+
+.pov-kuiz-sensor-pill .ping {
+  background: #a855f7 !important;
+}
+
+.btn-place-kuiz {
+  background: linear-gradient(135deg, #7e22ce 0%, #a855f7 100%) !important;
+  border-color: #a855f7 !important;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35) !important;
+  color: #ffffff !important;
+}
+
+/* Multi-Panel Pill Style for Kuiz */
+.multi-pill.pill-kuiz {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  color: #e9d5ff;
+}
+.multi-pill.pill-kuiz:hover,
+.multi-pill.pill-kuiz.active-focus {
+  background: rgba(168, 85, 247, 0.35);
+  border-color: #a855f7;
+  color: #ffffff;
+}
+
+/* Responsive & Layout Support for Triple Independent Panels */
 .pov-panel-video,
-.pov-panel-nota {
+.pov-panel-nota,
+.pov-panel-kuiz {
   transition: opacity 0.25s ease, transform 0.2s ease;
 }
 
@@ -5322,7 +5372,8 @@ body.cellquest-active #ar-container canvas {
     padding: 5px 10px;
   }
   .pov-card-video,
-  .pov-card-nota {
+  .pov-card-nota,
+  .pov-card-kuiz {
     max-width: min(94vw, 460px);
     max-height: min(85dvh, 600px);
   }
