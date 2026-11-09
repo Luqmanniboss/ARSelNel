@@ -990,10 +990,12 @@
       p.anchorPitch = Number.isFinite(ARState.pov.currentPitch) ? ARState.pov.currentPitch : 0;
       p.placementMode = 'POV_LOCKED';
       p.isLocked = true;
+      p.isVisible = true;
 
       const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
       if (el) {
-        el.classList.remove('is-centered');
+        el.classList.remove('is-centered', 'hidden');
+        el.classList.add('is-visible');
         el.setAttribute('data-placement-mode', 'POV_LOCKED');
       }
 
@@ -3423,14 +3425,27 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         return;
       }
     }
+
+    // Jika pengguna belum mempunyai CellQuest 3D dan marker CellQuest kelihatan (Fasa 4E-C.3A)
+    if (!ARState.activePanels.has('cellquest')) {
+      if (ARState.anchorCellQuest && ARState.anchorCellQuest.group && ARState.anchorCellQuest.group.visible) {
+        console.log('[MultiPanel] 🎯 Marker CellQuest 3D dikesan sedang dalam pandangan kamera!');
+        addPanelToSpatialWorkspace('cellquest');
+        return;
+      }
+    }
   }
 
   /**
    * Permulaan mod imbas panel baharu
    */
   function startAddPanelScan() {
-    if (ARState.activePanels.size >= 3) {
-      showToast('Maksimum 3 panel spatial serentak disokong (Video, Nota & Kuiz).');
+    const domCount = ['video', 'nota', 'kuiz'].filter(m => ARState.activePanels.has(m)).length;
+    const hasCQ = ARState.activePanels.has('cellquest');
+    const totalCount = ARState.activePanels.size;
+
+    if (totalCount >= 4 || (domCount >= 3 && hasCQ)) {
+      showToast('Maksimum 4 modul aktif serentak (Video, Nota, Kuiz & CellQuest 3D).');
       return;
     }
     // Jika pengguna belum mengunci atau menyemat panel, berikan panduan jelas untuk meletakkannya terlebih dahulu
@@ -3487,9 +3502,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (moduleName === 'video' && ARState.anchorVideo) ARState.anchor = ARState.anchorVideo;
         if (moduleName === 'nota' && ARState.anchorNota) ARState.anchor = ARState.anchorNota;
         if (moduleName === 'kuiz' && ARState.anchorKuiz) ARState.anchor = ARState.anchorKuiz;
+        if (moduleName === 'cellquest' && ARState.anchorCellQuest) {
+          ARState.anchor = ARState.anchorCellQuest;
+          if (typeof CellQuestARController !== 'undefined' && typeof CellQuestARController.onTargetFound === 'function') {
+            CellQuestARController.onTargetFound();
+          }
+        }
       } else {
         // Marker LAIN dikesan semasa panel sedang digunakan -> JANGAN GANTI ATAU TUTUP PANEL SEMASA!
-        console.log(`[MultiPanel] 🛡️ Panel aktif (${Array.from(ARState.activePanels).join(', ')}) dilindungi. Pengesanan marker ${moduleName} diabaikan. Tekan '+ Tambah Imbasan Baharu' untuk menambah panel ini.`);
+        console.log(`[MultiPanel] 🛡️ Panel aktif (${Array.from(ARState.activePanels).join(', ')}) dilindungi. Pengesanan marker ${moduleName} diabaikan. Tekan '+ Tambah Imbasan Baharu' untuk menambah modul ini.`);
       }
       return;
     }
@@ -3500,11 +3521,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (moduleName === 'video' && ARState.anchorVideo) ARState.anchor = ARState.anchorVideo;
     if (moduleName === 'nota' && ARState.anchorNota) ARState.anchor = ARState.anchorNota;
     if (moduleName === 'kuiz' && ARState.anchorKuiz) ARState.anchor = ARState.anchorKuiz;
+    if (moduleName === 'cellquest' && ARState.anchorCellQuest) ARState.anchor = ARState.anchorCellQuest;
 
     switchActiveModule(moduleName);
     ARState.activePanels.add(moduleName);
     setScanState(SCAN_STATES.PANEL_ACTIVE);
     updateMultiPanelUI();
+
+    if (moduleName === 'cellquest' && typeof CellQuestARController !== 'undefined' && typeof CellQuestARController.onTargetFound === 'function') {
+      CellQuestARController.onTargetFound();
+    }
 
     if (ARSessionRecoveryManager && typeof ARSessionRecoveryManager.setState === 'function') {
       ARSessionRecoveryManager.setState(ARSessionRecoveryManager.State.MARKER_ACTIVE, { module: moduleName });
@@ -3663,6 +3689,24 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
 
       showToast('Panel Kuiz berjaya ditambah ke ruang AR!');
+    } else if (moduleName === 'cellquest') {
+      // 1. Jeda video secara sopan jika sedang bermain
+      pauseVideo();
+
+      // 2. Halakan anchor aktif ke anchorCellQuest
+      if (ARState.anchorCellQuest) {
+        ARState.anchor = ARState.anchorCellQuest;
+      }
+
+      // 3. Aktifkan CellQuest 3D Controller
+      if (typeof CellQuestARController !== 'undefined') {
+        CellQuestARController.activate();
+        if (typeof CellQuestARController.onTargetFound === 'function') {
+          CellQuestARController.onTargetFound();
+        }
+      }
+
+      showToast('Modul CellQuest 3D berjaya ditambah ke ruang AR!');
     }
 
     // Kemas kini bar alat multi-panel
@@ -3695,7 +3739,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     DOM.arMultiPanelBar.classList.remove('hidden');
 
     if (DOM.multiPanelCountText) {
-      DOM.multiPanelCountText.textContent = `${count} Panel Aktif`;
+      const hasCQ = ARState.activePanels.has('cellquest');
+      DOM.multiPanelCountText.textContent = hasCQ ? `${count} Modul Aktif` : `${count} Panel Aktif`;
     }
 
     if (DOM.multiPanelTagsList) {
@@ -3732,16 +3777,20 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       });
     }
 
-    // Sorok atau paparkan butang "+ Tambah Imbasan Baharu" jika had tercapai (Maksimum 3 Panel: Video, Nota, Kuiz)
+    // Sorok atau paparkan butang "+ Tambah Imbasan Baharu" jika had tercapai (Maksimum 4 Modul: 3 DOM Panel + 1 CellQuest 3D)
     if (DOM.btnAddScan) {
-      if (count >= 3) {
+      const domCount = ['video', 'nota', 'kuiz'].filter(m => ARState.activePanels.has(m)).length;
+      const hasCQ = ARState.activePanels.has('cellquest');
+      const maxReached = (count >= 4 || (domCount >= 3 && hasCQ));
+
+      if (maxReached) {
         DOM.btnAddScan.style.opacity = '0.5';
         DOM.btnAddScan.style.pointerEvents = 'none';
-        DOM.btnAddScan.title = 'Maksimum 3 panel spatial serentak.';
+        DOM.btnAddScan.title = 'Maksimum 4 modul aktif serentak (Video, Nota, Kuiz & CellQuest 3D).';
       } else {
         DOM.btnAddScan.style.opacity = '1';
         DOM.btnAddScan.style.pointerEvents = 'auto';
-        DOM.btnAddScan.title = 'Imbas marker baharu untuk menambah panel pembelajaran ke dalam ruang AR';
+        DOM.btnAddScan.title = 'Imbas marker baharu untuk menambah modul pembelajaran ke dalam ruang AR';
       }
     }
   }
@@ -3750,7 +3799,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    * Fokus atau bawa panel ke depan
    */
   function focusPanel(mod) {
-    console.log(`[MultiPanel] 🔍 Fokus ke panel: ${mod}`);
+    console.log(`[MultiPanel] 🔍 Fokus ke modul: ${mod}`);
     if (mod === 'video' && DOM.povPanelVideo) {
       DOM.povPanelVideo.style.zIndex = '2100';
       if (DOM.povPanelNota) DOM.povPanelNota.style.zIndex = '2000';
@@ -3763,6 +3812,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       DOM.povPanelKuiz.style.zIndex = '2100';
       if (DOM.povPanelVideo) DOM.povPanelVideo.style.zIndex = '2000';
       if (DOM.povPanelNota) DOM.povPanelNota.style.zIndex = '2000';
+    } else if (mod === 'cellquest') {
+      if (DOM.cellquestArHud) DOM.cellquestArHud.style.zIndex = '2200';
     }
 
     // Highlight active pill
@@ -3782,14 +3833,33 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    * Menutup panel secara khusus dari pil atau butang tutup
    */
   function closePanelFromPill(mod) {
-    console.log(`[MultiPanel] ❌ Menutup panel dari pil: ${mod}`);
+    console.log(`[MultiPanel] ❌ Menutup modul dari pil: ${mod}`);
     if (mod === 'video') {
       destroyVideoSession();
     } else if (mod === 'nota') {
       destroyNotaSession();
     } else if (mod === 'kuiz') {
       destroyKuizSession();
+    } else if (mod === 'cellquest') {
+      destroyCellQuestSession();
     }
+  }
+
+  /**
+   * Menamatkan sesi CellQuest 3D secara bebas tanpa menjejaskan panel Video, Nota atau Kuiz
+   */
+  function destroyCellQuestSession() {
+    console.log('[MultiPanel] 🛑 Menutup sesi CellQuest 3D.');
+    if (typeof CellQuestARController !== 'undefined') {
+      CellQuestARController.deactivate();
+    }
+    if (DOM.cellquestArHud) DOM.cellquestArHud.classList.add('hidden');
+
+    // Berikan tempoh bertenang 2.5s agar tidak terus terbuka jika marker masih dalam pandangan kamera
+    if (!ARState.markerCooldown) ARState.markerCooldown = {};
+    ARState.markerCooldown['cellquest'] = Date.now() + 2500;
+
+    handlePanelClosed('cellquest');
   }
 
   /**
@@ -3797,16 +3867,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    */
   function handlePanelClosed(mod) {
     ARState.activePanels.delete(mod);
-    console.log(`[MultiPanel] Panel ${mod} ditutup. Baki panel aktif: ${Array.from(ARState.activePanels).join(', ')}`);
+    console.log(`[MultiPanel] Modul ${mod} ditutup. Baki modul aktif: ${Array.from(ARState.activePanels).join(', ')}`);
 
     arrangeMultiPanelSpatialLayout();
     updateMultiPanelUI();
 
-    const nameMap = { video: 'Video', nota: 'Nota', kuiz: 'Kuiz' };
+    const nameMap = { video: 'Video', nota: 'Nota', kuiz: 'Kuiz', cellquest: 'CellQuest 3D' };
     const modLabel = nameMap[mod] || mod;
 
     if (ARState.activePanels.size === 0) {
-      // 1. Semua panel ditutup: kembali ke keadaan sedia imbas asal
+      // 1. Semua modul ditutup: kembali ke keadaan sedia imbas asal
       setScanState(SCAN_STATES.INITIAL_SCAN);
       ARState.pov.active = false;
       if (ARState.pov.rafId) {
@@ -3814,17 +3884,20 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         ARState.pov.rafId = null;
       }
       setSystemMode(SYSTEM_MODES.MARKER);
+      if (typeof CellQuestARController !== 'undefined') {
+        CellQuestARController.deactivate();
+      }
       if (DOM.scannerOverlay) DOM.scannerOverlay.classList.remove('hidden');
       if (DOM.arMultiPanelBar) DOM.arMultiPanelBar.classList.add('hidden');
-      showToast(`Panel ${modLabel} ditutup. Sedia untuk imbasan baharu.`);
+      showToast(`Modul ${modLabel} ditutup. Sedia untuk imbasan baharu.`);
     } else {
-      // 2. Masih ada panel aktif lain (cth: Nota masih aktif apabila Video ditutup)
+      // 2. Masih ada modul aktif lain (cth: Nota masih aktif apabila Video ditutup)
       setScanState(SCAN_STATES.PANEL_ACTIVE);
       const remaining = Array.from(ARState.activePanels)[0];
       ARState.activeModule = remaining;
       focusPanel(remaining);
       const remainingLabel = nameMap[remaining] || remaining;
-      showToast(`Panel ${modLabel} ditutup. Panel ${remainingLabel} kekal aktif.`);
+      showToast(`Modul ${modLabel} ditutup. Modul ${remainingLabel} kekal aktif.`);
     }
   }
 
@@ -3917,8 +3990,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.cellquestSelectionView) DOM.cellquestSelectionView.classList.add('hidden');
       if (DOM.povCellquestSelectionView) DOM.povCellquestSelectionView.classList.add('hidden');
 
-      // Fasa 4D-C: Deactivate direct 3D AR mode when in Kuiz mode
-      if (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive) {
+      // Fasa 4D-C: Deactivate direct 3D AR mode when in Kuiz mode ONLY if CellQuest is NOT active in multi-panel
+      if (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive && (!ARState.activePanels || !ARState.activePanels.has('cellquest'))) {
         CellQuestARController.deactivate();
       }
 
@@ -4012,8 +4085,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.cellquestSelectionView) DOM.cellquestSelectionView.classList.add('hidden');
       if (DOM.povCellquestSelectionView) DOM.povCellquestSelectionView.classList.add('hidden');
 
-      // Fasa 4D-C: Deactivate direct 3D AR mode when in Kuiz mode
-      if (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive) {
+      // Fasa 4D-C: Deactivate direct 3D AR mode when in Kuiz mode ONLY if CellQuest is NOT active in multi-panel
+      if (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive && (!ARState.activePanels || !ARState.activePanels.has('cellquest'))) {
         CellQuestARController.deactivate();
       }
 
@@ -4109,13 +4182,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.cellquestSelectionView) DOM.cellquestSelectionView.classList.add('hidden');
       if (DOM.povCellquestSelectionView) DOM.povCellquestSelectionView.classList.add('hidden');
 
-      // Fasa 4D-C: Deactivate direct 3D AR mode when in Kuiz mode
-      if (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive) {
-        CellQuestARController.deactivate();
-      }
-
-      // Fasa 4D-C: Deactivate direct 3D AR mode when in Video mode
-      if (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive) {
+      // Fasa 4D-C: Deactivate direct 3D AR mode when in Video mode ONLY if CellQuest is NOT active in multi-panel
+      if (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive && (!ARState.activePanels || !ARState.activePanels.has('cellquest'))) {
         CellQuestARController.deactivate();
       }
 
@@ -4138,9 +4206,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     } else if (mod === 'cellquest') {
       ARState.activeModule = 'cellquest';
 
-      // 1. Pause video gracefully without destroying session & hide all DOM panels for 3D model
-      hideVideoPanel();
-      hideNotaPanel();
+      // 1. Pause video gracefully without destroying session
+      pauseVideo();
+      // Only hide DOM panels in legacy single-module mode (no multi-panels active)
+      if (ARState.activePanels.size <= 1 && !ARState.activePanels.has('video') && !ARState.activePanels.has('nota') && !ARState.activePanels.has('kuiz')) {
+        hideVideoPanel();
+        hideNotaPanel();
+        hideKuizPanel();
+      }
 
       // 2. Point active anchor to anchorCellQuest
       if (ARState.anchorCellQuest) {
@@ -4466,9 +4539,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
       targetEl.addEventListener('pointerdown', (e) => {
         if (!this.isActive) return;
-        // Ignore clicks on HUD buttons or HUD controls so buttons work smoothly
-        if (e.target && typeof e.target.closest === 'function' && e.target.closest('#cellquest-ar-hud') && !e.target.classList.contains('cellquest-ar-hud')) {
-          return;
+        // Ignore clicks on HUD buttons, HUD controls, DOM panels, or multi-panel toolbar
+        if (e.target && typeof e.target.closest === 'function') {
+          if (e.target.closest('#cellquest-ar-hud') && !e.target.classList.contains('cellquest-ar-hud')) return;
+          if (e.target.closest('.pov-spatial-panel')) return;
+          if (e.target.closest('.floating-ar-anchor')) return;
+          if (e.target.closest('#ar-multi-panel-bar')) return;
+          if (e.target.closest('.ar-top-hud')) return;
+          if (e.target.closest('#diagnostics-drawer')) return;
+          if (e.target.closest('#ar-toast')) return;
         }
 
         this.isPointerDown = true;
@@ -4553,6 +4632,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       let startScale = 1.0;
       targetEl.addEventListener('touchstart', (e) => {
         if (!this.isActive || e.touches.length !== 2) return;
+        if (e.target && typeof e.target.closest === 'function') {
+          if (e.target.closest('.pov-spatial-panel') || e.target.closest('#ar-multi-panel-bar')) return;
+        }
         startPinchDist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY
@@ -4606,13 +4688,17 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       this.isActive = true;
       document.body.classList.add('cellquest-active'); // Enables pointer events on canvas & stabilizes touch
 
-      // Hide cardboard floating panel & POV panel so 3D cell renders directly on camera
-      if (DOM.floatingAnchor) DOM.floatingAnchor.classList.add('hidden');
-      if (DOM.povAnchor) DOM.povAnchor.classList.add('hidden');
+      // Only hide legacy cardboard floating panel if no other multi-panels are active
+      if (ARState.activePanels.size <= 1 && !ARState.activePanels.has('video') && !ARState.activePanels.has('nota') && !ARState.activePanels.has('kuiz')) {
+        if (DOM.floatingAnchor) DOM.floatingAnchor.classList.add('hidden');
+        if (DOM.povAnchor) DOM.povAnchor.classList.add('hidden');
+      }
       if (DOM.scannerOverlay) DOM.scannerOverlay.classList.add('hidden');
 
-      // 🛡️ CRITICAL UI FIX: Hide .ar-top-hud so it NEVER collides with .cq-hud-header on iPad!
-      if (DOM.topAppHud) DOM.topAppHud.classList.add('hidden');
+      // 🛡️ CRITICAL UI FIX: Hide .ar-top-hud only if multi-panel bar is not active
+      if (DOM.topAppHud && (!DOM.arMultiPanelBar || DOM.arMultiPanelBar.classList.contains('hidden'))) {
+        DOM.topAppHud.classList.add('hidden');
+      }
 
       // Show CellQuest AR HUD
       if (DOM.cellquestArHud) DOM.cellquestArHud.classList.remove('hidden');
@@ -6290,28 +6376,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         console.log('[KotakAR] 🛡️ Permainan aktif, pengesanan Marker CellQuest diabaikan.');
         return;
       }
-
-      if (ARState.scanState === SCAN_STATES.PANEL_ACTIVE && !ARState.activePanels.has('cellquest')) {
-        console.log('[KotakAR] 🛡️ Panel aktif sedang digunakan. Marker CellQuest diabaikan.');
-        return;
-      }
-
-      console.log('[KotakAR] 🎯 Marker CellQuest 3D (Target 3) dikesan!');
-      clearTimeout(ARState.lostTimeout);
-      ARState.anchor = ARState.anchorCellQuest;
-      ARState.isTracking = true;
-      switchActiveModule('cellquest');
-      ARState.activePanels.add('cellquest');
-      setScanState(SCAN_STATES.PANEL_ACTIVE);
-      updateMultiPanelUI();
-
-      if (ARSessionRecoveryManager && typeof ARSessionRecoveryManager.setState === 'function') {
-        ARSessionRecoveryManager.setState(ARSessionRecoveryManager.State.MARKER_ACTIVE, { module: 'cellquest' });
-      }
-
-      if (typeof CellQuestARController !== 'undefined' && typeof CellQuestARController.onTargetFound === 'function') {
-        CellQuestARController.onTargetFound();
-      }
+      handleTargetFound(3, 'cellquest');
     };
 
     // Target 3 (CellQuest 3D) Lost Event with Debounce Hysteresis
@@ -8778,18 +8843,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       });
     }
 
-    // Fasa 4D-C: Direct AR CellQuest 3D Overlay Listeners
+    // Fasa 4D-C & 4E-C.3A: Direct AR CellQuest 3D Overlay Listeners
     if (DOM.cqHudBtnBack) {
       DOM.cqHudBtnBack.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (typeof CellQuestARController !== 'undefined') {
-          CellQuestARController.deactivate();
-        }
-        if (DOM.scannerOverlay) DOM.scannerOverlay.classList.remove('hidden');
-        if (ARSessionRecoveryManager && typeof ARSessionRecoveryManager.setState === 'function') {
-          ARSessionRecoveryManager.setState(ARSessionRecoveryManager.State.SCANNING);
-        }
-        showToast('🎯 Halakan kamera ke mana-mana Marker Kotak ARSELNEL', 2200);
+        destroyCellQuestSession();
       });
     }
 
@@ -9212,6 +9270,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     hideKuizPanel,
     showKuizPanel,
     destroyKuizSession,
+    // Fasa 4E-C.3A CellQuest Lifecycle Exports
+    destroyCellQuestSession,
     // Fasa 4E-B.2.1 Multi-Panel Exports
     startAddPanelScan,
     cancelAddPanelScan,
@@ -9254,6 +9314,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   global.hideKuizPanel = hideKuizPanel;
   global.showKuizPanel = showKuizPanel;
   global.destroyKuizSession = destroyKuizSession;
+  global.destroyCellQuestSession = destroyCellQuestSession;
   global.selectQuiz = selectQuiz;
   global.submitQuizAnswer = submitQuizAnswer;
   global.nextQuizQuestion = nextQuizQuestion;
