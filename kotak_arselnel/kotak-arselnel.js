@@ -3045,19 +3045,51 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.playerFrame) DOM.playerFrame.innerHTML = '';
     if (DOM.povPlayerFrame) DOM.povPlayerFrame.innerHTML = '';
     ARState.activeVideo = null;
-    if (ARState.pov) ARState.pov.loadedVideoId = null;
+    if (ARState.pov) {
+      ARState.pov.loadedVideoId = null;
+      ARState.pov.isAnchored = false;
+    }
+    ARState.isPinned = false;
+
     if (typeof SpatialPanelManager !== 'undefined') {
       const p = SpatialPanelManager.getPanel('video');
       if (p) {
         p.isLoaded = false;
         p.playbackState = 'destroyed';
+        p.isVisible = false;
+        p.isLocked = false;
+        p.placementMode = 'MARKER';
+        p.anchorWorldVector = null;
       }
       SpatialPanelManager.setPanelVisibility('video', false);
     }
     if (DOM.povPanelVideo) {
       DOM.povPanelVideo.classList.add('hidden');
-      DOM.povPanelVideo.classList.remove('is-visible');
+      DOM.povPanelVideo.classList.remove('is-visible', 'is-centered');
+      DOM.povPanelVideo.style.opacity = '0';
+      DOM.povPanelVideo.style.visibility = 'hidden';
+      DOM.povPanelVideo.style.pointerEvents = 'none';
     }
+    if (DOM.floatingAnchor) {
+      DOM.floatingAnchor.classList.remove('is-visible');
+    }
+    if (DOM.floatingCard) {
+      DOM.floatingCard.classList.remove('is-pinned');
+    }
+    if (DOM.pinnedToolbar) DOM.pinnedToolbar.classList.add('hidden');
+    if (DOM.cardDragBar) DOM.cardDragBar.classList.add('hidden');
+    if (DOM.btnPlaceVideo) DOM.btnPlaceVideo.classList.remove('hidden');
+    if (DOM.btnLockVideo) DOM.btnLockVideo.classList.add('hidden');
+    if (DOM.povBtnAnchor) {
+      DOM.povBtnAnchor.classList.remove('is-locked');
+      if (DOM.povAnchorIcon) DOM.povAnchorIcon.textContent = 'my_location';
+      if (DOM.povAnchorText) DOM.povAnchorText.textContent = 'Letak di Arah Ini';
+    }
+
+    // Cooldown 2.5s supaya marker video tidak mencetuskan scan serta-merta jika kamera masih menghadapnya
+    ARState.markerCooldown = ARState.markerCooldown || {};
+    ARState.markerCooldown['video'] = Date.now() + 2500;
+
     if (typeof handlePanelClosed === 'function') {
       handlePanelClosed('video');
     }
@@ -3109,13 +3141,30 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       const p = SpatialPanelManager.getPanel('nota');
       if (p) {
         p.isLoaded = false;
+        p.isVisible = false;
+        p.isLocked = false;
+        p.placementMode = 'MARKER';
+        p.anchorWorldVector = null;
       }
       SpatialPanelManager.setPanelVisibility('nota', false);
     }
     if (DOM.povPanelNota) {
       DOM.povPanelNota.classList.add('hidden');
-      DOM.povPanelNota.classList.remove('is-visible');
+      DOM.povPanelNota.classList.remove('is-visible', 'is-centered');
+      DOM.povPanelNota.style.opacity = '0';
+      DOM.povPanelNota.style.visibility = 'hidden';
+      DOM.povPanelNota.style.pointerEvents = 'none';
     }
+    if (DOM.povNotaBtnAnchor) {
+      DOM.povNotaBtnAnchor.classList.remove('is-locked');
+      if (DOM.povNotaAnchorIcon) DOM.povNotaAnchorIcon.textContent = 'my_location';
+      if (DOM.povNotaAnchorText) DOM.povNotaAnchorText.textContent = 'Letak di Arah Ini';
+    }
+
+    // Cooldown 2.5s supaya marker nota tidak mencetuskan scan serta-merta jika kamera masih menghadapnya
+    ARState.markerCooldown = ARState.markerCooldown || {};
+    ARState.markerCooldown['nota'] = Date.now() + 2500;
+
     if (typeof handlePanelClosed === 'function') {
       handlePanelClosed('nota');
     }
@@ -3205,6 +3254,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       showToast('📌 Sila semat ("Semat Skrin") atau kunci POV panel terlebih dahulu sebelum menambah imbasan baharu.');
       return;
     }
+    ARState.markerCooldown = {};
     setScanState(SCAN_STATES.ADD_PANEL);
   }
 
@@ -3223,6 +3273,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     // 🛡️ ISOLATION: Jika permainan aktif, sekat sebarang gangguan marker
     if (GameSessionManager.isGameActive()) {
       console.log(`[KotakAR] 🛡️ Permainan aktif, pengesanan Marker ${moduleName} diabaikan.`);
+      return;
+    }
+
+    // 🛡️ COOLDOWN: Jika marker baru sahaja ditutup secara manual, sekat pengesanan seketika
+    if (ARState.markerCooldown && ARState.markerCooldown[moduleName] && Date.now() < ARState.markerCooldown[moduleName]) {
+      console.log(`[MultiPanel] ⏳ Marker ${moduleName} dalam tempoh bertenang (cooldown). Diabaikan.`);
       return;
     }
 
@@ -3501,7 +3557,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   }
 
   /**
-   * Pengendali penutupan panel
+   * Pengendali penutupan panel berpusat (Lifecycle Multi-Panel Konsisten)
    */
   function handlePanelClosed(mod) {
     ARState.activePanels.delete(mod);
@@ -3511,9 +3567,24 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     updateMultiPanelUI();
 
     if (ARState.activePanels.size === 0) {
+      // 1. Semua panel ditutup: kembali ke keadaan sedia imbas asal
       setScanState(SCAN_STATES.INITIAL_SCAN);
+      ARState.pov.active = false;
+      if (ARState.pov.rafId) {
+        cancelAnimationFrame(ARState.pov.rafId);
+        ARState.pov.rafId = null;
+      }
+      setSystemMode(SYSTEM_MODES.MARKER);
+      if (DOM.scannerOverlay) DOM.scannerOverlay.classList.remove('hidden');
+      if (DOM.arMultiPanelBar) DOM.arMultiPanelBar.classList.add('hidden');
+      showToast(`Panel ${mod === 'video' ? 'Video' : 'Nota'} ditutup. Sedia untuk imbasan baharu.`);
     } else {
+      // 2. Masih ada panel aktif lain (cth: Nota masih aktif apabila Video ditutup)
       setScanState(SCAN_STATES.PANEL_ACTIVE);
+      const remaining = Array.from(ARState.activePanels)[0];
+      ARState.activeModule = remaining;
+      focusPanel(remaining);
+      showToast(`Panel ${mod === 'video' ? 'Video' : 'Nota'} ditutup. Panel ${remaining === 'video' ? 'Video' : 'Nota'} kekal aktif.`);
     }
   }
 
@@ -5420,9 +5491,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         }
       }
 
-      // 3. Show persistent recovery toolbar
+      // 3. Keep legacy recovery bar hidden (Multi-Panel Bar is active)
       if (DOM.povFixedRecoveryBar) {
-        DOM.povFixedRecoveryBar.classList.remove('hidden');
+        DOM.povFixedRecoveryBar.classList.add('hidden');
       }
 
       // 4. Hide off-screen pointer
@@ -5478,7 +5549,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         DOM.povPanelNota.classList.remove('is-centered');
       }
       if (DOM.povFixedRecoveryBar) {
-        DOM.povFixedRecoveryBar.classList.remove('hidden');
+        DOM.povFixedRecoveryBar.classList.add('hidden');
       }
       if (DOM.backHudText) DOM.backHudText.textContent = 'Setup POV';
 
@@ -6310,22 +6381,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (ARState.activeGame) {
       closeEmbeddedGame();
     }
-    setSystemMode(SYSTEM_MODES.MARKER);
-    if (DOM.floatingAnchor) {
-      DOM.floatingAnchor.classList.remove('is-visible');
-    }
-    if (DOM.playerFrame) {
-      DOM.playerFrame.innerHTML = '';
-    }
-    ARState.activeVideo = null;
-    ARState.isPinned = false;
-    if (DOM.btnPlaceVideo) DOM.btnPlaceVideo.classList.remove('hidden');
-    if (DOM.btnLockVideo) DOM.btnLockVideo.classList.add('hidden');
-    if (DOM.cardDragBar) DOM.cardDragBar.classList.add('hidden');
-    if (DOM.pinnedToolbar) DOM.pinnedToolbar.classList.add('hidden');
-    if (DOM.floatingCard) DOM.floatingCard.classList.remove('is-pinned');
-    if (DOM.scannerOverlay) DOM.scannerOverlay.classList.remove('hidden');
-    showToast('Panel ditutup. Imbas marker untuk buka semula.');
+    destroyVideoSession();
   }
 
   /**
@@ -6551,7 +6607,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       });
     }
     if (DOM.povNotaBtnBackPinned) DOM.povNotaBtnBackPinned.addEventListener('click', () => exitPOVMode(true));
-    if (DOM.povNotaBtnClose) DOM.povNotaBtnClose.addEventListener('click', () => { destroyNotaSession(); exitPOVMode(false); });
+    if (DOM.povNotaBtnClose) {
+      DOM.povNotaBtnClose.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        destroyNotaSession();
+      });
+    }
   }
 
   /**
@@ -7469,8 +7530,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       let offscreenPanelForPointer = null;
 
       panelsToRender.forEach((p) => {
-        if (!p.isVisible) return;
         const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
+        if (!p.isVisible) {
+          if (el) {
+            el.style.opacity = '0';
+            el.style.visibility = 'hidden';
+            el.style.pointerEvents = 'none';
+          }
+          return;
+        }
         if (!el) return;
 
         // Effective placement mode: if p has specific placementMode use it, otherwise fall back to ARState.systemMode
@@ -8247,8 +8315,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       });
     }
     if (DOM.povBtnClose) {
-      DOM.povBtnClose.addEventListener('click', () => {
-        exitPOVMode(false);
+      DOM.povBtnClose.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        destroyVideoSession();
       });
     }
     if (DOM.povBtnToggleCam) {
