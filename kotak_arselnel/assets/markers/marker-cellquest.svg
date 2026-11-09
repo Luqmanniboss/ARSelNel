@@ -1,0 +1,238 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <!-- Blue, Cyan & 3D Sci Gradients -->
+    <linearGradient id="bgGradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="50%" stop-color="#172554"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+    <linearGradient id="blueMainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="cyanNeonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="emeraldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="amberGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <radialGradient id="glowCellQuest" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#1d4ed8" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#090d16" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Deep High-Contrast Base (White Outer Margin for Crisp Target Boundary) -->
+  <rect width="1000" height="1000" fill="#ffffff"/>
+  <rect x="25" y="25" width="950" height="950" fill="url(#bgGradBlue)" rx="30" stroke="#1e3a8a" stroke-width="12"/>
+
+  <!-- High-Frequency Calibration Grid Pattern (For optical feature detection) -->
+  <g stroke="#1d4ed8" stroke-width="2" opacity="0.65">
+    <line x1="100" y1="50" x2="100" y2="950"/>
+    <line x1="200" y1="50" x2="200" y2="950"/>
+    <line x1="300" y1="50" x2="300" y2="950"/>
+    <line x1="700" y1="50" x2="700" y2="950"/>
+    <line x1="800" y1="50" x2="800" y2="950"/>
+    <line x1="900" y1="50" x2="900" y2="950"/>
+
+    <line x1="50" y1="100" x2="950" y2="100"/>
+    <line x1="50" y1="200" x2="950" y2="200"/>
+    <line x1="50" y1="300" x2="950" y2="300"/>
+    <line x1="50" y1="700" x2="950" y2="700"/>
+    <line x1="50" y1="800" x2="950" y2="800"/>
+    <line x1="50" y1="900" x2="950" y2="900"/>
+  </g>
+
+  <!-- 4 Corner Asymmetric Optical Tracking Targets -->
+  <!-- Top-Left Corner (Target Marker 04: Isometric 3D Cube Marker) -->
+  <g transform="translate(60, 60)">
+    <circle cx="50" cy="50" r="42" fill="#38bdf8"/>
+    <circle cx="50" cy="50" r="32" fill="#0f172a"/>
+    <circle cx="50" cy="50" r="22" fill="#ffffff"/>
+    <circle cx="50" cy="50" r="10" fill="#2563eb"/>
+    <line x1="50" y1="0" x2="50" y2="100" stroke="#fde047" stroke-width="4"/>
+    <line x1="0" y1="50" x2="100" y2="50" stroke="#fde047" stroke-width="4"/>
+    <!-- Top-Left 3D Cube Icon -->
+    <polygon points="50,22 68,32 50,42 32,32" fill="#60a5fa"/>
+    <polygon points="32,32 50,42 50,62 32,52" fill="#2563eb"/>
+    <polygon points="50,42 68,32 68,52 50,62" fill="#1d4ed8"/>
+    <rect x="75" y="75" width="20" height="20" fill="#38bdf8"/>
+  </g>
+
+  <!-- Top-Right Corner (Asymmetric DNA / Molecular Tracker) -->
+  <g transform="translate(840, 60)">
+    <rect x="0" y="0" width="100" height="100" fill="#0f172a" rx="16" stroke="#38bdf8" stroke-width="4"/>
+    <!-- Molecular Nodes Geometry -->
+    <line x1="20" y1="25" x2="80" y2="75" stroke="#60a5fa" stroke-width="4"/>
+    <line x1="20" y1="75" x2="80" y2="25" stroke="#60a5fa" stroke-width="4"/>
+    <circle cx="20" cy="25" r="10" fill="#38bdf8"/>
+    <circle cx="80" cy="75" r="10" fill="#34d399"/>
+    <circle cx="20" cy="75" r="10" fill="#fde047"/>
+    <circle cx="80" cy="25" r="10" fill="#38bdf8"/>
+    <circle cx="50" cy="50" r="12" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+  </g>
+
+  <!-- Bottom-Left Corner (Microscope Lens Tracker) -->
+  <g transform="translate(60, 840)">
+    <polygon points="50,5 95,50 50,95 5,50" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+    <polygon points="50,22 78,50 50,78 22,50" fill="#0f172a"/>
+    <circle cx="50" cy="50" r="14" fill="#38bdf8"/>
+    <circle cx="50" cy="50" r="7" fill="#ffffff"/>
+    <circle cx="20" cy="20" r="6" fill="#34d399"/>
+    <circle cx="80" cy="20" r="6" fill="#34d399"/>
+    <circle cx="80" cy="80" r="6" fill="#fde047"/>
+  </g>
+
+  <!-- Bottom-Right Corner (Matrix Optical Pattern) -->
+  <g transform="translate(840, 840)">
+    <circle cx="50" cy="50" r="45" fill="#1e3a8a" stroke="#38bdf8" stroke-width="4"/>
+    <rect x="25" y="25" width="22" height="22" fill="#ffffff" rx="4"/>
+    <rect x="53" y="25" width="22" height="22" fill="#34d399" rx="4"/>
+    <rect x="25" y="53" width="22" height="22" fill="#38bdf8" rx="4"/>
+    <rect x="53" y="53" width="22" height="22" fill="#ffffff" rx="4"/>
+    <circle cx="50" cy="50" r="6" fill="#0f172a"/>
+  </g>
+
+  <!-- Hexagonal Concentric Sci-Shield (Middle Anchor) -->
+  <polygon points="500,140 820,320 820,680 500,860 180,680 180,320" 
+           fill="none" stroke="#2563eb" stroke-width="16" opacity="0.85"/>
+  <polygon points="500,165 795,335 795,665 500,835 205,665 205,335" 
+           fill="none" stroke="#38bdf8" stroke-width="4" stroke-dasharray="16, 12"/>
+
+  <!-- Radial Glow Behind Center 3D Cell Hologram -->
+  <circle cx="500" cy="485" r="280" fill="url(#glowCellQuest)"/>
+
+  <!-- Middle Emblem Base Shield -->
+  <circle cx="500" cy="485" r="235" fill="#0f172a" stroke="#38bdf8" stroke-width="14"/>
+  <circle cx="500" cy="485" r="215" fill="#172554" stroke="#60a5fa" stroke-width="4" stroke-dasharray="8, 6"/>
+
+  <!-- Top Circuit Track Left -->
+  <path d="M 220 250 L 320 250 L 370 300 L 440 300" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="220" cy="250" r="8" fill="#fde047"/>
+  <circle cx="440" cy="300" r="6" fill="#34d399"/>
+
+  <!-- Top Circuit Track Right -->
+  <path d="M 780 250 L 680 250 L 630 300 L 560 300" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="780" cy="250" r="8" fill="#fde047"/>
+  <circle cx="560" cy="300" r="6" fill="#34d399"/>
+
+  <!-- Side Sci Beacons -->
+  <!-- Left Side: 3D Tokens -->
+  <g transform="translate(138, 430)">
+    <rect x="0" y="0" width="55" height="55" rx="14" fill="#2563eb" stroke="#ffffff" stroke-width="3"/>
+    <text x="27" y="38" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="24" fill="#ffffff" text-anchor="middle">3D</text>
+  </g>
+  <g transform="translate(138, 510)">
+    <rect x="0" y="0" width="55" height="55" rx="14" fill="#0284c7" stroke="#ffffff" stroke-width="3"/>
+    <text x="27" y="38" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">SEL</text>
+  </g>
+
+  <!-- Right Side: Organelle Beacons -->
+  <g transform="translate(807, 430)">
+    <rect x="0" y="0" width="55" height="55" rx="14" fill="#0284c7" stroke="#ffffff" stroke-width="3"/>
+    <text x="27" y="38" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">HAI</text>
+  </g>
+  <g transform="translate(807, 510)">
+    <rect x="0" y="0" width="55" height="55" rx="14" fill="#059669" stroke="#ffffff" stroke-width="3"/>
+    <text x="27" y="38" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">TUM</text>
+  </g>
+
+  <!-- ============================================== -->
+  <!-- CENTRAL ICON: 3D ISOMETRIC CELL & NUCLEUS CORE -->
+  <!-- ============================================== -->
+  <g id="center-cell-icon" transform="translate(500, 485)">
+    <!-- Outer 3D Membrane Orbit Rings -->
+    <ellipse cx="0" cy="0" rx="150" ry="60" fill="none" stroke="#38bdf8" stroke-width="5" transform="rotate(-25)"/>
+    <ellipse cx="0" cy="0" rx="150" ry="60" fill="none" stroke="#34d399" stroke-width="4" stroke-dasharray="10, 8" transform="rotate(35)"/>
+
+    <!-- Central Isometric 3D Cell Hex-Crystal (Stylized Biological Cell) -->
+    <!-- Top Face -->
+    <polygon points="0,-90 78,-45 0,0 -78,-45" fill="url(#cyanNeonGrad)" stroke="#ffffff" stroke-width="4"/>
+    <!-- Left Face -->
+    <polygon points="-78,-45 0,0 0,90 -78,45" fill="#1d4ed8" stroke="#ffffff" stroke-width="4"/>
+    <!-- Right Face -->
+    <polygon points="0,0 78,-45 78,45 0,90" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+
+    <!-- Cutaway Biological Organelles Inside 3D Cell -->
+    <!-- Glowing Central Nucleus -->
+    <circle cx="0" cy="5" r="28" fill="url(#amberGold)" stroke="#ffffff" stroke-width="3"/>
+    <circle cx="-4" cy="2" r="10" fill="#ffffff" opacity="0.6"/>
+
+    <!-- Organelle 1: Mitochondria (Orange oval with cristae) -->
+    <g transform="translate(-40, 40) rotate(-20)">
+      <ellipse cx="0" cy="0" rx="18" ry="10" fill="#ea580c" stroke="#ffffff" stroke-width="2"/>
+      <path d="M -10 0 Q -5 -5 0 0 Q 5 5 10 0" fill="none" stroke="#ffffff" stroke-width="2"/>
+    </g>
+
+    <!-- Organelle 2: Chloroplast (Green oval with granum disks) -->
+    <g transform="translate(42, 38) rotate(25)">
+      <ellipse cx="0" cy="0" rx="18" ry="10" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+      <circle cx="-6" cy="0" r="3" fill="#ffffff"/>
+      <circle cx="0" cy="0" r="3" fill="#ffffff"/>
+      <circle cx="6" cy="0" r="3" fill="#ffffff"/>
+    </g>
+
+    <!-- Organelle 3: Vacuole (Cyan droplet) -->
+    <ellipse cx="-28" cy="-35" rx="14" ry="9" fill="#38bdf8" stroke="#ffffff" stroke-width="2"/>
+
+    <!-- Floating 3D Badge -->
+    <g transform="translate(0, -98)">
+      <rect x="-35" y="-16" width="70" height="32" rx="16" fill="#fde047" stroke="#0f172a" stroke-width="3"/>
+      <text x="0" y="6" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="16" fill="#0f172a" text-anchor="middle">3D</text>
+    </g>
+  </g>
+
+  <!-- Orbiting Science Particles & Stars (High Optical Entropy) -->
+  <g transform="translate(360, 260)">
+    <polygon points="18,0 23,11 35,13 26,21 28,33 18,27 8,33 10,21 1,13 13,11" fill="#fde047"/>
+  </g>
+  <g transform="translate(620, 260)">
+    <polygon points="18,0 23,11 35,13 26,21 28,33 18,27 8,33 10,21 1,13 13,11" fill="#fde047"/>
+  </g>
+  <g transform="translate(300, 680)">
+    <polygon points="15,0 19,9 29,10 22,17 23,27 15,22 7,27 8,17 1,10 11,9" fill="#38bdf8"/>
+  </g>
+  <g transform="translate(670, 680)">
+    <polygon points="15,0 19,9 29,10 22,17 23,27 15,22 7,27 8,17 1,10 11,9" fill="#34d399"/>
+  </g>
+
+  <!-- Bottom Distinctive Banner (High-contrast typography for robust tracking) -->
+  <g transform="translate(500, 890)">
+    <!-- Banner Pill -->
+    <rect x="-370" y="-42" width="740" height="74" rx="37" fill="#090d16" stroke="#38bdf8" stroke-width="5"/>
+    <rect x="-360" y="-32" width="720" height="54" rx="27" fill="#1e3a8a"/>
+    
+    <!-- CellQuest Cube Icon Mini -->
+    <g transform="translate(-305, -5)">
+      <circle cx="0" cy="0" r="18" fill="#38bdf8"/>
+      <!-- Small cube inside circle -->
+      <polygon points="0,-9 8,-4 0,0 -8,-4" fill="#ffffff"/>
+      <polygon points="-8,-4 0,0 0,9 -8,4" fill="#1d4ed8"/>
+      <polygon points="0,0 8,-4 8,4 0,9" fill="#2563eb"/>
+    </g>
+
+    <!-- Primary Title -->
+    <text x="-260" y="5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+          font-weight="900" font-size="28" fill="#ffffff" letter-spacing="3">CELLQUEST 3D</text>
+
+    <!-- Subtitle Badge -->
+    <rect x="135" y="-18" width="185" height="34" rx="17" fill="#38bdf8"/>
+    <text x="227" y="5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+          font-weight="900" font-size="16" fill="#090d16" letter-spacing="1.5" text-anchor="middle">KOTAK AR • 04</text>
+  </g>
+
+  <!-- Center Crosshairs for Optical Tracking Precision -->
+  <circle cx="500" cy="485" r="3" fill="#ffffff"/>
+  <line x1="485" y1="485" x2="475" y2="485" stroke="#ffffff" stroke-width="2"/>
+  <line x1="515" y1="485" x2="525" y2="485" stroke="#ffffff" stroke-width="2"/>
+  <line x1="500" y1="470" x2="500" y2="460" stroke="#ffffff" stroke-width="2"/>
+  <line x1="500" y1="500" x2="500" y2="510" stroke="#ffffff" stroke-width="2"/>
+</svg>
+

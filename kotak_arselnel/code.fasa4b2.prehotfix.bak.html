@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Kotak ARSELNEL — Imbas & Belajar | Sains Tingkatan 1</title>
+  <base href="/kotak_arselnel/" />
+
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,600,0,0" rel="stylesheet" />
+
+  <!-- Core Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-three.prod.js"></script>
+  <script>
+    // Seamless Three.js provider from MindAR bundle
+    if (!window.THREE && window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.THREE) {
+      window.THREE = window.MINDAR.IMAGE.THREE;
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/cms-content-adapter.js"></script>
+  <!-- PDF.js library for rendering real PDF notes on iPad/Safari/Chrome -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Pastikan sesi pembelajaran wujud untuk imbasan langsung kotak AR
+    try {
+      const user = localStorage.getItem('arselnel_current_user') || sessionStorage.getItem('arselnel_current_user');
+      if (!user) {
+        const guest = {
+          id: 'guest_' + Date.now(),
+          name: 'Pengembara Kotak AR (Tetamu)',
+          username: 'tetamu_ar',
+          email: 'tetamu@arselnel.my',
+          role: 'guest',
+          isGuest: true,
+          grade: 'Tingkatan 1',
+          avatar: '../assets/home/avatar.svg',
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('arselnel_current_user', JSON.stringify(guest));
+        sessionStorage.setItem('arselnel_current_user', JSON.stringify(guest));
+      }
+    } catch (e) {}
+  </script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <!-- Module CSS -->
+  <link rel="stylesheet" href="/kotak_arselnel/kotak-arselnel.css" />
+</head>
+<body>
+
+  <!-- TOP HUD CONTROLS -->
+  <header class="ar-top-hud">
+    <button type="button" class="ar-hud-btn" id="btn-back-dashboard" title="Kembali ke mod atau paparan sebelumnya">
+      <span class="material-symbols-outlined" id="back-hud-icon">arrow_back</span>
+      <span id="back-hud-text">Dashboard</span>
+    </button>
+
+    <div class="ar-title-badge">
+      <div class="logo-dot"></div>
+      <span id="ar-title-badge-text">KOTAK ARSELNEL • FASA 3C</span>
+    </div>
+
+    <div class="ar-hud-right-group">
+      <button type="button" class="ar-hud-btn btn-diagnostics-toggle" id="btn-toggle-diagnostics" title="Papar Diagnostik Sensor & Sistem">
+        <span class="material-symbols-outlined" style="font-size:16px;color:#2dd4bf;">developer_mode</span>
+        <span>Diagnostik</span>
+      </button>
+
+      <a href="marker-print.html" target="_blank" rel="noopener" class="ar-hud-btn" id="btn-open-marker" title="Buka Marker Video untuk Dicetak atau Diimbas">
+        <span class="material-symbols-outlined">qr_code_2</span>
+        <span>Papar Marker</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- FIXED FLOATING POV RECOVERY TOOLBAR (Always visible and immune to POV transforms) -->
+  <aside class="pov-fixed-recovery-bar hidden" id="pov-fixed-recovery-bar" aria-label="Kawalan Pemulihan POV">
+    <button type="button" class="recovery-btn recovery-primary" id="pov-rec-center" title="Bawa panel kembali ke tengah skrin">
+      <span class="material-symbols-outlined">center_focus_strong</span>
+      <span>Bawa ke Tengah</span>
+    </button>
+    <button type="button" class="recovery-btn" id="pov-rec-recalibrate" title="Kalibrasi semula orientasi rujukan">
+      <span class="material-symbols-outlined">tune</span>
+      <span>Kalibrasi</span>
+    </button>
+    <button type="button" class="recovery-btn" id="pov-rec-cam" title="Buka atau tutup kamera">
+      <span class="material-symbols-outlined" id="pov-rec-cam-icon">videocam_off</span>
+      <span id="pov-rec-cam-text">Tutup Kamera</span>
+    </button>
+    <button type="button" class="recovery-btn" id="pov-rec-back-pinned" title="Beralih ke mod semat skrin">
+      <span class="material-symbols-outlined">push_pin</span>
+      <span>Semat Skrin</span>
+    </button>
+    <button type="button" class="recovery-btn recovery-close" id="pov-rec-close" title="Keluar daripada mod POV">
+      <span class="material-symbols-outlined">close</span>
+      <span>Keluar</span>
+    </button>
+  </aside>
+
+  <!-- THREE.JS & CAMERA RENDER CONTAINER -->
+  <main id="ar-container"></main>
+
+  <!-- SCANNER RETICLE & INSTRUCTION OVERLAY -->
+  <div class="ar-scanner-overlay" id="scanner-overlay">
+    <div class="scanner-frame">
+      <div class="scan-corner tl"></div>
+      <div class="scan-corner tr"></div>
+      <div class="scan-corner bl"></div>
+      <div class="scan-corner br"></div>
+      <div class="scan-laser"></div>
+      <span class="material-symbols-outlined scanner-center-icon">video_camera_front</span>
+    </div>
+
+    <div class="ar-instruction-pill">
+      <span class="material-symbols-outlined icon">view_in_ar</span>
+      <span class="text">Halakan kamera ke Marker Video pada Kotak ARSELNEL</span>
+    </div>
+  </div>
+
+  <!-- FLOATING AR VIDEO PANEL (2D/3D PERSPECTIVE HYBRID) -->
+  <div class="floating-ar-anchor" id="floating-ar-anchor">
+    <div class="floating-card-container size-medium" id="floating-card-container">
+      
+      <!-- A. FIXED HEADER (Non-scrollable, contains drag bar & controls) -->
+      <header class="panel-fixed-header" id="panel-fixed-header">
+        <!-- Drag Handle Bar (Revealed when Pinned to Screen) -->
+        <div class="card-drag-bar hidden" id="card-drag-bar" title="Seret bar ini untuk alihkan kedudukan panel">
+          <div class="drag-grip">
+            <span class="material-symbols-outlined drag-icon">drag_indicator</span>
+            <span class="drag-text">Seret Panel ke Kedudukan Pilihan</span>
+          </div>
+          <div class="lock-indicator-badge" id="drag-lock-badge" title="Status Panel">
+            <span class="material-symbols-outlined" id="drag-lock-icon" style="font-size:13px;">lock_open</span>
+            <span id="drag-lock-text">Boleh Dialih</span>
+          </div>
+        </div>
+
+        <!-- Card Top Header -->
+        <div class="floating-card-header" id="floating-card-header">
+          <div class="category-tag" id="panel-category-tag">
+            <span class="material-symbols-outlined" id="panel-category-icon" style="font-size:16px;">smart_display</span>
+            <span id="panel-category-text">1. Video Pembelajaran</span>
+          </div>
+          <div class="tracking-status-indicator" id="tracking-status-badge">
+            <div class="ping" id="tracking-ping"></div>
+            <span id="tracking-status-text">Marker Dikesan</span>
+          </div>
+        </div>
+
+        <!-- PINNED TOOLBAR: Size Controls & Battery-Saver Camera Toggle (Active when Pinned) -->
+        <div class="pinned-toolbar hidden" id="pinned-toolbar">
+          <div class="size-controls-group">
+            <span class="tool-label">Saiz:</span>
+            <div class="size-segmented-control" role="group" aria-label="Ubah saiz panel">
+              <button type="button" class="btn-size" data-size="small" id="btn-size-s" title="Saiz Kecil (320px)">S</button>
+              <button type="button" class="btn-size is-active" data-size="medium" id="btn-size-m" title="Saiz Sederhana (480px)">M</button>
+              <button type="button" class="btn-size" data-size="large" id="btn-size-l" title="Saiz Besar (580px)">L</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-cam-toggle" id="btn-toggle-cam" title="Tutup kamera untuk jimat bateri tanpa henti video">
+            <span class="material-symbols-outlined" id="cam-toggle-icon" style="font-size:15px;">videocam_off</span>
+            <span id="cam-toggle-text">Tutup Kamera</span>
+          </button>
+
+          <button type="button" class="btn-cam-toggle btn-switch-pov" id="btn-switch-to-pov" title="Tukar ke Mod Kunci POV (Giroskop)">
+            <span class="material-symbols-outlined" style="font-size:15px;color:#2dd4bf;">explore</span>
+            <span>Kunci POV</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- B. SCROLLABLE CONTENT BODY (min-height: 0; overflow-y: auto; flex: 1 1 auto) -->
+      <main class="panel-scrollable-body" id="panel-scrollable-body">
+        <!-- VIEW 1: Video Selection List -->
+        <div class="video-selection-view" id="video-selection-view">
+          <div class="selection-title-box">
+            <h3>Pilih Video Pembelajaran</h3>
+            <p>Terokai video sains sel interaktif daripada silibus KSSM Tingkatan 1.</p>
+          </div>
+
+          <div class="video-cards-scroll" id="video-cards-scroll">
+            <!-- Dynamic video items injected by kotak-arselnel.js -->
+          </div>
+        </div>
+
+        <!-- VIEW 2: Active Video Player -->
+        <div class="active-player-view" id="active-player-view">
+          <!-- Interactive Player Frame (YouTube / HTML5) -->
+          <div class="ar-player-frame" id="ar-player-frame"></div>
+
+          <!-- Video Metadata -->
+          <div class="active-video-details">
+            <h3 id="player-video-title">Tajuk Video</h3>
+            <p id="player-video-desc">Penerangan video pembelajaran sains ARSELNEL.</p>
+          </div>
+        </div>
+
+        <!-- VIEW 3: Nota Selection View (Fasa 4B) -->
+        <div class="nota-selection-view hidden" id="nota-selection-view">
+          <div class="selection-title-box nota-title-box">
+            <h3>Pilih Nota Pembelajaran</h3>
+            <p>Terokai slaid &amp; fakta sains sel interaktif daripada silibus KSSM Tingkatan 1.</p>
+          </div>
+
+          <div class="nota-cards-scroll" id="nota-cards-scroll">
+            <!-- Dynamic note items injected by kotak-arselnel.js -->
+          </div>
+        </div>
+
+        <!-- VIEW 4: Active Nota Reader View (Fasa 4B) -->
+        <div class="active-nota-view hidden" id="active-nota-view">
+          <!-- Reader Action Controls (Zoom, Slide Pagination, Fullscreen Link) -->
+          <div class="nota-reader-toolbar">
+            <div class="nota-pagination-control">
+              <button type="button" class="btn-nota-nav" id="btn-nota-prev" title="Halaman Sebelum">
+                <span class="material-symbols-outlined">chevron_left</span>
+                <span>Sebelum</span>
+              </button>
+              <span class="nota-page-indicator" id="nota-page-indicator">Halaman 1 / 1</span>
+              <button type="button" class="btn-nota-nav" id="btn-nota-next" title="Halaman Seterusnya">
+                <span>Seterusnya</span>
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+
+            <div class="nota-zoom-control">
+              <button type="button" class="btn-zoom" id="btn-nota-zoom-out" title="Kecilkan Teks (-)">
+                <span class="material-symbols-outlined">zoom_out</span>
+              </button>
+              <button type="button" class="btn-zoom-reset" id="btn-nota-zoom-reset" title="Tetapkan Semula Saiz Teks (100%)">
+                <span id="nota-zoom-text">100%</span>
+              </button>
+              <button type="button" class="btn-zoom" id="btn-nota-zoom-in" title="Besarkan Teks (+)">
+                <span class="material-symbols-outlined">zoom_in</span>
+              </button>
+              <a href="#" id="btn-nota-open-full" target="_blank" class="btn-nota-open-full" title="Buka Pratonton Penuh Slaid/Nota">
+                <span class="material-symbols-outlined">open_in_new</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Note Content Body (Supports PDF Canvas, Slides, Embed, HTML) -->
+          <div class="nota-content-wrapper" id="nota-content-wrapper">
+            <div class="nota-content-header" id="nota-content-header">
+              <div class="nota-badges-row">
+                <span class="nota-chapter-badge" id="nota-chapter-badge">Bab 2</span>
+                <span class="nota-type-badge" id="nota-type-badge">PDF</span>
+                <span class="nota-time-badge" id="nota-time-badge">
+                  <span class="material-symbols-outlined" style="font-size:13px;">schedule</span>
+                  <span id="nota-time-text">5 Minit</span>
+                </span>
+              </div>
+              <h2 class="nota-title" id="nota-title">Tajuk Nota</h2>
+            </div>
+
+            <!-- PDF Canvas Container (active when contentType is pdf) -->
+            <div class="nota-pdf-container hidden" id="nota-pdf-container">
+              <div class="nota-loading-spinner hidden" id="nota-pdf-loading">
+                <span class="material-symbols-outlined spin">progress_activity</span>
+                <span>Memuatkan fail PDF...</span>
+              </div>
+              <div class="nota-pdf-canvas-wrap" id="nota-pdf-canvas-wrap">
+                <canvas id="nota-pdf-canvas" class="nota-pdf-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Embed Frame Container (active when google_slides or embed) -->
+            <div class="nota-embed-container hidden" id="nota-embed-container">
+              <iframe id="nota-embed-frame" class="nota-embed-frame" src="" allowfullscreen></iframe>
+            </div>
+
+            <!-- Rendered HTML / Markdown Container (active for interactive slides & text) -->
+            <div class="nota-body-rendered" id="nota-body-rendered">
+              <!-- Rendered note content -->
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- C. STICKY FOOTER ACTIONS BAR (Always visible & interactive at bottom) -->
+      <footer class="panel-sticky-footer" id="panel-sticky-footer">
+        <div class="player-actions-bar">
+          <button type="button" class="btn-place-video" id="btn-place-video" title="Sematkan panel ke kedudukan pilihan pada skrin">
+            <span class="material-symbols-outlined">push_pin</span>
+            <span id="btn-place-text">Semat pada Skrin</span>
+          </button>
+
+          <button type="button" class="btn-pov-mode" id="btn-start-pov" title="Kunci arah panel menggunakan sensor giroskop 3DoF (Boleh tutup kamera)">
+            <span class="material-symbols-outlined">explore</span>
+            <span>Kunci POV</span>
+          </button>
+          
+          <button type="button" class="btn-lock-video hidden" id="btn-lock-video" title="Kunci kedudukan panel atau alih semula">
+            <span class="material-symbols-outlined" id="lock-btn-icon">lock</span>
+            <span id="lock-btn-text">Kunci Kedudukan</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action" id="btn-change-video" title="Pilih video atau nota lain">
+            <span class="material-symbols-outlined">sync</span>
+            <span id="btn-change-content-text">Tukar Video</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action btn-close-panel" id="btn-close-panel" title="Tutup paparan panel">
+            <span class="material-symbols-outlined">close</span>
+            <span>Tutup</span>
+          </button>
+        </div>
+      </footer>
+
+      <!-- Interactive Corner Resize Grip Handle -->
+      <div class="corner-resize-handle" id="corner-resize-handle" title="Tarik untuk ubah saiz panel secara bebas">
+        <span class="material-symbols-outlined">fit_screen</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       FASA 3C: GYROSCOPE POV LOCK PROTOTYPE PANEL & OFF-SCREEN INDICATOR
+       ========================================================================= -->
+  <div class="floating-ar-anchor pov-ar-anchor hidden" id="pov-ar-anchor">
+    <div class="floating-card-container size-medium pov-card-theme is-pinned" id="pov-card-container">
+      
+      <!-- A. FIXED HEADER (Non-scrollable) -->
+      <header class="panel-fixed-header" id="pov-fixed-header">
+        <div class="pov-header-bar">
+          <div class="category-tag pov-tag">
+            <span class="material-symbols-outlined" style="font-size:16px;">explore</span>
+            <span>KUNCI POV • GIROSKOP 3DoF</span>
+          </div>
+          <div class="pov-sensor-pill" id="pov-sensor-pill">
+            <div class="ping" id="pov-sensor-ping"></div>
+            <span id="pov-sensor-text">Mengesan Sensor...</span>
+          </div>
+        </div>
+
+        <!-- POV Toolbar: Size presets & Battery Camera Toggle -->
+        <div class="pinned-toolbar" id="pov-toolbar">
+          <div class="size-controls-group">
+            <span class="tool-label">Saiz:</span>
+            <div class="size-segmented-control" role="group" aria-label="Ubah saiz panel POV">
+              <button type="button" class="btn-size" data-size="small" id="pov-size-s" title="Saiz Kecil (320px)">S</button>
+              <button type="button" class="btn-size is-active" data-size="medium" id="pov-size-m" title="Saiz Sederhana (480px)">M</button>
+              <button type="button" class="btn-size" data-size="large" id="pov-size-l" title="Saiz Besar (580px)">L</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-cam-toggle" id="pov-btn-toggle-cam" title="Tutup kamera untuk jimat bateri tanpa henti orientasi">
+            <span class="material-symbols-outlined" id="pov-cam-icon" style="font-size:15px;">videocam_off</span>
+            <span id="pov-cam-text">Tutup Kamera</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- B. SCROLLABLE VIDEO & ORIENTATION BODY (min-height: 0; overflow-y: auto; flex: 1 1 auto) -->
+      <main class="panel-scrollable-body" id="pov-scrollable-body">
+        
+        <!-- VIEW 1: Active Video Player in POV Mode (Fasa C) -->
+        <div class="pov-active-player-view" id="pov-active-player-view">
+          
+          <!-- Compact Spatial Telemetry HUD Bar -->
+          <div class="pov-telemetry-hud-strip" id="pov-telemetry-hud-strip">
+            <div class="hud-chip">
+              <span class="material-symbols-outlined hud-chip-icon">explore</span>
+              <span class="hud-chip-label">Yaw:</span>
+              <span class="hud-chip-val" id="pov-val-yaw">0.0°</span>
+            </div>
+            <div class="hud-chip">
+              <span class="material-symbols-outlined hud-chip-icon">swap_vert</span>
+              <span class="hud-chip-label">Pitch:</span>
+              <span class="hud-chip-val" id="pov-val-pitch">0.0°</span>
+            </div>
+            <div class="hud-chip status-chip">
+              <span class="material-symbols-outlined hud-chip-icon" style="color:#10b981;">lock_open</span>
+              <span class="hud-chip-val" id="pov-val-status">Menghalakan</span>
+            </div>
+          </div>
+
+          <!-- Instructional Guidance Banner -->
+          <div class="pov-status-banner" id="pov-status-banner">
+            <span class="material-symbols-outlined banner-icon" id="pov-banner-icon">sensors</span>
+            <span class="banner-text" id="pov-banner-text">Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".</span>
+          </div>
+
+          <!-- Real Interactive Video Player Frame (16:9 responsive, YouTube / HTML5) -->
+          <div class="ar-player-frame pov-video-frame" id="pov-player-frame"></div>
+
+          <!-- Video Title & Description -->
+          <div class="active-video-details pov-video-details">
+            <h3 id="pov-player-title">Tajuk Video</h3>
+            <p id="pov-player-desc">Penerangan video pembelajaran sains ARSELNEL.</p>
+          </div>
+        </div>
+
+        <!-- VIEW 2: Video Selection View in POV Mode (Tukar Video) -->
+        <div class="video-selection-view hidden" id="pov-video-selection-view">
+          <div class="selection-title-box">
+            <h3>Tukar Video Pembelajaran</h3>
+            <p>Pilih video sains sel lain untuk ditonton dalam mod Kunci POV.</p>
+          </div>
+          <div class="video-cards-scroll" id="pov-video-cards-scroll">
+            <!-- Dynamic video items injected by kotak-arselnel.js -->
+          </div>
+        </div>
+
+        <!-- VIEW 3: Active Nota View in POV Mode (Fasa 4B) -->
+        <div class="pov-active-nota-view hidden" id="pov-active-nota-view">
+          <!-- Compact Spatial Telemetry HUD Bar (Nota) -->
+          <div class="pov-telemetry-hud-strip" id="pov-nota-telemetry-hud-strip">
+            <div class="hud-chip">
+              <span class="material-symbols-outlined hud-chip-icon">explore</span>
+              <span class="hud-chip-label">Yaw:</span>
+              <span class="hud-chip-val" id="pov-nota-val-yaw">0.0°</span>
+            </div>
+            <div class="hud-chip">
+              <span class="material-symbols-outlined hud-chip-icon">swap_vert</span>
+              <span class="hud-chip-label">Pitch:</span>
+              <span class="hud-chip-val" id="pov-nota-val-pitch">0.0°</span>
+            </div>
+            <div class="hud-chip status-chip">
+              <span class="material-symbols-outlined hud-chip-icon" style="color:#10b981;">lock_open</span>
+              <span class="hud-chip-val" id="pov-nota-val-status">Menghalakan</span>
+            </div>
+          </div>
+
+          <!-- POV Note Toolbar (Zoom, Page, Fullscreen Link) -->
+          <div class="nota-reader-toolbar pov-nota-toolbar">
+            <div class="nota-pagination-control">
+              <button type="button" class="btn-nota-nav" id="pov-btn-nota-prev" title="Halaman Sebelum">
+                <span class="material-symbols-outlined">chevron_left</span>
+                <span>Sebelum</span>
+              </button>
+              <span class="nota-page-indicator" id="pov-nota-page-indicator">Halaman 1 / 1</span>
+              <button type="button" class="btn-nota-nav" id="pov-btn-nota-next" title="Halaman Seterusnya">
+                <span>Seterusnya</span>
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+
+            <div class="nota-zoom-control">
+              <button type="button" class="btn-zoom" id="pov-btn-nota-zoom-out" title="Kecilkan Teks (-)">
+                <span class="material-symbols-outlined">zoom_out</span>
+              </button>
+              <button type="button" class="btn-zoom-reset" id="pov-btn-nota-zoom-reset" title="Tetapkan Semula (100%)">
+                <span id="pov-nota-zoom-text">100%</span>
+              </button>
+              <button type="button" class="btn-zoom" id="pov-btn-nota-zoom-in" title="Besarkan Teks (+)">
+                <span class="material-symbols-outlined">zoom_in</span>
+              </button>
+              <a href="#" id="pov-btn-nota-open-full" target="_blank" class="btn-nota-open-full" title="Buka Pratonton Penuh Slaid/Nota">
+                <span class="material-symbols-outlined">open_in_new</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Note Content in POV -->
+          <div class="nota-content-wrapper pov-nota-content-wrapper" id="pov-nota-content-wrapper">
+            <div class="nota-content-header" id="pov-nota-content-header">
+              <div class="nota-badges-row">
+                <span class="nota-chapter-badge" id="pov-nota-chapter-badge">Bab 2</span>
+                <span class="nota-type-badge" id="pov-nota-type-badge">PDF</span>
+                <span class="nota-time-badge" id="pov-nota-time-badge">
+                  <span class="material-symbols-outlined" style="font-size:13px;">schedule</span>
+                  <span id="pov-nota-time-text">5 Minit</span>
+                </span>
+              </div>
+              <h2 class="nota-title" id="pov-nota-title">Tajuk Nota</h2>
+            </div>
+
+            <!-- PDF Canvas Container for POV -->
+            <div class="nota-pdf-container hidden" id="pov-nota-pdf-container">
+              <div class="nota-loading-spinner hidden" id="pov-nota-pdf-loading">
+                <span class="material-symbols-outlined spin">progress_activity</span>
+                <span>Memuatkan fail PDF...</span>
+              </div>
+              <div class="nota-pdf-canvas-wrap" id="pov-nota-pdf-canvas-wrap">
+                <canvas id="pov-nota-pdf-canvas" class="nota-pdf-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Embed Frame Container for POV -->
+            <div class="nota-embed-container hidden" id="pov-nota-embed-container">
+              <iframe id="pov-nota-embed-frame" class="nota-embed-frame" src="" allowfullscreen></iframe>
+            </div>
+
+            <!-- Rendered HTML / Markdown Layer in POV -->
+            <div class="nota-body-rendered" id="pov-nota-body-rendered">
+              <!-- Rendered note content -->
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 4: Nota Selection View in POV Mode (Tukar Nota) -->
+        <div class="nota-selection-view hidden" id="pov-nota-selection-view">
+          <div class="selection-title-box nota-title-box">
+            <h3>Tukar Nota Pembelajaran</h3>
+            <p>Pilih nota atau slaid sains lain untuk dibaca dalam mod Kunci POV.</p>
+          </div>
+          <div class="nota-cards-scroll" id="pov-nota-cards-scroll">
+            <!-- Dynamic note items injected by kotak-arselnel.js -->
+          </div>
+        </div>
+
+      </main>
+
+      <!-- C. STICKY FOOTER ACTIONS -->
+      <footer class="panel-sticky-footer" id="pov-sticky-footer">
+        <div class="player-actions-bar">
+          <button type="button" class="btn-place-video" id="pov-btn-anchor" title="Kunci arah orientasi peranti semasa">
+            <span class="material-symbols-outlined" id="pov-anchor-icon">my_location</span>
+            <span id="pov-anchor-text">Letak di Arah Ini</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action" id="pov-btn-change-video" title="Pilih video atau nota lain tanpa keluar mod POV">
+            <span class="material-symbols-outlined">sync</span>
+            <span id="pov-btn-change-content-text">Tukar Video</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action" id="pov-btn-back-pinned" title="Kembali ke Mod Semat pada Skrin">
+            <span class="material-symbols-outlined">push_pin</span>
+            <span>Semat Skrin</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-btn-close" title="Keluar dari mod POV">
+            <span class="material-symbols-outlined">close</span>
+            <span>Tutup</span>
+          </button>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- OFF-SCREEN TARGET POINTER (Pulsing Arrow when user turns away from anchored target) -->
+  <div class="pov-offscreen-pointer hidden" id="pov-offscreen-pointer" title="Arah sasaran panel POV">
+    <div class="pointer-content">
+      <span class="material-symbols-outlined pointer-arrow" id="pov-pointer-arrow">arrow_back</span>
+      <div class="pointer-text-box">
+        <span class="pointer-label">SASARAN KUNCI POV</span>
+        <span class="pointer-bearing" id="pov-pointer-bearing">Panel di Kiri (45°)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP POV SIMULATION CONTROLLER (Toggled on Desktop / Laptop when physical gyro is absent) -->
+  <div class="pov-sim-controller hidden" id="pov-sim-controller">
+    <div class="sim-header">
+      <div class="sim-header-left">
+        <span class="material-symbols-outlined" style="font-size:16px;color:#2dd4bf;">screen_rotation</span>
+        <span>Simulasi Giroskop (Desktop)</span>
+      </div>
+      <div class="sim-header-right">
+        <span class="sim-angle-badge" id="pov-sim-angle-badge">0°</span>
+        <button type="button" class="sim-toggle-btn" id="btn-toggle-sim-collapse" title="Kecilkan/Besarkan Simulator">
+          <span class="material-symbols-outlined" id="sim-collapse-icon" style="font-size:16px;">keyboard_arrow_down</span>
+        </button>
+      </div>
+    </div>
+    <div class="sim-controls" id="sim-controls-body">
+      <!-- Yaw (Horizontal) -->
+      <div class="sim-row">
+        <span class="sim-row-label">Yaw:</span>
+        <button type="button" class="sim-btn" id="pov-sim-left" title="Pusing Kiri 45°">⬅️ -45°</button>
+        <input type="range" min="-180" max="180" value="0" step="1" id="pov-sim-slider" class="sim-slider" />
+        <button type="button" class="sim-btn" id="pov-sim-center" title="Pandang Depan 0°">🎯 0°</button>
+        <button type="button" class="sim-btn" id="pov-sim-right" title="Pusing Kanan 45°">+45° ➡️</button>
+      </div>
+      <!-- Pitch (Vertical) -->
+      <div class="sim-row">
+        <span class="sim-row-label">Pitch:</span>
+        <button type="button" class="sim-btn" id="pov-sim-down" title="Tunduk Bawah 30°">⬇️ -30°</button>
+        <input type="range" min="-80" max="80" value="0" step="1" id="pov-sim-pitch-slider" class="sim-slider" />
+        <button type="button" class="sim-btn" id="pov-sim-pitch-center" title="Tegak 0°">🎯 0°</button>
+        <button type="button" class="sim-btn" id="pov-sim-up" title="Dongak Atas 30°">+30° ⬆️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENSOR DIAGNOSTICS DRAWER (Development & Live Telemetry) -->
+  <div class="diagnostics-drawer hidden" id="diagnostics-drawer" role="region" aria-label="Diagnostik Sensor">
+    <div class="diag-header">
+      <div class="diag-title">
+        <span class="material-symbols-outlined" style="color:#2dd4bf;font-size:18px;">developer_board</span>
+        <span>Diagnostik Sensor & Sistem</span>
+      </div>
+      <button type="button" class="diag-close" id="btn-close-diagnostics" title="Tutup Diagnostik">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="diag-body">
+      <div class="diag-grid">
+        <div class="diag-row"><span class="k">Peranti:</span><span class="v" id="diag-device">Menganalisis...</span></div>
+        <div class="diag-row"><span class="k">Pelayar:</span><span class="v" id="diag-browser">Menganalisis...</span></div>
+        <div class="diag-row"><span class="k">Orientasi Skrin:</span><span class="v" id="diag-screen-orient">0° (Portrait)</span></div>
+        <div class="diag-row"><span class="k">Status Izin:</span><span class="v" id="diag-permission">Penyemakan...</span></div>
+        <div class="diag-row"><span class="k">Sensor Aktif:</span><span class="v" id="diag-sensor-active">TIDAK</span></div>
+        <div class="diag-row"><span class="k">Acara Sensor:</span><span class="v" id="diag-event-count">0 acara</span></div>
+        <div class="diag-row"><span class="k">Mentah α, β, γ:</span><span class="v" id="diag-raw-angles">0.0°, 0.0°, 0.0°</span></div>
+        <div class="diag-row"><span class="k">Yaw & Pitch:</span><span class="v"><span id="diag-yaw">0.0°</span>, <span id="diag-pitch">0.0°</span></span></div>
+        <div class="diag-row"><span class="k">Roll Semasa:</span><span class="v" id="diag-roll">0.0°</span></div>
+        <div class="diag-row"><span class="k">Rujukan Anchor:</span><span class="v" id="diag-anchor">Belum ditetapkan</span></div>
+        <div class="diag-row"><span class="k">Relatif ΔYaw:</span><span class="v" id="diag-delta-yaw">0.0°</span></div>
+        <div class="diag-row"><span class="k">Relatif ΔPitch:</span><span class="v" id="diag-delta-pitch">0.0°</span></div>
+        <div class="diag-row"><span class="k">Mod Sistem:</span><span class="v" id="diag-mode">MARKER</span></div>
+        <div class="diag-row"><span class="k">Status Kamera:</span><span class="v" id="diag-cam">AKTIF</span></div>
+        <div class="diag-row"><span class="k">Paparan Panel:</span><span class="v" id="diag-panel-vis">TENGAH</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXIT CONFIRMATION MODAL DIALOG -->
+  <div class="exit-modal-backdrop hidden" id="exit-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="exit-modal-card">
+      <div class="exit-modal-icon">
+        <span class="material-symbols-outlined">logout</span>
+      </div>
+      <h3 class="exit-modal-title">Keluar daripada Kotak ARSELNEL?</h3>
+      <p class="exit-modal-desc">Sesi pembelajaran anda akan disimpan. Adakah anda pasti mahu kembali ke Dashboard ARSELNEL?</p>
+      <div class="exit-modal-actions">
+        <button type="button" class="exit-btn-cancel" id="btn-exit-cancel">Teruskan Pembelajaran</button>
+        <button type="button" class="exit-btn-confirm" id="btn-exit-confirm">Keluar ke Dashboard</button>
+      </div>
+    </div>
+  </div>
+  <div class="ar-toast" id="ar-toast" role="alert">
+    <span class="material-symbols-outlined toast-icon">check_circle</span>
+    <span class="toast-text" id="toast-text">Pemberitahuan</span>
+  </div>
+
+  <!-- LOADING SCREEN OVERLAY -->
+  <div class="ar-overlay-screen" id="loading-screen">
+    <div class="spinner-cube"></div>
+    <div class="overlay-title">Menyediakan Kotak ARSELNEL</div>
+    <p class="overlay-desc" id="loading-desc">Memulakan kamera dan enjin pengesanan imej 3D MindAR…</p>
+  </div>
+
+  <!-- MODULE SCRIPT -->
+  <script src="/kotak_arselnel/kotak-arselnel.js"></script>
+</body>
+</html>
+

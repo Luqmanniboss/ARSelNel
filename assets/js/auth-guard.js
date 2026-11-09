@@ -185,6 +185,7 @@
                           path.includes('/admin/') ||
                           path.includes('/admin_dashboard/') ||
                           path.includes('/cellquest/') ||
+                          path.includes('/kotak_arselnel/') ||
                           path.includes('/games/') ||
                           path.includes('/login/') ||
                           path.includes('/auth/');

@@ -590,6 +590,47 @@
     // Mula Pusingan Pertama
     initRound(0);
   </script>
+  <!-- AR Return Router: If accessed from Kotak ARSELNEL, redirect back link to Kotak ARSELNEL -->
+  <script>
+    (function() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isFromAR = urlParams.get('from') === 'kotak_ar' || 
+                         sessionStorage.getItem('arselnel_return_to_ar') === 'true';
+        const isEmbedded = urlParams.get('embedded') === 'true';
+        if (isEmbedded) {
+          const embStyle = document.createElement('style');
+          embStyle.id = 'embedded-ar-override';
+          embStyle.textContent = `
+            header, nav, .site-header, .top-nav, .student-header, #main-header, .navbar { display: none !important; }
+            body { padding-top: 4px !important; margin: 0 !important; background: #0b1329 !important; overflow-x: hidden !important; }
+            .container, main, .main-content, .game-wrapper { margin-top: 0 !important; padding-top: 4px !important; }
+          `;
+          document.head.appendChild(embStyle);
+        }
+        if (isFromAR) {
+          sessionStorage.setItem('arselnel_return_to_ar', 'true');
+          sessionStorage.setItem('arselnel_last_module', 'kuiz');
+          const updateLinks = () => {
+            document.querySelectorAll('a[href*="hab_permainan"]').forEach(a => {
+              a.href = '../kotak_arselnel/code.html';
+              a.title = 'Kembali ke Kotak ARSELNEL';
+              const textNode = Array.from(a.childNodes).find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim().length > 0) ||
+                               a.querySelector('span:not(.material-symbols-outlined)') || a;
+              if (textNode && textNode.textContent) {
+                textNode.textContent = textNode.textContent.replace(/Hab Permainan/gi, 'Kotak ARSELNEL').replace(/Hab/gi, 'Kotak ARSELNEL');
+              }
+            });
+          };
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateLinks);
+          } else {
+            updateLinks();
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
   <script src="../assets/js/student-shell.js"></script>
 </body>
 </html>

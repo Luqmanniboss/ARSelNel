@@ -129,7 +129,7 @@ async function main() {
   await sendCDP(ws, 'Page.navigate', { url: `http://127.0.0.1:${PORT}/compiler-test` }, msgId++);
   await new Promise(r => setTimeout(r, 2500));
 
-  console.log('Compiling marker-video.png with MindAR Compiler...');
+  console.log('Compiling multi-marker targets (0: Video, 1: Nota, 2: Kuiz) with MindAR Compiler...');
 
   const compileScript = `
     (async () => {
@@ -138,16 +138,32 @@ async function main() {
         if (!Compiler) throw new Error('Compiler class not found on window.MINDAR.IMAGE');
         const compiler = new Compiler();
 
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = '/kotak_arselnel/assets/markers/marker-video.png';
-        await new Promise((res, rej) => {
-          img.onload = res;
-          img.onerror = rej;
+        const loadImage = (src) => new Promise((res, rej) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => res(img);
+          img.onerror = (e) => rej(new Error('Failed to load ' + src));
+          img.src = src;
         });
 
-        console.log('Image loaded for compilation:', img.width, 'x', img.height);
-        await compiler.compileImageTargets([img], (progress) => {
+        console.log('Loading marker-video.png...');
+        const img0 = await loadImage('/kotak_arselnel/assets/markers/marker-video.png');
+        console.log('Target 0 loaded:', img0.width, 'x', img0.height);
+
+        console.log('Loading marker-nota.png...');
+        const img1 = await loadImage('/kotak_arselnel/assets/markers/marker-nota.png');
+        console.log('Target 1 loaded:', img1.width, 'x', img1.height);
+
+        console.log('Loading marker-kuiz.png...');
+        const img2 = await loadImage('/kotak_arselnel/assets/markers/marker-kuiz.png');
+        console.log('Target 2 loaded:', img2.width, 'x', img2.height);
+
+        console.log('Loading marker-cellquest.png...');
+        const img3 = await loadImage('/kotak_arselnel/assets/markers/marker-cellquest.png');
+        console.log('Target 3 loaded:', img3.width, 'x', img3.height);
+
+        console.log('Compiling 4-target array [Target 0: Video, Target 1: Nota, Target 2: Kuiz, Target 3: CellQuest]...');
+        await compiler.compileImageTargets([img0, img1, img2, img3], (progress) => {
           console.log('Compilation progress: ' + Math.round(progress) + '%');
         });
 

@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <!-- Teal & Science Gradients -->
+    <linearGradient id="bgGradTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042f2e"/>
+      <stop offset="100%" stop-color="#021c1b"/>
+    </linearGradient>
+    <linearGradient id="tealMainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+    <linearGradient id="mintGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5eead4"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <radialGradient id="glowNote" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.85"/>
+      <stop offset="60%" stop-color="#0d9488" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#042f2e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Deep High-Contrast Base -->
+  <rect width="1000" height="1000" fill="#ffffff"/>
+  <rect x="25" y="25" width="950" height="950" fill="url(#bgGradTeal)" rx="30" stroke="#042f2e" stroke-width="12"/>
+
+  <!-- High-Frequency Calibration Grid Pattern (For optical feature detection) -->
+  <g stroke="#134e4a" stroke-width="2" opacity="0.5">
+    <line x1="100" y1="50" x2="100" y2="950"/>
+    <line x1="200" y1="50" x2="200" y2="950"/>
+    <line x1="300" y1="50" x2="300" y2="950"/>
+    <line x1="700" y1="50" x2="700" y2="950"/>
+    <line x1="800" y1="50" x2="800" y2="950"/>
+    <line x1="900" y1="50" x2="900" y2="950"/>
+
+    <line x1="50" y1="100" x2="950" y2="100"/>
+    <line x1="50" y1="200" x2="950" y2="200"/>
+    <line x1="50" y1="300" x2="950" y2="300"/>
+    <line x1="50" y1="700" x2="950" y2="700"/>
+    <line x1="50" y1="800" x2="950" y2="800"/>
+    <line x1="50" y1="900" x2="950" y2="900"/>
+  </g>
+
+  <!-- Asymmetric Corner Features for Target 1 (Unique 4-Way Tracking Signature) -->
+  <!-- Top-Left Corner: Crosshair Diamond Matrix -->
+  <g transform="translate(60, 60)">
+    <rect width="120" height="120" fill="#ffffff" rx="10"/>
+    <rect x="15" y="15" width="90" height="90" fill="#0d9488" rx="8"/>
+    <polygon points="60,25 95,60 60,95 25,60" fill="#ffffff"/>
+    <circle cx="60" cy="60" r="14" fill="#042f2e"/>
+    <line x1="45" y1="60" x2="75" y2="60" stroke="#facc15" stroke-width="4"/>
+    <line x1="60" y1="45" x2="60" y2="75" stroke="#facc15" stroke-width="4"/>
+  </g>
+
+  <!-- Top-Right Corner: Asymmetric Stepped Bar Matrix -->
+  <g transform="translate(820, 60)">
+    <rect width="120" height="120" fill="#ffffff" rx="10"/>
+    <rect x="15" y="15" width="20" height="90" fill="#042f2e"/>
+    <rect x="42" y="35" width="20" height="70" fill="#0d9488"/>
+    <rect x="70" y="55" width="20" height="50" fill="#2dd4bf"/>
+    <circle cx="95" cy="30" r="12" fill="#facc15"/>
+  </g>
+
+  <!-- Bottom-Left Corner: Circular Dual-Target Quadrant -->
+  <g transform="translate(60, 820)">
+    <rect width="120" height="120" fill="#ffffff" rx="10"/>
+    <circle cx="60" cy="60" r="48" fill="#0d9488"/>
+    <path d="M 60 12 A 48 48 0 0 1 108 60 L 60 60 Z" fill="#facc15"/>
+    <path d="M 60 60 L 12 60 A 48 48 0 0 1 60 12 Z" fill="#042f2e"/>
+    <circle cx="60" cy="60" r="22" fill="#ffffff"/>
+    <circle cx="60" cy="60" r="10" fill="#0d9488"/>
+  </g>
+
+  <!-- Bottom-Right Corner: Concentric Square Labyrinth -->
+  <g transform="translate(820, 820)">
+    <rect width="120" height="120" fill="#ffffff" rx="10"/>
+    <rect x="12" y="12" width="96" height="96" fill="none" stroke="#042f2e" stroke-width="8"/>
+    <rect x="28" y="28" width="64" height="64" fill="none" stroke="#0d9488" stroke-width="8"/>
+    <rect x="44" y="44" width="32" height="32" fill="#2dd4bf"/>
+    <rect x="52" y="52" width="16" height="16" fill="#facc15"/>
+  </g>
+
+  <!-- Outer Frame Calibration Lines -->
+  <rect x="75" y="75" width="850" height="850" fill="none" stroke="#2dd4bf" stroke-width="5" stroke-dasharray="70 25 15 25" opacity="0.85"/>
+  <rect x="95" y="95" width="810" height="810" fill="none" stroke="#14b8a6" stroke-width="3" opacity="0.6"/>
+
+  <!-- Top Banner: Title Block -->
+  <g transform="translate(230, 80)">
+    <rect width="540" height="85" fill="#042f2e" rx="18" stroke="#2dd4bf" stroke-width="3"/>
+    <text x="270" y="44" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle" letter-spacing="4">KOTAK ARSELNEL</text>
+    <text x="270" y="68" font-family="'Inter', Arial, sans-serif" font-weight="800" font-size="15" fill="#2dd4bf" text-anchor="middle" letter-spacing="2">★ MODUL PEMBELAJARAN AR ★</text>
+  </g>
+
+  <!-- Bottom Banner: Category Name Block (Teal Theme) -->
+  <g transform="translate(200, 835)">
+    <rect width="600" height="90" fill="url(#tealMainGrad)" rx="20" stroke="#ffffff" stroke-width="4"/>
+    <text x="300" y="42" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle" letter-spacing="3">2. NOTA INTERAKTIF</text>
+    <text x="300" y="70" font-family="'Inter', Arial, sans-serif" font-weight="800" font-size="14" fill="#fef08a" text-anchor="middle" letter-spacing="1.5">SAINS TINGKATAN 1 • SLAID &amp; RINGKASAN SEL</text>
+  </g>
+
+  <!-- Left Side Scientific Pattern: Plant Cell Wall & Stomata Motif -->
+  <g transform="translate(130, 240)">
+    <!-- Interlocking Hexagonal Plant Cell Wall Structure -->
+    <polygon points="40,20 80,45 80,95 40,120 0,95 0,45" fill="none" stroke="#2dd4bf" stroke-width="6"/>
+    <polygon points="40,135 80,160 80,210 40,235 0,210 0,160" fill="none" stroke="#2dd4bf" stroke-width="6"/>
+    <polygon points="40,250 80,275 80,325 40,350 0,325 0,275" fill="none" stroke="#2dd4bf" stroke-width="6"/>
+    <polygon points="40,365 80,390 80,440 40,465 0,440 0,390" fill="none" stroke="#2dd4bf" stroke-width="6"/>
+    <!-- Nucleus & Cytoplasm Insets -->
+    <circle cx="40" cy="70" r="16" fill="#facc15"/>
+    <circle cx="40" cy="185" r="16" fill="#5eead4"/>
+    <circle cx="40" cy="300" r="16" fill="#facc15"/>
+    <circle cx="40" cy="415" r="16" fill="#5eead4"/>
+  </g>
+
+  <!-- Right Side Scientific Pattern: Beaker & Molecular Ring Motif -->
+  <g transform="translate(770, 240)">
+    <!-- Science Flask / Beaker Outline -->
+    <path d="M 35 30 L 55 30 L 55 70 L 85 140 A 10 10 0 0 1 75 155 L 15 155 A 10 10 0 0 1 5 140 L 35 70 Z" fill="none" stroke="#5eead4" stroke-width="6"/>
+    <ellipse cx="45" cy="130" rx="30" ry="12" fill="#0d9488" opacity="0.8"/>
+    <!-- Bubble Details -->
+    <circle cx="35" cy="115" r="5" fill="#facc15"/>
+    <circle cx="55" cy="100" r="7" fill="#ffffff"/>
+    <circle cx="40" cy="85" r="4" fill="#5eead4"/>
+
+    <!-- Open Book / Document Page Motif below -->
+    <g transform="translate(-10, 220)">
+      <rect width="90" height="110" fill="#042f2e" stroke="#2dd4bf" stroke-width="5" rx="8"/>
+      <line x1="15" y1="25" x2="75" y2="25" stroke="#facc15" stroke-width="4"/>
+      <line x1="15" y1="45" x2="75" y2="45" stroke="#ffffff" stroke-width="3"/>
+      <line x1="15" y1="65" x2="65" y2="65" stroke="#ffffff" stroke-width="3"/>
+      <line x1="15" y1="85" x2="55" y2="85" stroke="#ffffff" stroke-width="3"/>
+    </g>
+  </g>
+
+  <!-- CENTERPIECE: Massive High-Contrast OPEN BOOK / SMART NOTES EMBLEM -->
+  <!-- Ambient Teal Glow -->
+  <circle cx="500" cy="500" r="260" fill="url(#glowNote)"/>
+
+  <!-- Octagonal High-Contrast Tech Chamber -->
+  <polygon points="340,240 660,240 760,340 760,660 660,760 340,760 240,660 240,340" fill="#021c1b" stroke="#2dd4bf" stroke-width="10"/>
+  <polygon points="350,260 650,260 740,350 740,650 650,740 350,740 260,650 260,350" fill="none" stroke="#facc15" stroke-width="4" stroke-dasharray="30 15"/>
+
+  <!-- Large Stylized Science Open Book -->
+  <g transform="translate(500, 500)">
+    <!-- Book Shadow & Outer Spine -->
+    <path d="M -180 -100 C -100 -120 -30 -100 0 -80 C 30 -100 100 -120 180 -100 L 180 110 C 100 90 30 110 0 130 C -30 110 -100 90 -180 110 Z" fill="#042f2e" stroke="#ffffff" stroke-width="12"/>
+
+    <!-- Left Page Base -->
+    <path d="M -170 -90 C -100 -110 -25 -90 0 -70 L 0 115 C -25 95 -100 75 -170 95 Z" fill="#ffffff"/>
+    <!-- Right Page Base -->
+    <path d="M 0 -70 C 25 -90 100 -110 170 -90 L 170 95 C 100 75 25 95 0 115 Z" fill="#e0f2fe"/>
+
+    <!-- Left Page Text & Diagram Lines -->
+    <line x1="-145" y1="-50" x2="-25" y2="-50" stroke="#0d9488" stroke-width="7" stroke-linecap="round"/>
+    <line x1="-145" y1="-25" x2="-25" y2="-25" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <line x1="-145" y1="0" x2="-50" y2="0" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <!-- Cell Diagram On Left Page -->
+    <circle cx="-85" cy="50" r="28" fill="#ccfbf1" stroke="#0d9488" stroke-width="4"/>
+    <circle cx="-85" cy="50" r="10" fill="#facc15"/>
+    <circle cx="-70" cy="40" r="4" fill="#0d9488"/>
+    <circle cx="-95" cy="60" r="5" fill="#0d9488"/>
+
+    <!-- Right Page Text & Diagram Lines -->
+    <line x1="25" y1="-50" x2="145" y2="-50" stroke="#0d9488" stroke-width="7" stroke-linecap="round"/>
+    <line x1="25" y1="-25" x2="145" y2="-25" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <line x1="25" y1="0" x2="145" y2="0" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <line x1="25" y1="25" x2="110" y2="25" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <line x1="25" y1="50" x2="135" y2="50" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <line x1="25" y1="75" x2="80" y2="75" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- Center Book Spine Ribbon -->
+    <path d="M 0 -80 L 0 145 L 12 135 L 24 145 L 24 -75 Z" fill="#facc15" stroke="#042f2e" stroke-width="3"/>
+  </g>
+
+  <!-- Prominent Marker Indicator Badge in Central Core -->
+  <g transform="translate(500, 310)">
+    <circle cx="0" cy="0" r="42" fill="#0d9488" stroke="#ffffff" stroke-width="5"/>
+    <text x="0" y="14" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="40" fill="#ffffff" text-anchor="middle">2</text>
+  </g>
+</svg>
+

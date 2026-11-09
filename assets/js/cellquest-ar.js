@@ -66,6 +66,7 @@
 
   // Initial compatibility audit
   async function auditCapabilities() {
+    if (!statusEl && !entryBtn) return;
     const isSecure = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     if (!isSecure) {
       setBadgeStatus('unsupported', 'Sambungan Tidak Selamat', 'AR memerlukan HTTPS atau localhost.');
@@ -258,11 +259,11 @@
 
   // Start WebXR mode if supported, otherwise fallback to Camera AR
   async function handleArEntry() {
-    entryBtn.disabled = true;
+    if (entryBtn) entryBtn.disabled = true;
 
     const isSecure = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     if (!isSecure) {
-      entryBtn.disabled = false;
+      if (entryBtn) entryBtn.disabled = false;
       showDialog('Sambungan Selamat Diperlukan', BM_MESSAGES.insecureContext, { icon: '🔒', hideGuide: true });
       return;
     }
@@ -283,7 +284,7 @@
 
         await api().enterAR(session);
         refreshLabels();
-        entryBtn.disabled = false;
+        if (entryBtn) entryBtn.disabled = false;
         return;
       } catch (xrErr) {
         console.warn('WebXR session launch failed or cancelled; falling back to Camera AR stream:', xrErr);
@@ -293,7 +294,7 @@
 
     // Default to true camera-based AR stream via getUserMedia
     await startCameraAR();
-    entryBtn.disabled = false;
+    if (entryBtn) entryBtn.disabled = false;
   }
 
   // Flip between front/back cameras

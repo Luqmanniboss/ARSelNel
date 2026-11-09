@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marker Video — Kotak ARSELNEL (Imbas & Cetak)</title>
+  <title>Marker Kotak ARSELNEL — Cetak & Imbas | Sains Tingkatan 1</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,21 +18,21 @@
     }
     body {
       font-family: 'Inter', sans-serif;
-      background: #0f172a;
+      background: #0b1329;
       color: #f8fafc;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: 24px 16px 48px;
     }
     .font-headline {
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .header-box {
-      max-width: 680px;
+      max-width: 760px;
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .badge {
       display: inline-flex;
@@ -40,9 +40,9 @@
       gap: 6px;
       padding: 6px 14px;
       border-radius: 999px;
-      background: rgba(249, 115, 22, 0.2);
-      border: 1px solid rgba(249, 115, 22, 0.4);
-      color: #fb923c;
+      background: rgba(13, 148, 136, 0.2);
+      border: 1px solid rgba(13, 148, 136, 0.4);
+      color: #2dd4bf;
       font-weight: 800;
       font-size: 12px;
       text-transform: uppercase;
@@ -61,6 +61,50 @@
       color: #94a3b8;
       line-height: 1.6;
     }
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active.tab-video {
+      background: #f97316;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
+    }
+    .tab-btn.active.tab-nota {
+      background: #0d9488;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4);
+    }
+    .tab-btn.active.tab-kuiz {
+      background: #7c3aed;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+    }
+    .tab-btn.active.tab-cellquest {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
     .actions-bar {
       display: flex;
       flex-wrap: wrap;
@@ -72,9 +116,9 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      min-height: 46px;
-      padding: 10px 22px;
-      border-radius: 16px;
+      min-height: 44px;
+      padding: 8px 20px;
+      border-radius: 14px;
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-weight: 800;
       font-size: 13.5px;
@@ -84,13 +128,13 @@
       border: none;
     }
     .btn-primary {
-      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
       color: #ffffff;
-      box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
+      box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
     }
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 26px rgba(234, 88, 12, 0.55);
+      box-shadow: 0 8px 26px rgba(13, 148, 136, 0.55);
     }
     .btn-secondary {
       background: rgba(30, 41, 59, 0.9);
@@ -99,17 +143,34 @@
     }
     .btn-secondary:hover {
       background: rgba(51, 65, 85, 0.9);
-      border-color: #38bdf8;
+      border-color: #2dd4bf;
+    }
+    .markers-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      max-width: 1040px;
+      width: 100%;
     }
     .marker-frame {
       background: #ffffff;
-      padding: 24px;
+      padding: 20px;
       border-radius: 24px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(249, 115, 22, 0.25);
-      border: 3px solid #f97316;
-      max-width: 540px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
       width: 100%;
+      max-width: 460px;
       text-align: center;
+      transition: transform 0.2s;
+    }
+    .marker-frame.frame-video {
+      border: 3px solid #f97316;
+    }
+    .marker-frame.frame-nota {
+      border: 3px solid #0d9488;
+    }
+    .marker-frame.frame-kuiz {
+      border: 3px solid #8b5cf6;
     }
     .marker-frame img {
       width: 100%;
@@ -123,11 +184,11 @@
       display: flex;
       justify-content: space-between;
       color: #0f172a;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 12px;
     }
     .instructions-card {
-      max-width: 680px;
+      max-width: 760px;
       width: 100%;
       background: rgba(30, 41, 59, 0.7);
       backdrop-filter: blur(12px);
@@ -152,7 +213,7 @@
       line-height: 1.8;
     }
 
-    /* Print Styles (Strict Clean Output for A4 Paper) */
+    /* Print Styles */
     @media print {
       body {
         background: #ffffff !important;
@@ -162,16 +223,20 @@
       .no-print {
         display: none !important;
       }
+      .markers-container {
+        display: block !important;
+      }
       .marker-frame {
         box-shadow: none !important;
         border: 2px dashed #000 !important;
-        max-width: 18cm !important;
-        margin: 0 auto !important;
-        padding: 1cm !important;
+        max-width: 16cm !important;
+        margin: 0 auto 2cm !important;
+        padding: 0.8cm !important;
+        page-break-after: always;
       }
       .marker-frame img {
-        width: 16cm !important;
-        height: 16cm !important;
+        width: 14.5cm !important;
+        height: 14.5cm !important;
       }
     }
   </style>
@@ -181,12 +246,36 @@
   <div class="header-box no-print">
     <div class="badge">
       <span class="material-symbols-outlined" style="font-size:16px;">view_in_ar</span>
-      <span>Kotak ARSELNEL • Kategori 1: Video</span>
+      <span>Kotak ARSELNEL • Fasa 4C Multi-Marker</span>
     </div>
-    <h1>Marker Video Rasmi (Fasa 2)</h1>
+    <h1>Marker Rasmi Kotak ARSELNEL</h1>
     <p class="desc">
-      Gunakan marker berkontras tinggi ini untuk menguji penjejakan 3D MindAR. Anda boleh mencetaknya di atas kertas A4 atau memaparkannya pada skrin tablet / monitor untuk diimbas dengan telefon.
+      Gunakan marker berkontras tinggi di bawah untuk menguji enjin pengesanan MindAR. Anda boleh mencetaknya untuk diletakkan pada muka kotak fizikal, atau paparkannya pada monitor/tablet untuk diimbas dengan telefon bimbit atau iPad.
     </p>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar no-print">
+    <button type="button" class="tab-btn active tab-video" id="btn-show-video" onclick="showMarker('video')">
+      <span class="material-symbols-outlined" style="font-size:18px;">smart_display</span>
+      <span>1. Video Pembelajaran</span>
+    </button>
+    <button type="button" class="tab-btn tab-nota" id="btn-show-nota" onclick="showMarker('nota')">
+      <span class="material-symbols-outlined" style="font-size:18px;">auto_stories</span>
+      <span>2. Nota Interaktif</span>
+    </button>
+    <button type="button" class="tab-btn tab-kuiz" id="btn-show-kuiz" onclick="showMarker('kuiz')">
+      <span class="material-symbols-outlined" style="font-size:18px;">sports_esports</span>
+      <span>3. Kuiz &amp; Permainan</span>
+    </button>
+    <button type="button" class="tab-btn tab-cellquest" id="btn-show-cellquest" onclick="showMarker('cellquest')">
+      <span class="material-symbols-outlined" style="font-size:18px;">view_in_ar</span>
+      <span>4. CellQuest 3D</span>
+    </button>
+    <button type="button" class="tab-btn" id="btn-show-all" onclick="showMarker('all')">
+      <span class="material-symbols-outlined" style="font-size:18px;">grid_view</span>
+      <span>Papar Semua (4 Muka)</span>
+    </button>
   </div>
 
   <div class="actions-bar no-print">
@@ -197,16 +286,46 @@
 
     <a href="code.html" class="btn btn-secondary">
       <span class="material-symbols-outlined">view_in_ar</span>
-      <span>Buka Pengimbas AR (Kamera)</span>
+      <span>Buka Pengimbas WebAR</span>
     </a>
   </div>
 
-  <!-- THE MARKER TO BE SCANNED OR PRINTED -->
-  <div class="marker-frame">
-    <img src="assets/markers/marker-video.png" alt="Kotak ARSELNEL - Marker Video Pembelajaran" id="marker-img" />
-    <div class="marker-specs">
-      <span>KOTAK ARSELNEL • MUKA VIDEO</span>
-      <span>SASARAN: 20 × 20 CM</span>
+  <!-- THE MARKERS TO BE SCANNED OR PRINTED -->
+  <div class="markers-container" id="markers-container">
+    <!-- MARKER 0: VIDEO -->
+    <div class="marker-frame frame-video" id="card-video">
+      <img src="assets/markers/marker-video.png" alt="Kotak ARSELNEL - Marker 1 Video Pembelajaran" />
+      <div class="marker-specs">
+        <span style="color:#f97316;">★ MUKA 1: VIDEO PEMBELAJARAN</span>
+        <span>INDEX 0 • 20 × 20 CM</span>
+      </div>
+    </div>
+
+    <!-- MARKER 1: NOTA -->
+    <div class="marker-frame frame-nota" id="card-nota">
+      <img src="assets/markers/marker-nota.png" alt="Kotak ARSELNEL - Marker 2 Nota Interaktif" />
+      <div class="marker-specs">
+        <span style="color:#0d9488;">★ MUKA 2: NOTA INTERAKTIF</span>
+        <span>INDEX 1 • 20 × 20 CM</span>
+      </div>
+    </div>
+
+    <!-- MARKER 2: KUIZ & PERMAINAN -->
+    <div class="marker-frame frame-kuiz" id="card-kuiz">
+      <img src="assets/markers/marker-kuiz.png" alt="Kotak ARSELNEL - Marker 3 Kuiz & Permainan" />
+      <div class="marker-specs">
+        <span style="color:#8b5cf6;">★ MUKA 3: KUIZ &amp; PERMAINAN</span>
+        <span>INDEX 2 • 20 × 20 CM</span>
+      </div>
+    </div>
+
+    <!-- MARKER 3: CELLQUEST 3D -->
+    <div class="marker-frame frame-cellquest" id="card-cellquest">
+      <img src="assets/markers/marker-cellquest.png" alt="Kotak ARSELNEL - Marker 4 CellQuest 3D" />
+      <div class="marker-specs">
+        <span style="color:#2563eb;">★ MUKA 4: CELLQUEST 3D</span>
+        <span>INDEX 3 • 20 × 20 CM</span>
+      </div>
     </div>
   </div>
 
@@ -214,14 +333,69 @@
   <div class="instructions-card no-print">
     <h3>
       <span class="material-symbols-outlined">lightbulb</span>
-      <span>Cara Menguji Menggunakan Telefon Pintar:</span>
+      <span>Panduan Mengimbas Menggunakan iPad / Telefon Pintar:</span>
     </h3>
     <ol>
-      <li><strong>Kaedah 1 (Paling Mudah):</strong> Biarkan halaman ini terbuka di komputer riba atau tablet anda. Buka <strong>Pengimbas AR</strong> pada telefon anda dan halakan kamera ke arah gambar marker di atas.</li>
-      <li><strong>Kaedah 2 (Cetak):</strong> Tekan butang <em>Cetak Marker (A4)</em> di atas. Lekatkan cetakan pada satu muka kotak kadbod. Halakan kamera telefon ke kotak tersebut.</li>
-      <li><strong>Keputusan yang Dijangka:</strong> Apabila kamera mengesan marker ini, reticle akan bertukar warna hijau dan <strong>Panel Video Pembelajaran Terapung</strong> akan muncul di atas marker bersama senarai video sains silibus KSSM Tingkatan 1!</li>
+      <li><strong>Imbas Terus dari Skrin:</strong> Biarkan halaman ini terbuka pada laptop atau monitor. Buka pautan HTTPS di iPad/telefon anda (`https://[IP]:3443/kotak_arselnel/`), benarkan kamera dan halakan kamera ke arah mana-mana marker di atas.</li>
+      <li><strong>Muka 1 (Video - Jingga):</strong> Memaparkan Pemain Video interaktif dan senarai video CMS sains sel.</li>
+      <li><strong>Muka 2 (Nota - Teal):</strong> Memaparkan Panel Nota Interaktif Sains KSSM dengan fungsi semakan slaid/PDF, kawalan saiz S/M/L, Zoom in/out, Screen-Pinned dan Gyroscope POV Lock (Yaw + Pitch)!</li>
+      <li><strong>Muka 3 (Kuiz &amp; Permainan - Ungu):</strong> Memaparkan katalog 5 permainan asal ARSELNEL, mod fokus penuh, dan pengasingan sesi permainan bebas gangguan.</li>
+      <li><strong>Muka 4 (CellQuest 3D - Biru):</strong> Memaparkan modul penerokaan 3D Sel Haiwan dan Sel Tumbuhan (Target Index 3).</li>
+      <li><strong>Pertukaran Modul Lancar:</strong> Apabila kamera beralih antara mana-mana 4 marker, sistem menukar modul secara automatik dan mengekalkan semua tetapan Screen-Pinned dan POV Lock.</li>
     </ol>
   </div>
+
+  <script>
+    function showMarker(type) {
+      const v = document.getElementById('card-video');
+      const n = document.getElementById('card-nota');
+      const k = document.getElementById('card-kuiz');
+      const c = document.getElementById('card-cellquest');
+      const btnV = document.getElementById('btn-show-video');
+      const btnN = document.getElementById('btn-show-nota');
+      const btnK = document.getElementById('btn-show-kuiz');
+      const btnC = document.getElementById('btn-show-cellquest');
+      const btnA = document.getElementById('btn-show-all');
+
+      btnV.className = 'tab-btn tab-video';
+      btnN.className = 'tab-btn tab-nota';
+      btnK.className = 'tab-btn tab-kuiz';
+      btnC.className = 'tab-btn tab-cellquest';
+      btnA.className = 'tab-btn';
+
+      if (type === 'video') {
+        v.style.display = 'block';
+        n.style.display = 'none';
+        k.style.display = 'none';
+        c.style.display = 'none';
+        btnV.className = 'tab-btn active tab-video';
+      } else if (type === 'nota') {
+        v.style.display = 'none';
+        n.style.display = 'block';
+        k.style.display = 'none';
+        c.style.display = 'none';
+        btnN.className = 'tab-btn active tab-nota';
+      } else if (type === 'kuiz') {
+        v.style.display = 'none';
+        n.style.display = 'none';
+        k.style.display = 'block';
+        c.style.display = 'none';
+        btnK.className = 'tab-btn active tab-kuiz';
+      } else if (type === 'cellquest') {
+        v.style.display = 'none';
+        n.style.display = 'none';
+        k.style.display = 'none';
+        c.style.display = 'block';
+        btnC.className = 'tab-btn active tab-cellquest';
+      } else {
+        v.style.display = 'block';
+        n.style.display = 'block';
+        k.style.display = 'block';
+        c.style.display = 'block';
+        btnA.className = 'tab-btn active';
+      }
+    }
+  </script>
 
 </body>
 </html>

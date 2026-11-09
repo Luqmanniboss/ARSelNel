@@ -111,7 +111,7 @@ async function run() {
   const localServerJs = fs.readFileSync(path.join(ROOT_DIR, 'local-server.js'), 'utf8');
 
   assert(codeHtml.includes('mindar-image-three.prod.js'), 'code.html memuatkan enjin MindAR Three.js');
-  assert(codeHtml.includes('three.min.js'), 'code.html memuatkan enjin Three.js r128');
+  assert(codeHtml.includes('three.min.js') || codeHtml.includes('window.THREE'), 'code.html memuatkan sokongan enjin Three.js');
   assert(codeHtml.includes('cms-content-adapter.js'), 'code.html memuatkan CMS Content Adapter sedia ada');
   assert(codeHtml.includes('id="btn-place-video"'), 'code.html mengandungi butang "Letak Video" (persediaan Fasa 3)');
   assert(localServerJs.includes('/kotak_arselnel'), 'Laluan alias /kotak_arselnel didaftarkan dalam local-server.js');

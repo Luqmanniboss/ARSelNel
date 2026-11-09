@@ -7,11 +7,14 @@
  */
 
 const http = require('http');
+const https = require('https');
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
 const PORT = process.env.PORT || 3000;
+const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
 const ROOT_DIR = __dirname;
 
 // Load the small set of local development variables without adding a runtime
@@ -46,6 +49,7 @@ const MIME_TYPES = {
   '.glb': 'model/gltf-binary',
   '.gltf': 'model/gltf+json',
   '.wasm': 'application/wasm',
+  '.mind': 'application/octet-stream',
   '.data': 'application/octet-stream',
   '.br': 'application/octet-stream',
   '.woff': 'font/woff',
@@ -63,7 +67,7 @@ function sendJSON(res, statusCode, data) {
   res.end(JSON.stringify(data));
 }
 
-const server = http.createServer(async (req, res) => {
+const appHandler = async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = decodeURIComponent(parsedUrl.pathname);
 
@@ -189,8 +193,23 @@ const server = http.createServer(async (req, res) => {
     '/paparan_model_ar': 'paparan_model_ar/code.html',
     '/modul_pembelajaran': 'modul_pembelajaran/code.html',
     '/keputusan_permainan': 'keputusan_permainan/code.html',
-    '/kotak_arselnel': 'kotak_arselnel/code.html'
+    '/kotak-arselnel.css': 'kotak_arselnel/kotak-arselnel.css',
+    '/kotak-arselnel.js': 'kotak_arselnel/kotak-arselnel.js'
   };
+
+  // Canonical trailing slash redirect for directories (prevents relative link 404s in browsers)
+  if (!pathname.endsWith('/') && !path.extname(pathname)) {
+    const rawDir = path.join(ROOT_DIR, pathname.startsWith('/') ? pathname.slice(1) : pathname);
+    try {
+      if (fs.existsSync(rawDir) && fs.statSync(rawDir).isDirectory()) {
+        res.writeHead(301, {
+          'Location': pathname + '/' + (parsedUrl.search || ''),
+          'Content-Type': 'text/plain; charset=utf-8'
+        });
+        return res.end('Redirecting to directory with trailing slash');
+      }
+    } catch (e) {}
+  }
 
   let targetRelative = ROUTE_ALIASES[pathname] || (pathname.startsWith('/') ? pathname.slice(1) : pathname);
   let filePath = path.join(ROOT_DIR, targetRelative);
@@ -247,16 +266,49 @@ const server = http.createServer(async (req, res) => {
     const stream = fs.createReadStream(filePath);
     stream.pipe(res);
   });
-});
+};
+
+const server = http.createServer(appHandler);
+
+let httpsServer = null;
+const keyPath = path.join(ROOT_DIR, 'certs', 'key.pem');
+const certPath = path.join(ROOT_DIR, 'certs', 'cert.pem');
+if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+  try {
+    httpsServer = https.createServer({
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath)
+    }, appHandler);
+  } catch (e) {
+    console.warn('⚠️ Gagal memulakan HTTPS:', e.message);
+  }
+}
+
+function getLocalIp() {
+  try {
+    const nets = os.networkInterfaces();
+    for (const name of Object.keys(nets)) {
+      for (const net of nets[name]) {
+        if (net.family === 'IPv4' && !net.internal) return net.address;
+      }
+    }
+  } catch (e) {}
+  return 'localhost';
+}
 
 if (require.main === module) {
+  const localIp = getLocalIp();
   server.listen(PORT, () => {
     console.log(`\n======================================================`);
     console.log(`🚀 ARSelNel Pelayan Sains Interaktif sedang berjalan!`);
-    console.log(`📡 URL Pelayan : http://localhost:${PORT}`);
-    console.log(`🔐 Log Masuk   : http://localhost:${PORT}/auth/login.html`);
-    console.log(`🧪 Papan Pemuka: http://localhost:${PORT}/admin/dashboard.html`);
-    console.log(`🏠 Laman Utama : http://localhost:${PORT}/halaman_utama/code.html`);
+    console.log(`📡 URL Laptop (HTTP)  : http://localhost:${PORT}/kotak_arselnel/`);
+    if (httpsServer) {
+      httpsServer.listen(HTTPS_PORT, () => {
+        console.log(`🔒 URL Telefon (HTTPS) : https://${localIp}:${HTTPS_PORT}/kotak_arselnel/`);
+        console.log(`   (Gunakan pautan HTTPS di telefon untuk membenarkan kamera WebAR)`);
+      });
+    }
+    console.log(`🏠 Laman Utama        : http://localhost:${PORT}/halaman_utama/code.html`);
     console.log(`======================================================\n`);
   });
 }
