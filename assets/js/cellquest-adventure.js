@@ -320,19 +320,19 @@
   // Dalam Mod Orientasi: sudut adalah relatif kepada arah hadapan kamera semasa sesi dimulakan.
   // Dalam Mod WebXR Spasial: koordinat dalam ruang XR sebenar.
 
-  // Susun atur 8 stesen AR Orientasi Dunia — Fasa A.1 Treasure Hunt Spatial Layout
-  // 1. Ketinggian Rendah: Berada pada paras lantai / meja (~20-40cm atas lantai, elevasi negatif -9° hingga -23°)
-  // 2. Sebaran 360° & Jarak Berbeza (Dekat: ~2.4m, Sederhana: ~3.4-4.2m, Jauh: ~5.2-6.6m)
-  // 3. Status Maya: Jarak maya yang realistik untuk pengalaman Treasure Hunt
+  // Susun atur 8 stesen AR Orientasi Dunia — Fasa A.2 Jauhkan Stesen, Sebaran 360° & 3-Aras Ketinggian
+  // 1. Jarak Sebenar Jauh (>= 4.0m): 4.5m hingga 10.0m merentasi 4 kuadran
+  // 2. Sebaran 360° Penuh: Hadapan, Kanan, Belakang, Kiri merentasi semua sudut
+  // 3. Tiga Aras Ketinggian: Rendah (0.3m-0.7m), Sederhana (1.2m-1.6m), Tinggi (2.2m-3.2m)
   const AR_WORLD_STATIONS = [
-    { id: 'stn-1-nucleus',      slotNumber: 1, stationNumber: 1, markerId: 1, directionName: 'Hadapan',        stationKey: 'nucleus',      azimuthDeg: 0,   angleDeg: 0,   elevationDeg: -23, radius: 2.4, distanceTier: 'Dekat',     height: 0.35, spatialOffset: [ 0.0,  -0.94, -2.20], label: 'Nukleus',                      color: 0x8b5cf6, icon: '🧬' },
-    { id: 'stn-2-membrane',     slotNumber: 2, stationNumber: 2, markerId: 4, directionName: 'Kanan Hadapan',  stationKey: 'membrane',     azimuthDeg: 45,  angleDeg: 45,  elevationDeg: -15, radius: 3.8, distanceTier: 'Sederhana', height: 0.35, spatialOffset: [ 2.60, -0.98, -2.60], label: 'Membran Sel',                  color: 0x3b82f6, icon: '🛡️' },
-    { id: 'stn-3-cytoplasm',    slotNumber: 3, stationNumber: 3, markerId: 6, directionName: 'Kanan',          stationKey: 'cytoplasm',    azimuthDeg: 90,  angleDeg: 90,  elevationDeg: -10, radius: 5.8, distanceTier: 'Jauh',      height: 0.35, spatialOffset: [ 5.71, -1.00,  0.00], label: 'Sitoplasma',                   color: 0xeab308, icon: '💧' },
-    { id: 'stn-4-mitochondria', slotNumber: 4, stationNumber: 4, markerId: 0, directionName: 'Kanan Belakang', stationKey: 'mitochondria', azimuthDeg: 140, angleDeg: 140, elevationDeg: -17, radius: 3.4, distanceTier: 'Sederhana', height: 0.35, spatialOffset: [ 2.10, -0.99,  2.50], label: 'Mitokondrion',                 color: 0xf97316, icon: '⚡' },
-    { id: 'stn-5-chloroplast',  slotNumber: 5, stationNumber: 5, markerId: 5, directionName: 'Belakang',       stationKey: 'chloroplast',  azimuthDeg: 185, angleDeg: 185, elevationDeg: -9,  radius: 6.6, distanceTier: 'Jauh',      height: 0.35, spatialOffset: [-0.58, -1.03,  6.50], label: 'Kloroplas',                    color: 0x22c55e, icon: '🌿' },
-    { id: 'stn-6-cellwall',     slotNumber: 6, stationNumber: 6, markerId: 3, directionName: 'Kiri Belakang',  stationKey: 'wall',         azimuthDeg: 225, angleDeg: 225, elevationDeg: -14, radius: 4.2, distanceTier: 'Sederhana', height: 0.35, spatialOffset: [-2.90, -1.02,  2.90], label: 'Dinding Sel',                  color: 0x92400e, icon: '🧱' },
-    { id: 'stn-7-vacuole',      slotNumber: 7, stationNumber: 7, markerId: 7, directionName: 'Kiri',           stationKey: 'vacuole',      azimuthDeg: 270, angleDeg: 270, elevationDeg: -21, radius: 2.8, distanceTier: 'Dekat',     height: 0.35, spatialOffset: [-2.61, -1.00,  0.00], label: 'Vakuol',                       color: 0x06b6d4, icon: '🫧' },
-    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Kiri Hadapan',   stationKey: 'comparison',   azimuthDeg: 315, angleDeg: 315, elevationDeg: -11, radius: 5.2, distanceTier: 'Jauh',      height: 0.35, spatialOffset: [-3.60, -0.99, -3.60], label: 'Retikulum Endoplasma',         color: 0xec4899, icon: '⚖️' }
+    { id: 'stn-1-nucleus',      slotNumber: 1, stationNumber: 1, markerId: 1, directionName: 'Kiri Hadapan',   stationKey: 'nucleus',      azimuthDeg: 325, angleDeg: 325, elevationDeg: -13, virtualHeight: 0.5, heightTier: 'Rendah',    radius: 4.5,  distanceTier: 'Dekat',       label: 'Nukleus',                      color: 0x8b5cf6, icon: '🧬' },
+    { id: 'stn-2-membrane',     slotNumber: 2, stationNumber: 2, markerId: 4, directionName: 'Kanan Hadapan',  stationKey: 'membrane',     azimuthDeg: 40,  angleDeg: 40,  elevationDeg: 1,   virtualHeight: 1.6, heightTier: 'Sederhana', radius: 6.5,  distanceTier: 'Sederhana',   label: 'Membran Sel',                  color: 0x3b82f6, icon: '🛡️' },
+    { id: 'stn-3-cytoplasm',    slotNumber: 3, stationNumber: 3, markerId: 6, directionName: 'Kiri',           stationKey: 'cytoplasm',    azimuthDeg: 270, angleDeg: 270, elevationDeg: -9,  virtualHeight: 0.3, heightTier: 'Rendah',    radius: 8.0,  distanceTier: 'Jauh',        label: 'Sitoplasma',                   color: 0xeab308, icon: '💧' },
+    { id: 'stn-4-mitochondria', slotNumber: 4, stationNumber: 4, markerId: 0, directionName: 'Kanan Belakang', stationKey: 'mitochondria', azimuthDeg: 135, angleDeg: 135, elevationDeg: 5,   virtualHeight: 2.2, heightTier: 'Tinggi',    radius: 7.5,  distanceTier: 'Jauh',        label: 'Mitokondrion',                 color: 0xf97316, icon: '⚡' },
+    { id: 'stn-5-chloroplast',  slotNumber: 5, stationNumber: 5, markerId: 5, directionName: 'Belakang',       stationKey: 'chloroplast',  azimuthDeg: 175, angleDeg: 175, elevationDeg: 10,  virtualHeight: 3.2, heightTier: 'Tinggi',    radius: 9.5,  distanceTier: 'Sangat Jauh', label: 'Kloroplas',                    color: 0x22c55e, icon: '🌿' },
+    { id: 'stn-6-cellwall',     slotNumber: 6, stationNumber: 6, markerId: 3, directionName: 'Kanan',          stationKey: 'wall',         azimuthDeg: 95,  angleDeg: 95,  elevationDeg: -5,  virtualHeight: 0.7, heightTier: 'Rendah',    radius: 10.0, distanceTier: 'Sangat Jauh', label: 'Dinding Sel',                  color: 0x92400e, icon: '🧱' },
+    { id: 'stn-7-vacuole',      slotNumber: 7, stationNumber: 7, markerId: 7, directionName: 'Kiri Belakang',  stationKey: 'vacuole',      azimuthDeg: 240, angleDeg: 240, elevationDeg: -3,  virtualHeight: 1.2, heightTier: 'Sederhana', radius: 5.5,  distanceTier: 'Sederhana',   label: 'Vakuol',                       color: 0x06b6d4, icon: '🫧' },
+    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Kiri Belakang',  stationKey: 'comparison',   azimuthDeg: 200, angleDeg: 200, elevationDeg: 10,  virtualHeight: 3.0, heightTier: 'Tinggi',    radius: 9.0,  distanceTier: 'Jauh',        label: 'Retikulum Endoplasma',         color: 0xec4899, icon: '⚖️' }
   ];
 
   // World-locked AR state — dikekalkan sepanjang sesi
@@ -2568,7 +2568,7 @@
       url: '../models/nucleus_opt.glb',
       fallbackUrl: '../models/nucleus.glb',
       targetSize3D: 0.95,
-      targetSizeARWorld: 1.40,
+      targetSizeARWorld: 0.90,
       targetSizePreview: 1.35,
       targetSizeMini: 0.32,
       rot: [0.16, -0.35, 0],
@@ -2582,7 +2582,7 @@
       url: '../models/plasma_membrane_opt.glb',
       fallbackUrl: '../models/plasma_membrane.glb',
       targetSize3D: 1.25,
-      targetSizeARWorld: 1.60,
+      targetSizeARWorld: 0.95,
       targetSizePreview: 1.50,
       targetSizeMini: 0.38,
       rot: [0.22, 0.25, Math.PI],
@@ -2596,7 +2596,7 @@
       url: 'cytoplasm_gel_visual',
       fallbackUrl: 'cytoplasm_gel_visual',
       targetSize3D: 1.10,
-      targetSizeARWorld: 1.45,
+      targetSizeARWorld: 0.85,
       targetSizePreview: 1.35,
       targetSizeMini: 0.35,
       rot: [0, 0, 0],
@@ -2610,7 +2610,7 @@
       url: '../models/mitochondria.glb',
       fallbackUrl: '../models/mitochondria.glb',
       targetSize3D: 1.16,
-      targetSizeARWorld: 1.55,
+      targetSizeARWorld: 0.92,
       targetSizePreview: 1.48,
       targetSizeMini: 0.36,
       rot: [0.24, -0.30, 0.10],
@@ -2624,7 +2624,7 @@
       url: '../models/chloroplast%20(1).glb',
       fallbackUrl: '../models/chloroplast.glb',
       targetSize3D: 1.15,
-      targetSizeARWorld: 1.50,
+      targetSizeARWorld: 0.90,
       targetSizePreview: 1.40,
       targetSizeMini: 0.35,
       rot: [0.35, 0.20, 0],
@@ -2638,7 +2638,7 @@
       url: '../models/cell_wall.glb',
       fallbackUrl: '../models/cell_wall%20(1).glb',
       targetSize3D: 1.15,
-      targetSizeARWorld: 1.50,
+      targetSizeARWorld: 0.90,
       targetSizePreview: 1.40,
       targetSizeMini: 0.35,
       rot: [0.20, 0.30, 0],
@@ -2652,7 +2652,7 @@
       url: '../models/vacuole.glb',
       fallbackUrl: '../models/vacuole%20(1).glb',
       targetSize3D: 1.20,
-      targetSizeARWorld: 1.55,
+      targetSizeARWorld: 0.90,
       targetSizePreview: 1.40,
       targetSizeMini: 0.35,
       rot: [0.20, 0.25, 0],
@@ -2666,7 +2666,7 @@
       url: '../models/animal_cell_final.glb',
       fallbackUrl: '../models/animal_cell_final.glb',
       targetSize3D: 0.72,
-      targetSizeARWorld: 1.40,
+      targetSizeARWorld: 0.85,
       targetSizePreview: 0.95,
       targetSizeMini: 0.32,
       rot: [0.18, -0.25, 0],
@@ -2680,7 +2680,7 @@
       url: '../models/plantcellnew.glb',
       fallbackUrl: '../models/plant_cell.glb',
       targetSize3D: 0.76,
-      targetSizeARWorld: 1.45,
+      targetSizeARWorld: 0.88,
       targetSizePreview: 0.98,
       targetSizeMini: 0.32,
       rot: [0.18, 0.25, 0],
@@ -2694,7 +2694,7 @@
       url: '../models/endoplasmic_reticulum_opt.glb',
       fallbackUrl: '../models/endoplasmic_reticulum.glb',
       targetSize3D: 1.15,
-      targetSizeARWorld: 1.45,
+      targetSizeARWorld: 0.88,
       targetSizePreview: 1.40,
       targetSizeMini: 0.32,
       rot: [0.26, 0.20, 0],
@@ -2708,7 +2708,7 @@
       url: '../models/treasure_chests_asset_pack.glb',
       fallbackUrl: '../models/treasure_chests_asset_pack.glb',
       targetSize3D: 0.90,
-      targetSizeARWorld: 1.25,
+      targetSizeARWorld: 0.95,
       targetSizePreview: 1.20,
       targetSizeMini: 0.35,
       rot: [0, 0, 0],
@@ -7265,28 +7265,32 @@
     });
   }
 
-  // Kira koordinat world-space untuk 8 stesen berdasarkan Azimut Relatif (0°=Hadapan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
-  // dan Elevasi (sudut tunduk negatif pada paras lantai / meja)
+  // Kira koordinat world-space untuk 8 stesen berdasarkan Azimut Relatif (360°),
+  // Jarak Maya R (4.5m - 10.0m), dan Ketinggian Maya vHeight (0.3m - 3.2m):
+  // Rendah: Sitoplasma (0.3m), Nukleus (0.5m), Dinding Sel (0.7m)
+  // Sederhana: Vakuol (1.2m), Membran Sel (1.6m)
+  // Tinggi: Mitokondrion (2.2m), Retikulum Endoplasma (3.0m), Kloroplas (3.2m)
   function positionARWorldStations() {
     const eyeY = arWorldState.postureMode === 'seated' ? 1.20 : 1.50;
     arWorldState.stationGroups.forEach((group, idx) => {
       const cfg = group.userData.stationConfig;
       const azDeg = typeof cfg.azimuthDeg === 'number' ? cfg.azimuthDeg : (cfg.angleDeg || 0);
-      let elDeg = typeof cfg.elevationDeg === 'number' ? cfg.elevationDeg : -15;
-      if (elDeg > 0) elDeg = -Math.abs(elDeg);
+      const R = cfg.radius || 4.5;
+      const vHeight = typeof cfg.virtualHeight === 'number' ? cfg.virtualHeight : (cfg.height || 0.5);
+      const deltaY = vHeight - eyeY;
+      const elRad = Math.asin(Math.max(-0.95, Math.min(0.95, deltaY / R)));
+      const elDeg = THREE.MathUtils.radToDeg(elRad);
+
       cfg.azimuthDeg = azDeg;
       cfg.angleDeg = azDeg;
       cfg.elevationDeg = elDeg;
+      cfg.virtualHeight = vHeight;
 
       const azRad = THREE.MathUtils.degToRad(azDeg);
-      const elRad = THREE.MathUtils.degToRad(elDeg);
-      const R = cfg.radius || 4.0;
-
-      const horizR = Math.cos(elRad) * R;
+      const horizR = Math.sqrt(Math.max(0.1, R * R - deltaY * deltaY));
       const stationX = Math.sin(azRad) * horizR;
       const stationZ = -Math.cos(azRad) * horizR;
-      // Formula ketinggian aras lantai/meja: berada sekitar 0.45m - 0.55m dari aras lantai fizikal
-      const stationY = eyeY + Math.sin(elRad) * R;
+      const stationY = vHeight;
 
       group.position.set(stationX, stationY, stationZ);
       const isFocused = (arWorldState.focusedStationIdx === idx);
@@ -7301,12 +7305,15 @@
     if (arWorldState.treasureChestGroup) {
       const chestCfg = arWorldState.treasureChestConfig;
       const azRad = THREE.MathUtils.degToRad(chestCfg.azimuthDeg);
-      const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg || -12);
-      const R = chestCfg.radius || 3.8;
-      const horizR = Math.cos(elRad) * R;
+      const R = chestCfg.radius || 6.0;
+      const vHeight = typeof chestCfg.virtualHeight === 'number' ? chestCfg.virtualHeight : 0.8;
+      const deltaY = vHeight - eyeY;
+      const elRad = Math.asin(Math.max(-0.95, Math.min(0.95, deltaY / R)));
+      chestCfg.elevationDeg = THREE.MathUtils.radToDeg(elRad);
+      const horizR = Math.sqrt(Math.max(0.1, R * R - deltaY * deltaY));
       const chestX = Math.sin(azRad) * horizR;
       const chestZ = -Math.cos(azRad) * horizR;
-      const chestY = eyeY + Math.sin(elRad) * R;
+      const chestY = vHeight;
       arWorldState.treasureChestGroup.position.set(chestX, chestY, chestZ);
       arWorldState.treasureChestGroup.lookAt(0, chestY, 0);
     }
@@ -7433,7 +7440,7 @@
     const stnNum = keyToNum[organelleKey];
     if (stnNum) {
       const detailed = buildStylizedOrganelle(stnNum, color);
-      detailed.scale.setScalar(1.65);
+      detailed.scale.setScalar(1.20);
       detailed.traverse(n => {
         if (n.isMesh) {
           n.userData = { ...n.userData, id: organelleKey, organelleId: organelleKey, stationNumber: stnNum, pickable: true };
@@ -7454,7 +7461,7 @@
     }
 
     const fallbackMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.55, 18, 14),
+      new THREE.SphereGeometry(0.38, 18, 14),
       new THREE.MeshStandardMaterial({ color: color || 0x2dd4bf, roughness: 0.3 })
     );
     fallbackMesh.userData = { id: organelleKey, organelleId: organelleKey, pickable: true };
@@ -8661,6 +8668,7 @@
       const isTarget = (idx === arWorldState.targetStationIdx);
       const isDone = State.completedStations.has(cfg.stationNumber);
       const isDiscovered = arWorldState.discoveredStations.has(cfg.stationNumber);
+      const hTier = cfg.heightTier || (cfg.virtualHeight <= 0.8 ? 'Rendah' : cfg.virtualHeight <= 1.8 ? 'Sederhana' : 'Tinggi');
 
       let badgeHtml = '<span class="cq-stn-badge pending">Belum Ditemui</span>';
       if (isDone) {
@@ -8675,7 +8683,7 @@
         <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
           <span style="font-size:13px;">${cfg.icon || '🧬'}</span>
           <span style="font-weight:800; font-size:11px; color:#fff; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
-            Stesen ${cfg.stationNumber}: ${cfg.label}
+            Stesen ${cfg.stationNumber}: ${cfg.label} <small style="color:#5eead4;font-size:9.5px;">(${cfg.distanceTier} • ${hTier})</small>
           </span>
         </div>
         ${badgeHtml}
@@ -8757,8 +8765,8 @@
     const targetCfg = isChestTarget ? arWorldState.treasureChestConfig : (AR_WORLD_STATIONS[targetIdx] || AR_WORLD_STATIONS[0]);
     if (targetCfg) {
       const targetRelRad = THREE.MathUtils.degToRad(targetCfg.azimuthDeg) - headingRad;
-      const targetNormR = Math.max(0, Math.min(1, ((targetCfg.radius || 4.0) - 2.0) / 4.8));
-      const targetDotR = (r * 0.32) + targetNormR * (r * 0.58);
+      const targetNormR = Math.max(0, Math.min(1, ((targetCfg.radius || 4.5) - 4.0) / 6.5));
+      const targetDotR = (r * 0.30) + targetNormR * (r * 0.60);
       const tx = cx + Math.sin(targetRelRad) * targetDotR;
       const ty = cy - Math.cos(targetRelRad) * targetDotR;
       ctx.save();
@@ -8779,8 +8787,8 @@
     AR_WORLD_STATIONS.forEach((cfg, idx) => {
       const stationAngleRad = THREE.MathUtils.degToRad(cfg.azimuthDeg);
       const relAngle = stationAngleRad - headingRad;
-      const normDist = Math.max(0, Math.min(1, ((cfg.radius || 4.0) - 2.0) / 4.8));
-      const dotR = (r * 0.32) + normDist * (r * 0.58);
+      const normDist = Math.max(0, Math.min(1, ((cfg.radius || 4.5) - 4.0) / 6.5));
+      const dotR = (r * 0.30) + normDist * (r * 0.60);
       const dotX = cx + Math.sin(relAngle) * dotR;
       const dotY = cy - Math.cos(relAngle) * dotR;
 
@@ -8875,7 +8883,9 @@
     const elAligned = Math.abs(deltaEl) <= vTol;
     const isTargetDiscovered = azAligned && elAligned;
     const isDone = isChestTarget ? State.treasureHuntCompleted : State.completedStations.has(targetCfg.stationNumber);
-    const distTier = targetCfg.distanceTier || (targetCfg.radius <= 3.0 ? 'Dekat' : targetCfg.radius <= 5.0 ? 'Sederhana' : 'Jauh');
+    const distTier = targetCfg.distanceTier || (targetCfg.radius <= 5.0 ? 'Dekat' : targetCfg.radius <= 7.0 ? 'Sederhana' : targetCfg.radius <= 9.0 ? 'Jauh' : 'Sangat Jauh');
+    const heightTier = targetCfg.heightTier || (targetCfg.virtualHeight <= 0.8 ? 'Rendah' : targetCfg.virtualHeight <= 1.8 ? 'Sederhana' : 'Tinggi');
+    const heightDesc = heightTier === 'Rendah' ? 'paras lantai/meja' : heightTier === 'Tinggi' ? 'terapung tinggi' : 'aras mata';
 
     // Kemas kini pil stesen 1..8
     AR_WORLD_STATIONS.forEach((cfg, idx) => {
@@ -8922,7 +8932,7 @@
         statusChip.style.color = '#5eead4';
         statusChip.style.borderColor = '#2dd4bf';
       } else {
-        statusChip.textContent = isChestTarget ? 'Harta Karun ARSELNel 🎁' : `${distTier} (${targetCfg.radius}m Maya)`;
+        statusChip.textContent = isChestTarget ? 'Harta Karun ARSELNel 🎁' : `${distTier} • ${heightTier} (~${targetCfg.radius}m)`;
         statusChip.style.background = 'rgba(250, 204, 21, 0.2)';
         statusChip.style.color = '#fde047';
         statusChip.style.borderColor = 'rgba(250, 204, 21, 0.45)';
@@ -8937,7 +8947,7 @@
 
     const fmtSignedDeg = (v) => (Math.round(v) > 0 ? `+${Math.round(v)}°` : `${Math.round(v)}°`);
     const elTargetEl = document.getElementById('ar-radar-el-target');
-    if (elTargetEl) elTargetEl.innerHTML = `Elevasi sasaran: <strong>${fmtSignedDeg(targetEl)}</strong> (paras lantai/meja)`;
+    if (elTargetEl) elTargetEl.innerHTML = `Elevasi sasaran: <strong>${fmtSignedDeg(targetEl)}</strong> (${heightTier}: ${targetCfg.virtualHeight || 1.5}m)`;
 
     const elCamEl = document.getElementById('ar-radar-el-cam');
     if (elCamEl) elCamEl.innerHTML = `Elevasi kamera: <strong>${fmtSignedDeg(currentEl)}</strong>`;
@@ -8959,13 +8969,13 @@
     const elevCmdEl = document.getElementById('ar-radar-elev-cmd');
     if (elevCmdEl) {
       if (elAligned) {
-        elevCmdEl.textContent = '✓ Aras elevasi tepat!';
+        elevCmdEl.textContent = `✓ Aras elevasi tepat (${heightTier})!`;
         elevCmdEl.style.color = '#34d399';
       } else if (deltaEl > 0) {
-        elevCmdEl.textContent = `⬆ Naikkan kamera ${Math.round(deltaEl)}°`;
+        elevCmdEl.textContent = `⬆ Naikkan kamera ${Math.round(deltaEl)}° (Sasaran ${heightDesc})`;
         elevCmdEl.style.color = '#38bdf8';
       } else {
-        elevCmdEl.textContent = `⬇ Turunkan kamera ${Math.round(Math.abs(deltaEl))}°`;
+        elevCmdEl.textContent = `⬇ Turunkan kamera ${Math.round(Math.abs(deltaEl))}° (Sasaran ${heightDesc})`;
         elevCmdEl.style.color = '#38bdf8';
       }
     }
@@ -8998,7 +9008,7 @@
         const arrow = deltaEl > 0 ? '⬆' : '⬇';
         coachEl.textContent = isChestTarget
           ? `${arrow} ${verb} kamera ${absEl}° untuk mencari Peti Harta Karun!`
-          : `Halakan kamera ke paras lantai/meja sedikit (${deltaEl > 0 ? 'atas' : 'bawah'} ${absEl}° lagi).`;
+          : `${arrow} ${verb} kamera ${absEl}° (${heightDesc}) untuk mencari Stesen ${targetCfg.label}.`;
         coachEl.style.color = '#38bdf8';
       }
     }
@@ -9006,7 +9016,7 @@
     // 8. Kemas kini Paparan Lalai Ringkas (Minimal Card — Bahagian 4)
     const compactTargetEl = document.getElementById('ar-compact-target-name');
     if (compactTargetEl) {
-      compactTargetEl.innerHTML = isChestTarget ? '🎁 Peti ARSELNel' : `🎯 ${targetCfg.label} <small style="color:#5eead4;font-size:10px;font-weight:700;">• ${distTier}</small>`;
+      compactTargetEl.innerHTML = isChestTarget ? '🎁 Peti ARSELNel' : `🎯 ${targetCfg.label} <small style="color:#5eead4;font-size:10px;font-weight:700;">• ${distTier} (${heightTier})</small>`;
     }
     const compactTurnEl = document.getElementById('ar-compact-turn-cmd');
     if (compactTurnEl) {
@@ -9024,13 +9034,13 @@
     const compactElevEl = document.getElementById('ar-compact-elev-cmd');
     if (compactElevEl) {
       if (elAligned) {
-        compactElevEl.textContent = '✓ Aras tepat';
+        compactElevEl.textContent = `✓ Aras tepat (${heightTier})`;
         compactElevEl.style.color = '#34d399';
       } else if (deltaEl > 0) {
-        compactElevEl.textContent = `↑ Naik ${absEl}°`;
+        compactElevEl.textContent = `▲ Dongak +${absEl}°`;
         compactElevEl.style.color = '#38bdf8';
       } else {
-        compactElevEl.textContent = `↓ Turun ${absEl}°`;
+        compactElevEl.textContent = `▼ Tunduk -${absEl}°`;
         compactElevEl.style.color = '#38bdf8';
       }
     }
@@ -9100,11 +9110,11 @@
           p.position.y = u.baseHeight + Math.sin(elapsedTime * 1.6 + u.angle) * 0.04;
         });
       }
-      // Pastikan papan nama sentiasa menghadap kamera dengan tegak & skala terhad mengikut jarak (Bahagian 5)
+      // Pastikan papan nama sentiasa menghadap kamera dengan tegak & skala terhad mengikut jarak perspektif
       const stnPos = new THREE.Vector3();
       group.getWorldPosition(stnPos);
       const dist = camPos.distanceTo(stnPos);
-      const clampedLabelScale = Math.max(0.75, Math.min(1.02, dist / 5.4));
+      const clampedLabelScale = Math.max(0.55, Math.min(0.95, 4.8 / Math.max(4.0, dist)));
       group.children.forEach(child => {
         if (child.userData && child.userData.isLabel) {
           child.lookAt(camPos);
