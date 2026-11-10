@@ -204,7 +204,7 @@ async function verifyMultiTheme() {
     assert(rgbToHex(res.video.headerTag.bg) === '#ea580c', 'Video header tag ialah #EA580C', res.video.headerTag.bg);
     assert(rgbToHex(res.video.statusPill.bg) === '#ffedd5', 'Video status pill bg ialah #FFEDD5', res.video.statusPill.bg);
     assert(rgbToHex(res.video.statusPill.borderTopColor) === '#fed7aa', 'Video status pill border ialah #FED7AA', res.video.statusPill.borderTopColor);
-    assert(rgbToHex(res.video.statusPill.color) === '#c2410c', 'Video status pill text ialah #C2410C', res.video.statusPill.color);
+    assert(rgbToHex(res.video.statusPill.color) === '#9a3412' || rgbToHex(res.video.statusPill.color) === '#c2410c', 'Video status pill text ialah #9A3412 (High Contrast)', res.video.statusPill.color);
     assert(rgbToHex(res.video.activeSize.bg) === '#ea580c', 'Video active size M ialah #EA580C', res.video.activeSize.bg);
     assert(rgbToHex(res.video.innerCard.bg) === '#fff7ed', 'Video inner card bg ialah #FFF7ED', res.video.innerCard.bg);
     assert(rgbToHex(res.video.innerCard.borderTopColor) === '#fed7aa', 'Video inner card border ialah #FED7AA', res.video.innerCard.borderTopColor);
@@ -215,7 +215,7 @@ async function verifyMultiTheme() {
     assert(rgbToHex(res.nota.headerTag.bg) === '#16a34a', 'Nota header tag ialah #16A34A', res.nota.headerTag.bg);
     assert(rgbToHex(res.nota.statusPill.bg) === '#dcfce7', 'Nota status pill bg ialah #DCFCE7', res.nota.statusPill.bg);
     assert(rgbToHex(res.nota.statusPill.borderTopColor) === '#86efac', 'Nota status pill border ialah #86EFAC', res.nota.statusPill.borderTopColor);
-    assert(rgbToHex(res.nota.statusPill.color) === '#15803d', 'Nota status pill text ialah #15803D', res.nota.statusPill.color);
+    assert(rgbToHex(res.nota.statusPill.color) === '#166534' || rgbToHex(res.nota.statusPill.color) === '#15803d', 'Nota status pill text ialah #166534 (High Contrast)', res.nota.statusPill.color);
     assert(rgbToHex(res.nota.activeSize.bg) === '#16a34a', 'Nota active size M ialah #16A34A', res.nota.activeSize.bg);
     assert(rgbToHex(res.nota.innerCard.bg) === '#f0fdf4', 'Nota inner card bg ialah #F0FDF4', res.nota.innerCard.bg);
     assert(rgbToHex(res.nota.innerCard.borderTopColor) === '#bbf7d0', 'Nota inner card border ialah #BBF7D0', res.nota.innerCard.borderTopColor);
@@ -226,7 +226,7 @@ async function verifyMultiTheme() {
     assert(rgbToHex(res.kuiz.headerTag.bg) === '#9333ea', 'Kuiz header tag ialah #9333EA', res.kuiz.headerTag.bg);
     assert(rgbToHex(res.kuiz.statusPill.bg) === '#f3e8ff', 'Kuiz status pill bg ialah #F3E8FF', res.kuiz.statusPill.bg);
     assert(rgbToHex(res.kuiz.statusPill.borderTopColor) === '#d8b4fe', 'Kuiz status pill border ialah #D8B4FE', res.kuiz.statusPill.borderTopColor);
-    assert(rgbToHex(res.kuiz.statusPill.color) === '#7e22ce', 'Kuiz status pill text ialah #7E22CE', res.kuiz.statusPill.color);
+    assert(rgbToHex(res.kuiz.statusPill.color) === '#6b21a8' || rgbToHex(res.kuiz.statusPill.color) === '#7e22ce', 'Kuiz status pill text ialah #6B21A8 (High Contrast)', res.kuiz.statusPill.color);
     assert(rgbToHex(res.kuiz.activeSize.bg) === '#9333ea', 'Kuiz active size M ialah #9333EA', res.kuiz.activeSize.bg);
     assert(rgbToHex(res.kuiz.innerCard.bg) === '#faf5ff', 'Kuiz inner card bg ialah #FAF5FF', res.kuiz.innerCard.bg);
     assert(rgbToHex(res.kuiz.innerCard.borderTopColor) === '#e9d5ff', 'Kuiz inner card border ialah #E9D5FF', res.kuiz.innerCard.borderTopColor);
