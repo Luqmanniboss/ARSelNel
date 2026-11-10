@@ -1,0 +1,3772 @@
+/* ==============================================================================
+   CellQuest AR Adventure — Misi Jelajah Dunia Sel
+   CSS Stylesheet: Makmal Eksplorasi Sel ARSelNel
+   ============================================================================== */
+
+:root {
+  --cq-teal: #0d9488;
+  --cq-teal-dark: #0f766e;
+  --cq-mint: #2dd4bf;
+  --cq-bg: #091319;
+  --cq-panel: rgba(15, 23, 42, 0.88);
+  --cq-border: rgba(255, 255, 255, 0.15);
+  --cq-accent: #f59e0b;
+  --cq-green: #10b981;
+  --cq-red: #ef4444;
+  --cq-font: 'Nunito', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  font-family: var(--cq-font);
+  background-color: var(--cq-bg);
+  color: #f1f5f9;
+  transition: background-color 0.3s ease;
+}
+
+body.cq-ar-mode {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+#canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: auto;
+  background: transparent !important;
+  touch-action: none;
+}
+
+#canvas-container canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent !important;
+  touch-action: none;
+}
+
+/* ==============================================================================
+   HUD (HEADS-UP DISPLAY)
+   ============================================================================== */
+
+.cq-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(6, 25, 33, 0.85) 0%, rgba(6, 25, 33, 0.4) 70%, transparent 100%);
+  backdrop-filter: blur(8px);
+}
+
+.cq-hud > * {
+  pointer-events: auto;
+}
+
+.cq-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cq-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.cq-back-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.cq-title-badge {
+  display: flex;
+  flex-direction: column;
+}
+
+.cq-title-badge h1 {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.3px;
+  background: linear-gradient(135deg, #fff 0%, #a7f3d0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cq-title-badge span {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.cq-hud-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cq-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.cq-camera-feed {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #000;
+}
+
+.cq-stat-pill .icon {
+  font-size: 18px;
+}
+
+.cq-stat-pill.mode-pill {
+  border-color: #2dd4bf;
+  color: #5eead4;
+  background: rgba(13, 148, 136, 0.25);
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.25);
+}
+
+.cq-stat-pill.badge-pill {
+  border-color: #8b5cf6;
+  color: #c4b5fd;
+}
+
+.cq-stat-pill.score-pill {
+  border-color: #eab308;
+  color: #fde047;
+}
+
+.cq-stat-pill.time-pill {
+  border-color: #38bdf8;
+  color: #7dd3fc;
+}
+
+.cq-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cq-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+/* Badge Tracker Strip on top */
+.cq-badge-strip {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  z-index: 15;
+  pointer-events: none;
+}
+
+.cq-mini-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.cq-mini-badge.completed {
+  color: #fff;
+  background: #10b981;
+  border-color: #34d399;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+  transform: scale(1.1);
+}
+
+/* ==============================================================================
+   PROXIMITY INTERACTION BANNER & MOBILE INTERACT BUTTON
+   ============================================================================== */
+
+.cq-prompt-container {
+  position: absolute;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0;
+  transform: translate(-50%, 20px) scale(0.9);
+}
+
+.cq-prompt-container.active {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  pointer-events: auto;
+}
+
+.cq-prompt-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px 10px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 2px solid var(--station-color, #2dd4bf);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 20px var(--station-glow, rgba(45, 212, 191, 0.5));
+  backdrop-filter: blur(12px);
+  animation: promptPulse 2s infinite ease-in-out;
+}
+
+@keyframes promptPulse {
+  0%, 100% { box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 15px var(--station-glow, rgba(45, 212, 191, 0.4)); }
+  50% { box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 25px var(--station-glow, rgba(45, 212, 191, 0.8)); }
+}
+
+.cq-prompt-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--station-color, #2dd4bf);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  box-shadow: 0 0 12px var(--station-glow, rgba(45, 212, 191, 0.6));
+}
+
+.cq-prompt-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cq-prompt-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.cq-prompt-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.cq-prompt-btn {
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--station-color, #2dd4bf) 0%, #0d9488 100%);
+  border: none;
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.cq-prompt-btn:hover {
+  transform: scale(1.06);
+  filter: brightness(1.15);
+}
+
+.cq-prompt-key {
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+/* Dedicated Mobile Floating Interact Button */
+.cq-mobile-interact-btn {
+  position: absolute;
+  bottom: 28px;
+  right: 28px;
+  z-index: 25;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  border: 3px solid #fef08a;
+  color: #fff;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 8px 24px rgba(234, 88, 12, 0.5), 0 0 20px rgba(250, 204, 21, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  pointer-events: auto;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.cq-mobile-interact-btn.visible {
+  display: flex;
+  animation: bounceInteract 1.8s infinite ease-in-out;
+}
+
+.cq-mobile-interact-btn:active {
+  transform: scale(0.92);
+  filter: brightness(0.9);
+}
+
+@keyframes bounceInteract {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.05); }
+}
+
+/* ==============================================================================
+   MOBILE VIRTUAL CONTROLS (ANALOG JOYSTICK & TOUCH ROTATION)
+   ============================================================================== */
+
+.cq-mobile-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 20;
+  display: block; /* Managed by JS or responsive media queries */
+  pointer-events: auto;
+  user-select: none;
+  touch-action: none;
+}
+
+/* Smooth Virtual Joystick Base & Thumb Knob */
+.cq-joystick {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  user-select: none;
+  touch-action: none;
+}
+
+.cq-joystick-base {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, rgba(30, 58, 75, 0.75) 0%, rgba(10, 22, 30, 0.85) 100%);
+  border: 2.5px solid rgba(45, 212, 191, 0.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(45, 212, 191, 0.15);
+  backdrop-filter: blur(10px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cq-joystick-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #5eead4 0%, #0d9488 60%, #0f766e 100%);
+  border: 2px solid #a7f3d0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 16px rgba(45, 212, 191, 0.6);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: transform 0.05s linear;
+}
+
+.cq-joystick-arrows {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  font-size: 11px;
+  color: #5eead4;
+}
+
+.cq-joystick-arrows .arrow-up    { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); }
+.cq-joystick-arrows .arrow-down  { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); }
+.cq-joystick-arrows .arrow-left  { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); }
+.cq-joystick-arrows .arrow-right { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
+
+/* Right Touch Drag Look Zone for Mobile */
+.cq-touch-look-zone {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  bottom: 0;
+  width: 58%;
+  z-index: 10;
+  pointer-events: auto;
+  user-select: none;
+  touch-action: none;
+}
+  pointer-events: auto;
+}
+
+/* Reticle / Crosshair in Center (First-Person Look) */
+.cq-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  z-index: 12;
+  transition: all 0.2s ease;
+}
+
+.cq-crosshair-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.cq-crosshair.focus .cq-crosshair-ring {
+  border-color: #facc15;
+  transform: scale(1.25);
+  box-shadow: 0 0 16px #facc15;
+}
+
+/* ==============================================================================
+   MODALS & DIALOGS
+   ============================================================================== */
+
+.cq-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.cq-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cq-modal {
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 28px;
+  background: #0f1c24;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(13, 148, 136, 0.25);
+  padding: 28px;
+  color: #f1f5f9;
+  position: relative;
+  transform: scale(0.92);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cq-modal-backdrop.open .cq-modal {
+  transform: scale(1);
+}
+
+.cq-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.cq-modal-close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Station Modal Styling */
+.cq-station-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.cq-station-header {
+  margin-bottom: 18px;
+}
+
+.cq-station-header h2 {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+/* 3D Interactive Organelle Preview Box in Modal */
+.cq-station-preview-box {
+  width: 100%;
+  height: 190px;
+  background: radial-gradient(circle at 50% 50%, rgba(20, 48, 65, 0.75) 0%, rgba(8, 18, 26, 0.95) 100%);
+  border: 1.5px solid rgba(45, 212, 191, 0.35);
+  border-radius: 18px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6), 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.cq-preview-canvas-host {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  touch-action: none;
+  cursor: grab;
+}
+
+.cq-preview-canvas-host:active {
+  cursor: grabbing;
+}
+
+.cq-preview-canvas-host canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Fasa A.3: Deep Zoom 3D Toolbar Controls */
+.cq-preview-zoom-bar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.cq-preview-zoom-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  color: #f1f5f9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.cq-preview-zoom-btn:hover {
+  background: rgba(45, 212, 191, 0.25);
+  border-color: #2dd4bf;
+  color: #5eead4;
+  transform: scale(1.06);
+}
+
+.cq-preview-zoom-btn:active {
+  transform: scale(0.94);
+  background: rgba(45, 212, 191, 0.4);
+}
+
+.cq-preview-zoom-btn .material-symbols-outlined {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.cq-preview-caption {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #5eead4;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  pointer-events: none;
+  letter-spacing: 0.2px;
+}
+
+.cq-station-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px 18px;
+  border-radius: 18px;
+  border-left: 4px solid var(--current-color, #2dd4bf);
+  margin-bottom: 22px;
+}
+
+/* Quiz Box */
+.cq-quiz-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.cq-quiz-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  color: #facc15;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cq-quiz-question {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+.cq-quiz-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.cq-quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-quiz-opt:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateX(4px);
+}
+
+.cq-opt-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.cq-quiz-opt.correct {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
+  color: #a7f3d0 !important;
+}
+
+.cq-quiz-opt.correct .cq-opt-letter {
+  background: #10b981;
+  color: #fff;
+}
+
+.cq-quiz-opt.incorrect {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+
+.cq-quiz-opt.incorrect .cq-opt-letter {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Feedback Box */
+.cq-feedback-box {
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.cq-feedback-box.correct {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #d1fae5;
+}
+
+.cq-feedback-box.incorrect {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fee2e2;
+}
+
+.cq-feedback-badge-reward {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-weight: 800;
+  color: #facc15;
+}
+
+.cq-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.cq-btn-primary {
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s ease;
+}
+
+.cq-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.cq-btn-secondary {
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==============================================================================
+   MODE SELECTOR DIALOG (MOD JELAJAH 3D vs MOD AR SPASIAL)
+   ============================================================================== */
+
+.cq-mode-dialog {
+  max-width: 640px;
+}
+
+.cq-mode-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 22px 0;
+}
+
+.cq-mode-card {
+  padding: 22px 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cq-mode-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #2dd4bf;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(45, 212, 191, 0.2);
+}
+
+.cq-mode-card.featured {
+  border-color: #2dd4bf;
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%);
+}
+
+.cq-mode-icon {
+  font-size: 44px;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+.cq-mode-card h3 {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.cq-mode-card p {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.cq-mode-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(45, 212, 191, 0.2);
+  color: #5eead4;
+  border: 1px solid rgba(45, 212, 191, 0.4);
+}
+
+.cq-mode-tag.camera-tag {
+  background: rgba(14, 165, 233, 0.2);
+  color: #7dd3fc;
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+.cq-mode-tag.ar-tag {
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.cq-scale-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-scale-btn.active, .cq-scale-btn:hover {
+  background: rgba(45, 212, 191, 0.25);
+  border-color: #2dd4bf;
+  color: #5eead4;
+}
+
+/* ==============================================================================
+   HOW TO PLAY DIALOG (CARA BERMAIN - TikTok Style)
+   ============================================================================== */
+
+.cq-howto-card {
+  max-width: 520px;
+  text-align: center;
+}
+
+.cq-howto-gamepad {
+  font-size: 52px;
+  margin-bottom: 6px;
+  display: inline-block;
+}
+
+.cq-howto-list {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 20px;
+  border-radius: 20px;
+  margin: 20px 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cq-howto-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+
+.cq-howto-num {
+  font-weight: 900;
+  color: #facc15;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+/* ==============================================================================
+   VICTORY CERTIFICATE & CELEBRATION
+   ============================================================================== */
+
+.cq-victory-card {
+  max-width: 620px;
+  text-align: center;
+}
+
+.cq-cert-container {
+  background: linear-gradient(135deg, #092c35 0%, #061c24 100%);
+  border: 3px double #facc15;
+  border-radius: 24px;
+  padding: 28px 24px;
+  margin: 20px 0;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(250, 204, 21, 0.15);
+}
+
+.cq-cert-ribbon {
+  font-size: 56px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.cq-cert-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.cq-cert-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.cq-cert-name {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  border-bottom: 2px dashed rgba(250, 204, 21, 0.5);
+  padding-bottom: 6px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.cq-cert-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.cq-cert-stat-box {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 10px;
+  border-radius: 14px;
+}
+
+.cq-cert-stat-box span {
+  font-size: 11px;
+  color: #94a3b8;
+  display: block;
+}
+
+.cq-cert-stat-box strong {
+  font-size: 18px;
+  color: #facc15;
+  font-weight: 900;
+}
+
+.cq-cert-footer {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+}
+
+/* ==============================================================================
+   LOADING SCREEN
+   ============================================================================== */
+
+.cq-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #06141a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  transition: opacity 0.5s ease;
+}
+
+.cq-loading-screen.done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cq-spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid rgba(45, 212, 191, 0.2);
+  border-top-color: #2dd4bf;
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.cq-loading-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+/* ==============================================================================
+   AR HUD & WEBXR OVERLAY INTERFACE (IPAD-FIRST RESPONSIVE DESIGN)
+   ============================================================================== */
+
+.cq-ar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+}
+
+/* 1. TOPBAR: Clean Responsive Layout (No Cross-Mode Navigation Clutter) */
+.cq-ar-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  pointer-events: auto;
+  width: 100%;
+}
+
+.cq-ar-top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.cq-ar-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.24);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cq-ar-back-btn:hover {
+  background: rgba(30, 41, 59, 0.96);
+  border-color: #2dd4bf;
+  transform: translateY(-1px);
+}
+
+.cq-ar-title-stack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.cq-ar-main-title {
+  font-size: clamp(13px, 1.4vw, 15px);
+  font-weight: 900;
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cq-ar-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid #2dd4bf;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #5eead4;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ar-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: arPulseDot 2s infinite ease-in-out;
+}
+
+@keyframes arPulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+/* Center Model Switcher Tabs — Hidden in active AR gameplay per Bahagian 1 */
+.cq-ar-top-center {
+  display: none !important;
+}
+
+.cq-ar-model-tabs {
+  display: none !important;
+}
+
+.cq-ar-model-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Right Stats & Icon-Only Controls */
+.cq-ar-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.cq-ar-stats-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cq-ar-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.cq-ar-stat-chip.score-chip { border-color: #eab308; color: #fde047; }
+.cq-ar-stat-chip.badge-chip { border-color: #8b5cf6; color: #c4b5fd; }
+.cq-ar-stat-chip.timer-chip { border-color: #38bdf8; color: #7dd3fc; }
+
+.cq-ar-tools-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* SATU ARAHAN UTAMA SAHAJA (Bahagian 6) */
+.cq-ar-single-instruction {
+  position: fixed;
+  top: max(64px, calc(env(safe-area-inset-top) + 56px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 26;
+  background: rgba(8, 15, 28, 0.88);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(45, 212, 191, 0.5);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: clamp(11.5px, 1.3vw, 13.5px);
+  font-weight: 800;
+  color: #f1f5f9;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  max-width: min(560px, calc(100vw - 32px));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.cq-ar-single-instruction.found {
+  border-color: #10b981;
+  color: #a7f3d0;
+  background: rgba(6, 28, 24, 0.90);
+}
+
+/* Fasa A.1 & A.3 Orientasi Dunia: Pil Navigasi Bawah Tengah (Treasure Hunt Pill - Bebas Pertindihan) */
+body.ar-world-active .cq-ar-single-instruction {
+  top: auto;
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px));
+  z-index: 28;
+  background: rgba(8, 15, 28, 0.93);
+  border: 1.5px solid rgba(45, 212, 191, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  padding: 8px 18px;
+  font-size: clamp(11.5px, 1.25vw, 13.5px);
+  max-width: min(380px, calc(100vw - 580px));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.2s ease;
+}
+
+body.ar-world-active .cq-ar-single-instruction.discovered {
+  border-color: #10b981;
+  color: #34d399;
+  background: rgba(6, 28, 24, 0.95);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
+}
+
+/* Legacy Floating Hint Banner & Floating Bar — Hidden so only 1 instruction & clean radar show */
+.cq-ar-hint-banner {
+  display: none !important;
+}
+
+.cq-ar-floating-bar {
+  display: none !important;
+}
+
+.cq-ar-stations-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.98) 100%);
+  color: #fff;
+  border: 1px solid #5eead4;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.45);
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+
+.cq-ar-stations-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.65);
+}
+
+.cq-ar-chip-count {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+  font-size: 11px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.cq-ar-recenter-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.cq-ar-recenter-pill-btn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: #2dd4bf;
+  color: #fff;
+}
+
+/* 3. SLIDE-OUT 8-STATION DRAWER (IPAD LANDSCAPE RIGHT-PANEL) */
+.cq-ar-stations-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 360px;
+  max-width: 88vw;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(9, 19, 25, 0.98) 100%);
+  backdrop-filter: blur(16px);
+  border-left: 1px solid rgba(45, 212, 191, 0.35);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.65);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(105%);
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+.cq-ar-stations-drawer.open {
+  transform: translateX(0);
+}
+
+.cq-ar-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 18px 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cq-ar-drawer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cq-ar-drawer-title-group h3 {
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+}
+
+.cq-ar-drawer-title-group span {
+  font-size: 11px;
+  color: #94a3b8;
+  display: block;
+}
+
+.cq-ar-drawer-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cq-drawer-station-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+  color: inherit;
+}
+
+.cq-drawer-station-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #2dd4bf;
+  transform: translateX(-2px);
+}
+
+.cq-drawer-station-card.active {
+  background: rgba(13, 148, 136, 0.25);
+  border-color: #5eead4;
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.35);
+}
+
+.cq-drawer-stn-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.cq-drawer-stn-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cq-drawer-stn-info strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cq-drawer-stn-info span {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cq-drawer-stn-status {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.cq-drawer-stn-status.done {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+/* 4. COMPACT MINIMIZABLE ORGANELLE CARD (IPAD LANDSCAPE BOTTOM-RIGHT - Fasa A.3 Anti-Bertindih) */
+.cq-ar-organelle-card {
+  position: fixed;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  right: max(14px, env(safe-area-inset-right));
+  width: clamp(260px, 28vw, 310px);
+  max-width: calc(100vw - 32px);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.94) 0%, rgba(9, 23, 32, 0.96) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(45, 212, 191, 0.4);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(45, 212, 191, 0.2);
+  border-radius: 18px;
+  padding: 12px 14px;
+  z-index: 35;
+  pointer-events: auto;
+  animation: fadeIn 0.25s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cq-ar-organelle-card.minimized {
+  width: clamp(190px, 20vw, 240px);
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.cq-ar-organelle-card.minimized .cq-ar-card-body {
+  display: none;
+}
+
+.cq-ar-organelle-card.minimized .cq-ar-card-header {
+  margin-bottom: 0;
+}
+
+.cq-ar-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cq-ar-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cq-ar-card-icon {
+  font-size: 24px;
+}
+
+.cq-ar-card-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.cq-ar-card-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.18);
+  color: #5eead4;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.cq-ar-card-badge.completed {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: #10b981;
+}
+
+.cq-ar-card-ctrls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cq-card-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cq-card-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.cq-ar-card-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+  max-height: 110px;
+  overflow-y: auto;
+}
+
+.cq-ar-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cq-ar-card-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cq-ar-card-btn.primary {
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);
+}
+
+.cq-ar-card-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.5);
+}
+
+.cq-ar-card-btn.secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cq-ar-card-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* 5. SPATIAL WEBXR BOTTOMBAR */
+.cq-ar-bottombar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  width: 100%;
+}
+
+.cq-ar-place-btn {
+  padding: 12px 26px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+  animation: pulseBtn 1.5s infinite;
+}
+
+.cq-ar-tools {
+  display: flex;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.cq-ar-tool-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cq-ar-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ==============================================================================
+   RESPONSIVE DESIGN: DESKTOP, LAPTOP, IPAD (LANDSCAPE / PORTRAIT) & TELEFON
+   ============================================================================== */
+
+/* iPad Landscape (1024x768, 1180x820, 1366x1024) & Laptop (1366x768) */
+@media (max-width: 1380px) {
+  .cq-ar-topbar {
+    gap: 6px 10px;
+  }
+  .cq-ar-main-title {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+  .cq-ar-status-badge {
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+  .cq-ar-stat-chip {
+    padding: 5px 9px;
+    font-size: 11.5px;
+  }
+  .cq-ar-organelle-card {
+    width: clamp(250px, 28vw, 295px);
+  }
+  .cq-ar-stations-drawer {
+    width: 320px;
+  }
+}
+
+/* iPad Portrait (820x1180) & Small Tablets (900px and below) */
+@media (max-width: 900px) {
+  .cq-ar-main-title {
+    display: none;
+  }
+  .cq-ar-back-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .cq-ar-status-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .cq-ar-stat-chip {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .cq-ar-tools-group .cq-icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .cq-ar-single-instruction {
+    top: max(58px, calc(env(safe-area-inset-top) + 50px));
+    padding: 5px 14px;
+    font-size: 11.5px;
+  }
+}
+
+/* Mobile & Phone Portrait (390x844 and below 768px) */
+@media (max-width: 768px) {
+  .cq-hud {
+    padding: max(8px, env(safe-area-inset-top)) 10px 8px 10px;
+    gap: 6px;
+  }
+  .cq-title-badge h1 {
+    font-size: 13px;
+  }
+  .cq-title-badge span {
+    display: none;
+  }
+  .cq-stat-pill {
+    padding: 4px 8px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .cq-stat-pill .icon {
+    font-size: 14px;
+  }
+  .cq-badge-strip {
+    top: 56px;
+    gap: 4px;
+    padding: 3px 8px;
+  }
+  .cq-mini-badge {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+  .cq-mobile-controls {
+    display: block;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    left: max(16px, env(safe-area-inset-left));
+  }
+  .cq-mobile-interact-btn {
+    bottom: max(20px, env(safe-area-inset-bottom));
+    right: max(20px, env(safe-area-inset-right));
+  }
+  .cq-mode-cards {
+    grid-template-columns: 1fr;
+  }
+  .cq-modal {
+    padding: 16px;
+    border-radius: 20px;
+    max-height: 86dvh;
+  }
+  .cq-station-preview-box {
+    height: 150px;
+  }
+
+  /* AR Mobile Layout (390x844) */
+  .cq-ar-overlay {
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+  .cq-ar-topbar {
+    gap: 6px;
+  }
+  .cq-ar-top-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .cq-ar-top-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+  }
+  .cq-ar-stats-group {
+    gap: 4px;
+  }
+  .cq-ar-stat-chip {
+    padding: 4px 7px;
+    font-size: 10.5px;
+    gap: 3px;
+  }
+  .cq-ar-tools-group {
+    gap: 4px;
+  }
+  .cq-ar-tools-group .cq-icon-btn {
+    width: 31px;
+    height: 31px;
+  }
+  .cq-ar-single-instruction {
+    top: max(92px, calc(env(safe-area-inset-top) + 84px));
+    max-width: calc(100vw - 20px);
+    font-size: 11px;
+    padding: 5px 12px;
+  }
+  .cq-ar-organelle-card {
+    left: 50%;
+    right: auto;
+    bottom: max(136px, calc(env(safe-area-inset-bottom) + 128px));
+    transform: translateX(-50%);
+    width: min(420px, 94vw);
+  }
+  .cq-ar-organelle-card.minimized {
+    transform: translateX(-50%);
+    width: 250px;
+  }
+  .cq-ar-stations-drawer {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 60dvh;
+    border-radius: 24px 24px 0 0;
+    border-left: none;
+    border-top: 1px solid rgba(45, 212, 191, 0.35);
+    transform: translateY(105%);
+  }
+  .cq-ar-stations-drawer.open {
+    transform: translateY(0);
+  }
+}
+
+/* Phone Landscape (844x390 — Short Viewport Height <= 480px) */
+@media (max-height: 480px) and (orientation: landscape) {
+  .cq-ar-overlay {
+    padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+  .cq-ar-topbar {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .cq-ar-top-left {
+    width: auto;
+  }
+  .cq-ar-top-right {
+    width: auto;
+  }
+  .cq-ar-main-title {
+    display: none;
+  }
+  .cq-ar-back-btn {
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+  .cq-ar-status-badge {
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+  .cq-ar-stat-chip {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .cq-ar-tools-group .cq-icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+  .cq-ar-single-instruction {
+    top: max(46px, calc(env(safe-area-inset-top) + 40px));
+    padding: 4px 12px;
+    font-size: 11px;
+  }
+  .cq-modal {
+    padding: 12px 16px;
+    max-height: 92dvh;
+  }
+  .cq-station-preview-box {
+    height: 110px;
+    margin-bottom: 10px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==============================================================================
+   MISI AKHIR: TREASURE HUNT AR & CABARAN BONUS STYLES
+   ============================================================================== */
+.tc-quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.85);
+  color: #f1f5f9;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin-bottom: 8px;
+}
+.tc-quiz-opt:hover:not(:disabled) {
+  background: rgba(45, 212, 191, 0.15);
+  border-color: #2dd4bf;
+  transform: translateX(3px);
+}
+.tc-quiz-opt .opt-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  font-weight: 900;
+  color: #2dd4bf;
+  flex-shrink: 0;
+}
+.tc-quiz-opt.correct {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
+  color: #a7f3d0 !important;
+}
+.tc-quiz-opt.correct .opt-letter {
+  background: #10b981;
+  color: #fff;
+}
+.tc-quiz-opt.incorrect {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+.tc-quiz-opt.incorrect .opt-letter {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* SMART RADAR SENARAI 8 STESEN MANUAL */
+.cq-radar-stations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 124px;
+  overflow-y: auto;
+  padding-right: 2px;
+  margin-top: 3px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 5px;
+}
+.cq-radar-stations-list::-webkit-scrollbar {
+  width: 4px;
+}
+.cq-radar-stations-list::-webkit-scrollbar-thumb {
+  background: rgba(45, 212, 191, 0.4);
+  border-radius: 4px;
+}
+.cq-radar-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  font-size: 10.5px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.cq-radar-list-item:hover {
+  background: rgba(45, 212, 191, 0.18);
+  border-color: rgba(45, 212, 191, 0.5);
+}
+.cq-radar-list-item.target {
+  background: rgba(250, 204, 21, 0.2);
+  border-color: #facc15;
+  color: #fef08a;
+}
+.cq-radar-list-item.done {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+.cq-stn-badge {
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 5px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.cq-stn-badge.done {
+  background: rgba(16, 185, 129, 0.22);
+  color: #34d399;
+}
+.cq-stn-badge.discovered {
+  background: rgba(45, 212, 191, 0.22);
+  color: #5eead4;
+}
+.cq-stn-badge.pending {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+/* ==============================================================================
+   LOBI MAKMAL SAINS ARSELNEL (FUTURISTIC SCIENCE LAB LOBBY & EDUCATIONAL GALLERY)
+   ============================================================================== */
+
+/* ==============================================================================
+   LOBI MAKMAL SAINS ARSELNEL (VISUAL REDESIGN: COLORFUL SCIENCE ADVENTURE)
+   Direka khas berasaskan gambar rujukan: Ceria, Futuristik, Mesra Murid Tingkatan 1
+   ============================================================================== */
+
+.cq-lobby-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #5fc3fa;
+  background-image: url('../../background/arbackground.png');
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  color: #0f172a;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cq-lobby-screen:not(.active) {
+  display: none !important;
+}
+
+/* Hiasan Bintang & Sparkles Terapung Ringan */
+.cq-lobby-bg-decorations {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.lobby-floating-star {
+  position: absolute;
+  font-size: 22px;
+  opacity: 0.75;
+  filter: drop-shadow(0 2px 8px rgba(250, 204, 21, 0.4));
+  animation: gentleTwinkle 3s ease-in-out infinite alternate;
+}
+
+.star-1 { top: 65px; left: 470px; font-size: 26px; animation-delay: 0.2s; }
+.star-2 { top: 140px; right: 480px; font-size: 20px; animation-delay: 1.1s; }
+.star-3 { top: 95px; right: 80px; font-size: 22px; animation-delay: 1.8s; color: #facc15; }
+.star-4 { top: 175px; left: 30px; font-size: 18px; animation-delay: 0.7s; }
+
+@keyframes gentleTwinkle {
+  0% { transform: scale(0.9) rotate(0deg); opacity: 0.55; }
+  100% { transform: scale(1.15) rotate(15deg); opacity: 0.95; }
+}
+
+.cq-lobby-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1240px;
+  width: 100%;
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) 24px max(48px, env(safe-area-inset-bottom)) 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+/* ==============================================================================
+   HEADER & NAVIGATION
+   ============================================================================== */
+.cq-lobby-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.cq-lobby-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Kiri: Butang Kembali Turquoise Pill */
+.cq-nav-left {
+  display: flex;
+  align-items: center;
+}
+
+.cq-lobby-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  min-height: 44px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+  border: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35);
+  box-sizing: border-box;
+}
+
+.cq-lobby-back-btn:hover,
+.cq-lobby-back-btn:focus-visible {
+  background: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+  transform: translateX(-2px);
+  box-shadow: 0 6px 18px rgba(6, 182, 212, 0.45);
+}
+
+/* Tengah: Logo ARSELNEL SCIENCE ADVENTURE */
+.cq-nav-center {
+  display: flex;
+  align-items: center;
+}
+
+.cq-lobby-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.brand-logo-icon .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.brand-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 950;
+  color: #17324d;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.brand-sub {
+  font-size: 9.5px;
+  font-weight: 900;
+  color: #0284c7;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Kanan: Portal Makmal Sains & Profil Murid */
+.cq-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cq-portal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  min-height: 44px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-sizing: border-box;
+}
+
+.cq-lobby-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px 5px 14px;
+  min-height: 44px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+
+.user-avatar-icon {
+  font-size: 24px;
+  color: #0d9488;
+}
+
+#lobby-user-name {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.lobby-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+  color: #854d0e;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
+}
+
+.lobby-stat-chip .chip-icon {
+  font-size: 13px;
+}
+
+/* ==============================================================================
+   HERO BANNER
+   ============================================================================== */
+.cq-lobby-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.cq-lobby-hero-content {
+  flex: 1.1;
+  min-width: 300px;
+}
+
+.cq-lobby-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.hero-badge-icon {
+  font-size: 15px;
+  color: #0284c7;
+}
+
+.cq-lobby-title {
+  margin: 0 0 10px 0;
+  font-size: clamp(24px, 3.6vw, 36px);
+  font-weight: 900;
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+}
+
+.title-line-1 {
+  display: block;
+  color: #0f172a;
+}
+
+.title-line-2 {
+  position: relative;
+  display: inline-block;
+}
+
+.cq-lobby-title .highlight-text {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 950;
+}
+
+.title-brush-underline {
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 14px;
+  pointer-events: none;
+}
+
+.cq-lobby-subtitle {
+  margin: 0;
+  font-size: clamp(14px, 1.8vw, 15.5px);
+  color: #334155;
+  font-weight: 600;
+  max-width: 580px;
+  line-height: 1.5;
+}
+
+.cq-lobby-hero-visual {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+  min-height: 175px;
+}
+
+/* Pentas 3D Hero: Komposisi Sel Haiwan, Sel Tumbuhan & Robot Maskot ARSELNEL */
+.hero-3d-stage {
+  position: relative;
+  width: 440px;
+  height: 175px;
+  max-width: 100%;
+}
+
+.hero-entity-wrap {
+  position: absolute;
+  filter: drop-shadow(0 12px 24px rgba(37, 99, 235, 0.22));
+  transition: transform 0.3s ease;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.hero-entity-wrap:hover {
+  filter: drop-shadow(0 16px 28px rgba(37, 99, 235, 0.35));
+}
+
+.hero-entity-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* 1. Sel Haiwan 3D (Terapung Kiri) */
+.entity-animal-cell {
+  left: 10px;
+  top: 14px;
+  width: 125px;
+  height: 125px;
+  z-index: 2;
+  animation: arselnelFloatAnimal 4.4s ease-in-out infinite alternate;
+}
+
+/* 2. Sel Tumbuhan 3D (Terapung Tengah Bawah) */
+.entity-plant-cell {
+  left: 125px;
+  top: 24px;
+  width: 130px;
+  height: 130px;
+  z-index: 1;
+  animation: arselnelFloatPlant 5.1s ease-in-out infinite alternate;
+}
+
+/* 3. Robot Maskot ARSELNEL (Terapung Kanan Thumbs-up) */
+.entity-robot-mascot {
+  right: -5px;
+  top: 0px;
+  width: 165px;
+  height: 175px;
+  z-index: 3;
+  animation: arselnelFloatRobot 3.8s ease-in-out infinite alternate;
+}
+
+/* Partikel & Zarah Sains Terapung di Hero */
+.hero-sparkle {
+  position: absolute;
+  user-select: none;
+  pointer-events: none;
+  z-index: 4;
+  animation: arselnelTwinkle 3s ease-in-out infinite alternate;
+}
+
+.hero-sparkle.sp-1 { left: 5px; top: 0px; font-size: 18px; animation-delay: 0s; }
+.hero-sparkle.sp-2 { left: 110px; top: -8px; font-size: 16px; animation-delay: 0.8s; }
+.hero-sparkle.sp-3 { right: 145px; top: 120px; font-size: 18px; animation-delay: 1.4s; }
+.hero-sparkle.sp-4 { right: -12px; top: 35px; font-size: 16px; animation-delay: 0.4s; }
+
+.hero-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.8) 0%, rgba(125, 211, 252, 0.4) 60%, rgba(2, 132, 199, 0.1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+  z-index: 2;
+  animation: arselnelBubblePulse 4s ease-in-out infinite alternate;
+}
+
+.hero-bubble.bb-1 { width: 16px; height: 16px; left: 140px; top: 18px; }
+.hero-bubble.bb-2 { width: 12px; height: 12px; right: 155px; top: 65px; animation-delay: 1.8s; }
+
+/* Kitaran Animasi Lembut Hero */
+@keyframes arselnelFloatAnimal {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(-1.5deg); }
+  100% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes arselnelFloatPlant {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-9px) rotate(1.8deg); }
+  100% { transform: translateY(-4px) rotate(-1deg); }
+}
+
+@keyframes arselnelFloatRobot {
+  0% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-8px) scale(1.02); }
+  100% { transform: translateY(-4px) scale(1); }
+}
+
+@keyframes arselnelTwinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+}
+
+@keyframes arselnelBubblePulse {
+  0% { transform: translateY(0) scale(0.9); opacity: 0.4; }
+  100% { transform: translateY(-8px) scale(1.15); opacity: 0.85; }
+}
+
+/* ==============================================================================
+   SECTIONS & SECTION HEADINGS
+   ============================================================================== */
+.cq-lobby-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cq-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cq-section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.section-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);
+}
+
+.section-icon-box .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.hub-icon-box {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
+}
+
+.cq-section-heading h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 950;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+}
+
+.heading-divider {
+  color: #cbd5e1;
+  font-weight: 400;
+  font-size: 16px;
+  margin: 0 2px;
+}
+
+.cq-section-hint {
+  font-size: 13.5px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* ==============================================================================
+   3 MODE CARDS GRID (EQUAL HEIGHT, ROUNDED, PASTEL TONES)
+   ============================================================================== */
+.cq-lobby-modes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.cq-lobby-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  border-radius: 24px;
+  padding: 22px 20px;
+  box-sizing: border-box;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  overflow: hidden;
+}
+
+.cq-lobby-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
+}
+
+/* Card A (Warm Brown / Cream Theme) */
+.cq-lobby-card.mod-a {
+  background: linear-gradient(145deg, #FFFDF8 0%, #FFF3E2 55%, #FFE7CE 100%);
+  border: 2px solid #C88A52;
+  box-shadow: 0 10px 28px rgba(169, 101, 53, 0.16), 0 0 22px rgba(200, 138, 82, 0.22);
+}
+
+.cq-lobby-card.mod-a:hover {
+  border-color: #874B25;
+  box-shadow: 0 16px 36px rgba(169, 101, 53, 0.26), 0 0 28px rgba(200, 138, 82, 0.35);
+}
+
+.cq-lobby-card.mod-a .card-title {
+  color: #57351F;
+}
+
+.cq-lobby-card.mod-a .card-desc {
+  color: #765640;
+}
+
+/* Card B (Mint Green + Turquoise) */
+.cq-lobby-card.mod-b {
+  background: linear-gradient(145deg, #D5FFF4 0%, #B5F2E6 55%, #E6FFF9 100%);
+  border: 2px solid #38CDB5;
+  box-shadow: 0 10px 28px rgba(13, 148, 136, 0.16), 0 0 22px rgba(56, 205, 181, 0.22);
+}
+
+.cq-lobby-card.mod-b:hover {
+  border-color: #009E8B;
+  box-shadow: 0 16px 36px rgba(13, 148, 136, 0.26), 0 0 28px rgba(56, 205, 181, 0.35);
+}
+
+/* Card C (Lavender + Soft Purple) */
+.cq-lobby-card.mod-c {
+  background: linear-gradient(145deg, #F0DCFF 0%, #E4C9FF 55%, #F9EDFF 100%);
+  border: 2px solid #B47AFF;
+  box-shadow: 0 10px 28px rgba(132, 56, 232, 0.16), 0 0 22px rgba(180, 122, 255, 0.22);
+}
+
+.cq-lobby-card.mod-c:hover {
+  border-color: #8438E8;
+  box-shadow: 0 16px 36px rgba(132, 56, 232, 0.26), 0 0 28px rgba(180, 122, 255, 0.35);
+}
+
+/* Card Badges */
+.card-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.card-badge.a-badge {
+  background: linear-gradient(135deg, #A96535 0%, #874B25 100%);
+  color: #ffffff;
+}
+
+.card-badge.b-badge {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  color: #ffffff;
+}
+
+.card-badge.c-badge {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #ffffff;
+}
+
+/* Card Hero Row (Text on Left, 3D Illustration on Right) */
+.card-hero-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex: 1;
+}
+
+.card-text-col {
+  flex: 1;
+}
+
+.card-title {
+  margin: 0 0 6px 0;
+  font-size: 20px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+}
+
+.card-desc {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.card-illustration-col {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.card-3d-illus {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  pointer-events: none;
+}
+
+.cq-lobby-card:hover .card-3d-illus {
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.16));
+}
+
+/* Animasi Khas Terapung 3D untuk Setiap Mod */
+.card-3d-illus.illus-mod-a {
+  animation: arselnelFloatCardA 4.4s ease-in-out infinite alternate;
+}
+
+.card-3d-illus.illus-mod-b {
+  animation: arselnelFloatCardB 4.8s ease-in-out infinite alternate;
+}
+
+.card-3d-illus.illus-mod-c {
+  animation: arselnelFloatCardC 3.9s ease-in-out infinite alternate;
+}
+
+@keyframes arselnelFloatCardA {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(-1deg); }
+  100% { transform: translateY(-10px) rotate(1.2deg); }
+}
+
+@keyframes arselnelFloatCardB {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1.5deg); }
+  100% { transform: translateY(-4px) rotate(-1deg); }
+}
+
+@keyframes arselnelFloatCardC {
+  0% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-7px) scale(1.03); }
+  100% { transform: translateY(-11px) scale(1); }
+}
+
+/* Feature Strip: Translucent tinted panel matching each mode card */
+.card-features-strip {
+  border-radius: 18px;
+  padding: 12px 6px;
+  margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  text-align: center;
+  align-items: center;
+  gap: 4px;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Mod A Feature Panel (Warm Brown / Cream Theme) */
+.mod-a .card-features-strip {
+  background: rgba(200, 138, 82, 0.12);
+  border: 1.5px solid rgba(169, 101, 53, 0.20);
+}
+
+/* Mod B Feature Panel (Mint Green / Turquoise Theme) */
+.mod-b .card-features-strip {
+  background: rgba(20, 184, 166, 0.12);
+  border: 1.5px solid rgba(13, 148, 136, 0.20);
+}
+
+/* Mod C Feature Panel (Lavender / Purple Theme) */
+.mod-c .card-features-strip {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1.5px solid rgba(147, 51, 234, 0.20);
+}
+
+.strip-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.strip-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.strip-icon-wrap .material-symbols-outlined {
+  font-size: 19px;
+}
+
+/* Feature Icon Colors */
+.icon-no-cam { background: #fee2e2; color: #dc2626; }
+.icon-keyboard { background: #e0f2fe; color: #0284c7; }
+.icon-flag { background: #dcfce7; color: #16a34a; }
+
+.icon-cam-sensor { background: #ccfbf1; color: #0f766e; }
+.icon-radar { background: #e0f2fe; color: #0369a1; }
+.icon-pin { background: #fee2e2; color: #e11d48; }
+
+.icon-marker-cam { background: #ede9fe; color: #7c3aed; }
+.icon-model-3d { background: #e0f2fe; color: #2563eb; }
+.icon-quiz-check { background: #dcfce7; color: #15803d; }
+
+.strip-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.25;
+  text-align: center;
+  margin: 0;
+}
+
+/* Card Buttons & Actions */
+.card-footer {
+  margin-top: auto;
+  width: 100%;
+}
+
+.cq-lobby-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 20px;
+  min-height: 48px;
+  border-radius: 18px;
+  border: none;
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffffff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.cq-lobby-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.cq-lobby-btn:hover {
+  transform: translateY(-2px);
+}
+
+.cq-lobby-btn:active {
+  transform: scale(0.97);
+}
+
+/* Butang Mod A: Warm Brown / Coklat Lembut */
+.cq-lobby-btn.start-a {
+  background: linear-gradient(135deg, #a96535 0%, #874b25 100%);
+  box-shadow: 0 6px 18px rgba(169, 101, 53, 0.35);
+}
+
+.cq-lobby-btn.start-a:hover {
+  background: linear-gradient(135deg, #b8733e 0%, #874b25 100%);
+  box-shadow: 0 10px 24px rgba(169, 101, 53, 0.45);
+}
+
+/* Butang Mod B: Mint Green / Turquoise Gradient */
+.cq-lobby-btn.start-b {
+  background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
+  box-shadow: 0 6px 18px rgba(13, 148, 136, 0.35);
+}
+
+.cq-lobby-btn.start-b:hover {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  box-shadow: 0 10px 24px rgba(13, 148, 136, 0.45);
+}
+
+/* Butang Mod C: Susunan Bertingkat Kemas (Primary CTA + Secondary Print Action) */
+.card-c-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.cq-lobby-btn.start-c {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ff8a00 0%, #f4511e 100%);
+  box-shadow: 0 6px 18px rgba(244, 81, 30, 0.38);
+  font-size: 14.5px;
+  font-weight: 900;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+.cq-lobby-btn.start-c:hover {
+  background: linear-gradient(135deg, #ffa033 0%, #ff6f00 100%);
+  box-shadow: 0 10px 24px rgba(244, 81, 30, 0.48);
+}
+
+/* Butang Cetak 8 Kad AR: Lebar Penuh, Teks Terpampang Jelas & Bebas Terpotong */
+.cq-lobby-sublink.btn-print-card {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  padding: 0 16px;
+  box-shadow: 0 6px 16px rgba(109, 40, 217, 0.32);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.cq-lobby-sublink.btn-print-card .material-symbols-outlined {
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.cq-lobby-sublink.btn-print-card:hover {
+  background: linear-gradient(135deg, #9d74ff 0%, #7c3aed 100%);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(109, 40, 217, 0.45);
+}
+
+.cq-lobby-sublink.btn-print-card:active {
+  transform: scale(0.97);
+}
+
+/* ==============================================================================
+   SEKSYEN 2: PUSAT PEMBELAJARAN ARSELNEL (NOTA & VIDEO PEMBELAJARAN)
+   ============================================================================== */
+.cq-lobby-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.cq-hub-card {
+  display: block;
+  border-radius: 24px;
+  padding: 18px 22px;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
+}
+
+.cq-hub-card:hover {
+  transform: translateY(-4px);
+}
+
+.hub-card-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Kad 1: Nota Interaktif (Kuning Pastel: #FFF4A3, Border: #F4C400) */
+.cq-hub-card.hub-notes {
+  background: linear-gradient(135deg, #fffde0 0%, #fff4a3 60%, #feed82 100%);
+  border: 2px solid #f4c400;
+  box-shadow: 0 8px 24px rgba(244, 196, 0, 0.18);
+}
+
+.cq-hub-card.hub-notes:hover {
+  border-color: #d97706;
+  box-shadow: 0 14px 32px rgba(244, 196, 0, 0.26);
+}
+
+/* Kad 2: Video Pembelajaran (Merah Jambu / Coral Pastel: #FFD9DC, Border: #FF666B) */
+.cq-hub-card.hub-videos {
+  background: linear-gradient(135deg, #fff0f2 0%, #ffd9dc 60%, #ffccd1 100%);
+  border: 2px solid #ff666b;
+  box-shadow: 0 8px 24px rgba(255, 102, 107, 0.18);
+}
+
+.cq-hub-card.hub-videos:hover {
+  border-color: #ef4444;
+  box-shadow: 0 14px 32px rgba(255, 102, 107, 0.26);
+}
+
+.hub-illus-box {
+  width: 78px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hub-3d-illus {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.12));
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  pointer-events: none;
+}
+
+.cq-hub-card:hover .hub-3d-illus {
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.18));
+}
+
+.hub-3d-illus.illus-notes {
+  animation: arselnelFloatNotes 4.6s ease-in-out infinite alternate;
+}
+
+.hub-3d-illus.illus-video {
+  animation: arselnelFloatVideo 4.2s ease-in-out infinite alternate;
+}
+
+@keyframes arselnelFloatNotes {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(-1.5deg); }
+  100% { transform: translateY(-9px) rotate(1deg); }
+}
+
+@keyframes arselnelFloatVideo {
+  0% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-6px) scale(1.04); }
+  100% { transform: translateY(-3px) scale(1); }
+}
+
+.hub-card-text {
+  flex: 1;
+}
+
+.hub-title {
+  margin: 0 0 4px 0;
+  font-size: 19px;
+  font-weight: 950;
+  letter-spacing: -0.3px;
+}
+
+.hub-notes .hub-title {
+  color: #85400f;
+}
+
+.hub-videos .hub-title {
+  color: #a11d22;
+}
+
+.hub-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.hub-notes .hub-desc {
+  color: #85400f;
+}
+
+.hub-videos .hub-desc {
+  color: #991b1b;
+}
+
+/* Arrow Round Buttons */
+.hub-arrow-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.yellow-arrow {
+  background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.35);
+}
+
+.coral-arrow {
+  background: linear-gradient(135deg, #ff666b 0%, #ef4444 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.cq-hub-card:hover .hub-arrow-btn {
+  transform: scale(1.1);
+}
+
+/* ==============================================================================
+   RESPONSIVENESS FOR IPAD, TABLET & MOBILE
+   ============================================================================== */
+@media (max-width: 1024px) {
+  .cq-lobby-shell {
+    padding: 16px 16px 40px 16px;
+    gap: 20px;
+  }
+  .hero-3d-stage {
+    width: 380px;
+    height: 155px;
+    transform: scale(0.92);
+    transform-origin: right center;
+  }
+  .cq-lobby-modes-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .cq-lobby-card {
+    padding: 18px 14px;
+  }
+  .card-illustration-col {
+    width: 82px;
+    height: 82px;
+  }
+}
+
+@media (max-width: 860px) {
+  .cq-lobby-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .cq-nav-left {
+    justify-content: flex-start;
+  }
+  .cq-nav-center {
+    order: -1;
+    align-self: center;
+  }
+  .cq-nav-right {
+    justify-content: space-between;
+  }
+  .cq-lobby-hero {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .cq-lobby-hero-visual {
+    width: 100%;
+    justify-content: center;
+    min-height: 160px;
+  }
+  .hero-3d-stage {
+    width: 360px;
+    height: 150px;
+    transform: scale(0.88);
+    transform-origin: center center;
+  }
+  .cq-lobby-modes-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .cq-lobby-hub-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 580px) {
+  .card-c-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .cq-lobby-btn.start-c,
+  .cq-lobby-sublink.btn-print-card {
+    width: 100%;
+    min-height: 52px;
+    font-size: 14.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cq-lobby-shell {
+    padding: 12px 14px 36px 14px;
+    gap: 18px;
+  }
+  .cq-lobby-title {
+    font-size: 22px;
+  }
+  .cq-lobby-subtitle {
+    font-size: 13px;
+  }
+  .hero-3d-stage {
+    width: 310px;
+    height: 135px;
+    transform: scale(0.75);
+    transform-origin: center center;
+  }
+  .cq-lobby-btn, .cq-lobby-sublink.btn-print-card {
+    min-height: 50px;
+    font-size: 14px;
+  }
+}
+
+/* Kepatuhan Kebolehcapaian: Matikan Animasi jika prefers-reduced-motion Aktif */
+@media (prefers-reduced-motion: reduce) {
+  .entity-animal-cell,
+  .entity-plant-cell,
+  .entity-robot-mascot,
+  .hero-sparkle,
+  .hero-bubble,
+  .card-3d-illus,
+  .hub-3d-illus {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+
+
+
+/* ==============================================================================
+   MOD B: PRE-GAME BRIEFING MODAL & MISSION HUD PILL
+   ============================================================================== */
+.cq-ar-mission-hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1.5px solid rgba(56, 189, 248, 0.6);
+  border-radius: 999px;
+  padding: 5px 14px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.cq-ar-mission-hud-pill .mission-kicker {
+  font-size: 12.5px;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.3px;
+}
+
+.cq-ar-mission-hud-pill .mission-separator {
+  color: rgba(148, 163, 184, 0.5);
+  font-size: 13px;
+}
+
+.cq-ar-mission-hud-pill .mission-status {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #fde047;
+}
+
+/* Modal Backdrop Soft Blur */
+#ar-story-mission-modal {
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  background: rgba(15, 23, 42, 0.48) !important;
+}
+
+/* Main Modal Card: Crisp Bright White with Soft Glow (Optimized Spacing for Full View) */
+.cq-mission-briefing-card {
+  background: #ffffff !important;
+  border: 2px solid #e0f2fe !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(224, 242, 254, 0.9) !important;
+  max-width: 1040px !important;
+  width: min(1040px, 94vw) !important;
+  max-height: 94vh !important;
+  overflow-y: auto !important;
+  padding: 22px 28px !important;
+  text-align: left !important;
+  color: #1e293b !important;
+}
+
+/* Sleek Scrollbar */
+.cq-mission-briefing-card::-webkit-scrollbar {
+  width: 6px;
+}
+.cq-mission-briefing-card::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+.cq-mission-briefing-card::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+.cq-mission-briefing-card::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Close Button on White Card */
+#ar-story-mission-modal .cq-modal-close {
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 18px;
+  right: 18px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  z-index: 10;
+}
+#ar-story-mission-modal .cq-modal-close:hover {
+  color: #0f172a;
+  background: #e2e8f0;
+  transform: rotate(90deg);
+}
+
+/* Hero Header */
+.cq-mission-hero {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.cq-mission-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e0f2fe;
+  border: 1.5px solid #7dd3fc;
+  border-radius: 999px;
+  padding: 3px 14px;
+  color: #0284c7;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.cq-mission-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.3px;
+}
+
+.cq-mission-subtitle {
+  font-size: 13.5px;
+  color: #475569;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Kotak Cerita Misi (Emergency Alert Box) */
+.cq-mission-story-box {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border: 1.5px solid #fcd34d !important;
+  border-left: 5px solid #f59e0b !important;
+  border-radius: 16px !important;
+  padding: 12px 18px !important;
+  margin-bottom: 14px !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.10) !important;
+}
+
+.cq-mission-alert-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+
+.cq-mission-alert-heading .alert-pulse-icon {
+  font-size: 18px;
+  animation: pulse-alert 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-alert {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.cq-mission-alert-body .story-p {
+  color: #451a03;
+  font-size: 12.8px;
+  line-height: 1.5;
+  margin: 0 0 4px 0;
+  font-weight: 500;
+}
+.cq-mission-alert-body .story-p:last-child {
+  margin-bottom: 0;
+}
+.cq-mission-alert-body strong {
+  color: #78350f;
+}
+
+/* Section Title */
+.cq-mission-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 900;
+  color: #0284c7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.cq-mission-section-title .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* 6 Langkah Grid */
+.cq-mission-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* Base Step Card */
+.cq-mission-step-card {
+  border-radius: 15px !important;
+  padding: 10px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+}
+
+.cq-mission-step-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 10px 20px -4px rgba(15, 23, 42, 0.10) !important;
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.step-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.step-icon {
+  font-size: 20px;
+}
+
+.step-card-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.step-desc {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #334155;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Step 1: Pastel Blue */
+.cq-mission-step-card.step-blue {
+  background: #F0F9FF !important;
+  border: 1.5px solid #BAE6FD !important;
+}
+.cq-mission-step-card.step-blue .step-badge {
+  background: #0284C7;
+}
+.cq-mission-step-card.step-blue .step-icon {
+  color: #0284C7;
+}
+.cq-mission-step-card.step-blue .step-title {
+  color: #0369A1;
+}
+
+/* Step 2: Mint Green */
+.cq-mission-step-card.step-mint {
+  background: #F0FDF4 !important;
+  border: 1.5px solid #A7F3D0 !important;
+}
+.cq-mission-step-card.step-mint .step-badge {
+  background: #059669;
+}
+.cq-mission-step-card.step-mint .step-icon {
+  color: #059669;
+}
+.cq-mission-step-card.step-mint .step-title {
+  color: #047857;
+}
+
+/* Step 3: Pastel Yellow */
+.cq-mission-step-card.step-yellow {
+  background: #FEFCE8 !important;
+  border: 1.5px solid #FDE68A !important;
+}
+.cq-mission-step-card.step-yellow .step-badge {
+  background: #D97706;
+}
+.cq-mission-step-card.step-yellow .step-icon {
+  color: #D97706;
+}
+.cq-mission-step-card.step-yellow .step-title {
+  color: #B45309;
+}
+
+/* Step 4: Lavender Purple */
+.cq-mission-step-card.step-lavender {
+  background: #FAF5FF !important;
+  border: 1.5px solid #DDD6FE !important;
+}
+.cq-mission-step-card.step-lavender .step-badge {
+  background: #7C3AED;
+}
+.cq-mission-step-card.step-lavender .step-icon {
+  color: #7C3AED;
+}
+.cq-mission-step-card.step-lavender .step-title {
+  color: #6D28D9;
+}
+
+/* Step 5: Pastel Pink */
+.cq-mission-step-card.step-pink {
+  background: #FFF1F2 !important;
+  border: 1.5px solid #FECDD3 !important;
+}
+.cq-mission-step-card.step-pink .step-badge {
+  background: #E11D48;
+}
+.cq-mission-step-card.step-pink .step-icon {
+  color: #E11D48;
+}
+.cq-mission-step-card.step-pink .step-title {
+  color: #BE123C;
+}
+
+/* Step 6: Pastel Orange */
+.cq-mission-step-card.step-orange {
+  background: #FFF7ED !important;
+  border: 1.5px solid #FED7AA !important;
+}
+.cq-mission-step-card.step-orange .step-badge {
+  background: #EA580C;
+}
+.cq-mission-step-card.step-orange .step-icon {
+  color: #EA580C;
+}
+.cq-mission-step-card.step-orange .step-title {
+  color: #C2410C;
+}
+
+/* Tip Keselamatan Saintis Muda Card */
+.cq-mission-safety-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+  border: 1.5px solid #bae6fd;
+  border-radius: 14px;
+  padding: 9px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.05);
+}
+
+.safety-icon-wrapper {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.safety-text-wrapper strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0369a1;
+  margin-bottom: 1px;
+}
+
+.safety-text-wrapper p {
+  font-size: 12px;
+  color: #334155;
+  margin: 0;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.cq-mission-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  border-top: 1.5px solid #e2e8f0;
+  padding-top: 14px;
+}
+
+.btn-mission-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid #bae6fd;
+  border-radius: 12px;
+  padding: 10px 22px;
+  color: #0284c7;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-mission-back:hover {
+  background: #f0f9ff;
+  border-color: #7dd3fc;
+  color: #0369a1;
+  transform: translateY(-1px);
+}
+
+.btn-mission-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 11px 30px;
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-mission-start:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(2, 132, 199, 0.45);
+  filter: brightness(1.05);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 992px) {
+  .cq-mission-briefing-card {
+    padding: 18px 20px !important;
+  }
+  .cq-mission-steps-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .cq-mission-briefing-card {
+    padding: 16px 14px !important;
+    border-radius: 18px !important;
+  }
+  .cq-mission-steps-grid {
+    grid-template-columns: 1fr;
+  }
+  .cq-mission-actions {
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+  .btn-mission-back,
+  .btn-mission-start {
+    width: 100%;
+    justify-content: center;
+  }
+  .cq-ar-mission-hud-pill {
+    display: none !important;
+  }
+}

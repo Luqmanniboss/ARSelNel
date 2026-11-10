@@ -113,3 +113,4 @@ async function capture(filename = 'ui_before_ipad.png') {
 
 const fname = process.argv[2] || 'ui_before_ipad.png';
 capture(fname);
+

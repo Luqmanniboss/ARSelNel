@@ -1,0 +1,1346 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CellQuest AR Adventure — Misi Jelajah Dunia Sel | ARSelNel</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="../assets/css/cellquest-adventure.css">
+
+  <!-- Core Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="../assets/js/vendor/aruco-posit.js"></script>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div class="cq-loading-screen" id="loading-screen">
+    <div class="cq-spinner"></div>
+    <div class="cq-loading-text">Menyediakan Makmal Eksplorasi Sel ARSelNel…</div>
+  </div>
+
+  <!-- Real Device Camera Video Feed (For Interactive Camera AR Mode) -->
+  <video id="ar-camera-feed" class="cq-camera-feed" playsinline webkit-playsinline autoplay muted style="display:none"></video>
+
+  <!-- 3D Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Center Reticle / Crosshair for First-Person Navigation -->
+  <div class="cq-crosshair" id="crosshair">
+    <div class="cq-crosshair-ring"></div>
+  </div>
+
+  <!-- Touch Look Zone for Mobile & Tablet (Right side of screen) -->
+  <div class="cq-touch-look-zone" id="touch-look-zone"></div>
+
+  <!-- ==============================================================================
+       LOBI MAKMAL SAINS ARSELNEL (PORTAL PENGEMBARAAN & PUSAT PEMBELAJARAN)
+       ============================================================================== -->
+  <section class="cq-lobby-screen" id="cq-science-lobby" aria-label="Lobi Makmal Sains ARSelNel">
+    <!-- Hiasan sains ringan terapung (ringan tanpa lag GPU) -->
+    <div class="cq-lobby-decor-orb orb-1" aria-hidden="true"></div>
+    <div class="cq-lobby-decor-orb orb-2" aria-hidden="true"></div>
+    <div class="cq-lobby-decor-orb orb-3" aria-hidden="true"></div>
+
+    <div class="cq-lobby-shell">
+      
+      <!-- Topbar / Header (Kiri: Kembali | Kanan: Profil Murid) -->
+      <header class="cq-lobby-header">
+        <div class="cq-lobby-nav">
+          <!-- Kiri: Butang Kembali ke CellQuest -->
+          <div class="cq-nav-left">
+            <a href="code.html" class="cq-lobby-back-btn" id="lobby-back-btn" title="Kembali ke Halaman Utama CellQuest">
+              <span class="material-symbols-outlined">arrow_back</span>
+              <span>Kembali ke CellQuest</span>
+            </a>
+          </div>
+
+          <!-- Kanan: Status Profil Murid -->
+          <div class="cq-nav-right">
+            <div class="cq-lobby-user-pill" id="lobby-user-pill">
+              <span class="material-symbols-outlined user-avatar-icon">account_circle</span>
+              <strong id="lobby-user-name">Saintis Muda</strong>
+              <div class="lobby-stat-chip" title="Lencana Terkumpul">
+                <span class="chip-icon">🎖️</span>
+                <strong id="lobby-stat-badges">0/8</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Section (Kiri: Tajuk & Subtajuk | Kanan: Ilustrasi 3D Sel & Robot Maskot) -->
+        <div class="cq-lobby-hero">
+          <div class="cq-lobby-hero-content">
+            <div class="cq-lobby-hero-badge">
+              <span class="material-symbols-outlined hero-badge-icon">science</span>
+              <span>MAKMAL EKSPLORASI BIOLOGI TINGKATAN 1</span>
+            </div>
+            <h1 class="cq-lobby-title">
+              <span class="title-line-1">Terokai Dunia AR:</span>
+              <span class="title-line-2">
+                <span class="highlight-text">Pengembaraan Sel</span>
+                <svg class="title-brush-underline" viewBox="0 0 320 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 14C80 4 240 3 317 11" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </h1>
+            <p class="cq-lobby-subtitle">
+              Jelajahi dunia sel haiwan dan sel tumbuhan melalui pengalaman 3D dan Augmented Reality (AR) yang menyeronokkan!
+            </p>
+          </div>
+
+          <!-- Kanan: Ilustrasi 3D Komposisi Khas Sel Haiwan, Sel Tumbuhan & Robot Maskot ARSELNEL -->
+          <div class="cq-lobby-hero-visual" aria-hidden="true">
+            <div class="hero-3d-stage">
+              <!-- Zarah Terapung Hiasan Sains -->
+              <span class="hero-sparkle sp-1">✨</span>
+              <span class="hero-sparkle sp-2">⭐</span>
+              <span class="hero-sparkle sp-3">🧬</span>
+              <span class="hero-sparkle sp-4">✨</span>
+              <span class="hero-bubble bb-1"></span>
+              <span class="hero-bubble bb-2"></span>
+
+              <!-- 1. Sel Haiwan 3D (Terapung Kiri) -->
+              <div class="hero-entity-wrap entity-animal-cell" title="Model 3D Sel Haiwan">
+                <img src="../assets/images/lobby/hero-animal-cell.svg" alt="Model 3D Sel Haiwan" class="hero-entity-svg" />
+              </div>
+
+              <!-- 2. Sel Tumbuhan 3D (Terapung Tengah) -->
+              <div class="hero-entity-wrap entity-plant-cell" title="Model 3D Sel Tumbuhan">
+                <img src="../assets/images/lobby/hero-plant-cell.svg" alt="Model 3D Sel Tumbuhan" class="hero-entity-svg" />
+              </div>
+
+              <!-- 3. Robot Maskot ARSELNEL (Terapung Kanan Thumbs-up) -->
+              <div class="hero-entity-wrap entity-robot-mascot" title="Robot Maskot ARSELNEL">
+                <img src="../assets/images/lobby/hero-robot.svg" alt="Robot Maskot ARSELNEL" class="hero-entity-svg" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ==============================================================================
+           SEKSYEN 1: 3 MOD PENGEMBARAAN (REKA BENTUK KAD WARNA-WARNI BERDASARKAN GAMBAR RUJUKAN)
+           ============================================================================== -->
+      <section class="cq-lobby-section" aria-labelledby="section-modes-title">
+        <div class="cq-section-heading">
+          <div class="cq-section-title-wrap">
+            <div class="section-icon-box">
+              <span class="material-symbols-outlined">sports_esports</span>
+            </div>
+            <h2 id="section-modes-title">Pilih Mod Pengembaraan</h2>
+            <span class="heading-divider">|</span>
+            <span class="cq-section-hint">Pilihan mod pengembaraan sains mengikut kesesuaian peranti anda</span>
+          </div>
+        </div>
+
+        <div class="cq-lobby-modes-grid">
+          
+          <!-- MOD A: JELAJAH MAKMAL 3D (TEMA BIRU) -->
+          <div class="cq-lobby-card mod-a" id="lobby-card-mod-a">
+            <div class="card-badge a-badge">MOD A • TANPA KAMERA</div>
+            
+            <div class="card-hero-row">
+              <div class="card-text-col">
+                <h3 class="card-title">Jelajah Makmal 3D</h3>
+                <p class="card-desc">
+                  Terokai makmal maya, temui 8 stesen organel dan selesaikan cabaran sains.
+                </p>
+              </div>
+              <div class="card-illustration-col">
+                <img src="../assets/images/lobby/mode-a-3d-lab.svg" alt="Monitor 3D & Kawalan Permainan" class="card-3d-illus illus-mod-a" />
+              </div>
+            </div>
+
+            <!-- Strip 3 Ciri Visual Padat -->
+            <div class="card-features-strip">
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-no-cam">
+                  <span class="material-symbols-outlined">no_photography</span>
+                </div>
+                <span class="strip-label">Tanpa<br/>kamera</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-keyboard">
+                  <span class="material-symbols-outlined">keyboard</span>
+                </div>
+                <span class="strip-label">WASD atau<br/>joystick</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-flag">
+                  <span class="material-symbols-outlined">flag</span>
+                </div>
+                <span class="strip-label">8 stesen<br/>dan kuiz</span>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <button type="button" class="cq-lobby-btn start-a" id="lobby-btn-mod-a">
+                <span class="material-symbols-outlined">play_arrow</span>
+                <span>Mula Jelajah 3D</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- MOD B: AR ORIENTASI DUNIA (TEMA TURQUOISE & MINT) -->
+          <div class="cq-lobby-card mod-b" id="lobby-card-mod-b">
+            <div class="card-badge b-badge">MOD B • DISYORKAN IPAD &amp; TELEFON</div>
+            
+            <div class="card-hero-row">
+              <div class="card-text-col">
+                <h3 class="card-title">AR Orientasi Dunia</h3>
+                <p class="card-desc">
+                  Gunakan kamera, putar peranti dan cari stesen organel dengan bantuan Smart Radar.
+                </p>
+              </div>
+              <div class="card-illustration-col">
+                <img src="../assets/images/lobby/mode-b-ar-orientation.svg" alt="Telefon Kamera & Kompas 3D" class="card-3d-illus illus-mod-b" />
+              </div>
+            </div>
+
+            <!-- Strip 3 Ciri Visual Padat -->
+            <div class="card-features-strip">
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-cam-sensor">
+                  <span class="material-symbols-outlined">photo_camera</span>
+                </div>
+                <span class="strip-label">Kamera dan<br/>sensor orientasi</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-radar">
+                  <span class="material-symbols-outlined">explore</span>
+                </div>
+                <span class="strip-label">Panduan arah<br/>&amp; Smart Radar</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-pin">
+                  <span class="material-symbols-outlined">location_on</span>
+                </div>
+                <span class="strip-label">8 stesen<br/>AR</span>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <button type="button" class="cq-lobby-btn start-b" id="lobby-btn-mod-b">
+                <span class="material-symbols-outlined">explore</span>
+                <span>Mula AR Orientasi</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- MOD C: AR KAD PENANDA (TEMA UNGU & OREN) -->
+          <div class="cq-lobby-card mod-c" id="lobby-card-mod-c">
+            <div class="card-badge c-badge">MOD C • 8 KAD PENANDA</div>
+            
+            <div class="card-hero-row">
+              <div class="card-text-col">
+                <h3 class="card-title">AR Kad Penanda</h3>
+                <p class="card-desc">
+                  Imbas kad penanda untuk memunculkan model organel 3D dan menjawab cabaran.
+                </p>
+              </div>
+              <div class="card-illustration-col">
+                <img src="../assets/images/lobby/mode-c-marker-ar.svg" alt="Kad Penanda & Organel 3D" class="card-3d-illus illus-mod-c" />
+              </div>
+            </div>
+
+            <!-- Strip 3 Ciri Visual Padat -->
+            <div class="card-features-strip">
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-marker-cam">
+                  <span class="material-symbols-outlined">qr_code_scanner</span>
+                </div>
+                <span class="strip-label">Kamera dan<br/>kad penanda</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-model-3d">
+                  <span class="material-symbols-outlined">view_in_ar</span>
+                </div>
+                <span class="strip-label">Model<br/>organel 3D</span>
+              </div>
+              <div class="strip-item">
+                <div class="strip-icon-wrap icon-quiz-check">
+                  <span class="material-symbols-outlined">check_box</span>
+                </div>
+                <span class="strip-label">Kuiz<br/>interaktif</span>
+              </div>
+            </div>
+
+            <!-- Dua Butang Tindakan Sejajar (Mula AR & Cetak 8 Kad) -->
+            <div class="card-footer card-c-actions">
+              <button type="button" class="cq-lobby-btn start-c" id="lobby-btn-mod-c">
+                <span class="material-symbols-outlined">play_arrow</span>
+                <span>Mula AR Kad Penanda</span>
+              </button>
+              <a href="markers.html" target="_blank" rel="noopener" class="cq-lobby-sublink btn-print-card" id="lobby-print-markers-btn" title="Cetak 8 Kad Penanda AR PDF/SVG">
+                <span class="material-symbols-outlined">print</span>
+                <span>Cetak 8 Kad AR</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================================================
+           SEKSYEN 2: PUSAT PEMBELAJARAN ARSELNEL (NOTA & VIDEO PEMBELAJARAN)
+           ============================================================================== -->
+      <section class="cq-lobby-section learning-hub-section" id="cq-lobby-hub-section" aria-labelledby="section-hub-title">
+        <div class="cq-section-heading">
+          <div class="cq-section-title-wrap">
+            <div class="section-icon-box hub-icon-box">
+              <span class="material-symbols-outlined">auto_stories</span>
+            </div>
+            <h2 id="section-hub-title">Pusat Pembelajaran ARSELNEL</h2>
+            <span class="heading-divider">|</span>
+            <span class="cq-section-hint">Ulang kaji struktur sel melalui nota interaktif dan video pembelajaran sebelum memulakan pengembaraan.</span>
+          </div>
+        </div>
+
+        <div class="cq-lobby-hub-grid">
+          
+          <!-- KAD 1: NOTA INTERAKTIF (KUNING PASTEL DENGAN BUKU 3D & CHEVRON) -->
+          <a href="../nota_pembelajaran/code.html?from=lobby" class="cq-hub-card hub-notes" id="hub-card-notes" title="Buka Halaman Nota Interaktif">
+            <div class="hub-card-horizontal">
+              <div class="hub-illus-box">
+                <img src="../assets/images/lobby/learning-notes.svg" alt="Buku Nota Interaktif 3D" class="hub-3d-illus illus-notes" />
+              </div>
+              <div class="hub-card-text">
+                <h3 class="card-title hub-title">Nota Interaktif</h3>
+                <p class="hub-desc">
+                  Terokai nota, slaid dan bahan pembelajaran tentang struktur sel haiwan, sel tumbuhan serta fungsi organel.
+                </p>
+              </div>
+              <div class="hub-arrow-btn yellow-arrow" id="lobby-btn-notes" href="../nota_pembelajaran/code.html?from=lobby" aria-label="Buka Nota Interaktif">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- KAD 2: VIDEO PEMBELAJARAN (CORAL/PINK PASTEL DENGAN VIDEO 3D & CHEVRON) -->
+          <a href="../perpustakaan_video/code.html?from=lobby" class="cq-hub-card hub-videos" id="hub-card-videos" title="Buka Halaman Video Pembelajaran">
+            <div class="hub-card-horizontal">
+              <div class="hub-illus-box">
+                <img src="../assets/images/lobby/learning-video.svg" alt="Video Pembelajaran 3D" class="hub-3d-illus illus-video" />
+              </div>
+              <div class="hub-card-text">
+                <h3 class="card-title hub-title">Video Pembelajaran</h3>
+                <p class="hub-desc">
+                  Tonton video pembelajaran untuk memahami struktur, ciri dan fungsi organel sel dengan lebih mudah.
+                </p>
+              </div>
+              <div class="hub-arrow-btn coral-arrow" id="lobby-btn-videos" href="../perpustakaan_video/code.html?from=lobby" aria-label="Tonton Video Pembelajaran">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </div>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+    </div>
+  </section>
+
+  <!-- Top HUD (Heads-Up Display) -->
+  <header class="cq-hud" id="cq-walkthrough-hud">
+    <div class="cq-hud-left">
+      <button type="button" class="cq-back-btn" id="hud-3d-back-btn" title="Kembali ke Lobi Makmal Sains">
+        <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+        <span>Lobi Makmal</span>
+      </button>
+      <div class="cq-title-badge">
+        <h1>Misi Jelajah Dunia Sel</h1>
+        <span>Makmal Eksplorasi 3D • Sains Tingkatan 1</span>
+      </div>
+    </div>
+
+    <div class="cq-hud-center">
+      <div class="cq-stat-pill mode-pill" id="hud-mode-pill" title="Mod Permainan Semasa">
+        <span class="icon" id="hud-mode-icon">🖥️</span>
+        <strong id="hud-mode-text">Mod Jelajah 3D</strong>
+      </div>
+      <div class="cq-stat-pill badge-pill" title="Lencana Stesen Dikumpul">
+        <span class="icon">🎖️</span>
+        <span>Lencana:</span>
+        <strong id="hud-badge-count">0/8</strong>
+      </div>
+      <div class="cq-stat-pill score-pill" title="Markah Cabaran Sains">
+        <span class="icon">⭐</span>
+        <span>Markah:</span>
+        <strong id="hud-score">0</strong>
+      </div>
+      <div class="cq-stat-pill time-pill" title="Masa Eksplorasi">
+        <span class="icon">⏱️</span>
+        <strong id="hud-timer">00:00</strong>
+      </div>
+    </div>
+
+    <div class="cq-hud-right">
+      <button type="button" class="cq-icon-btn" id="mode-select-btn" title="Pilih Mod (3D / AR Kamera / AR Spasial)">
+        <span class="material-symbols-outlined">view_in_ar</span>
+      </button>
+      <button type="button" class="cq-icon-btn" id="gyro-reset-btn" title="Set Semula Orientasi Giroskop" style="display:none">
+        <span class="material-symbols-outlined">screen_rotation</span>
+      </button>
+      <button type="button" class="cq-icon-btn" id="sound-toggle-btn" title="Bunyi (Hidup/Mati)">
+        <span class="material-symbols-outlined" id="sound-icon">volume_up</span>
+      </button>
+      <button type="button" class="cq-icon-btn" id="pause-btn" title="Jeda / Sambung">
+        <span class="material-symbols-outlined">pause</span>
+      </button>
+      <button type="button" class="cq-icon-btn" id="help-btn" title="Cara Bermain">
+        <span class="material-symbols-outlined">help</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mini Badge Strip (Stations 1 to 8) -->
+  <div class="cq-badge-strip" id="hud-badge-strip">
+    <!-- Populated dynamically via JS -->
+  </div>
+
+  <!-- Proximity Interactive Prompt (Shows when near a station) -->
+  <div class="cq-prompt-container" id="prompt-container">
+    <div class="cq-prompt-card">
+      <div class="cq-prompt-icon" id="prompt-icon">1</div>
+      <div class="cq-prompt-text">
+        <span class="cq-prompt-label">Stesen Pembelajaran Berdekatan</span>
+        <strong class="cq-prompt-title" id="prompt-title">Nukleus</strong>
+      </div>
+      <button type="button" class="cq-prompt-btn" id="prompt-action-btn">
+        <span>Teroka</span>
+        <span class="cq-prompt-key">E</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Floating Quick Interact Button (Bottom Right) -->
+  <button type="button" class="cq-mobile-interact-btn" id="mobile-interact-btn" aria-label="Teroka Stesen">
+    <span class="material-symbols-outlined">touch_app</span>
+    <span>TEROKA</span>
+  </button>
+
+  <!-- Mobile Virtual Controls (Joystick & Optional D-pad) -->
+  <div class="cq-mobile-controls" id="mobile-controls">
+    <!-- Analog Virtual Joystick -->
+    <div class="cq-joystick" id="virtual-joystick">
+      <div class="cq-joystick-base" id="joystick-base">
+        <div class="cq-joystick-thumb" id="joystick-thumb"></div>
+        <div class="cq-joystick-arrows">
+          <span class="arrow-up">▲</span>
+          <span class="arrow-down">▼</span>
+          <span class="arrow-left">◀</span>
+          <span class="arrow-right">▶</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL: ARAHAN SEBELUM PERMAINAN MOD A — JELAJAH MAKMAL 3D
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="lab3d-story-mission-modal" role="dialog" aria-modal="true" aria-labelledby="lab3d-mission-title">
+    <div class="cq-modal cq-mission-briefing-card">
+      <button type="button" class="cq-modal-close" id="close-lab3d-mission-btn" aria-label="Tutup">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <!-- Hero Header -->
+      <div class="cq-mission-hero">
+        <div class="cq-mission-badge-chip">
+          <span class="material-symbols-outlined" style="font-size: 16px;">view_in_ar</span>
+          <span>MOD A • JELAJAH MAKMAL 3D</span>
+        </div>
+        <h2 id="lab3d-mission-title" class="cq-mission-title">MISI RAHSIA: SELAMATKAN MAKMAL ARSELNEL!</h2>
+        <p class="cq-mission-subtitle">
+          🔬 Jom jadi Saintis Muda! Terokai makmal 3D, selesaikan 8 cabaran dan buka pintu rahsia! 🧪
+        </p>
+      </div>
+
+      <!-- Kotak Cerita Misi Kecemasan (Pastel Yellow / Orange Alert Card) -->
+      <div class="cq-mission-story-box">
+        <div class="cq-mission-alert-heading">
+          <span class="alert-pulse-icon">⚡</span>
+          <strong>AMARAN! MAKMAL ARSELNEL MEMERLUKAN BANTUAN!</strong>
+        </div>
+        <div class="cq-mission-alert-body">
+          <p class="story-p">Oh tidak! Sistem tenaga Makmal ARSELNEL telah mengalami kerosakan misteri!</p>
+          <p class="story-p">Lapan stesen organel di dalam makmal telah kehilangan tenaga dan pintu menuju ke <strong>Bilik Teras Sel</strong> telah terkunci.</p>
+          <p class="story-p">Sebagai Saintis Muda, anda telah dipilih untuk menyelamatkan makmal ini! Terokai makmal 3D, cari 8 stesen organel, pelajari fungsi setiap organel dan jawab cabaran sains.</p>
+          <p class="story-p">Setiap cabaran yang berjaya diselesaikan akan memulihkan satu bahagian tenaga makmal.</p>
+          <p class="story-p">Apabila kesemua 8 stesen berjaya dipulihkan, <strong>pintu rahsia akan terbuka!</strong></p>
+          <p class="story-p">Masuk ke <strong>Bilik Teras Sel</strong> dan aktifkan <strong>Teras Tenaga Utama</strong> untuk menyelamatkan Makmal ARSELNEL!</p>
+        </div>
+      </div>
+
+      <!-- Section Title: CARA BERMAIN -->
+      <div class="cq-mission-section-title">
+        <span class="material-symbols-outlined">sports_esports</span>
+        <span>CARA BERMAIN (6 LANGKAH MUDAH)</span>
+      </div>
+
+      <!-- 6 Colourful Pastel Step Cards Grid -->
+      <div class="cq-mission-steps-grid">
+        <!-- Step 1: Gerakkan Watak (Pastel Blue) -->
+        <div class="cq-mission-step-card step-blue">
+          <div class="step-card-header">
+            <span class="step-badge">1</span>
+            <span class="material-symbols-outlined step-icon">sports_esports</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Gerakkan Watak</strong>
+            <p class="step-desc">Gunakan joystick untuk berjalan di dalam makmal 3D. Pada komputer, gunakan WASD.</p>
+          </div>
+        </div>
+
+        <!-- Step 2: Lihat Sekeliling (Mint Green) -->
+        <div class="cq-mission-step-card step-mint">
+          <div class="step-card-header">
+            <span class="step-badge">2</span>
+            <span class="material-symbols-outlined step-icon">screen_rotation</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Lihat Sekeliling</strong>
+            <p class="step-desc">Pusingkan telefon atau iPad untuk melihat kiri, kanan, atas dan bawah. Anda juga boleh menggunakan kawalan sentuhan.</p>
+          </div>
+        </div>
+
+        <!-- Step 3: Cari 8 Stesen (Pastel Yellow) -->
+        <div class="cq-mission-step-card step-yellow">
+          <div class="step-card-header">
+            <span class="step-badge">3</span>
+            <span class="material-symbols-outlined step-icon">biotech</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Cari 8 Stesen</strong>
+            <p class="step-desc">Terokai makmal dan cari 8 stesen organel yang tersembunyi.</p>
+          </div>
+        </div>
+
+        <!-- Step 4: Teroka Organel (Lavender Purple) -->
+        <div class="cq-mission-step-card step-lavender">
+          <div class="step-card-header">
+            <span class="step-badge">4</span>
+            <span class="material-symbols-outlined step-icon">view_in_ar</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Teroka Organel</strong>
+            <p class="step-desc">Dekati stesen dan tekan Teroka untuk mempelajari struktur serta fungsi organel.</p>
+          </div>
+        </div>
+
+        <!-- Step 5: Selesaikan Kuiz (Pastel Pink) -->
+        <div class="cq-mission-step-card step-pink">
+          <div class="step-card-header">
+            <span class="step-badge">5</span>
+            <span class="material-symbols-outlined step-icon">quiz</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Selesaikan Kuiz</strong>
+            <p class="step-desc">Jawab soalan sains untuk memulihkan tenaga setiap stesen.</p>
+          </div>
+        </div>
+
+        <!-- Step 6: Buka Pintu Rahsia (Pastel Orange) -->
+        <div class="cq-mission-step-card step-orange">
+          <div class="step-card-header">
+            <span class="step-badge">6</span>
+            <span class="material-symbols-outlined step-icon">meeting_room</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Buka Pintu Rahsia</strong>
+            <p class="step-desc">Selepas 8 cabaran selesai, cari pintu rahsia dan masuk ke Bilik Teras Sel!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tip Keselamatan Saintis Muda -->
+      <div class="cq-mission-safety-card">
+        <div class="safety-icon-wrapper">💡</div>
+        <div class="safety-text-wrapper">
+          <strong>TIP KESELAMATAN SAINTIS MUDA</strong>
+          <p>Main di kawasan yang selamat dan selesa. Anda boleh bermain secara duduk. Gunakan joystick untuk bergerak dan pusingkan peranti atau sentuh skrin untuk melihat sekeliling.</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="cq-mission-actions">
+        <button type="button" class="btn-mission-back" id="lab3d-mission-back-btn">
+          <span class="material-symbols-outlined">arrow_back</span>
+          <span>Kembali ke Lobi</span>
+        </button>
+        <button type="button" class="btn-mission-start" id="lab3d-mission-start-btn">
+          <span class="material-symbols-outlined">rocket_launch</span>
+          <span>Mulakan Pengembaraan 3D 🚀</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL: KALIBRASI KAMERA MOD A (VR-LIKE SENSOR & TOUCH CONTROLS)
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="lab3d-calibration-modal" role="dialog" aria-modal="true" aria-labelledby="lab3d-cal-title">
+    <div class="cq-modal" style="max-width: 480px; text-align: center; padding: 24px 22px; background: #ffffff; border-radius: 22px; border: 2px solid #bae6fd; box-shadow: 0 20px 60px rgba(15,23,42,0.18); color: #1e293b;">
+      <div style="font-size: 40px; margin-bottom: 8px;">🧭</div>
+      <div class="cq-mission-badge-chip" style="margin-bottom: 8px;">KAWALAN PANDANGAN VR</div>
+      <h2 id="lab3d-cal-title" style="font-size: 21px; font-weight: 900; color: #0f172a; margin: 0 0 8px 0;">SEDIA UNTUK MENEROKA?</h2>
+      <p style="font-size: 13.5px; color: #475569; line-height: 1.5; margin: 0 0 18px 0;">
+        Pegang telefon atau iPad pada kedudukan yang selesa, kemudian tekan <strong>Kalibrasi Pandangan</strong> untuk menetapkan arah pandangan anda. Anda juga boleh bermain menggunakan kawalan sentuhan.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" class="cq-btn-primary" id="lab3d-cal-sensor-btn" style="justify-content: center; width: 100%; font-size: 14.5px; padding: 12px 18px; background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);">
+          <span class="material-symbols-outlined" style="font-size: 19px;">screen_rotation</span>
+          <span>Kalibrasi Pandangan &amp; Aktifkan Sensor</span>
+        </button>
+        <button type="button" class="cq-btn-secondary" id="lab3d-cal-touch-btn" style="justify-content: center; width: 100%; font-size: 13.5px; padding: 10px 18px; border-color: #bae6fd; color: #0284c7; background: #f0f9ff;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">touch_app</span>
+          <span>Gunakan Kawalan Sentuhan (Tanpa Sensor)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL: KEJAYAAN TERAS TENAGA UTAMA (CELL CORE VICTORY MODAL)
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="lab3d-crystal-victory-modal" role="dialog" aria-modal="true" aria-labelledby="lab3d-vic-title">
+    <div class="cq-modal" style="max-width: 520px; text-align: center; padding: 28px 24px; background: #ffffff; border-radius: 24px; border: 2px solid #a7f3d0; box-shadow: 0 24px 70px rgba(15,23,42,0.18); color: #1e293b;">
+      <div style="font-size: 48px; margin-bottom: 6px;">💎</div>
+      <div class="cq-mission-badge-chip" style="background: #d1fae5; border-color: #6ee7b7; color: #047857; margin-bottom: 8px;">
+        ⭐ MISI MAKMAL SELESAI 100% ⭐
+      </div>
+      <h2 id="lab3d-vic-title" style="font-size: 24px; font-weight: 900; color: #065f46; margin: 0 0 6px 0;">TAHNIAH, SAINTIS MUDA!</h2>
+      <p style="font-size: 14.5px; color: #047857; font-weight: 800; margin: 0 0 6px 0;">
+        Anda berjaya memulihkan kesemua 8 stesen organel dan mengaktifkan Teras Tenaga Utama!
+      </p>
+      <p style="font-size: 13.5px; color: #475569; line-height: 1.5; margin: 0 0 18px 0;">
+        Makmal ARSELNEL kini kembali berfungsi sepenuhnya! Semua sistem tenaga dan kestabilan sel telah pulih.
+      </p>
+
+      <div class="cq-cert-stats" style="margin-bottom: 20px;">
+        <div class="cq-cert-stat-box" style="background: #f0fdf4; border: 1.5px solid #a7f3d0;">
+          <span style="color: #047857;">JUMLAH MARKAH</span>
+          <strong id="lab3d-final-score" style="color: #065f46;">800 Mata</strong>
+        </div>
+        <div class="cq-cert-stat-box" style="background: #f0fdf4; border: 1.5px solid #a7f3d0;">
+          <span style="color: #047857;">STESEN SELESAI</span>
+          <strong id="lab3d-final-stations" style="color: #065f46;">8 / 8 Stesen</strong>
+        </div>
+        <div class="cq-cert-stat-box" style="background: #f0fdf4; border: 1.5px solid #a7f3d0;">
+          <span style="color: #047857;">TEMPOH MASA</span>
+          <strong id="lab3d-final-time" style="color: #065f46;">00:00</strong>
+        </div>
+      </div>
+
+      <div class="cq-modal-actions" style="justify-content: center; gap: 12px; border-top: 1.5px solid #e2e8f0; padding-top: 16px;">
+        <button type="button" class="cq-btn-secondary" id="lab3d-explore-again-btn" style="flex: 1; padding: 11px 18px; font-size: 13.5px; border-color: #bae6fd; color: #0284c7; background: #f0f9ff; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">explore</span>
+          <span>Teroka Makmal Semula</span>
+        </button>
+        <button type="button" class="cq-btn-primary" id="lab3d-return-lobby-btn" style="flex: 1; padding: 11px 18px; font-size: 13.5px; background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%); justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+          <span>Kembali ke Lobi</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL: ARAHAN SEBELUM PERMAINAN AR ORIENTASI DUNIA (COLOURFUL SCIENCE ADVENTURE)
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="ar-story-mission-modal" role="dialog" aria-modal="true" aria-labelledby="ar-mission-title">
+    <div class="cq-modal cq-mission-briefing-card">
+      <button type="button" class="cq-modal-close" id="close-ar-mission-btn" aria-label="Tutup">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <!-- Hero Header -->
+      <div class="cq-mission-hero">
+        <div class="cq-mission-badge-chip">
+          <span class="material-symbols-outlined" style="font-size: 16px;">explore</span>
+          <span>MOD B • AR ORIENTASI DUNIA</span>
+        </div>
+        <h2 id="ar-mission-title" class="cq-mission-title">MISI MENYELAMATKAN DUNIA SEL</h2>
+        <p class="cq-mission-subtitle">
+          🔬 Jom jadi Saintis Muda! Terokai dunia AR, cari 8 organel dan selamatkan Dunia Sel! 🧬
+        </p>
+      </div>
+
+      <!-- Kotak Cerita Misi Kecemasan (Pastel Yellow / Orange Emergency Alert Card) -->
+      <div class="cq-mission-story-box">
+        <div class="cq-mission-alert-heading">
+          <span class="alert-pulse-icon">⚡</span>
+          <strong>AMARAN SAINS! MISI KECEMASAN: DUNIA SEL PERLUKAN BANTUAN!</strong>
+        </div>
+        <div class="cq-mission-alert-body">
+          <p class="story-p">Oh tidak! Dunia Sel ARSELNEL sedang mengalami gangguan misteri!</p>
+          <p class="story-p">Lapan stesen organel telah kehilangan tenaga. Sebagai Saintis Muda, anda perlu mencari setiap stesen menggunakan <strong>kamera AR</strong> dan menyelesaikan cabaran sains.</p>
+          <p class="story-p">Berjaya pulihkan semua <strong>8 stesen</strong>? Sebuah <strong>Peti Harta Karun ARSELNEL</strong> rahsia akan muncul untuk anda cari!</p>
+        </div>
+      </div>
+
+      <!-- Section Title: CARA BERMAIN -->
+      <div class="cq-mission-section-title">
+        <span class="material-symbols-outlined">sports_esports</span>
+        <span>CARA BERMAIN (6 LANGKAH MUDAH)</span>
+      </div>
+
+      <!-- 6 Colourful Pastel Step Cards Grid -->
+      <div class="cq-mission-steps-grid">
+        <!-- Step 1: Aktifkan Kamera (Pastel Blue) -->
+        <div class="cq-mission-step-card step-blue">
+          <div class="step-card-header">
+            <span class="step-badge">1</span>
+            <span class="material-symbols-outlined step-icon">photo_camera</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Aktifkan Kamera</strong>
+            <p class="step-desc">Benarkan kamera dan sensor supaya anda boleh melihat Dunia AR!</p>
+          </div>
+        </div>
+
+        <!-- Step 2: Kalibrasi Dunia AR (Mint Green) -->
+        <div class="cq-mission-step-card step-mint">
+          <div class="step-card-header">
+            <span class="step-badge">2</span>
+            <span class="material-symbols-outlined step-icon">explore</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Kalibrasi Dunia AR</strong>
+            <p class="step-desc">Hadapkan telefon ke depan dan tekan Kalibrasi untuk menetapkan arah.</p>
+          </div>
+        </div>
+
+        <!-- Step 3: Cari Stesen Organel (Pastel Yellow) -->
+        <div class="cq-mission-step-card step-yellow">
+          <div class="step-card-header">
+            <span class="step-badge">3</span>
+            <span class="material-symbols-outlined step-icon">radar</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Cari Stesen Organel</strong>
+            <p class="step-desc">Pusing telefon ke kiri, kanan, atas dan bawah untuk mencari 8 stesen!</p>
+          </div>
+        </div>
+
+        <!-- Step 4: Teroka Organel (Lavender Purple) -->
+        <div class="cq-mission-step-card step-lavender">
+          <div class="step-card-header">
+            <span class="step-badge">4</span>
+            <span class="material-symbols-outlined step-icon">biotech</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Teroka Organel</strong>
+            <p class="step-desc">Tekan Teroka untuk melihat model organel 3D dan mempelajari fungsinya.</p>
+          </div>
+        </div>
+
+        <!-- Step 5: Selesaikan Cabaran (Pastel Pink) -->
+        <div class="cq-mission-step-card step-pink">
+          <div class="step-card-header">
+            <span class="step-badge">5</span>
+            <span class="material-symbols-outlined step-icon">quiz</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Selesaikan Cabaran</strong>
+            <p class="step-desc">Jawab soalan sains untuk memulihkan tenaga setiap organel (0/8 stesen)!</p>
+          </div>
+        </div>
+
+        <!-- Step 6: Cari Peti Harta Karun (Pastel Orange) -->
+        <div class="cq-mission-step-card step-orange">
+          <div class="step-card-header">
+            <span class="step-badge">6</span>
+            <span class="material-symbols-outlined step-icon">inventory_2</span>
+          </div>
+          <div class="step-card-content">
+            <strong class="step-title">Cari Peti Harta Karun</strong>
+            <p class="step-desc">Selepas 8 stesen selesai, gunakan radar dan cari peti rahsia di aras bawah!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tip Keselamatan Saintis Muda -->
+      <div class="cq-mission-safety-card">
+        <div class="safety-icon-wrapper">💡</div>
+        <div class="safety-text-wrapper">
+          <strong>TIP KESELAMATAN SAINTIS MUDA</strong>
+          <p>Main di kawasan yang selamat dan terang. Pegang telefon dengan stabil, perhatikan persekitaran dan tidak perlu berjalan untuk mencari stesen AR.</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="cq-mission-actions">
+        <button type="button" class="btn-mission-back" id="ar-mission-back-btn">
+          <span class="material-symbols-outlined">arrow_back</span>
+          <span>Kembali</span>
+        </button>
+        <button type="button" class="btn-mission-start" id="ar-mission-start-btn">
+          <span class="material-symbols-outlined">rocket_launch</span>
+          <span>Mulakan Misi AR 🚀</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 1: STESEN PEMBELAJARAN & CABARAN KUIZ
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="station-modal" role="dialog" aria-modal="true">
+    <div class="cq-modal">
+      <button type="button" class="cq-modal-close" id="close-station-btn" aria-label="Tutup">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <div class="cq-station-badge-chip" id="stn-number-chip">STESEN 1 • NUKLEUS</div>
+      
+      <div class="cq-station-header" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <h2 id="stn-title">Nukleus</h2>
+        <button type="button" id="stn-speech-btn" class="cq-btn-secondary" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; font-size:12px; border-radius:999px; cursor:pointer;">
+          <span class="material-symbols-outlined" style="font-size:16px">volume_up</span>
+          <span>Dengar Penerangan</span>
+        </button>
+      </div>
+
+      <!-- 3D Interactive Organelle Preview Box inside Modal -->
+      <div class="cq-station-preview-box">
+        <div class="cq-preview-canvas-host" id="stn-preview-host">
+          <canvas id="stn-preview-canvas"></canvas>
+        </div>
+        <div class="cq-preview-caption">
+          <span class="material-symbols-outlined" style="font-size:16px">3d_rotation</span>
+          <span>Seret untuk memutar & mengkaji struktur 3D organel</span>
+        </div>
+      </div>
+
+      <div class="cq-station-description" id="stn-description">
+        Pusat kawalan sel yang mengandungi bahan genetik (DNA).
+      </div>
+
+      <div class="cq-quiz-box">
+        <div class="cq-quiz-kicker">
+          <span class="material-symbols-outlined" style="font-size:18px">quiz</span>
+          <span>Cabaran Sains Saintis Muda</span>
+        </div>
+        <h3 class="cq-quiz-question" id="quiz-question">Apakah fungsi utama struktur ini?</h3>
+        
+        <div class="cq-quiz-options" id="quiz-options">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div class="cq-feedback-box" id="quiz-feedback" style="display:none">
+          <!-- Feedback rendered dynamically -->
+        </div>
+      </div>
+
+      <div class="cq-modal-actions" id="quiz-modal-actions">
+        <button type="button" class="cq-btn-primary" onclick="document.getElementById('station-modal').classList.remove('open')">
+          <span>Teruskan Jelajah Makmal</span>
+          <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 2: CARA BERMAIN (PANDUAN LENGKAP DESKTOP & TELEFON)
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="howto-modal" role="dialog" aria-modal="true">
+    <div class="cq-modal cq-howto-card">
+      <button type="button" class="cq-modal-close" id="close-howto-btn" aria-label="Tutup">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <div class="cq-howto-gamepad">🎮</div>
+      <h2 style="font-size: 26px; font-weight: 900; color: #facc15; margin-bottom: 6px;">Cara Bermain</h2>
+      <p style="font-size: 13px; color: #94a3b8;">Panduan kawalan dan penerokaan Makmal Eksplorasi Sel ARSelNel</p>
+
+      <div class="cq-howto-list">
+        <div class="cq-howto-item">
+          <span class="cq-howto-num">1.</span>
+          <span><strong>Pergerakan (Ikut Pandangan Kamera):</strong> Pada komputer/laptop gunakan kekunci <strong>W / ↑</strong> (Maju), <strong>S / ↓</strong> (Undur), <strong>A / ←</strong> (Ke Kiri), <strong>D / →</strong> (Ke Kanan). Pada telefon, gunakan <strong>Joystick Maya di kiri bawah</strong>. Pergerakan sentiasa mengikut arah kamera yang sedang anda pandang.</span>
+        </div>
+        <div class="cq-howto-item">
+          <span class="cq-howto-num">2.</span>
+          <span><strong>Putar Pandangan:</strong> Seret tetikus di skrin komputer, atau <strong>seret jari pada bahagian kanan skrin telefon</strong> untuk melihat sekeliling bilik makmal 360°.</span>
+        </div>
+        <div class="cq-howto-item">
+          <span class="cq-howto-num">3.</span>
+          <span><strong>Logo ARSelNel di Tengah:</strong> Di tengah makmal terdapat monumen hologram sel ARSelNel bercahaya pirus. Gunakan ia sebagai tanda arah utama makmal anda.</span>
+        </div>
+        <div class="cq-howto-item">
+          <span class="cq-howto-num">4.</span>
+          <span><strong>8 Stesen Organel:</strong> Lawati 8 stesen di sepanjang dinding kiri dan kanan (Nukleus, Membran Sel, Sitoplasma, Mitokondrion, Kloroplas, Dinding Sel, Vakuol, Perbandingan Sel).</span>
+        </div>
+        <div class="cq-howto-item">
+          <span class="cq-howto-num">5.</span>
+          <span><strong>Interaksi Stesen:</strong> Apabila menghampiri stesen, tekan butang <strong>[E]</strong> pada keyboard atau sentuh butang <strong>Teroka</strong> untuk membuka fakta sains dan cabaran kuiz.</span>
+        </div>
+        <div class="cq-howto-item">
+          <span class="cq-howto-num">6.</span>
+          <span><strong>Lencana & Sijil Digital:</strong> Dapatkan kesemua 8 lencana untuk membuka <strong>Pintu Pakar Sel</strong> dan muat turun Sijil Pencapaian Digital anda!</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+        <button type="button" class="cq-btn-primary" id="start-playing-btn" style="padding: 14px 36px; font-size: 16px; background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);">
+          <span>SEDIA, MAIN! 🚀</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 3: PEMILIHAN MOD PERMAINAN (TIGA MOD SAH: MOD A, MOD B, MOD C)
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="mode-modal" role="dialog" aria-modal="true">
+    <div class="cq-modal cq-mode-dialog">
+      <button type="button" class="cq-modal-close" id="close-mode-btn" aria-label="Tutup">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <h2 style="font-size: 24px; font-weight: 900; color: #fff; text-align: center;">Pilih Mod Pengembaraan</h2>
+      <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-top: 4px;">Pilih pengalaman pembelajaran yang paling sesuai untuk peranti anda.</p>
+
+      <div class="cq-mode-cards">
+        <!-- MOD A: Jelajah Makmal 3D -->
+        <div class="cq-mode-card featured" id="choose-3d-btn">
+          <span class="cq-mode-icon">🎮</span>
+          <h3>MOD A — Jelajah Makmal 3D</h3>
+          <p>Terokai keseluruhan makmal 3D secara bebas menggunakan papan kekunci (WASD), tetikus atau joystick telefon. 8 stesen penuh dengan model 3D, kuiz dan lencana tanpa memerlukan kamera.</p>
+          <span class="cq-mode-tag">Semua Laptop, Komputer, Tablet &amp; Telefon • Tanpa Kamera</span>
+        </div>
+
+        <!-- MOD B: AR Orientasi Dunia -->
+        <div class="cq-mode-card" id="choose-camera-ar-btn" style="border: 2px solid #0d9488; position: relative;">
+          <span style="position: absolute; top: -10px; right: 12px; background: #0d9488; color: #fff; font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 20px;">MOD B • DISYORKAN iPad &amp; TELEFON</span>
+          <span class="cq-mode-icon">🧭</span>
+          <h3>MOD B — AR Orientasi Dunia</h3>
+          <p>Halakan kamera telefon atau iPad ke sekeliling bilik. Pusing peranti 360° untuk mencari 8 stesen organel maya mengikut arah mata angin dengan bantuan Smart Radar &amp; Misi Akhir.</p>
+          <span class="cq-mode-tag camera-tag">Kamera + Sensor Giroskop • Smart Radar 8 Stesen</span>
+        </div>
+
+        <!-- MOD C: Marker AR (8 Kad Penanda) -->
+        <div class="cq-mode-card" id="choose-world-ar-btn" data-mode="marker-ar" style="border: 2px solid #f59e0b; position: relative;">
+          <span style="position: absolute; top: -10px; right: 12px; background: #f59e0b; color: #0f172a; font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 20px;">MOD C • 6DOF MARKER AR</span>
+          <span class="cq-mode-icon">🃏</span>
+          <h3>MOD C — AR Kad Penanda (8 Kad)</h3>
+          <p>Susun 8 kad penanda AR boleh cetak di atas meja. Apabila kamera mengesan kad, model 3D organel muncul tegak di atas kad tersebut lengkap dengan kuiz dan lencana.</p>
+          <span class="cq-mode-tag" style="background:rgba(245,158,11,0.18);color:#fde047;border:1px solid #f59e0b;">Penjejakan Pose Kad 6DOF • iPad Safari &amp; Semua Kamera</span>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top: 14px;">
+        <a href="markers.html" target="_blank" rel="noopener" class="cq-btn-secondary" style="text-decoration:none; padding: 8px 16px; font-size: 12px;">
+          <span class="material-symbols-outlined" style="font-size:16px">print</span>
+          <span>Buka &amp; Cetak 8 Kad Penanda AR (Mod C)</span>
+        </a>
+      </div>
+
+      <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 14px;">
+        💡 Anda boleh kembali ke Lobi Makmal Sains pada bila-bila masa dengan menekan butang <strong>Kembali</strong>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 4: CAMERA PERMISSION & FALLBACK DIALOG
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="camera-fallback-modal" role="dialog" aria-modal="true">
+    <div class="cq-modal" style="max-width: 480px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 12px;">📷</div>
+      <h2 style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px;" id="camera-fallback-title">Kebenaran Kamera Diperlukan</h2>
+      <p style="font-size: 14px; color: #cbd5e1; line-height: 1.5; margin-bottom: 20px;" id="camera-fallback-msg">
+        Pelayar tidak dapat mengakses kamera peranti. Anda masih boleh menikmati keseluruhan pengembaraan makmal sel dalam Mod Jelajah 3D!
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" class="cq-btn-primary" id="retry-camera-btn">
+          <span class="material-symbols-outlined">refresh</span>
+          <span>Cuba Semula Kamera</span>
+        </button>
+        <button type="button" class="cq-btn-secondary" id="fallback-to-3d-btn">
+          <span class="material-symbols-outlined">view_in_ar</span>
+          <span>Beralih ke Mod Jelajah 3D</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 5: VICTORY & SIJIL PENCAPAIAN DIGITAL
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="victory-modal" role="dialog" aria-modal="true">
+    <div class="cq-modal cq-victory-card">
+      <button type="button" class="cq-modal-close" id="close-victory-btn" aria-label="Tutup">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <div class="cq-cert-container" id="printable-certificate">
+        <div class="cq-cert-ribbon">🏆</div>
+        <h2 class="cq-cert-title">SIJIL PENCAPAIAN DIGITAL</h2>
+        <p class="cq-cert-subtitle">Sains Tingkatan 1 KSSM • Bab 2: Sel Sebagai Unit Asas Hidupan</p>
+
+        <div style="font-size: 13px; color: #94a3b8; margin-top: 8px;">Dengan ini diperakui bahawa</div>
+        <div class="cq-cert-name" id="cert-student-name">Saintis Muda</div>
+        <div style="font-size: 14px; color: #cbd5e1; max-width: 480px; margin: 0 auto;">
+          Telah berjaya menyelesaikan kesemua 8 stesen cabaran organel dalam <strong>Makmal Eksplorasi Sel ARSelNel</strong> dan diiktiraf secara rasmi sebagai:
+        </div>
+        <div style="font-size: 20px; font-weight: 900; color: #2dd4bf; margin-top: 6px;">
+          ⭐ PAKAR SEL MUDA ARSELNEL ⭐
+        </div>
+
+        <div class="cq-cert-stats">
+          <div class="cq-cert-stat-box">
+            <span>JUMLAH MARKAH</span>
+            <strong id="cert-score">800 Mata</strong>
+          </div>
+          <div class="cq-cert-stat-box">
+            <span>LENCANA TERKUMPUL</span>
+            <strong>8 / 8 Lencana</strong>
+          </div>
+          <div class="cq-cert-stat-box">
+            <span>TEMPOH MASA</span>
+            <strong id="cert-time">03:45</strong>
+          </div>
+        </div>
+
+        <div class="cq-cert-footer">
+          Tarikh Selesai: <span id="cert-date">27 Oktober 2026</span> • Sistem Pembelajaran Interaktif ARSelNel
+        </div>
+      </div>
+
+      <div class="cq-modal-actions" style="justify-content: center; gap: 14px;">
+        <button type="button" class="cq-btn-secondary" id="restart-game-btn">
+          <span class="material-symbols-outlined" style="font-size:18px">refresh</span>
+          <span>Main Semula</span>
+        </button>
+        <button type="button" class="cq-btn-primary" id="download-cert-btn">
+          <span class="material-symbols-outlined" style="font-size:18px">print</span>
+          <span>Cetak / Simpan Sijil</span>
+        </button>
+        <a href="code.html" class="cq-btn-secondary" style="text-decoration:none;">
+          <span class="material-symbols-outlined" style="font-size:18px">home</span>
+          <span>Kembali</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 6: PENGESAHAN KEMBALI KE LOBI MAKMAL SAINS (KETIKA PERMAINAN BERLANGSUNG)
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="exit-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="exit-confirm-title">
+    <div class="cq-modal" style="max-width: 440px; text-align: center; padding: 24px;">
+      <div style="font-size: 40px; margin-bottom: 8px;">🧭</div>
+      <h2 id="exit-confirm-title" style="font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 8px;">Kembali ke Lobi Makmal Sains?</h2>
+      <p style="font-size: 13.5px; color: #cbd5e1; line-height: 1.5; margin-bottom: 20px;" id="exit-confirm-desc">
+        Adakah anda pasti ingin keluar dari mod ini? Anda akan kembali ke Lobi Makmal Sains dan kemajuan sesi anda akan disimpan.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" class="cq-btn-primary" id="exit-confirm-continue-btn" style="justify-content: center; width: 100%;">
+          <span class="material-symbols-outlined" style="font-size:18px">play_arrow</span>
+          <span>Teruskan Bermain</span>
+        </button>
+        <button type="button" class="cq-btn-secondary" id="exit-confirm-leave-btn" style="justify-content: center; width: 100%; border-color: rgba(45, 212, 191, 0.45); color: #5eead4;">
+          <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+          <span>Kembali ke Lobi Makmal</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==============================================================================
+       MODAL 7: MISI AKHIR — JEMPUTAN HARTA KARUN DUNIA SEL (SELEPAS 8/8 SELESAI)
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="treasure-hunt-intro-modal" role="dialog" aria-modal="true" aria-labelledby="th-intro-title">
+    <div class="cq-modal" style="max-width: 460px; text-align: center; padding: 26px 22px;">
+      <div style="font-size: 46px; margin-bottom: 8px;">🎁</div>
+      <div class="cq-station-badge-chip" style="background: rgba(250, 204, 21, 0.2); border-color: #facc15; color: #fde047; margin: 0 auto 10px auto;">MISI AKHIR • BONUS ARSELNEL</div>
+      <h2 id="th-intro-title" style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px;">MISI BERJAYA!</h2>
+      <p style="font-size: 14.5px; color: #5eead4; font-weight: 800; margin-bottom: 8px; line-height: 1.45;">
+        🎉 Syabas, Saintis Muda! Peti Harta Karun ARSELNEL telah muncul di lokasi rahsia.
+      </p>
+      <p style="font-size: 13.5px; color: #cbd5e1; line-height: 1.55; margin-bottom: 18px;">
+        Peti ganjaran telah dikunci pada ruang AR di lokasi berasingan. Gunakan <strong>Smart Radar</strong> dan pusingkan peranti anda untuk menjejakinya!
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" class="cq-btn-primary" id="start-treasure-hunt-btn" style="justify-content: center; width: 100%; font-size: 15px; padding: 12px 20px; background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);">
+          <span class="material-symbols-outlined" style="font-size:20px">explore</span>
+          <span>Cari Peti Harta Karun 🚀</span>
+        </button>
+        <button type="button" class="cq-btn-secondary" id="close-treasure-intro-btn" style="justify-content: center; width: 100%; font-size: 13.5px; padding: 10px 18px;">
+          <span>Teroka Sekitar Dahulu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 8: CABARAN 3 SOALAN BONUS PETI HARTA KARUN ARSELNEL
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="treasure-chest-modal" role="dialog" aria-modal="true" aria-labelledby="tc-modal-title">
+    <div class="cq-modal" style="max-width: 520px; padding: 24px;">
+      <button type="button" class="cq-modal-close" id="close-treasure-modal-btn" aria-label="Tutup">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+        <div class="cq-station-badge-chip" style="background: rgba(45, 212, 191, 0.2); border-color: #2dd4bf; color: #5eead4; margin: 0;">🎁 PETI HARTA KARUN ARSELNEL</div>
+        <span id="tc-question-progress" style="font-size: 12px; font-weight: 900; color: #facc15; background: rgba(250, 204, 21, 0.15); padding: 3px 10px; border-radius: 999px;">Cabaran 1 / 3</span>
+      </div>
+      <h2 id="tc-modal-title" style="font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 6px;">Ujian Pakar Sel: Buka Kunci Peti</h2>
+      <p style="font-size: 12.5px; color: #94a3b8; margin-bottom: 14px;">Jawab 3 soalan bonus biologi sel dengan tepat untuk membuka kunci peti harta karun!</p>
+
+      <div class="cq-quiz-box" style="margin: 0;">
+        <h3 class="cq-quiz-question" id="tc-quiz-question" style="font-size: 15px; margin-bottom: 12px;">Soalan...</h3>
+        <div class="cq-quiz-options" id="tc-quiz-options">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="cq-feedback-box" id="tc-quiz-feedback" style="display:none; margin-top: 12px;"></div>
+      </div>
+
+      <div class="cq-modal-actions" id="tc-modal-actions" style="margin-top: 14px; display: none;">
+        <button type="button" class="cq-btn-primary" id="tc-next-btn" style="width: 100%; justify-content: center;">
+          <span id="tc-next-btn-text">Soalan Seterusnya</span>
+          <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL 9: REWARD & VICTORY MISI AKHIR (LENCANA KHAS + 300 MARKAH BONUS)
+       ============================================================================== -->
+  <div class="cq-modal-backdrop" id="treasure-reward-modal" role="dialog" aria-modal="true" aria-labelledby="tr-reward-title">
+    <div class="cq-modal" style="max-width: 520px; text-align: center; padding: 26px 20px;">
+      <div style="font-size: 50px; margin-bottom: 4px;">🏆</div>
+      <div class="cq-station-badge-chip" style="background: rgba(250, 204, 21, 0.2); border-color: #facc15; color: #fde047; margin: 0 auto 10px auto;">MISI AKHIR BERJAYA • 100% TAMAT</div>
+      <h2 id="tr-reward-title" style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 4px;">TAHNIAH, SAINTIS MUDA!</h2>
+      <p style="font-size: 14px; color: #5eead4; font-weight: 800; margin-bottom: 12px; line-height: 1.5;">
+        Misi Menyelamatkan Dunia Sel telah berjaya disempurnakan! Kesemua 8 organel pulih bertenaga dan Dunia Sel kembali stabil sepenuhnya.
+      </p>
+      <p style="font-size: 13.5px; color: #cbd5e1; line-height: 1.5; margin-bottom: 16px;">
+        Anda berjaya menyelesaikan Misi Jelajah Dunia Sel dan menemui Harta Karun ARSELNEL!
+      </p>
+
+      <div style="background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(250, 204, 21, 0.5); border-radius: 16px; padding: 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
+          <span style="color: #94a3b8;">🏆 Lencana Khas:</span>
+          <strong style="color: #facc15;">Penjelajah Dunia Sel</strong>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
+          <span style="color: #94a3b8;">⭐ Bonus Misi Akhir:</span>
+          <strong style="color: #34d399;">+300 Mata</strong>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
+          <span style="color: #94a3b8;">🎖️ Jumlah Lencana:</span>
+          <strong style="color: #5eead4;">8 / 8 Stesen + Lencana Khas</strong>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
+          <span style="color: #94a3b8;">⭐ Jumlah Markah Keseluruhan:</span>
+          <strong id="tr-final-score" style="color: #fff; font-size: 16px;">1100 Mata</strong>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
+          <span style="color: #94a3b8;">⏱️ Masa Permainan:</span>
+          <strong id="tr-final-time" style="color: #cbd5e1;">04:12</strong>
+        </div>
+      </div>
+
+      <div class="cq-modal-actions" style="justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="cq-btn-primary" id="tr-print-btn" style="flex: 1; min-width: 140px; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size:18px">print</span>
+          <span>Cetak / Sijil</span>
+        </button>
+        <button type="button" class="cq-btn-secondary" id="tr-replay-btn" style="flex: 1; min-width: 130px; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size:18px">refresh</span>
+          <span>Main Semula</span>
+        </button>
+        <a href="code.html" class="cq-btn-secondary" id="tr-exit-btn" style="flex: 1; min-width: 130px; justify-content: center; text-decoration: none;">
+          <span class="material-symbols-outlined" style="font-size:18px">home</span>
+          <span>Kembali</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       AR HUD OVERLAY (ACTIVE IN CAMERA AR & WEBXR MODES)
+       ============================================================================== -->
+  <div class="cq-ar-overlay" id="ar-overlay" style="display:none">
+    <!-- Topbar Ringkas & Responsif: Kiri (Kembali & Tajuk), Kanan (Markah, Lencana, Masa & 4 Ikon Kawalan) -->
+    <header class="cq-ar-topbar" id="ar-topbar">
+      <!-- Kiri: Butang Kembali & Nama Ringkas Mod -->
+      <div class="cq-ar-top-left">
+        <button type="button" class="cq-ar-back-btn" id="ar-back-btn" title="Kembali ke CellQuest" aria-label="Kembali ke CellQuest">
+          <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+          <span class="btn-text">Kembali</span>
+        </button>
+        <div class="cq-ar-status-badge" id="ar-status-badge" title="Misi Jelajah Dunia Sel — AR Jelajah Sel">
+          <span class="ar-live-dot"></span>
+          <span id="ar-badge-icon">🧭</span>
+          <div class="cq-ar-title-stack">
+            <strong class="cq-ar-main-title">Misi Jelajah Dunia Sel</strong>
+            <span id="ar-badge-text">AR Jelajah Sel</span>
+          </div>
+        </div>
+        <!-- Mission Objective Pill Banner -->
+        <div class="cq-ar-mission-hud-pill" id="ar-mission-banner" style="margin-left: 8px;">
+          <span class="material-symbols-outlined" style="font-size: 16px; color: #38bdf8;">shield</span>
+          <span class="mission-kicker">MISI:</span>
+          <span class="mission-status" id="ar-mission-status-text">Stesen Dipulihkan: 0/8</span>
+        </div>
+      </div>
+
+      <!-- Navigasi silang mod disembunyikan daripada skrin permainan aktif (Bahagian 1) -->
+      <div class="cq-ar-top-center" id="ar-top-center-nav" style="display:none !important;" aria-hidden="true">
+        <div class="cq-ar-model-tabs" id="ar-model-tabs" role="tablist">
+          <button type="button" class="cq-ar-model-btn active" id="ar-btn-world" data-ar-model="world"></button>
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-marker" data-ar-model="marker"></button>
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-animal" data-ar-model="animal"></button>
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-plant" data-ar-model="plant"></button>
+          <button type="button" class="cq-ar-model-btn" id="ar-btn-minilab" data-ar-model="minilab"></button>
+        </div>
+      </div>
+
+      <!-- Kanan: Markah, Lencana, Masa & Ikon Kawalan Sekunder -->
+      <div class="cq-ar-top-right">
+        <div class="cq-ar-stats-group" id="ar-stats-group">
+          <div class="cq-ar-stat-chip score-chip" title="Markah Cabaran Sains" aria-label="Markah">
+            <span>⭐</span>
+            <strong id="ar-hud-score">0</strong>
+          </div>
+          <div class="cq-ar-stat-chip badge-chip" title="Lencana Stesen Dikumpul" aria-label="Lencana">
+            <span>🎖️</span>
+            <strong id="ar-hud-badges">0/8</strong>
+          </div>
+          <div class="cq-ar-stat-chip timer-chip" title="Masa Eksplorasi" aria-label="Masa">
+            <span>⏱️</span>
+            <strong id="ar-hud-timer">00:00</strong>
+          </div>
+        </div>
+
+        <div class="cq-ar-tools-group">
+          <button type="button" class="cq-icon-btn" id="ar-reset-view-btn" title="Kalibrasi Semula Arah (0°)" aria-label="Kalibrasi Semula">
+            <span class="material-symbols-outlined">explore</span>
+          </button>
+          <button type="button" class="cq-icon-btn" id="ar-sound-btn" title="Audio (Hidup/Mati)" aria-label="Audio">
+            <span class="material-symbols-outlined" id="ar-sound-icon">volume_up</span>
+          </button>
+          <button type="button" class="cq-icon-btn" id="ar-pause-btn" title="Jeda / Sambung Permainan" aria-label="Jeda">
+            <span class="material-symbols-outlined" id="ar-pause-icon">pause</span>
+          </button>
+          <button type="button" class="cq-icon-btn" id="ar-help-btn" title="Cara Bermain &amp; Panduan AR" aria-label="Bantuan">
+            <span class="material-symbols-outlined">help</span>
+          </button>
+          <!-- Butang legasi disimpan secara tersembunyi untuk keserasian API -->
+          <button type="button" class="cq-icon-btn" id="ar-autorotate-btn" style="display:none" aria-hidden="true"></button>
+          <button type="button" class="cq-icon-btn" id="ar-change-mode-btn" style="display:none" aria-hidden="true"></button>
+          <button type="button" class="cq-icon-btn" id="ar-exit-btn" style="display:none" aria-hidden="true"></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Satu Arahan Utama Sahaja Pada Satu Masa (Bahagian 6) -->
+    <div class="cq-ar-single-instruction" id="ar-single-instruction" role="status" aria-live="polite">
+      <span id="ar-single-instruction-text">↶ Pusing kiri 90° untuk mencari Mitokondrion.</span>
+    </div>
+
+    <!-- Elemen legasi disembunyikan supaya tiada teks arahan berulang -->
+    <div class="cq-ar-hint-banner" id="ar-hint-banner" style="display:none !important;" aria-hidden="true"></div>
+    <div class="cq-ar-floating-bar" id="ar-floating-bar" style="display:none !important;" aria-hidden="true">
+      <button type="button" id="ar-stations-toggle"><span id="ar-stn-done-count">0/8</span></button>
+      <button type="button" id="ar-recenter-btn"><span id="ar-recenter-text">Kalibrasi</span></button>
+      <button type="button" id="ar-posture-btn"><span id="ar-posture-icon">chair</span><span id="ar-posture-text">Duduk</span></button>
+      <a href="markers.html" id="ar-print-markers-btn" style="display:none;">8 Kad AR</a>
+    </div>
+
+    <!-- Slide-out Station Panel / Drawer (Opens from Right on iPad Landscape) -->
+    <aside class="cq-ar-stations-drawer" id="ar-stations-drawer" aria-label="Panel 8 Stesen Pembelajaran">
+      <div class="cq-ar-drawer-header">
+        <div class="cq-ar-drawer-title-group">
+          <span class="material-symbols-outlined" style="font-size:22px; color:#2dd4bf;">biotech</span>
+          <div>
+            <h3>8 Stesen Pembelajaran</h3>
+            <span>Ketik stesen untuk teroka organel & kuiz</span>
+          </div>
+        </div>
+        <button type="button" class="cq-modal-close" id="ar-drawer-close-btn" aria-label="Tutup Panel Stesen" style="position:static; width:34px; height:34px;">
+          <span class="material-symbols-outlined" style="font-size:20px">close</span>
+        </button>
+      </div>
+      <div class="cq-ar-drawer-list" id="ar-drawer-list">
+        <!-- Populated via JS with 8 stations -->
+      </div>
+    </aside>
+
+    <!-- Selected Organelle Bottom Card (Compact, Responsive, Minimizable) -->
+    <div class="cq-ar-organelle-card" id="ar-organelle-card" style="display:none">
+      <div class="cq-ar-card-header" id="ar-card-header">
+        <div class="cq-ar-card-title-group">
+          <span class="cq-ar-card-icon" id="ar-card-icon">🧬</span>
+          <div>
+            <h3 class="cq-ar-card-title" id="ar-card-title">Nukleus</h3>
+            <span class="cq-ar-card-badge" id="ar-card-badge">Stesen 1 • Sains Tingkatan 1</span>
+          </div>
+        </div>
+        <div class="cq-ar-card-ctrls">
+          <button type="button" class="cq-card-icon-btn" id="ar-card-minimize-btn" title="Minimumkan / Buka Penuh" aria-label="Minimumkan">
+            <span class="material-symbols-outlined" id="ar-card-min-icon">expand_more</span>
+          </button>
+          <button type="button" class="cq-card-icon-btn" id="ar-card-close-btn" title="Tutup Maklumat Organel" aria-label="Tutup">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="cq-ar-card-body" id="ar-card-body">
+        <p class="cq-ar-card-desc" id="ar-card-desc">
+          Pusat kawalan sel yang mengandungi bahan genetik (DNA). Mengawal semua aktiviti penting sel.
+        </p>
+
+        <div class="cq-ar-card-actions">
+          <button type="button" class="cq-ar-card-btn primary" id="ar-card-quiz-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">quiz</span>
+            <span>Jawab Kuiz</span>
+          </button>
+          <button type="button" class="cq-ar-card-btn secondary" id="ar-card-speech-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">volume_up</span>
+            <span>Dengar</span>
+          </button>
+          <button type="button" class="cq-ar-card-btn secondary" id="ar-card-focus-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">center_focus_strong</span>
+            <span>Fokus</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spatial WebXR Placement Bottombar (Active when spatial hit-test is ready) -->
+    <div class="cq-ar-bottombar" id="ar-spatial-tools" style="display:none">
+      <button type="button" class="cq-ar-place-btn" id="ar-place-btn">
+        📍 Letak Model di Meja / Lantai
+      </button>
+      <div class="cq-ar-tools">
+        <button type="button" class="cq-ar-tool-btn" id="ar-smaller-btn">− Kecilkan</button>
+        <button type="button" class="cq-ar-tool-btn" id="ar-larger-btn">＋ Besarkan</button>
+        <button type="button" class="cq-ar-tool-btn" id="ar-rotate-btn">⟳ Putar 45°</button>
+        <button type="button" class="cq-ar-tool-btn" id="ar-reposition-btn">🔄 Alih Semula</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Engine Script -->
+  <script src="../assets/js/cellquest-adventure.js"></script>
+</body>
+</html>

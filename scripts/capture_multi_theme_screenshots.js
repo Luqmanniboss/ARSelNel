@@ -166,3 +166,4 @@ runCapture(prefixArg).then(() => {
   console.log('Capture finished for prefix:', prefixArg);
   process.exit(0);
 });
+
