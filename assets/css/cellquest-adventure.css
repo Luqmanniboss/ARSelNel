@@ -625,6 +625,53 @@ body.cq-ar-mode {
   display: block;
 }
 
+/* Fasa A.3: Deep Zoom 3D Toolbar Controls */
+.cq-preview-zoom-bar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.cq-preview-zoom-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  color: #f1f5f9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.cq-preview-zoom-btn:hover {
+  background: rgba(45, 212, 191, 0.25);
+  border-color: #2dd4bf;
+  color: #5eead4;
+  transform: scale(1.06);
+}
+
+.cq-preview-zoom-btn:active {
+  transform: scale(0.94);
+  background: rgba(45, 212, 191, 0.4);
+}
+
+.cq-preview-zoom-btn .material-symbols-outlined {
+  font-size: 19px;
+  line-height: 1;
+}
+
 .cq-preview-caption {
   position: absolute;
   bottom: 8px;
@@ -1299,16 +1346,21 @@ body.cq-ar-mode {
   background: rgba(6, 28, 24, 0.90);
 }
 
-/* Fasa A.1 Orientasi Dunia: Pil Navigasi Bawah Tengah (Treasure Hunt Pill) */
+/* Fasa A.1 & A.3 Orientasi Dunia: Pil Navigasi Bawah Tengah (Treasure Hunt Pill - Bebas Pertindihan) */
 body.ar-world-active .cq-ar-single-instruction {
   top: auto;
-  bottom: max(22px, calc(env(safe-area-inset-bottom) + 8px));
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px));
   z-index: 28;
   background: rgba(8, 15, 28, 0.93);
   border: 1.5px solid rgba(45, 212, 191, 0.65);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
-  padding: 8px 22px;
-  font-size: clamp(12px, 1.35vw, 14px);
+  padding: 8px 18px;
+  font-size: clamp(11.5px, 1.25vw, 13.5px);
+  max-width: min(380px, calc(100vw - 580px));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.2s ease;
 }
 
 body.ar-world-active .cq-ar-single-instruction.discovered {
@@ -1521,19 +1573,20 @@ body.ar-world-active .cq-ar-single-instruction.discovered {
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
-/* 4. COMPACT MINIMIZABLE ORGANELLE CARD (IPAD LANDSCAPE BOTTOM-RIGHT) */
+/* 4. COMPACT MINIMIZABLE ORGANELLE CARD (IPAD LANDSCAPE BOTTOM-RIGHT - Fasa A.3 Anti-Bertindih) */
 .cq-ar-organelle-card {
   position: fixed;
-  bottom: max(20px, env(safe-area-inset-bottom));
-  right: max(20px, env(safe-area-inset-right));
-  width: 380px;
-  max-width: calc(100vw - 40px);
+  bottom: max(14px, env(safe-area-inset-bottom));
+  right: max(14px, env(safe-area-inset-right));
+  width: clamp(260px, 28vw, 310px);
+  max-width: calc(100vw - 32px);
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.94) 0%, rgba(9, 23, 32, 0.96) 100%);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(45, 212, 191, 0.4);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(45, 212, 191, 0.2);
-  border-radius: 20px;
-  padding: 14px 18px;
+  border-radius: 18px;
+  padding: 12px 14px;
   z-index: 35;
   pointer-events: auto;
   animation: fadeIn 0.25s ease;
@@ -1541,8 +1594,8 @@ body.ar-world-active .cq-ar-single-instruction.discovered {
 }
 
 .cq-ar-organelle-card.minimized {
-  width: 290px;
-  padding: 8px 14px;
+  width: clamp(190px, 20vw, 240px);
+  padding: 8px 12px;
   border-radius: 999px;
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -1743,7 +1796,7 @@ body.ar-world-active .cq-ar-single-instruction.discovered {
     font-size: 11.5px;
   }
   .cq-ar-organelle-card {
-    width: 330px;
+    width: clamp(250px, 28vw, 295px);
   }
   .cq-ar-stations-drawer {
     width: 320px;

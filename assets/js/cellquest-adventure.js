@@ -978,24 +978,29 @@
     arObjectGroup.visible = false;
     scene.add(arObjectGroup);
 
-    // Ambient, Hemisphere & Directional PBR Studio Lighting (prevents dark/dull GLB models)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    // Ambient, Hemisphere & Directional PBR Studio Lighting (Fasa A.3: Pencahayaan dipertingkatkan untuk keterlihatan organel)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xf0fdfa, 0x1e293b, 0.95);
-    hemiLight.position.set(0, 12, 0);
+    const hemiLight = new THREE.HemisphereLight(0xf8fafc, 0x475569, 1.05);
+    hemiLight.position.set(0, 15, 0);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
-    dirLight.position.set(5, 12, 7);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.20);
+    dirLight.position.set(6, 14, 8);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 1024;
     dirLight.shadow.mapSize.height = 1024;
     scene.add(dirLight);
 
-    const fillDirLight = new THREE.DirectionalLight(0xe0f2fe, 0.65);
+    const fillDirLight = new THREE.DirectionalLight(0xe0f2fe, 0.85);
     fillDirLight.position.set(-6, 9, -6);
     scene.add(fillDirLight);
+
+    // Lampu hadapan (camera view fill) untuk menerangi organel di paras rendah/lantai
+    const frontFillLight = new THREE.DirectionalLight(0xffffff, 0.75);
+    frontFillLight.position.set(0, 3, 6);
+    scene.add(frontFillLight);
 
     // Warm laboratory accent point lights
     const warmLight1 = new THREE.PointLight(0x38bdf8, 1.2, 18);
@@ -3067,8 +3072,23 @@
             if (!m) return m;
             const c = m.clone();
             c.side = THREE.DoubleSide;
-            if (c.map) c.map.encoding = THREE.sRGBEncoding;
-            if (c.emissiveMap) c.emissiveMap.encoding = THREE.sRGBEncoding;
+            if (c.map) {
+              c.map.encoding = THREE.sRGBEncoding;
+              c.map.needsUpdate = true;
+            }
+            if (c.emissiveMap) {
+              c.emissiveMap.encoding = THREE.sRGBEncoding;
+              c.emissiveMap.needsUpdate = true;
+            }
+            // Fasa A.3: Cegah model GLB menjadi gelap/hitam akibat pantulan metalik tanpa envMap pada iPad/Safari:
+            if (c.isMeshStandardMaterial || c.isMeshPhysicalMaterial) {
+              if (c.metalness > 0.25 && !c.metalnessMap) c.metalness = 0.08;
+              if (c.roughness < 0.25) c.roughness = 0.40;
+              // Sokongan pencerahan albedo untuk bahan biologi organik yang gelap
+              if (c.color && c.color.r < 0.12 && c.color.g < 0.12 && c.color.b < 0.12 && !c.map) {
+                c.color.addScalar(0.18);
+              }
+            }
             return c;
           };
           node.material = Array.isArray(node.material) ? node.material.map(cloneMat) : cloneMat(node.material);
@@ -3567,45 +3587,63 @@
       // ========================================================================
       // STESEN 1: NUKLEUS (Double-membrane sphere with 90° cutaway, nucleolus & pores)
       // ========================================================================
-      // Outer purple nuclear envelope (cutaway exposing interior)
-      const envelopeGeo = new THREE.SphereGeometry(0.38, 24, 24, 0, Math.PI * 1.5, 0, Math.PI);
+      // Outer purple nuclear envelope (cutaway menghadap ke hadapan & kanan supaya teras kelihatan jelas)
+      const envelopeGeo = new THREE.SphereGeometry(0.38, 28, 28, -Math.PI * 0.25, Math.PI * 1.5, 0, Math.PI);
       const envelopeMat = new THREE.MeshStandardMaterial({
-        color: 0x8b5cf6,
-        roughness: 0.35,
-        metalness: 0.15,
+        color: 0xa855f7, // Ungu terang biologi
+        emissive: 0x581c87,
+        emissiveIntensity: 0.22,
+        roughness: 0.40,
+        metalness: 0.05,
         side: THREE.DoubleSide
       });
       const envelopeMesh = new THREE.Mesh(envelopeGeo, envelopeMat);
       group.add(envelopeMesh);
 
       // Inner dense nucleolus core in glowing magenta
-      const nucleolusGeo = new THREE.SphereGeometry(0.16, 16, 16);
+      const nucleolusGeo = new THREE.SphereGeometry(0.16, 20, 20);
       const nucleolusMat = new THREE.MeshStandardMaterial({
-        color: 0xd946ef,
-        emissive: 0x86198f,
-        roughness: 0.2
+        color: 0xf43f5e,
+        emissive: 0xe11d48,
+        emissiveIntensity: 0.45,
+        roughness: 0.25,
+        metalness: 0.0
       });
       const nucleolus = new THREE.Mesh(nucleolusGeo, nucleolusMat);
       group.add(nucleolus);
 
       // Chromatin network threads (entangled DNA loops)
-      const chromatinGeo = new THREE.TorusGeometry(0.24, 0.02, 8, 24);
-      const chromatinMat = new THREE.MeshStandardMaterial({ color: 0xc084fc, roughness: 0.3 });
-      const chrom1 = new THREE.Mesh(chromatinGeo, chromatinMat);
-      chrom1.rotation.x = Math.PI / 3;
+      const chromatinGeo = new THREE.TorusGeometry(0.24, 0.02, 10, 32);
+      const chrom1 = new THREE.Mesh(chromatinGeo, new THREE.MeshStandardMaterial({
+        color: 0xec4899,
+        emissive: 0x9d174d,
+        emissiveIntensity: 0.35,
+        roughness: 0.30
+      }));
+      chrom1.rotation.set(Math.PI / 4, Math.PI / 6, 0);
       group.add(chrom1);
 
-      const chrom2 = new THREE.Mesh(chromatinGeo, chromatinMat);
-      chrom2.rotation.y = Math.PI / 3;
+      const chrom2 = new THREE.Mesh(chromatinGeo, new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.35,
+        roughness: 0.30
+      }));
+      chrom2.rotation.set(-Math.PI / 4, 0, Math.PI / 3);
       group.add(chrom2);
 
       // Nuclear pores (Golden dots arrayed on the outer envelope)
-      const poreGeo = new THREE.SphereGeometry(0.025, 8, 8);
-      const poreMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-      for (let i = 0; i < 8; i++) {
+      const poreGeo = new THREE.SphereGeometry(0.028, 8, 8);
+      const poreMat = new THREE.MeshStandardMaterial({
+        color: 0xfef08a,
+        emissive: 0xfacc15,
+        emissiveIntensity: 0.50,
+        roughness: 0.20
+      });
+      for (let i = 0; i < 10; i++) {
         const pore = new THREE.Mesh(poreGeo, poreMat);
-        const theta = 0.3 + (i * 0.4);
-        const phi = 0.5 + (i * 0.7);
+        const theta = 0.5 + (i * 0.45);
+        const phi = 0.55 + (i * 0.60);
         pore.position.set(
           0.385 * Math.sin(phi) * Math.cos(theta),
           0.385 * Math.cos(phi),
@@ -3617,8 +3655,14 @@
       // ========================================================================
       // STESEN 2: MEMBRAN SEL (Phospholipid bilayer segment with transmembrane protein pore)
       // ========================================================================
-      const headMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2, metalness: 0.1 });
-      const tailMat = new THREE.MeshBasicMaterial({ color: 0x60a5fa });
+      const headMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0369a1,
+        emissiveIntensity: 0.20,
+        roughness: 0.25,
+        metalness: 0.05
+      });
+      const tailMat = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
 
       // Dual layers of spherical phospholipid heads with hydrophobic tails
       for (let row = -2; row <= 2; row++) {
@@ -3648,8 +3692,9 @@
       const channelGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.42, 16, 1, true);
       const channelMat = new THREE.MeshStandardMaterial({
         color: 0x10b981,
-        emissive: 0x064e3b,
-        roughness: 0.3,
+        emissive: 0x047857,
+        emissiveIntensity: 0.30,
+        roughness: 0.30,
         side: THREE.DoubleSide
       });
       const channelMesh = new THREE.Mesh(channelGeo, channelMat);
@@ -3658,7 +3703,7 @@
       // Translucent protective field halo
       const shieldRing = new THREE.Mesh(
         new THREE.TorusGeometry(0.48, 0.025, 8, 32),
-        new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+        new THREE.MeshBasicMaterial({ color: 0x67e8f9 })
       );
       shieldRing.rotation.x = Math.PI / 2;
       group.add(shieldRing);
@@ -3713,8 +3758,9 @@
       // Inner folded cristae ridges (Zigzag folded inner membrane shelves)
       const cristaeMat = new THREE.MeshStandardMaterial({
         color: 0xfb923c,
-        emissive: 0x7c2d12,
-        roughness: 0.3
+        emissive: 0xc2410c,
+        emissiveIntensity: 0.35,
+        roughness: 0.30
       });
       for (let c = -3; c <= 3; c++) {
         const crista = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.03, 0.14), cristaeMat);
@@ -3738,15 +3784,22 @@
       const chloroGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.18, 20);
       const chloroMat = new THREE.MeshStandardMaterial({
         color: 0x16a34a,
+        emissive: 0x14532d,
+        emissiveIntensity: 0.25,
         transparent: true,
-        opacity: 0.6,
+        opacity: 0.70,
         roughness: 0.25
       });
       const chloroMesh = new THREE.Mesh(chloroGeo, chloroMat);
       group.add(chloroMesh);
 
       // Stacked thylakoids (grana stacks of green coin-like discs)
-      const thylaMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.3 });
+      const thylaMat = new THREE.MeshStandardMaterial({
+        color: 0x4ade80,
+        emissive: 0x15803d,
+        emissiveIntensity: 0.35,
+        roughness: 0.25
+      });
       const granumPositions = [
         [-0.16, -0.1], [0.16, -0.1], [0, 0.16], [-0.08, 0.06]
       ];
@@ -3768,12 +3821,14 @@
       // ========================================================================
       // STESEN 6: DINDING SEL (Rigid hexagonal & rectangular cellulose cell wall)
       // ========================================================================
-      // Rigid rectangular cell framework block
+      // Rigid rectangular cell framework block in vivid cellulose green/gold
       const wallBoxGeo = new THREE.BoxGeometry(0.56, 0.56, 0.56);
       const wallBoxMat = new THREE.MeshStandardMaterial({
-        color: 0x92400e,
-        roughness: 0.45,
-        metalness: 0.1
+        color: 0x65a30d,
+        emissive: 0x365314,
+        emissiveIntensity: 0.25,
+        roughness: 0.35,
+        metalness: 0.05
       });
       const wallBox = new THREE.Mesh(wallBoxGeo, wallBoxMat);
       group.add(wallBox);
@@ -3787,7 +3842,7 @@
       // Middle lamella layer plate
       const lamellaPlate = new THREE.Mesh(
         new THREE.BoxGeometry(0.62, 0.04, 0.62),
-        new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.3 })
+        new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.3 })
       );
       group.add(lamellaPlate);
     } else if (number === 7) {
@@ -3798,10 +3853,12 @@
       const vacuoleGeo = new THREE.SphereGeometry(0.42, 24, 24);
       const vacuoleMat = new THREE.MeshStandardMaterial({
         color: 0x06b6d4,
+        emissive: 0x0e7490,
+        emissiveIntensity: 0.25,
         transparent: true,
         opacity: 0.72,
         roughness: 0.05,
-        metalness: 0.15
+        metalness: 0.05
       });
       const vacuoleMesh = new THREE.Mesh(vacuoleGeo, vacuoleMat);
       group.add(vacuoleMesh);
@@ -4479,6 +4536,9 @@
     if (DOM.arCardCloseBtn) {
       DOM.arCardCloseBtn.addEventListener('click', () => {
         if (DOM.arOrganelleCard) DOM.arOrganelleCard.style.display = 'none';
+        if (DOM.arSingleInstruction) {
+          DOM.arSingleInstruction.style.opacity = '1';
+        }
       });
     }
     if (DOM.arSmallerBtn) {
@@ -5147,13 +5207,55 @@
   // ==============================================================================
 
   let isPreviewDraggingGlobal = false;
+  const previewZoomState = {
+    distance: 2.35,
+    defaultDistance: 2.35,
+    minDistance: 0.35,
+    maxDistance: 4.8,
+    isPinching: false,
+    startPinchDist: 0,
+    startZoomDist: 2.35
+  };
+
+  function applyPreviewCameraDistance() {
+    if (!previewCamera) return;
+    previewCamera.position.set(0, 0.25, previewZoomState.distance);
+    previewCamera.lookAt(0, 0, 0);
+  }
+
+  function setPreviewZoom(targetDist) {
+    if (!previewCamera) return;
+    const clamped = Math.max(previewZoomState.minDistance, Math.min(previewZoomState.maxDistance, targetDist));
+    previewZoomState.distance = clamped;
+    applyPreviewCameraDistance();
+  }
+
+  function recalculatePreviewBounds() {
+    if (!previewModelGroup || !previewCamera) return;
+    previewModelGroup.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(previewModelGroup);
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+
+    // Fasa A.3: Had jarak dinamik mengikut saiz fizikal bounding box model
+    previewZoomState.minDistance = Math.max(0.25, maxDim * 0.45);
+    previewZoomState.maxDistance = Math.max(3.2, maxDim * 3.4);
+    previewZoomState.defaultDistance = Math.max(1.6, maxDim * 1.75);
+    previewZoomState.distance = previewZoomState.defaultDistance;
+
+    // Perlindungan satah pemotongan hadapan kamera (near clipping plane 0.02)
+    previewCamera.near = Math.min(0.02, previewZoomState.minDistance * 0.1);
+    previewCamera.updateProjectionMatrix();
+
+    applyPreviewCameraDistance();
+  }
 
   function initStationPreview() {
     if (!DOM.stnPreviewCanvas) return;
 
     previewScene = new THREE.Scene();
-    previewCamera = new THREE.PerspectiveCamera(40, 2, 0.1, 50);
-    previewCamera.position.set(0, 0.35, 2.35);
+    previewCamera = new THREE.PerspectiveCamera(40, 2, 0.02, 50);
+    previewCamera.position.set(0, 0.25, previewZoomState.distance);
     previewCamera.lookAt(0, 0, 0);
 
     previewRenderer = new THREE.WebGLRenderer({
@@ -5164,24 +5266,35 @@
     previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     previewRenderer.outputEncoding = THREE.sRGBEncoding;
     previewRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    previewRenderer.toneMappingExposure = 1.15;
+    previewRenderer.toneMappingExposure = 1.25;
 
-    // Studio PBR Lights for preview
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.95);
+    // Studio PBR Lights for preview (Fasa A.3: Pencahayaan dipertingkatkan untuk keterlihatan organel & rongga dalaman)
+    const ambLight = new THREE.AmbientLight(0xffffff, 1.25);
     previewScene.add(ambLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xf0fdfa, 0x1e293b, 0.9);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x64748b, 1.05);
+    hemiLight.position.set(0, 10, 0);
     previewScene.add(hemiLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.15);
-    dirLight1.position.set(2, 4, 3);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.35);
+    dirLight1.position.set(3, 5, 4);
     previewScene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.7);
-    dirLight2.position.set(-2, -2, -2);
+    const dirLight2 = new THREE.DirectionalLight(0xe0f2fe, 0.95);
+    dirLight2.position.set(-3, 2, -2);
     previewScene.add(dirLight2);
 
-    // Interactive Drag to Rotate Preview Model
+    // Lampu Hadapan Pandangan Kamera (Camera-view fill) untuk menerangi permukaan hadapan & rongga Nukleus
+    const frontFillLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    frontFillLight.position.set(0, 0.5, 3.5);
+    previewScene.add(frontFillLight);
+
+    // Warm laboratory accent light
+    const accentLight = new THREE.PointLight(0x38bdf8, 1.1, 10);
+    accentLight.position.set(-2, 3, 2);
+    previewScene.add(accentLight);
+
+    // Interactive Drag to Rotate & Deep Zoom (Pinch / Wheel / Toolbar)
     let prevX = 0;
     let prevY = 0;
     const host = DOM.stnPreviewHost || DOM.stnPreviewCanvas;
@@ -5202,17 +5315,84 @@
       previewModelGroup.rotation.x = Math.max(-0.6, Math.min(0.6, previewModelGroup.rotation.x + dy * 0.015));
     };
 
+    // Mouse Controls (Rotate & Wheel Zoom)
     host.addEventListener('mousedown', (e) => onStart(e.clientX, e.clientY));
     window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
     window.addEventListener('mouseup', () => { isPreviewDraggingGlobal = false; });
 
+    host.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const step = (previewZoomState.maxDistance - previewZoomState.minDistance) * 0.08;
+      const delta = Math.sign(e.deltaY) * step;
+      setPreviewZoom(previewZoomState.distance + delta);
+    }, { passive: false });
+
+    // Touch Controls (Single-touch rotate & 2-finger Pinch Zoom for iPad Safari)
     host.addEventListener('touchstart', (e) => {
-      if (e.touches.length > 0) onStart(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
+      if (e.touches.length === 1) {
+        onStart(e.touches[0].clientX, e.touches[0].clientY);
+      } else if (e.touches.length === 2) {
+        isPreviewDraggingGlobal = false;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        previewZoomState.isPinching = true;
+        previewZoomState.startPinchDist = Math.hypot(dx, dy);
+        previewZoomState.startZoomDist = previewZoomState.distance;
+      }
+    }, { passive: false });
+
     window.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 0) onMove(e.touches[0].clientX, e.touches[0].clientY);
+      if (previewZoomState.isPinching && e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const curDist = Math.hypot(dx, dy);
+        if (previewZoomState.startPinchDist > 0) {
+          const ratio = curDist / previewZoomState.startPinchDist;
+          setPreviewZoom(previewZoomState.startZoomDist / ratio);
+        }
+      } else if (isPreviewDraggingGlobal && e.touches.length === 1) {
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        previewZoomState.isPinching = false;
+      }
+      if (e.touches.length === 0) {
+        isPreviewDraggingGlobal = false;
+      }
     }, { passive: true });
-    window.addEventListener('touchend', () => { isPreviewDraggingGlobal = false; }, { passive: true });
+
+    // Toolbar Buttons Zoom (+ / - / Fit)
+    const btnIn = document.getElementById('cq-zoom-in-btn');
+    const btnOut = document.getElementById('cq-zoom-out-btn');
+    const btnFit = document.getElementById('cq-zoom-fit-btn');
+
+    if (btnIn) {
+      btnIn.onclick = (e) => {
+        e.stopPropagation();
+        const step = (previewZoomState.maxDistance - previewZoomState.minDistance) * 0.15;
+        setPreviewZoom(previewZoomState.distance - step);
+      };
+    }
+    if (btnOut) {
+      btnOut.onclick = (e) => {
+        e.stopPropagation();
+        const step = (previewZoomState.maxDistance - previewZoomState.minDistance) * 0.15;
+        setPreviewZoom(previewZoomState.distance + step);
+      };
+    }
+    if (btnFit) {
+      btnFit.onclick = (e) => {
+        e.stopPropagation();
+        setPreviewZoom(previewZoomState.defaultDistance);
+        if (previewModelGroup) {
+          previewModelGroup.rotation.set(0, 0, 0);
+        }
+      };
+    }
   }
 
   function updateStationPreview(stn) {
@@ -5227,7 +5407,9 @@
     // Build dedicated preview representation of the organelle (fallback + GLB upgrade untuk semua 8 stesen)
     previewModelGroup = buildStylizedOrganelle(stn.number, stn.colorHex);
     previewModelGroup.scale.set(1.4, 1.4, 1.4);
+    previewModelGroup.rotation.set(0, 0, 0);
     previewScene.add(previewModelGroup);
+    recalculatePreviewBounds();
 
     const previewGLBMap = {
       1: 'nucleus',
@@ -5246,6 +5428,8 @@
         stationNumber: stn.number,
         organelleId: glbKey,
         alignOnTable: false
+      }).then(() => {
+        recalculatePreviewBounds();
       });
     } else if (stn.number === 8) {
       previewModelGroup.scale.set(1, 1, 1);
@@ -5259,9 +5443,13 @@
         erCenter.position.set(0, 0.32, 0.04);
         compGroup.clear();
         compGroup.add(leftAnimal, rightPlant, erCenter);
-        mountGLBIntoContainer(leftAnimal, 'animal', 'preview', { customTargetSize: 0.85, alignOnTable: false });
-        mountGLBIntoContainer(rightPlant, 'plant', 'preview', { customTargetSize: 0.88, alignOnTable: false });
-        mountGLBIntoContainer(erCenter, 'er', 'preview', { customTargetSize: 0.70, alignOnTable: false });
+        Promise.all([
+          mountGLBIntoContainer(leftAnimal, 'animal', 'preview', { customTargetSize: 0.85, alignOnTable: false }),
+          mountGLBIntoContainer(rightPlant, 'plant', 'preview', { customTargetSize: 0.88, alignOnTable: false }),
+          mountGLBIntoContainer(erCenter, 'er', 'preview', { customTargetSize: 0.70, alignOnTable: false })
+        ]).then(() => {
+          recalculatePreviewBounds();
+        });
       }
     }
 
@@ -5278,7 +5466,7 @@
     function animatePreview() {
       if (DOM.stationModal.classList.contains('open')) {
         previewAnimId = requestAnimationFrame(animatePreview);
-        if (previewModelGroup && !isPreviewDraggingGlobal) {
+        if (previewModelGroup && !isPreviewDraggingGlobal && !previewZoomState.isPinching) {
           previewModelGroup.rotation.y += 0.006; // Putaran pameran lembut
         }
         if (previewModelGroup && previewModelGroup.userData && previewModelGroup.userData.isCytoplasmGel && previewModelGroup.userData.gelVisual) {
@@ -9045,23 +9233,39 @@
       }
     }
 
-    // 9. Kemas kini SATU Arahan Utama di bahagian tengah (Bahagian 6 & Fasa A.1)
+    // 9. Kemas kini SATU Arahan Utama di bahagian tengah (Fasa A.3: Bebas Pertindihan HUD)
     if (DOM.arSingleInstruction && DOM.arSingleInstructionText && arWorldState.active) {
-      DOM.arSingleInstruction.style.display = 'block';
-      if (isTargetDiscovered) {
-        DOM.arSingleInstructionText.textContent = isChestTarget ? '✓ Peti Harta Karun Ditemui! Ketik untuk membuka.' : `✓ Stesen ${targetCfg.label} dikesan! Dekati dan ketik untuk teroka.`;
-        DOM.arSingleInstruction.classList.add('discovered');
-      } else if (!azAligned) {
-        const arrow = deltaAz > 0 ? '↷' : '↶';
-        const lbl = isChestTarget ? 'Peti Harta Karun' : targetCfg.label;
-        DOM.arSingleInstructionText.textContent = `<<< 🔍 Pusing ${turnWord} ${absAz}° untuk mencari Stesen ${targetCfg.stationNumber} (${lbl} • ${distTier}) >>>`;
-        DOM.arSingleInstruction.classList.remove('discovered');
+      // Keutamaan 1: Sekiranya Kad Butiran Organel dibuka penuh di sebelah kanan, sembunyikan arahan tengah
+      // untuk menghapuskan sebarang kemungkinan teks bertindih pada skrin iPad (1024x768).
+      const isCardOpenFull = DOM.arOrganelleCard &&
+        DOM.arOrganelleCard.style.display === 'block' &&
+        !DOM.arOrganelleCard.classList.contains('minimized');
+
+      if (isCardOpenFull) {
+        DOM.arSingleInstruction.style.opacity = '0';
+        DOM.arSingleInstruction.style.pointerEvents = 'none';
       } else {
-        const arrow = deltaEl > 0 ? '↑' : '↓';
-        const verb = deltaEl > 0 ? 'Naikkan' : 'Turunkan';
-        const lbl = isChestTarget ? 'Peti Harta Karun!' : targetCfg.label;
-        DOM.arSingleInstructionText.textContent = `${arrow} ${verb} kamera ${absEl}° ke paras meja/lantai untuk mencari ${lbl}`;
-        DOM.arSingleInstruction.classList.remove('discovered');
+        DOM.arSingleInstruction.style.display = 'block';
+        DOM.arSingleInstruction.style.opacity = '1';
+        DOM.arSingleInstruction.style.pointerEvents = 'none';
+
+        if (isTargetDiscovered) {
+          DOM.arSingleInstructionText.textContent = isChestTarget 
+            ? '✓ Peti Harta Karun Ditemui! Ketik untuk buka.' 
+            : `✓ Stesen ${targetCfg.label} dikesan! Dekati & ketik untuk teroka.`;
+          DOM.arSingleInstruction.classList.add('discovered');
+        } else if (!azAligned) {
+          const arrow = deltaAz > 0 ? '↷' : '↶';
+          const lbl = isChestTarget ? 'Peti Harta Karun' : targetCfg.label;
+          DOM.arSingleInstructionText.textContent = `${arrow} Pusing ${turnWord} ${absAz}° (${lbl})`;
+          DOM.arSingleInstruction.classList.remove('discovered');
+        } else {
+          const arrow = deltaEl > 0 ? '▲' : '▼';
+          const verb = deltaEl > 0 ? 'Dongak' : 'Tunduk';
+          const lbl = isChestTarget ? 'Peti' : targetCfg.label;
+          DOM.arSingleInstructionText.textContent = `${arrow} ${verb} kamera ${absEl}° (${lbl})`;
+          DOM.arSingleInstruction.classList.remove('discovered');
+        }
       }
     }
   }
@@ -10767,6 +10971,10 @@
     if (DOM.arCardMinIcon) {
       DOM.arCardMinIcon.textContent = shouldMin ? 'expand_less' : 'expand_more';
     }
+    // Fasa A.3: Selaraskan keterlihatan arahan tengah dengan keadaan minimum kad
+    if (DOM.arSingleInstruction) {
+      DOM.arSingleInstruction.style.opacity = shouldMin ? '1' : '0';
+    }
     SoundFX.interact();
   }
 
@@ -10809,6 +11017,12 @@
       // Ensure card is expanded when new organelle is selected
       toggleOrganelleCardMinimize(false);
       DOM.arOrganelleCard.style.display = 'block';
+
+      // Fasa A.3: Sembunyikan arahan bawah tengah secara anggun untuk menghapuskan sebarang kemungkinan pertindihan HUD
+      if (DOM.arSingleInstruction) {
+        DOM.arSingleInstruction.style.opacity = '0';
+        DOM.arSingleInstruction.style.pointerEvents = 'none';
+      }
 
       if (DOM.arCardSpeechBtn) {
         DOM.arCardSpeechBtn.onclick = (e) => {
@@ -11457,6 +11671,9 @@
     raycast3DAt: (x, y) => handle3DStationRaycastTap(x, y),
     selectOrganelle: (id, num) => selectAROrganelle(id, num),
     openQuiz: (idx) => openStationModal(idx),
+    getPreviewZoomState: () => previewZoomState,
+    getPreviewModelGroup: () => previewModelGroup,
+    getPreviewCamera: () => previewCamera,
     getTreasureHuntState: () => ({
       unlocked: State.treasureHuntUnlocked,
       active: State.treasureHuntActive,
