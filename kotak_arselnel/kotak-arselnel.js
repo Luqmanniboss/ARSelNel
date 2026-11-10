@@ -3154,6 +3154,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.povPanelVideo) {
       DOM.povPanelVideo.classList.remove('hidden');
       DOM.povPanelVideo.classList.add('is-visible');
+      DOM.povPanelVideo.style.opacity = '1';
+      DOM.povPanelVideo.style.visibility = 'visible';
+      DOM.povPanelVideo.style.pointerEvents = 'auto';
     }
     if (ARState.activeVideo) {
       if (DOM.activePlayerView) DOM.activePlayerView.classList.add('is-active');
@@ -3239,6 +3242,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.povPanelNota) {
       DOM.povPanelNota.classList.remove('hidden');
       DOM.povPanelNota.classList.add('is-visible');
+      DOM.povPanelNota.style.opacity = '1';
+      DOM.povPanelNota.style.visibility = 'visible';
+      DOM.povPanelNota.style.pointerEvents = 'auto';
     }
     // Only load from CMS/seed if no note was ever chosen
     if (!ARState.activeNote) {
@@ -3315,6 +3321,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.povPanelKuiz) {
       DOM.povPanelKuiz.classList.remove('hidden');
       DOM.povPanelKuiz.classList.add('is-visible');
+      DOM.povPanelKuiz.style.opacity = '1';
+      DOM.povPanelKuiz.style.visibility = 'visible';
+      DOM.povPanelKuiz.style.pointerEvents = 'auto';
     }
     if (!ARState.games || ARState.games.length === 0) {
       loadGamesCatalog();
@@ -3496,6 +3505,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    * Fasa 4E-D.1: Menyokong parameter pilihan cellType ('animal' | 'plant')
    */
   function handleTargetFound(targetIndex, moduleName, cellType) {
+    if (!moduleName) {
+      if (targetIndex === 0) moduleName = 'video';
+      else if (targetIndex === 1) moduleName = 'nota';
+      else if (targetIndex === 2) moduleName = 'kuiz';
+      else if (targetIndex === 3) { moduleName = 'cellquest'; cellType = cellType || 'animal'; }
+      else if (targetIndex === 4) { moduleName = 'cellquest'; cellType = cellType || 'plant'; }
+    }
+
     // 🛡️ ISOLATION: Jika permainan aktif, sekat sebarang gangguan marker
     if (GameSessionManager.isGameActive()) {
       console.log(`[KotakAR] 🛡️ Permainan aktif, pengesanan Marker ${moduleName} diabaikan.`);
@@ -3638,6 +3655,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povPanelNota) {
         DOM.povPanelNota.classList.remove('hidden');
         DOM.povPanelNota.classList.add('is-visible', 'is-centered');
+        DOM.povPanelNota.style.opacity = '1';
+        DOM.povPanelNota.style.visibility = 'visible';
+        DOM.povPanelNota.style.pointerEvents = 'auto';
         DOM.povPanelNota.style.left = '50%';
         DOM.povPanelNota.style.top = '50%';
         DOM.povPanelNota.style.transform = 'translate(-50%, -50%)';
@@ -3685,6 +3705,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povPanelVideo) {
         DOM.povPanelVideo.classList.remove('hidden');
         DOM.povPanelVideo.classList.add('is-visible', 'is-centered');
+        DOM.povPanelVideo.style.opacity = '1';
+        DOM.povPanelVideo.style.visibility = 'visible';
+        DOM.povPanelVideo.style.pointerEvents = 'auto';
         DOM.povPanelVideo.style.left = '50%';
         DOM.povPanelVideo.style.top = '50%';
         DOM.povPanelVideo.style.transform = 'translate(-50%, -50%)';
@@ -3733,6 +3756,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povPanelKuiz) {
         DOM.povPanelKuiz.classList.remove('hidden');
         DOM.povPanelKuiz.classList.add('is-visible', 'is-centered');
+        DOM.povPanelKuiz.style.opacity = '1';
+        DOM.povPanelKuiz.style.visibility = 'visible';
+        DOM.povPanelKuiz.style.pointerEvents = 'auto';
         DOM.povPanelKuiz.style.left = '50%';
         DOM.povPanelKuiz.style.top = '50%';
         DOM.povPanelKuiz.style.transform = 'translate(-50%, -50%)';
@@ -3833,6 +3859,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.multiPanelTagsList) {
       DOM.multiPanelTagsList.innerHTML = '';
       ARState.activePanels.forEach((mod) => {
+        if (!mod) return;
         const pill = document.createElement('button');
         pill.type = 'button';
         pill.className = `multi-pill pill-${mod}`;
@@ -3978,6 +4005,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
       if (DOM.scannerOverlay) DOM.scannerOverlay.classList.remove('hidden');
       if (DOM.arMultiPanelBar) DOM.arMultiPanelBar.classList.add('hidden');
+      ARState.markerCooldown = {};
       showToast(`Modul ${modLabel} ditutup. Sedia untuk imbasan baharu.`);
     } else {
       // 2. Masih ada modul aktif lain (cth: Nota masih aktif apabila Video ditutup)
@@ -4063,17 +4091,21 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.btnChangeContentText) DOM.btnChangeContentText.textContent = 'Tukar Permainan';
       if (DOM.povBtnChangeContentText) DOM.povBtnChangeContentText.textContent = 'Tukar Permainan';
 
-      // Hide video views
-      if (DOM.videoSelectionView) DOM.videoSelectionView.style.display = 'none';
-      if (DOM.activePlayerView) DOM.activePlayerView.classList.remove('is-active');
-      if (DOM.povActivePlayerView) DOM.povActivePlayerView.classList.add('hidden');
-      if (DOM.povVideoSelectionView) DOM.povVideoSelectionView.classList.add('hidden');
+      // Hide video views ONLY if video is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('video')) {
+        if (DOM.videoSelectionView) DOM.videoSelectionView.style.display = 'none';
+        if (DOM.activePlayerView) DOM.activePlayerView.classList.remove('is-active');
+        if (DOM.povActivePlayerView) DOM.povActivePlayerView.classList.add('hidden');
+        if (DOM.povVideoSelectionView) DOM.povVideoSelectionView.classList.add('hidden');
+      }
 
-      // Hide note views
-      if (DOM.notaSelectionView) DOM.notaSelectionView.classList.add('hidden');
-      if (DOM.activeNotaView) DOM.activeNotaView.classList.add('hidden');
-      if (DOM.povActiveNotaView) DOM.povActiveNotaView.classList.add('hidden');
-      if (DOM.povNotaSelectionView) DOM.povNotaSelectionView.classList.add('hidden');
+      // Hide note views ONLY if nota is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('nota')) {
+        if (DOM.notaSelectionView) DOM.notaSelectionView.classList.add('hidden');
+        if (DOM.activeNotaView) DOM.activeNotaView.classList.add('hidden');
+        if (DOM.povActiveNotaView) DOM.povActiveNotaView.classList.add('hidden');
+        if (DOM.povNotaSelectionView) DOM.povNotaSelectionView.classList.add('hidden');
+      }
 
       // Hide CellQuest views
       if (DOM.cellquestSelectionView) DOM.cellquestSelectionView.classList.add('hidden');
@@ -4156,19 +4188,23 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.btnChangeContentText) DOM.btnChangeContentText.textContent = 'Tukar Nota';
       if (DOM.povBtnChangeContentText) DOM.povBtnChangeContentText.textContent = 'Tukar Nota';
 
-      // Hide video views
-      if (DOM.videoSelectionView) DOM.videoSelectionView.style.display = 'none';
-      if (DOM.activePlayerView) DOM.activePlayerView.classList.remove('is-active');
-      if (DOM.povActivePlayerView) DOM.povActivePlayerView.classList.add('hidden');
-      if (DOM.povVideoSelectionView) DOM.povVideoSelectionView.classList.add('hidden');
+      // Hide video views ONLY if video is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('video')) {
+        if (DOM.videoSelectionView) DOM.videoSelectionView.style.display = 'none';
+        if (DOM.activePlayerView) DOM.activePlayerView.classList.remove('is-active');
+        if (DOM.povActivePlayerView) DOM.povActivePlayerView.classList.add('hidden');
+        if (DOM.povVideoSelectionView) DOM.povVideoSelectionView.classList.add('hidden');
+      }
 
-      // Hide quiz views
-      if (DOM.kuizSelectionView) DOM.kuizSelectionView.classList.add('hidden');
-      if (DOM.activeKuizView) DOM.activeKuizView.classList.add('hidden');
-      if (DOM.kuizResultView) DOM.kuizResultView.classList.add('hidden');
-      if (DOM.povKuizSelectionView) DOM.povKuizSelectionView.classList.add('hidden');
-      if (DOM.povActiveKuizView) DOM.povActiveKuizView.classList.add('hidden');
-      if (DOM.povKuizResultView) DOM.povKuizResultView.classList.add('hidden');
+      // Hide quiz views ONLY if kuiz is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('kuiz')) {
+        if (DOM.kuizSelectionView) DOM.kuizSelectionView.classList.add('hidden');
+        if (DOM.activeKuizView) DOM.activeKuizView.classList.add('hidden');
+        if (DOM.kuizResultView) DOM.kuizResultView.classList.add('hidden');
+        if (DOM.povKuizSelectionView) DOM.povKuizSelectionView.classList.add('hidden');
+        if (DOM.povActiveKuizView) DOM.povActiveKuizView.classList.add('hidden');
+        if (DOM.povKuizResultView) DOM.povKuizResultView.classList.add('hidden');
+      }
 
       // Hide CellQuest views
       if (DOM.cellquestSelectionView) DOM.cellquestSelectionView.classList.add('hidden');
@@ -4253,19 +4289,23 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.btnChangeContentText) DOM.btnChangeContentText.textContent = 'Tukar Video';
       if (DOM.povBtnChangeContentText) DOM.povBtnChangeContentText.textContent = 'Tukar Video';
 
-      // Hide note views
-      if (DOM.notaSelectionView) DOM.notaSelectionView.classList.add('hidden');
-      if (DOM.activeNotaView) DOM.activeNotaView.classList.add('hidden');
-      if (DOM.povActiveNotaView) DOM.povActiveNotaView.classList.add('hidden');
-      if (DOM.povNotaSelectionView) DOM.povNotaSelectionView.classList.add('hidden');
+      // Hide note views ONLY if nota is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('nota')) {
+        if (DOM.notaSelectionView) DOM.notaSelectionView.classList.add('hidden');
+        if (DOM.activeNotaView) DOM.activeNotaView.classList.add('hidden');
+        if (DOM.povActiveNotaView) DOM.povActiveNotaView.classList.add('hidden');
+        if (DOM.povNotaSelectionView) DOM.povNotaSelectionView.classList.add('hidden');
+      }
 
-      // Hide quiz views
-      if (DOM.kuizSelectionView) DOM.kuizSelectionView.classList.add('hidden');
-      if (DOM.activeKuizView) DOM.activeKuizView.classList.add('hidden');
-      if (DOM.kuizResultView) DOM.kuizResultView.classList.add('hidden');
-      if (DOM.povKuizSelectionView) DOM.povKuizSelectionView.classList.add('hidden');
-      if (DOM.povActiveKuizView) DOM.povActiveKuizView.classList.add('hidden');
-      if (DOM.povKuizResultView) DOM.povKuizResultView.classList.add('hidden');
+      // Hide quiz views ONLY if kuiz is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('kuiz')) {
+        if (DOM.kuizSelectionView) DOM.kuizSelectionView.classList.add('hidden');
+        if (DOM.activeKuizView) DOM.activeKuizView.classList.add('hidden');
+        if (DOM.kuizResultView) DOM.kuizResultView.classList.add('hidden');
+        if (DOM.povKuizSelectionView) DOM.povKuizSelectionView.classList.add('hidden');
+        if (DOM.povActiveKuizView) DOM.povActiveKuizView.classList.add('hidden');
+        if (DOM.povKuizResultView) DOM.povKuizResultView.classList.add('hidden');
+      }
 
       // Hide CellQuest views
       if (DOM.cellquestSelectionView) DOM.cellquestSelectionView.classList.add('hidden');
@@ -4327,36 +4367,44 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         DOM.povCard.classList.add('module-cellquest');
       }
 
-      // Hide video views
-      if (DOM.videoSelectionView) DOM.videoSelectionView.style.display = 'none';
-      if (DOM.activePlayerView) DOM.activePlayerView.classList.remove('is-active');
-      if (DOM.povActivePlayerView) DOM.povActivePlayerView.classList.add('hidden');
-      if (DOM.povVideoSelectionView) DOM.povVideoSelectionView.classList.add('hidden');
+      // Hide video views ONLY if video is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('video')) {
+        if (DOM.videoSelectionView) DOM.videoSelectionView.style.display = 'none';
+        if (DOM.activePlayerView) DOM.activePlayerView.classList.remove('is-active');
+        if (DOM.povActivePlayerView) DOM.povActivePlayerView.classList.add('hidden');
+        if (DOM.povVideoSelectionView) DOM.povVideoSelectionView.classList.add('hidden');
+      }
 
-      // Hide note views
-      if (DOM.notaSelectionView) DOM.notaSelectionView.classList.add('hidden');
-      if (DOM.activeNotaView) DOM.activeNotaView.classList.add('hidden');
-      if (DOM.povActiveNotaView) DOM.povActiveNotaView.classList.add('hidden');
-      if (DOM.povNotaSelectionView) DOM.povNotaSelectionView.classList.add('hidden');
+      // Hide note views ONLY if nota is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('nota')) {
+        if (DOM.notaSelectionView) DOM.notaSelectionView.classList.add('hidden');
+        if (DOM.activeNotaView) DOM.activeNotaView.classList.add('hidden');
+        if (DOM.povActiveNotaView) DOM.povActiveNotaView.classList.add('hidden');
+        if (DOM.povNotaSelectionView) DOM.povNotaSelectionView.classList.add('hidden');
+      }
 
-      // Hide quiz views
-      if (DOM.kuizSelectionView) DOM.kuizSelectionView.classList.add('hidden');
-      if (DOM.activeKuizView) DOM.activeKuizView.classList.add('hidden');
-      if (DOM.kuizResultView) DOM.kuizResultView.classList.add('hidden');
-      if (DOM.povKuizSelectionView) DOM.povKuizSelectionView.classList.add('hidden');
-      if (DOM.povActiveKuizView) DOM.povActiveKuizView.classList.add('hidden');
-      if (DOM.povKuizResultView) DOM.povKuizResultView.classList.add('hidden');
-      if (DOM.embeddedGameView) DOM.embeddedGameView.classList.add('hidden');
-      if (DOM.povEmbeddedGameView) DOM.povEmbeddedGameView.classList.add('hidden');
+      // Hide quiz views ONLY if kuiz is not an active panel
+      if (!ARState.activePanels || !ARState.activePanels.has('kuiz')) {
+        if (DOM.kuizSelectionView) DOM.kuizSelectionView.classList.add('hidden');
+        if (DOM.activeKuizView) DOM.activeKuizView.classList.add('hidden');
+        if (DOM.kuizResultView) DOM.kuizResultView.classList.add('hidden');
+        if (DOM.povKuizSelectionView) DOM.povKuizSelectionView.classList.add('hidden');
+        if (DOM.povActiveKuizView) DOM.povActiveKuizView.classList.add('hidden');
+        if (DOM.povKuizResultView) DOM.povKuizResultView.classList.add('hidden');
+        if (DOM.embeddedGameView) DOM.embeddedGameView.classList.add('hidden');
+        if (DOM.povEmbeddedGameView) DOM.povEmbeddedGameView.classList.add('hidden');
+      }
 
       // Fasa 4D-C: HIDE cardboard floating panel & POV panel so 3D model appears DIRECTLY in AR camera view!
-      if (DOM.floatingAnchor) {
-        DOM.floatingAnchor.classList.remove('is-visible');
-        DOM.floatingAnchor.classList.add('hidden');
-      }
-      if (DOM.povAnchor) {
-        DOM.povAnchor.classList.remove('is-visible');
-        DOM.povAnchor.classList.add('hidden');
+      if (!ARState.activePanels || !ARState.activePanels.has('video')) {
+        if (DOM.floatingAnchor) {
+          DOM.floatingAnchor.classList.remove('is-visible');
+          DOM.floatingAnchor.classList.add('hidden');
+        }
+        if (DOM.povAnchor) {
+          DOM.povAnchor.classList.remove('is-visible');
+          DOM.povAnchor.classList.add('hidden');
+        }
       }
 
       // Activate Direct 3D CellQuest AR Experience
@@ -6201,11 +6249,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    */
   function getMarkerMindUrl() {
     const loc = window.location;
+    const versionTag = 'v=fasa4ed12';
     if (loc.pathname.includes('/kotak_arselnel')) {
       const rootPart = loc.pathname.substring(0, loc.pathname.indexOf('/kotak_arselnel') + '/kotak_arselnel'.length);
-      return `${loc.origin}${rootPart}/assets/markers/kotak_arselnel.mind`;
+      return `${loc.origin}${rootPart}/assets/markers/kotak_arselnel.mind?${versionTag}`;
     }
-    return new URL('assets/markers/kotak_arselnel.mind', loc.href).href;
+    return new URL(`assets/markers/kotak_arselnel.mind?${versionTag}`, loc.href).href;
   }
 
   /**
@@ -6894,7 +6943,19 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (ARState.activeGame) {
       closeEmbeddedGame();
     }
-    destroyVideoSession();
+    if (ARState.activeModule === 'nota') {
+      destroyNotaSession();
+    } else if (ARState.activeModule === 'kuiz') {
+      destroyKuizSession();
+    } else if (ARState.activeModule === 'cellquest') {
+      if (typeof destroyCellQuestSession === 'function') {
+        destroyCellQuestSession();
+      } else if (typeof CellQuestARController !== 'undefined') {
+        CellQuestARController.deactivate();
+      }
+    } else {
+      destroyVideoSession();
+    }
   }
 
   /**
@@ -9546,6 +9607,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   global.nextQuizQuestion = nextQuizQuestion;
   global.finishActiveQuiz = finishActiveQuiz;
   global.retryActiveQuiz = retryActiveQuiz;
+  global.selectVideo = selectVideo;
   global.selectNote = selectNote;
   global.applySimAngles = applySimAngles;
   global.renderSinglePOVFrame = renderSinglePOVFrame;

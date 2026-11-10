@@ -141,3 +141,4 @@ main().catch(err => {
   console.error('Error rendering PNG markers:', err);
   process.exit(1);
 });
+

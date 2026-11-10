@@ -158,8 +158,8 @@ async function main() {
         const img2 = await loadImage('/kotak_arselnel/assets/markers/marker-kuiz.png');
         console.log('Target 2 loaded:', img2.width, 'x', img2.height);
 
-        console.log('Loading marker-sel-haiwan.png (Target 3)...');
-        const img3 = await loadImage('/kotak_arselnel/assets/markers/marker-sel-haiwan.png');
+        console.log('Loading marker-cellquest.png (Target 3 - Sel Haiwan / Original Box Face 4)...');
+        const img3 = await loadImage('/kotak_arselnel/assets/markers/marker-cellquest.png');
         console.log('Target 3 loaded:', img3.width, 'x', img3.height);
 
         console.log('Loading marker-sel-tumbuhan.png (Target 4)...');

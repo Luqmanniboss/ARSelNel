@@ -247,6 +247,11 @@ const appHandler = async (req, res) => {
 
     // Handle pre-compressed WebGL files (.br / .gz) and underlying MIME types
     const headers = { 'Content-Type': contentType };
+    if (ext === '.mind' || ext === '.html' || ext === '.js') {
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      headers['Pragma'] = 'no-cache';
+      headers['Expires'] = '0';
+    }
     if (filePath.endsWith('.wasm.br') || filePath.endsWith('.wasm.gz')) {
       headers['Content-Type'] = 'application/wasm';
       headers['Content-Encoding'] = filePath.endsWith('.wasm.br') ? 'br' : 'gzip';
