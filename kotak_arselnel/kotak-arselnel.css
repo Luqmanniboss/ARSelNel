@@ -5379,6 +5379,992 @@ body.cellquest-active #ar-container canvas {
   }
 }
 
+/* ==============================================================================
+   ARSELNEL — FASA UI LIGHT OVERLAY REDESIGN
+   Tema Cerah, Pastel, Moden & Mesra Murid Tingkatan 1
+   Sistem Warna: Video (Jingga), Nota (Hijau), Kuiz (Ungu), CellQuest (Sian)
+   ============================================================================== */
+
+:root {
+  /* Light Theme Shared Variables */
+  --light-card-bg: #FFFFFF;
+  --light-text-main: #0F172A;
+  --light-text-muted: #475569;
+  --light-border-subtle: #E2E8F0;
+
+  /* Modul 1: Video Pembelajaran (Jingga / Pastel Orange) */
+  --ui-video-bg: #FFF7ED;
+  --ui-video-border: #F97316;
+  --ui-video-header: #F97316;
+  --ui-video-pill-bg: #FFEDD5;
+  --ui-video-pill-border: #FED7AA;
+  --ui-video-pill-text: #C2410C;
+  --ui-video-shadow: 0 12px 32px -4px rgba(249, 115, 22, 0.22), 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  /* Modul 2: Nota Interaktif (Hijau / Pastel Green) */
+  --ui-nota-bg: #F0FDF4;
+  --ui-nota-border: #22C55E;
+  --ui-nota-header: #22C55E;
+  --ui-nota-pill-bg: #DCFCE7;
+  --ui-nota-pill-border: #86EFAC;
+  --ui-nota-pill-text: #15803D;
+  --ui-nota-shadow: 0 12px 32px -4px rgba(34, 197, 94, 0.22), 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  /* Modul 3: Kuiz & Permainan (Ungu / Pastel Lavender) */
+  --ui-kuiz-bg: #FAF5FF;
+  --ui-kuiz-border: #A855F7;
+  --ui-kuiz-header: #A855F7;
+  --ui-kuiz-pill-bg: #F3E8FF;
+  --ui-kuiz-pill-border: #D8B4FE;
+  --ui-kuiz-pill-text: #7E22CE;
+  --ui-kuiz-shadow: 0 12px 32px -4px rgba(168, 85, 247, 0.22), 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  /* Modul 4: CellQuest 3D (Sian / Pastel Cyan) */
+  --ui-cq-bg: #ECFEFF;
+  --ui-cq-border: #06B6D4;
+  --ui-cq-header: #06B6D4;
+  --ui-cq-pill-bg: #CFFAFE;
+  --ui-cq-pill-border: #A5F3FC;
+  --ui-cq-pill-text: #0E7490;
+  --ui-cq-shadow: 0 12px 32px -4px rgba(6, 182, 212, 0.22), 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  /* Unified Action Buttons by Purpose */
+  --btn-blue-bg: #2563EB;
+  --btn-blue-hover: #1D4ED8;
+  --btn-blue-active: #1E40AF;
+
+  --btn-purple-bg: #7C3AED;
+  --btn-purple-hover: #6D28D9;
+  --btn-purple-active: #5B21B6;
+
+  --btn-yellow-bg: #FACC15;
+  --btn-yellow-hover: #EAB308;
+  --btn-yellow-active: #CA8A04;
+  --btn-yellow-text: #0F172A;
+
+  --btn-red-bg: #EF4444;
+  --btn-red-hover: #DC2626;
+  --btn-red-active: #B91C1C;
+
+  --btn-green-bg: #16A34A;
+  --btn-green-hover: #15803D;
+  --btn-green-active: #166534;
+
+  --btn-cam-bg: #DBEAFE;
+  --btn-cam-border: #93C5FD;
+  --btn-cam-text: #1D4ED8;
+  --btn-cam-hover: #BFDBFE;
+}
+
+/* -----------------------------------------------------------------------------
+   1. TOP HUD & MULTI-PANEL TOOLBAR (LIGHT THEME)
+   ----------------------------------------------------------------------------- */
+.ar-top-hud {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 100%) !important;
+}
+
+#btn-back-dashboard {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #1E293B !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25) !important;
+}
+#btn-back-dashboard:hover {
+  background: #1E293B !important;
+}
+
+.ar-title-badge {
+  background: #FFFFFF !important;
+  border: 1.5px solid #FED7AA !important;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.12) !important;
+}
+.ar-title-badge span {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.ar-title-badge .logo-dot {
+  background: #F97316 !important;
+  box-shadow: 0 0 8px #F97316 !important;
+}
+
+#btn-toggle-diagnostics {
+  background: #FFFFFF !important;
+  border: 1.5px solid #0D9488 !important;
+  color: #0D9488 !important;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15) !important;
+}
+#btn-toggle-diagnostics:hover {
+  background: #F0FDFA !important;
+}
+
+#btn-open-marker {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #1E293B !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25) !important;
+}
+#btn-open-marker:hover {
+  background: #1E293B !important;
+}
+
+/* Multi-Panel Bar — Modern Clean Light Pill Container */
+.ar-multi-panel-bar {
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid #93C5FD !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+  padding: 6px 14px !important;
+}
+
+.btn-multi-add {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  padding: 7px 18px !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+.btn-multi-add:hover {
+  background: #1D4ED8 !important;
+  transform: translateY(-1px);
+}
+.btn-multi-add:active {
+  background: #1E40AF !important;
+  transform: translateY(0);
+}
+
+.multi-panel-badge-count {
+  background: #F0F9FF !important;
+  border: 1px solid #BAE6FD !important;
+  border-radius: 9999px !important;
+  padding: 4px 12px !important;
+  color: #0369A1 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+}
+
+.multi-pill.pill-nota {
+  background: #DCFCE7 !important;
+  border: 1px solid #86EFAC !important;
+  color: #15803D !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+}
+.multi-pill.pill-nota:hover, .multi-pill.pill-nota.active-focus {
+  background: #BBF7D0 !important;
+  color: #14532D !important;
+}
+
+.multi-pill.pill-video {
+  background: #FFEDD5 !important;
+  border: 1px solid #FED7AA !important;
+  color: #C2410C !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+}
+.multi-pill.pill-video:hover, .multi-pill.pill-video.active-focus {
+  background: #FDBA74 !important;
+  color: #7C2D12 !important;
+}
+
+.multi-pill.pill-kuiz {
+  background: #F3E8FF !important;
+  border: 1px solid #D8B4FE !important;
+  color: #7E22CE !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+}
+.multi-pill.pill-kuiz:hover, .multi-pill.pill-kuiz.active-focus {
+  background: #E9D5FF !important;
+  color: #581C87 !important;
+}
+
+.multi-pill.pill-cellquest {
+  background: #CFFAFE !important;
+  border: 1px solid #A5F3FC !important;
+  color: #0E7490 !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+}
+.multi-pill.pill-cellquest:hover, .multi-pill.pill-cellquest.active-focus {
+  background: #BAE6FD !important;
+  color: #0369A1 !important;
+}
+
+.multi-pill .pill-close-btn {
+  background: transparent !important;
+  color: #EF4444 !important;
+  font-weight: 900 !important;
+  opacity: 0.8 !important;
+}
+.multi-pill .pill-close-btn:hover {
+  background: #FEE2E2 !important;
+  color: #DC2626 !important;
+  opacity: 1 !important;
+}
+
+/* -----------------------------------------------------------------------------
+   2. PANEL CONTAINERS: NOTA (#F0FDF4), VIDEO (#FFF7ED), KUIZ (#FAF5FF)
+   ----------------------------------------------------------------------------- */
+
+/* Panel Nota: Background #F0FDF4, Border #22C55E */
+.pov-card-nota,
+.floating-card-container.module-nota {
+  background: #F0FDF4 !important;
+  border: 2px solid #22C55E !important;
+  border-radius: 24px !important;
+  box-shadow: 0 12px 32px -4px rgba(34, 197, 94, 0.22), 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+  color: #0F172A !important;
+}
+
+/* Panel Video: Background #FFF7ED, Border #F97316 */
+.pov-card-video,
+.floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest) {
+  background: #FFF7ED !important;
+  border: 2px solid #F97316 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 12px 32px -4px rgba(249, 115, 22, 0.22), 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+  color: #0F172A !important;
+}
+
+/* Panel Kuiz: Background #FAF5FF, Border #A855F7 */
+.pov-card-kuiz,
+.floating-card-container.module-kuiz {
+  background: #FAF5FF !important;
+  border: 2px solid #A855F7 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 12px 32px -4px rgba(168, 85, 247, 0.22), 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+  color: #0F172A !important;
+}
+
+/* Fixed Header Sub-borders */
+.pov-header-nota, .panel-fixed-header.header-nota {
+  border-bottom: 1px solid #DCFCE7 !important;
+}
+.pov-header-video, .panel-fixed-header.header-video {
+  border-bottom: 1px solid #FFEDD5 !important;
+}
+.pov-header-kuiz, .panel-fixed-header.header-kuiz {
+  border-bottom: 1px solid #F3E8FF !important;
+}
+
+/* Header Category Badges */
+.pov-tag-nota, .category-tag.tag-nota {
+  background: #22C55E !important;
+  color: #FFFFFF !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35) !important;
+}
+.pov-tag-video, .category-tag:not(.tag-nota):not(.tag-kuiz):not(.tag-cellquest) {
+  background: #F97316 !important;
+  color: #FFFFFF !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35) !important;
+}
+.pov-tag-kuiz, .category-tag.tag-kuiz {
+  background: #A855F7 !important;
+  color: #FFFFFF !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.35) !important;
+}
+.category-tag.tag-cellquest {
+  background: #06B6D4 !important;
+  color: #FFFFFF !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.35) !important;
+}
+
+/* Sensor Pills */
+.pov-nota-sensor-pill {
+  background: #DCFCE7 !important;
+  border: 1px solid #86EFAC !important;
+  color: #15803D !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+}
+.pov-nota-sensor-pill .ping {
+  background: #22C55E !important;
+  box-shadow: 0 0 6px #22C55E !important;
+}
+
+.pov-sensor-pill:not(.pov-nota-sensor-pill):not(.pov-kuiz-sensor-pill) {
+  background: #FFEDD5 !important;
+  border: 1px solid #FED7AA !important;
+  color: #C2410C !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+}
+.pov-sensor-pill:not(.pov-nota-sensor-pill):not(.pov-kuiz-sensor-pill) .ping {
+  background: #F97316 !important;
+  box-shadow: 0 0 6px #F97316 !important;
+}
+
+.pov-kuiz-sensor-pill {
+  background: #F3E8FF !important;
+  border: 1px solid #D8B4FE !important;
+  color: #7E22CE !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+}
+.pov-kuiz-sensor-pill .ping {
+  background: #A855F7 !important;
+  box-shadow: 0 0 6px #A855F7 !important;
+}
+
+/* -----------------------------------------------------------------------------
+   3. PINNED TOOLBAR (SAIZ & TUTUP KAMERA)
+   ----------------------------------------------------------------------------- */
+.size-controls-group .tool-label {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+}
+
+.size-segmented-control {
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  padding: 2px !important;
+}
+
+.btn-size {
+  color: #475569 !important;
+  font-weight: 800 !important;
+  border-radius: 8px !important;
+}
+.btn-size:hover {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+.btn-size.is-active {
+  background: #F97316 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.4) !important;
+}
+
+/* Button Tutup Kamera: Biru cair #DBEAFE */
+.btn-cam-toggle {
+  background: #DBEAFE !important;
+  border: 1.5px solid #93C5FD !important;
+  color: #1D4ED8 !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  min-height: 38px !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+.btn-cam-toggle:hover {
+  background: #BFDBFE !important;
+  color: #1E40AF !important;
+  transform: translateY(-1px);
+}
+.btn-cam-toggle:active {
+  background: #93C5FD !important;
+  transform: translateY(0);
+}
+.btn-cam-toggle.is-cam-off {
+  background: #FEE2E2 !important;
+  border-color: #FCA5A5 !important;
+  color: #DC2626 !important;
+}
+
+/* -----------------------------------------------------------------------------
+   4. TELEMETRY STRIP & GUIDANCE BANNER
+   ----------------------------------------------------------------------------- */
+/* Telemetry in Nota */
+.pov-card-nota .pov-telemetry-hud-strip {
+  background: #FFFFFF !important;
+  border: 1.5px solid #BBF7D0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+.pov-card-nota .hud-chip-icon {
+  color: #22C55E !important;
+}
+.pov-card-nota .hud-chip-label {
+  color: #475569 !important;
+}
+.pov-card-nota .hud-chip-val {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.pov-card-nota .status-chip {
+  background: #DCFCE7 !important;
+  border: 1px solid #86EFAC !important;
+  color: #15803D !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+}
+
+/* Telemetry in Video */
+.pov-card-video .pov-telemetry-hud-strip {
+  background: #FFFFFF !important;
+  border: 1.5px solid #FED7AA !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+.pov-card-video .hud-chip-icon {
+  color: #F97316 !important;
+}
+.pov-card-video .hud-chip-label {
+  color: #475569 !important;
+}
+.pov-card-video .hud-chip-val {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.pov-card-video .status-chip {
+  background: #FFEDD5 !important;
+  border: 1px solid #FED7AA !important;
+  color: #C2410C !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+}
+
+/* Telemetry in Kuiz */
+.pov-card-kuiz .pov-telemetry-hud-strip {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E9D5FF !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+.pov-card-kuiz .hud-chip-icon {
+  color: #A855F7 !important;
+}
+.pov-card-kuiz .hud-chip-label {
+  color: #475569 !important;
+}
+.pov-card-kuiz .hud-chip-val {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.pov-card-kuiz .status-chip {
+  background: #F3E8FF !important;
+  border: 1px solid #D8B4FE !important;
+  color: #7E22CE !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+}
+
+/* Guidance Status Banner */
+.pov-card-nota .pov-status-banner {
+  background: #DCFCE7 !important;
+  border: 1.5px solid #86EFAC !important;
+  border-radius: 14px !important;
+  color: #166534 !important;
+  font-weight: 600 !important;
+}
+.pov-card-nota .pov-status-banner .banner-icon {
+  color: #16A34A !important;
+}
+
+.pov-card-video .pov-status-banner {
+  background: #FFEDD5 !important;
+  border: 1.5px solid #FED7AA !important;
+  border-radius: 14px !important;
+  color: #9A3412 !important;
+  font-weight: 600 !important;
+}
+.pov-card-video .pov-status-banner .banner-icon {
+  color: #EA580C !important;
+}
+
+.pov-card-kuiz .pov-status-banner {
+  background: #F3E8FF !important;
+  border: 1.5px solid #D8B4FE !important;
+  border-radius: 14px !important;
+  color: #6B21A8 !important;
+  font-weight: 600 !important;
+}
+.pov-card-kuiz .pov-status-banner .banner-icon {
+  color: #7C3AED !important;
+}
+
+/* -----------------------------------------------------------------------------
+   5. NOTA READER CONTROLS & CONTENT CARD (#FFFFFF)
+   ----------------------------------------------------------------------------- */
+.nota-reader-toolbar {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+}
+
+#btn-nota-prev, #pov-btn-nota-prev {
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  min-height: 38px !important;
+  padding: 6px 14px !important;
+}
+#btn-nota-prev:hover:not(:disabled), #pov-btn-nota-prev:hover:not(:disabled) {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+.nota-page-indicator {
+  color: #15803D !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+}
+
+/* Butang Seterusnya: Hijau #16A34A */
+#btn-nota-next, #pov-btn-nota-next {
+  background: #16A34A !important;
+  border: 1px solid #15803D !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  min-height: 38px !important;
+  padding: 6px 14px !important;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3) !important;
+}
+#btn-nota-next:hover:not(:disabled), #pov-btn-nota-next:hover:not(:disabled) {
+  background: #15803D !important;
+}
+
+.btn-zoom, .btn-zoom-reset, .btn-nota-open-full {
+  background: #F0FDF4 !important;
+  border: 1px solid #BBF7D0 !important;
+  color: #15803D !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  min-height: 34px !important;
+}
+.btn-zoom:hover, .btn-zoom-reset:hover, .btn-nota-open-full:hover {
+  background: #DCFCE7 !important;
+  color: #166534 !important;
+}
+
+/* Background Kad Dalaman Nota: #FFFFFF */
+.nota-content-wrapper {
+  background: #FFFFFF !important;
+  border: 1.5px solid #DCFCE7 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+  padding: 18px !important;
+}
+.nota-content-header {
+  border-bottom: 1px solid #F1F5F9 !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 14px !important;
+}
+.nota-chapter-badge {
+  background: #DCFCE7 !important;
+  border: 1px solid #86EFAC !important;
+  color: #15803D !important;
+  font-weight: 800 !important;
+  border-radius: 8px !important;
+  padding: 4px 10px !important;
+}
+.nota-type-badge {
+  background: #FFE4E6 !important;
+  border: 1px solid #FECDD3 !important;
+  color: #E11D48 !important;
+  font-weight: 800 !important;
+  border-radius: 8px !important;
+  padding: 4px 10px !important;
+}
+.nota-time-badge {
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  padding: 4px 10px !important;
+}
+.nota-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+  font-size: 22px !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.35 !important;
+}
+.nota-body-rendered {
+  color: #334155 !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+}
+.nota-body-rendered h1,
+.nota-body-rendered h2,
+.nota-body-rendered h3 {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+/* -----------------------------------------------------------------------------
+   6. STICKY FOOTER ACTIONS (WARNA BERDASARKAN TINDAKAN)
+   ----------------------------------------------------------------------------- */
+.panel-sticky-footer {
+  border-top: 1px solid #E2E8F0 !important;
+  padding-top: 12px !important;
+  background: transparent !important;
+}
+
+.player-actions-bar {
+  display: flex !important;
+  gap: 10px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+/* 1. Alih / Letak Semula: Biru #2563EB */
+.btn-place-video,
+.btn-place-nota,
+.btn-place-kuiz,
+#pov-btn-anchor,
+#pov-nota-btn-anchor,
+#pov-kuiz-btn-anchor {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+.btn-place-video:hover,
+.btn-place-nota:hover,
+.btn-place-kuiz:hover,
+#pov-btn-anchor:hover,
+#pov-nota-btn-anchor:hover,
+#pov-kuiz-btn-anchor:hover {
+  background: #1D4ED8 !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45) !important;
+  transform: translateY(-1px) !important;
+}
+.btn-place-video:active,
+.btn-place-nota:active,
+.btn-place-kuiz:active,
+#pov-btn-anchor:active,
+#pov-nota-btn-anchor:active,
+#pov-kuiz-btn-anchor:active {
+  background: #1E40AF !important;
+  transform: translateY(0) !important;
+}
+
+/* 2. Tukar Nota / Tukar Video / Tukar Kuiz: Ungu #7C3AED */
+#pov-nota-btn-change-content,
+#pov-btn-change-video,
+#btn-change-video,
+#pov-kuiz-btn-change-content {
+  background: #7C3AED !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+#pov-nota-btn-change-content:hover,
+#pov-btn-change-video:hover,
+#btn-change-video:hover,
+#pov-kuiz-btn-change-content:hover {
+  background: #6D28D9 !important;
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.45) !important;
+  transform: translateY(-1px) !important;
+}
+#pov-nota-btn-change-content:active,
+#pov-btn-change-video:active,
+#btn-change-video:active,
+#pov-kuiz-btn-change-content:active {
+  background: #5B21B6 !important;
+  transform: translateY(0) !important;
+}
+
+/* 3. Semat Skrin: Kuning #FACC15 dengan teks gelap #0F172A */
+#pov-nota-btn-back-pinned,
+#pov-btn-back-pinned,
+#pov-kuiz-btn-back-pinned,
+#btn-place-video {
+  background: #FACC15 !important;
+  color: #0F172A !important;
+  border: none !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 14px rgba(250, 204, 21, 0.4) !important;
+  transition: all 0.2s ease !important;
+}
+#pov-nota-btn-back-pinned span,
+#pov-btn-back-pinned span,
+#pov-kuiz-btn-back-pinned span,
+#btn-place-video span {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+#pov-nota-btn-back-pinned:hover,
+#pov-btn-back-pinned:hover,
+#pov-kuiz-btn-back-pinned:hover,
+#btn-place-video:hover {
+  background: #EAB308 !important;
+  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+#pov-nota-btn-back-pinned:active,
+#pov-btn-back-pinned:active,
+#pov-kuiz-btn-back-pinned:active,
+#btn-place-video:active {
+  background: #CA8A04 !important;
+  transform: translateY(0) !important;
+}
+
+/* 4. Tutup: Merah #EF4444 */
+.btn-close-panel,
+#pov-nota-btn-close,
+#pov-btn-close,
+#pov-kuiz-btn-close,
+#btn-close-panel {
+  background: #EF4444 !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+.btn-close-panel:hover,
+#pov-nota-btn-close:hover,
+#pov-btn-close:hover,
+#pov-kuiz-btn-close:hover,
+#btn-close-panel:hover {
+  background: #DC2626 !important;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45) !important;
+  transform: translateY(-1px) !important;
+}
+.btn-close-panel:active,
+#pov-nota-btn-close:active,
+#pov-btn-close:active,
+#pov-kuiz-btn-close:active,
+#btn-close-panel:active {
+  background: #B91C1C !important;
+  transform: translateY(0) !important;
+}
+
+/* -----------------------------------------------------------------------------
+   7. VIDEO & KUIZ MODULE SPECIFIC LIGHT STYLING
+   ----------------------------------------------------------------------------- */
+/* Video Details Card */
+.active-video-details {
+  background: #FFFFFF !important;
+  border: 1.5px solid #FFEDD5 !important;
+  border-radius: 16px !important;
+  padding: 14px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+.active-video-details h3 {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.active-video-details p {
+  color: #475569 !important;
+}
+
+.ar-video-item {
+  background: #FFFFFF !important;
+  border: 1.5px solid #FED7AA !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+.ar-video-item h4 {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+.ar-video-item p {
+  color: #475569 !important;
+}
+.btn-choose-video {
+  background: #EA580C !important;
+  color: #FFFFFF !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+
+/* Kuiz 5 Minimalist Game Rows */
+.minimal-game-row {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E9D5FF !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.08) !important;
+}
+.minimal-game-row:hover {
+  background: #FAF5FF !important;
+  border-color: #A855F7 !important;
+  transform: translateY(-2px) !important;
+}
+.minimal-game-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.minimal-game-subtitle {
+  color: #6B21A8 !important;
+}
+.minimal-game-icon-wrap {
+  background: #F3E8FF !important;
+  border: 1px solid #D8B4FE !important;
+  color: #7E22CE !important;
+  border-radius: 12px !important;
+}
+.btn-play-minimal {
+  background: #7C3AED !important;
+  color: #FFFFFF !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+
+/* Kuiz MCQ Option Buttons */
+.kuiz-card-body {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E9D5FF !important;
+  border-radius: 18px !important;
+  padding: 16px !important;
+}
+.kuiz-question-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.kuiz-opt-btn {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+}
+.kuiz-opt-btn:hover {
+  background: #FAF5FF !important;
+  border-color: #A855F7 !important;
+}
+.kuiz-opt-btn.is-selected {
+  background: #F3E8FF !important;
+  border-color: #7C3AED !important;
+  color: #581C87 !important;
+}
+
+/* -----------------------------------------------------------------------------
+   8. CELLQUEST 3D IMMERSIVE HUD (SIAN / PASTEL CYAN)
+   ----------------------------------------------------------------------------- */
+.cq-organelle-card {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 2px solid #06B6D4 !important;
+  border-radius: 20px !important;
+  box-shadow: 0 12px 36px -4px rgba(6, 182, 212, 0.25) !important;
+  color: #0F172A !important;
+}
+.cq-card-name {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.cq-card-category {
+  color: #0891B2 !important;
+  font-weight: 700 !important;
+}
+.cq-section-label {
+  color: #0E7490 !important;
+  font-weight: 700 !important;
+}
+.cq-section-text {
+  color: #334155 !important;
+}
+.cq-card-close {
+  background: #ECFEFF !important;
+  border: 1px solid #A5F3FC !important;
+  color: #0891B2 !important;
+  border-radius: 8px !important;
+}
+
+/* CellQuest Bottom Controller */
+.cq-bottom-controls {
+  background: rgba(236, 254, 255, 0.96) !important;
+  border: 2px solid #06B6D4 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 10px 32px rgba(6, 182, 212, 0.2) !important;
+}
+.cq-cell-switcher {
+  background: #CFFAFE !important;
+  border: 1px solid #A5F3FC !important;
+}
+.cq-pill-btn {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+.cq-pill-btn.active {
+  background: #0891B2 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.35) !important;
+}
+
+/* CellQuest Action Buttons */
+.cq-action-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #A5F3FC !important;
+  color: #0E7490 !important;
+  border-radius: 12px !important;
+}
+.cq-action-btn .cq-action-label {
+  color: #475569 !important;
+}
+.cq-action-btn.is-active {
+  background: #06B6D4 !important;
+  border-color: #0891B2 !important;
+  color: #FFFFFF !important;
+}
+.cq-action-btn.is-active .cq-action-label {
+  color: #FFFFFF !important;
+}
+
+/* Selection Cards on Light Theme */
+.selection-title-box h3 {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+.selection-title-box p {
+  color: #475569 !important;
+}
+.nota-item-card {
+  background: #FFFFFF !important;
+  border: 1.5px solid #BBF7D0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+.nota-item-card:hover {
+  background: #F0FDF4 !important;
+  border-color: #22C55E !important;
+}
+.nota-card-title {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+.nota-card-desc {
+  color: #475569 !important;
+}
+.nota-card-icon-wrap {
+  background: #DCFCE7 !important;
+  border: 1px solid #86EFAC !important;
+  color: #15803D !important;
+}
+
+
 
 
 
