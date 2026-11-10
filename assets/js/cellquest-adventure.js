@@ -3146,7 +3146,7 @@
         const clonedScene = cachedScene.clone(true);
         clonedScene.traverse(node => {
           if (!node.isMesh) return;
-          if (node.name === 'Labels') {
+          if (node.name === 'Labels' || node.name === 'Sphere' || node.name === 'gel-material') {
             node.visible = false;
             return;
           }
@@ -3156,19 +3156,22 @@
             c.side = THREE.DoubleSide;
             if (c.map) {
               c.map.encoding = THREE.sRGBEncoding;
-              c.map.needsUpdate = true;
             }
             if (c.emissiveMap) {
               c.emissiveMap.encoding = THREE.sRGBEncoding;
-              c.emissiveMap.needsUpdate = true;
             }
-            // Fasa A.3: Cegah model GLB menjadi gelap/hitam akibat pantulan metalik tanpa envMap pada iPad/Safari:
+            // PENTING: Model organel biologi adalah bahan organik (non-metallic / dielectric).
+            // Menetapkan metalness = 0.0 & metalnessMap = null menjamin pantulan albedo penuh
+            // dan menghalang model menjadi hitam gelap pada Safari iPad tanpa HDR environment map.
             if (c.isMeshStandardMaterial || c.isMeshPhysicalMaterial) {
-              if (c.metalness > 0.25 && !c.metalnessMap) c.metalness = 0.08;
+              c.metalness = 0.0;
+              c.metalnessMap = null;
               if (c.roughness < 0.25) c.roughness = 0.40;
-              // Sokongan pencerahan albedo untuk bahan biologi organik yang gelap
-              if (c.color && c.color.r < 0.12 && c.color.g < 0.12 && c.color.b < 0.12 && !c.map) {
-                c.color.addScalar(0.18);
+              // Sokongan pencerahan albedo untuk bahan biologi organik yang gelap tanpa texture
+              if (c.color) {
+                if (c.color.r < 0.15 && c.color.g < 0.15 && c.color.b < 0.15 && !c.map) {
+                  c.color.setHex(0xe2e8f0);
+                }
               }
             }
             return c;
@@ -5348,31 +5351,31 @@
     previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     previewRenderer.outputEncoding = THREE.sRGBEncoding;
     previewRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    previewRenderer.toneMappingExposure = 1.25;
+    previewRenderer.toneMappingExposure = 1.35;
 
-    // Studio PBR Lights for preview (Fasa A.3: Pencahayaan dipertingkatkan untuk keterlihatan organel & rongga dalaman)
-    const ambLight = new THREE.AmbientLight(0xffffff, 1.25);
+    // Studio PBR Lights for preview (Pencahayaan dipertingkatkan untuk organel & rongga dalaman)
+    const ambLight = new THREE.AmbientLight(0xffffff, 1.45);
     previewScene.add(ambLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x64748b, 1.05);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x94a3b8, 1.20);
     hemiLight.position.set(0, 10, 0);
     previewScene.add(hemiLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.35);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.45);
     dirLight1.position.set(3, 5, 4);
     previewScene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0xe0f2fe, 0.95);
+    const dirLight2 = new THREE.DirectionalLight(0xe0f2fe, 1.05);
     dirLight2.position.set(-3, 2, -2);
     previewScene.add(dirLight2);
 
     // Lampu Hadapan Pandangan Kamera (Camera-view fill) untuk menerangi permukaan hadapan & rongga Nukleus
-    const frontFillLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    const frontFillLight = new THREE.DirectionalLight(0xffffff, 1.15);
     frontFillLight.position.set(0, 0.5, 3.5);
     previewScene.add(frontFillLight);
 
     // Warm laboratory accent light
-    const accentLight = new THREE.PointLight(0x38bdf8, 1.1, 10);
+    const accentLight = new THREE.PointLight(0x38bdf8, 1.20, 10);
     accentLight.position.set(-2, 3, 2);
     previewScene.add(accentLight);
 
@@ -5477,25 +5480,37 @@
     }
   }
 
+  function startStationPreviewLoop() {
+    cancelAnimationFrame(previewAnimId);
+    function animatePreview() {
+      if (DOM.stationModal && DOM.stationModal.classList.contains('open')) {
+        previewAnimId = requestAnimationFrame(animatePreview);
+        if (previewModelGroup && !isPreviewDraggingGlobal && !previewZoomState.isPinching) {
+          previewModelGroup.rotation.y += 0.006; // Putaran pameran lembut
+        }
+        if (previewModelGroup && previewModelGroup.userData && previewModelGroup.userData.isCytoplasmGel && previewModelGroup.userData.gelVisual) {
+          previewModelGroup.userData.gelVisual.userData.updateAnimation(performance.now() * 0.001);
+        }
+        if (previewRenderer && previewScene && previewCamera) {
+          previewRenderer.render(previewScene, previewCamera);
+        }
+      }
+    }
+    animatePreview();
+  }
+
   function updateStationPreview(stn) {
     if (!previewScene) return;
 
-    // Remove and dispose existing preview model to prevent WebGL GPU memory leaks
+    // Bersihkan model preview lama daripada scene.
+    // JANGAN sesekali panggil child.geometry.dispose() atau child.material.dispose() di sini
+    // kerana objek berkongsi buffer geometri bersama cache master GLB (cachedOrganelleGLBs)!
     if (previewModelGroup) {
       previewScene.remove(previewModelGroup);
-      previewModelGroup.traverse(child => {
-        if (child.isMesh) {
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) {
-            if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-            else child.material.dispose();
-          }
-        }
-      });
       previewModelGroup = null;
     }
 
-    // Build dedicated preview representation of the organelle (fallback + GLB upgrade untuk semua 8 stesen)
+    // Bina perwakilan visual organel (fallback prosedur + peningkatan GLB untuk semua 8 stesen)
     previewModelGroup = buildStylizedOrganelle(stn.number, stn.colorHex);
     previewModelGroup.scale.set(1.4, 1.4, 1.4);
     previewModelGroup.rotation.set(0, 0, 0);
@@ -5521,6 +5536,7 @@
         alignOnTable: false
       }).then(() => {
         recalculatePreviewBounds();
+        startStationPreviewLoop();
       });
     } else if (stn.number === 8) {
       previewModelGroup.scale.set(1, 1, 1);
@@ -5540,6 +5556,7 @@
           mountGLBIntoContainer(erCenter, 'er', 'preview', { customTargetSize: 0.70, alignOnTable: false })
         ]).then(() => {
           recalculatePreviewBounds();
+          startStationPreviewLoop();
         });
       }
     }
@@ -5552,21 +5569,7 @@
       previewRenderer.setSize(rect.width, rect.height);
     }
 
-    // Render loop for modal preview (pauses rotation while student drags to inspect)
-    cancelAnimationFrame(previewAnimId);
-    function animatePreview() {
-      if (DOM.stationModal.classList.contains('open')) {
-        previewAnimId = requestAnimationFrame(animatePreview);
-        if (previewModelGroup && !isPreviewDraggingGlobal && !previewZoomState.isPinching) {
-          previewModelGroup.rotation.y += 0.006; // Putaran pameran lembut
-        }
-        if (previewModelGroup && previewModelGroup.userData && previewModelGroup.userData.isCytoplasmGel && previewModelGroup.userData.gelVisual) {
-          previewModelGroup.userData.gelVisual.userData.updateAnimation(performance.now() * 0.001);
-        }
-        previewRenderer.render(previewScene, previewCamera);
-      }
-    }
-    animatePreview();
+    startStationPreviewLoop();
   }
 
   // ==============================================================================
@@ -5600,6 +5603,7 @@
 
     // Update 3D Interactive Preview Box SELEPAS modal dibuka supaya saiz kanvas > 0 dan gelung animasi berjalan
     updateStationPreview(stn);
+    startStationPreviewLoop();
 
     SoundFX.interact();
   }
@@ -5611,12 +5615,19 @@
     State.activeStationIndex = -1;
 
     // Fasa A.4: Pastikan strim video kamera diteruskan semula jika dihentikan oleh WebKit iPad
-    if ((State.mode === 'camera-ar' || State.mode === 'marker-ar') && DOM.cameraFeed) {
+    if ((State.mode === 'camera-ar' || State.mode === 'marker-ar') && DOM.cameraFeed && cameraStream) {
       if (DOM.cameraFeed.paused) {
         DOM.cameraFeed.play().catch(e => {
           logARDiagnostic('CAMERA', 'resume_on_station_modal_close_err', { error: String(e) });
         });
       }
+    }
+
+    // Jika semua 8 stesen selesai, paparkan modal Treasure Hunt secara kemas SELEPAS modal stesen ditutup
+    if (State.completedStations.size >= 8 && State.treasureHuntUnlocked && !State.treasureHuntCompleted && !State.treasureHuntActive) {
+      setTimeout(() => {
+        showTreasureHuntIntroModal();
+      }, 350);
     }
   }
 
@@ -5797,11 +5808,8 @@
       // MOD A: Terus buka Pintu Teras Sel ke Bilik Teras Sel (TIADA PETI HARTA KARUN DALAM MOD A)
       if (State.mode !== '3d') {
         State.treasureHuntUnlocked = true;
-        if (!State.treasureHuntCompleted && !State.treasureHuntActive) {
-          setTimeout(() => {
-            showTreasureHuntIntroModal();
-          }, 1200);
-        }
+        // Paparan modal Treasure Hunt akan dipicu secara selamat di closeStationModal()
+        // sebaik sahaja murid selesai membaca maklum balas dan menutup modal stesen 8.
       }
     } else if (arWorldState.active) {
       // Auto-Next Station: Tukar sasaran Smart Radar kepada stesen seterusnya yang belum selesai
@@ -5839,6 +5847,11 @@
   function hideTreasureHuntIntroModal() {
     if (DOM.treasureHuntIntroModal) {
       DOM.treasureHuntIntroModal.classList.remove('open');
+    }
+    if ((State.mode === 'camera-ar' || State.mode === 'marker-ar') && DOM.cameraFeed && cameraStream) {
+      if (DOM.cameraFeed.paused) {
+        DOM.cameraFeed.play().catch(() => {});
+      }
     }
   }
 
@@ -6914,12 +6927,9 @@
           readyState: DOM.cameraFeed.readyState,
           currentTime: DOM.cameraFeed.currentTime
         });
-        if (State.mode === 'camera-ar' || State.mode === 'marker-ar') {
-          // Safari iPadOS auto-paused video on modal occlusion - auto-resume immediately!
-          DOM.cameraFeed.play().catch(e => {
-            logARDiagnostic('CAMERA', 'auto_play_resume_fail', { error: String(e) });
-          });
-        }
+        // JANGAN panggil DOM.cameraFeed.play() secara synchronous di sini!
+        // Safari iPadOS auto-pause video semasa modal menutupi skrin.
+        // Kamera akan di-resume secara teratur sebaik sahaja modal ditutup (closeStationModal / closeTreasureChestModal).
       });
 
       DOM.cameraFeed.addEventListener('playing', () => {
@@ -6985,6 +6995,13 @@
   function checkAndRecoverARCamera() {
     if (State.mode !== 'camera-ar' && State.mode !== 'marker-ar') return;
     if (!cameraStream || !DOM.cameraFeed) return;
+
+    // Jangan paksa sambung playback video jika sebarang modal aktif dibuka di hadapan skrin
+    // Ini mengelakkan lambakan ralat rejected play() pada WebKit Safari iPad sepanjang sesi menjawab soalan.
+    const isModalOpen = (DOM.stationModal && DOM.stationModal.classList.contains('open')) ||
+                        (DOM.treasureHuntIntroModal && DOM.treasureHuntIntroModal.classList.contains('open')) ||
+                        (DOM.treasureChestModal && DOM.treasureChestModal.classList.contains('open'));
+    if (isModalOpen) return;
 
     const track = cameraStream.getVideoTracks()[0];
     if (!track) return;
