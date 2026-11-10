@@ -475,6 +475,15 @@
     DOM.diagVideoStatus = document.getElementById('diag-video-status');
     DOM.diagNotaStatus = document.getElementById('diag-nota-status');
 
+    // Fasa 4E-D.1.1: Telemetri Kamera & MindAR WebAR
+    DOM.diagCamStatus = document.getElementById('diag-cam-status');
+    DOM.diagVideoDim = document.getElementById('diag-video-dim');
+    DOM.diagVideoReady = document.getElementById('diag-video-ready');
+    DOM.diagMindarStatus = document.getElementById('diag-mindar-status');
+    DOM.diagMarkerMindStatus = document.getElementById('diag-marker-mind-status');
+    DOM.diagWebglStatus = document.getElementById('diag-webgl-status');
+    DOM.diagLastError = document.getElementById('diag-last-error');
+
     // Exit Confirmation Modal Dialog
     DOM.exitModalBackdrop = document.getElementById('exit-modal-backdrop');
     DOM.btnExitCancel = document.getElementById('btn-exit-cancel');
@@ -678,9 +687,11 @@
 
     initLifecycleListeners() {
       // 1. Safari BFCache support (page restored from cache)
+      // JANGAN semak !ARState.mindarThree di sini kerana pageshow sentiasa tercetus pada pelayar web
+      // sejurus selepas DOMContentLoaded semasa startApp() sedang memuatkan CMS, yang akan menyebabkan double init collision!
       window.addEventListener('pageshow', (event) => {
         console.log('[ARRecovery] pageshow event fired, persisted:', event.persisted);
-        if (event.persisted || !ARState.mindarThree) {
+        if (event.persisted) {
           this.recoverCameraSession();
         }
       });
@@ -6255,6 +6266,24 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         ARState.mindarThree.start(),
         timeoutPromise
       ]);
+
+      // 🛡️ Safari iPadOS Safeguards: Force video playback attributes and ensure stream plays
+      const videoEl = DOM.container ? DOM.container.querySelector('video') : null;
+      if (videoEl) {
+        videoEl.setAttribute('playsinline', '');
+        videoEl.setAttribute('webkit-playsinline', '');
+        videoEl.muted = true;
+        videoEl.style.zIndex = '1';
+        if (videoEl.paused) {
+          try {
+            await videoEl.play();
+            console.log('[KotakAR] Safari camera video stream berjaya dimulakan secara eksplisit.');
+          } catch (pErr) {
+            console.warn('[KotakAR] video.play() amaran:', pErr);
+          }
+        }
+      }
+      ARState.lastErrorMsg = null;
     } catch (startErr) {
       let normalized = startErr;
       if (!normalized) {
@@ -6263,18 +6292,28 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       } else if (typeof normalized === 'string') {
         normalized = new Error(normalized);
       }
+      ARState.lastErrorMsg = normalized.message;
       throw normalized;
     } finally {
       if (timeoutTimer) clearTimeout(timeoutTimer);
     }
   }
 
+  let isInitializingMindAR = false;
+
   /**
    * Initialize MindAR Image Tracking Session
    */
   async function initMindAR() {
-    console.log('[KotakAR] Memulakan MindAR Image Tracking Engine...');
-    cleanupSession();
+    if (isInitializingMindAR) {
+      console.warn('[KotakAR] ⚠️ initMindAR() sedang berjalan. Panggilan serentak disekat.');
+      return;
+    }
+    isInitializingMindAR = true;
+    try {
+      console.log('[KotakAR] Memulakan MindAR Image Tracking Engine...');
+      cleanupSession();
+      ARState.lastErrorMsg = null;
 
     if (!window.MINDAR || !window.MINDAR.IMAGE || !window.MINDAR.IMAGE.MindARThree) {
       throw new Error('Pustaka MindAR Three.js tidak ditemui. Sila semak sambungan internet.');
@@ -6552,6 +6591,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
       renderer.render(scene, camera);
     });
+    } catch (initErr) {
+      console.error('[KotakAR] Ralat kritikal semasa initMindAR:', initErr);
+      ARState.lastErrorMsg = initErr.message || String(initErr);
+      throw initErr;
+    } finally {
+      isInitializingMindAR = false;
+    }
   }
 
   /**
@@ -8467,6 +8513,59 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           DOM.diagNotaStatus.textContent = `${pNot.placementMode} (${Math.round(pNot.anchorYaw || 0)}°)`;
         }
       }
+    }
+
+    // Fasa 4E-D.1.1: Live Camera & MindAR WebAR Telemetry
+    const videoEl = DOM.container ? DOM.container.querySelector('video') : null;
+    if (DOM.diagCamStatus) {
+      if (!ARState.cameraActive) {
+        DOM.diagCamStatus.textContent = 'DITUTUP';
+      } else if (videoEl && !videoEl.paused && videoEl.readyState >= 2) {
+        DOM.diagCamStatus.textContent = 'BERFUNGSI (PLAYING)';
+      } else if (videoEl && videoEl.paused) {
+        DOM.diagCamStatus.textContent = 'TERHENTI (PAUSED)';
+      } else {
+        DOM.diagCamStatus.textContent = 'MEMUATKAN...';
+      }
+    }
+    if (DOM.diagVideoDim) {
+      if (videoEl && videoEl.videoWidth > 0) {
+        DOM.diagVideoDim.textContent = `${videoEl.videoWidth} x ${videoEl.videoHeight}`;
+      } else {
+        DOM.diagVideoDim.textContent = '0 x 0';
+      }
+    }
+    if (DOM.diagVideoReady) {
+      if (videoEl) {
+        const readyStates = ['0 (HAVE_NOTHING)', '1 (HAVE_METADATA)', '2 (HAVE_CURRENT_DATA)', '3 (HAVE_FUTURE_DATA)', '4 (HAVE_ENOUGH_DATA)'];
+        DOM.diagVideoReady.textContent = readyStates[videoEl.readyState] || `${videoEl.readyState}`;
+      } else {
+        DOM.diagVideoReady.textContent = 'Tiada Video Element';
+      }
+    }
+    if (DOM.diagMindarStatus) {
+      if (!ARState.mindarThree) {
+        DOM.diagMindarStatus.textContent = 'BELUM DIINISIALISASI';
+      } else if (ARState.isTracking) {
+        DOM.diagMindarStatus.textContent = 'TRACKING AKTIF';
+      } else {
+        DOM.diagMindarStatus.textContent = 'MENUNGGU SASARAN';
+      }
+    }
+    if (DOM.diagMarkerMindStatus) {
+      DOM.diagMarkerMindStatus.textContent = '5 Sasaran (0-4 Sedia)';
+    }
+    if (DOM.diagWebglStatus) {
+      const gl = ARState.renderer ? ARState.renderer.getContext() : null;
+      if (gl) {
+        const isLost = typeof gl.isContextLost === 'function' ? gl.isContextLost() : false;
+        DOM.diagWebglStatus.textContent = isLost ? 'Konteks Terputus' : 'Normal (WebGL)';
+      } else {
+        DOM.diagWebglStatus.textContent = 'Tiada Konteks WebGL';
+      }
+    }
+    if (DOM.diagLastError) {
+      DOM.diagLastError.textContent = ARState.lastErrorMsg || 'Tiada Ralat';
     }
 
     // Fasa 4D-C.1 & 4D-D.1: Live CellQuest 3D Telemetry
