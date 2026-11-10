@@ -58,6 +58,10 @@
     anchorVideo: null,
     anchorNota: null,
     anchorKuiz: null,
+    // Fasa 4E-D.1: Pengasingan Anchor Sel Haiwan (Target 3) & Sel Tumbuhan (Target 4)
+    anchorCellQuestAnimal: null,
+    anchorCellQuestPlant: null,
+    anchorCellQuest: null,
     notes: [],
     activeNote: null,
     currentNotePage: 1,
@@ -3426,11 +3430,21 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
     }
 
-    // Jika pengguna belum mempunyai CellQuest 3D dan marker CellQuest kelihatan (Fasa 4E-C.3A)
+    // Jika pengguna belum mempunyai CellQuest 3D dan marker CellQuest kelihatan (Fasa 4E-C.3A & 4E-D.1)
     if (!ARState.activePanels.has('cellquest')) {
+      if (ARState.anchorCellQuestAnimal && ARState.anchorCellQuestAnimal.group && ARState.anchorCellQuestAnimal.group.visible) {
+        console.log('[MultiPanel] 🎯 Marker Sel Haiwan dikesan sedang dalam pandangan kamera!');
+        addPanelToSpatialWorkspace('cellquest', 'animal');
+        return;
+      }
+      if (ARState.anchorCellQuestPlant && ARState.anchorCellQuestPlant.group && ARState.anchorCellQuestPlant.group.visible) {
+        console.log('[MultiPanel] 🎯 Marker Sel Tumbuhan dikesan sedang dalam pandangan kamera!');
+        addPanelToSpatialWorkspace('cellquest', 'plant');
+        return;
+      }
       if (ARState.anchorCellQuest && ARState.anchorCellQuest.group && ARState.anchorCellQuest.group.visible) {
         console.log('[MultiPanel] 🎯 Marker CellQuest 3D dikesan sedang dalam pandangan kamera!');
-        addPanelToSpatialWorkspace('cellquest');
+        addPanelToSpatialWorkspace('cellquest', (typeof CellQuestARController !== 'undefined' ? CellQuestARController.activeCellType : 'animal'));
         return;
       }
     }
@@ -3448,9 +3462,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       showToast('Maksimum 4 modul aktif serentak (Video, Nota, Kuiz & CellQuest 3D).');
       return;
     }
-    // Jika pengguna belum mengunci atau menyemat panel, berikan panduan jelas untuk meletakkannya terlebih dahulu
-    if (ARState.systemMode === SYSTEM_MODES.MARKER && !ARState.isPinned) {
-      showToast('📌 Sila semat ("Semat Skrin") atau kunci POV panel terlebih dahulu sebelum menambah imbasan baharu.');
+    // Jika pengguna belum mengunci atau menyemat panel/model, berikan panduan jelas untuk meletakkannya terlebih dahulu
+    const cqIsSpatial = (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive && (CellQuestARController.spatialMode === 'POV_LOCKED' || CellQuestARController.spatialMode === 'SCREEN_PINNED'));
+    if (ARState.systemMode === SYSTEM_MODES.MARKER && !ARState.isPinned && !cqIsSpatial) {
+      showToast('📌 Sila semat ("Semat Skrin") atau kunci POV panel/model terlebih dahulu sebelum menambah imbasan baharu.');
       return;
     }
     ARState.markerCooldown = {};
@@ -3467,28 +3482,40 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
   /**
    * Pengendali Utama Pengesanan Marker (Target Found)
+   * Fasa 4E-D.1: Menyokong parameter pilihan cellType ('animal' | 'plant')
    */
-  function handleTargetFound(targetIndex, moduleName) {
+  function handleTargetFound(targetIndex, moduleName, cellType) {
     // 🛡️ ISOLATION: Jika permainan aktif, sekat sebarang gangguan marker
     if (GameSessionManager.isGameActive()) {
       console.log(`[KotakAR] 🛡️ Permainan aktif, pengesanan Marker ${moduleName} diabaikan.`);
       return;
     }
 
-    // 🛡️ COOLDOWN: Jika marker baru sahaja ditutup secara manual, sekat pengesanan seketika
-    if (ARState.markerCooldown && ARState.markerCooldown[moduleName] && Date.now() < ARState.markerCooldown[moduleName]) {
-      console.log(`[MultiPanel] ⏳ Marker ${moduleName} dalam tempoh bertenang (cooldown). Diabaikan.`);
-      return;
+    // Tentukan jenis sel jika CellQuest dikesan melalui indeks
+    if (moduleName === 'cellquest' && !cellType) {
+      cellType = (targetIndex === 4) ? 'plant' : 'animal';
     }
 
-    console.log(`[MultiPanel] 🎯 Marker [${targetIndex}] (${moduleName}) dikesan. ScanState semasa: ${ARState.scanState}`);
+    // 🛡️ COOLDOWN: Jika marker baru sahaja ditutup secara manual, sekat pengesanan seketika
+    if (ARState.markerCooldown) {
+      if (ARState.markerCooldown[moduleName] && Date.now() < ARState.markerCooldown[moduleName]) {
+        console.log(`[MultiPanel] ⏳ Marker ${moduleName} dalam tempoh bertenang (cooldown). Diabaikan.`);
+        return;
+      }
+      if (cellType && ARState.markerCooldown[`cellquest_${cellType}`] && Date.now() < ARState.markerCooldown[`cellquest_${cellType}`]) {
+        console.log(`[MultiPanel] ⏳ Marker ${moduleName} (${cellType}) dalam tempoh bertenang (cooldown). Diabaikan.`);
+        return;
+      }
+    }
+
+    console.log(`[MultiPanel] 🎯 Marker [${targetIndex}] (${moduleName}${cellType ? ':' + cellType : ''}) dikesan. ScanState semasa: ${ARState.scanState}`);
 
     // KES 1: Mod Imbas Panel Tambahan (+ Tambah Imbasan Baharu)
     if (ARState.scanState === SCAN_STATES.ADD_PANEL) {
       if (!ARState.activePanels.has(moduleName)) {
-        addPanelToSpatialWorkspace(moduleName);
+        addPanelToSpatialWorkspace(moduleName, cellType);
       } else {
-        console.log(`[MultiPanel] ℹ️ Panel ${moduleName} sudah aktif dalam ruang kerja.`);
+        console.log(`[MultiPanel] ℹ️ Panel/Modul ${moduleName} sudah aktif dalam ruang kerja.`);
       }
       return;
     }
@@ -3502,10 +3529,30 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (moduleName === 'video' && ARState.anchorVideo) ARState.anchor = ARState.anchorVideo;
         if (moduleName === 'nota' && ARState.anchorNota) ARState.anchor = ARState.anchorNota;
         if (moduleName === 'kuiz' && ARState.anchorKuiz) ARState.anchor = ARState.anchorKuiz;
-        if (moduleName === 'cellquest' && ARState.anchorCellQuest) {
-          ARState.anchor = ARState.anchorCellQuest;
-          if (typeof CellQuestARController !== 'undefined' && typeof CellQuestARController.onTargetFound === 'function') {
-            CellQuestARController.onTargetFound();
+        if (moduleName === 'cellquest') {
+          // 🛡️ FASA 4E-D.1: Jika modul CellQuest sudah aktif, hanya layani tracking jika marker sepadan
+          if (cellType && typeof CellQuestARController !== 'undefined' && CellQuestARController.activeCellType && cellType !== CellQuestARController.activeCellType) {
+            console.log(`[CellQuestAR] 🛡️ Sesi CellQuest (${CellQuestARController.activeCellType}) sedang aktif. Pengesanan marker ${cellType} diabaikan tanpa gangguan.`);
+            return;
+          }
+          if (cellType === 'plant' && ARState.anchorCellQuestPlant) {
+            ARState.anchorCellQuest = ARState.anchorCellQuestPlant;
+          } else if (ARState.anchorCellQuestAnimal) {
+            ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
+          }
+          if (ARState.anchorCellQuest) {
+            ARState.anchor = ARState.anchorCellQuest;
+          }
+          if (typeof CellQuestARController !== 'undefined') {
+            if (CellQuestARController.spatialMode === 'MARKER_MODE' && ARState.anchorCellQuest) {
+              CellQuestARController.anchorGroup = ARState.anchorCellQuest.group;
+              if (CellQuestARController.rootGroup && CellQuestARController.rootGroup.parent !== CellQuestARController.anchorGroup) {
+                CellQuestARController.anchorGroup.add(CellQuestARController.rootGroup);
+              }
+            }
+            if (typeof CellQuestARController.onTargetFound === 'function') {
+              CellQuestARController.onTargetFound();
+            }
           }
         }
       } else {
@@ -3521,15 +3568,32 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (moduleName === 'video' && ARState.anchorVideo) ARState.anchor = ARState.anchorVideo;
     if (moduleName === 'nota' && ARState.anchorNota) ARState.anchor = ARState.anchorNota;
     if (moduleName === 'kuiz' && ARState.anchorKuiz) ARState.anchor = ARState.anchorKuiz;
-    if (moduleName === 'cellquest' && ARState.anchorCellQuest) ARState.anchor = ARState.anchorCellQuest;
+    if (moduleName === 'cellquest') {
+      if (cellType === 'plant' && ARState.anchorCellQuestPlant) {
+        ARState.anchorCellQuest = ARState.anchorCellQuestPlant;
+      } else if (ARState.anchorCellQuestAnimal) {
+        ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
+      }
+      if (ARState.anchorCellQuest) {
+        ARState.anchor = ARState.anchorCellQuest;
+      }
+      if (typeof CellQuestARController !== 'undefined') {
+        CellQuestARController.anchorGroup = ARState.anchorCellQuest ? ARState.anchorCellQuest.group : CellQuestARController.anchorGroup;
+        CellQuestARController.activeCellType = cellType || 'animal';
+        CellQuestARController.loadModel(cellType || 'animal');
+      }
+    }
 
     switchActiveModule(moduleName);
     ARState.activePanels.add(moduleName);
     setScanState(SCAN_STATES.PANEL_ACTIVE);
     updateMultiPanelUI();
 
-    if (moduleName === 'cellquest' && typeof CellQuestARController !== 'undefined' && typeof CellQuestARController.onTargetFound === 'function') {
-      CellQuestARController.onTargetFound();
+    if (moduleName === 'cellquest' && typeof CellQuestARController !== 'undefined') {
+      CellQuestARController.activate();
+      if (typeof CellQuestARController.onTargetFound === 'function') {
+        CellQuestARController.onTargetFound();
+      }
     }
 
     if (ARSessionRecoveryManager && typeof ARSessionRecoveryManager.setState === 'function') {
@@ -3545,9 +3609,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
   /**
    * Menambah Panel ke Ruang Kerja Spatial (Multi-Panel Persistence)
+   * Fasa 4E-D.1: Menyokong parameter pilihan cellType ('animal' | 'plant')
    */
-  function addPanelToSpatialWorkspace(moduleName) {
-    console.log(`[MultiPanel] ➕ Menambah panel ${moduleName} ke ruang spatial...`);
+  function addPanelToSpatialWorkspace(moduleName, cellType) {
+    console.log(`[MultiPanel] ➕ Menambah modul/panel ${moduleName}${cellType ? ':' + cellType : ''} ke ruang spatial...`);
     ARState.activePanels.add(moduleName);
 
     if (moduleName === 'nota') {
@@ -3693,20 +3758,31 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       // 1. Jeda video secara sopan jika sedang bermain
       pauseVideo();
 
-      // 2. Halakan anchor aktif ke anchorCellQuest
+      const type = cellType || (typeof CellQuestARController !== 'undefined' ? CellQuestARController.activeCellType : 'animal');
+
+      // 2. Halakan anchor aktif ke anchor CellQuest yang sepadan
+      if (type === 'plant' && ARState.anchorCellQuestPlant) {
+        ARState.anchorCellQuest = ARState.anchorCellQuestPlant;
+      } else if (ARState.anchorCellQuestAnimal) {
+        ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
+      }
       if (ARState.anchorCellQuest) {
         ARState.anchor = ARState.anchorCellQuest;
       }
 
       // 3. Aktifkan CellQuest 3D Controller
       if (typeof CellQuestARController !== 'undefined') {
+        CellQuestARController.anchorGroup = ARState.anchorCellQuest ? ARState.anchorCellQuest.group : CellQuestARController.anchorGroup;
+        CellQuestARController.activeCellType = type;
+        CellQuestARController.loadModel(type);
         CellQuestARController.activate();
         if (typeof CellQuestARController.onTargetFound === 'function') {
           CellQuestARController.onTargetFound();
         }
       }
 
-      showToast('Modul CellQuest 3D berjaya ditambah ke ruang AR!');
+      const cellLabel = type === 'plant' ? 'Sel Tumbuhan 3D' : 'Sel Haiwan 3D';
+      showToast(`Modul ${cellLabel} berjaya ditambah ke ruang AR!`);
     }
 
     // Kemas kini bar alat multi-panel
@@ -3858,6 +3934,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     // Berikan tempoh bertenang 2.5s agar tidak terus terbuka jika marker masih dalam pandangan kamera
     if (!ARState.markerCooldown) ARState.markerCooldown = {};
     ARState.markerCooldown['cellquest'] = Date.now() + 2500;
+    ARState.markerCooldown['cellquest_animal'] = Date.now() + 2500;
+    ARState.markerCooldown['cellquest_plant'] = Date.now() + 2500;
 
     handlePanelClosed('cellquest');
   }
@@ -5240,6 +5318,20 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       this.activeCellType = cellType;
       this.clearSelection();
 
+      // Fasa 4E-D.1: Re-anchor ke marker fizikal yang sepadan jika dalam MARKER_MODE
+      if (this.spatialMode === 'MARKER_MODE') {
+        if (cellType === 'plant' && ARState.anchorCellQuestPlant) {
+          ARState.anchorCellQuest = ARState.anchorCellQuestPlant;
+          this.anchorGroup = ARState.anchorCellQuestPlant.group;
+        } else if (cellType === 'animal' && ARState.anchorCellQuestAnimal) {
+          ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
+          this.anchorGroup = ARState.anchorCellQuestAnimal.group;
+        }
+        if (this.anchorGroup && this.rootGroup && this.rootGroup.parent !== this.anchorGroup && this.rootGroup.parent !== this.camera) {
+          this.anchorGroup.add(this.rootGroup);
+        }
+      }
+
       // Update toggle buttons
       if (DOM.cqBtnAnimal) DOM.cqBtnAnimal.classList.toggle('active', cellType === 'animal');
       if (DOM.cqBtnPlant) DOM.cqBtnPlant.classList.toggle('active', cellType === 'plant');
@@ -6246,8 +6338,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.anchorNota = ARState.mindarThree.addAnchor(1);
     // Target 2 = KUIZ & PERMAINAN MARKER
     ARState.anchorKuiz = ARState.mindarThree.addAnchor(2);
-    // Target 3 = CELLQUEST 3D MARKER
-    ARState.anchorCellQuest = ARState.mindarThree.addAnchor(3);
+    // Target 3 = SEL HAIWAN (CELLQUEST 3D)
+    ARState.anchorCellQuestAnimal = ARState.mindarThree.addAnchor(3);
+    // Target 4 = SEL TUMBUHAN (CELLQUEST 3D)
+    ARState.anchorCellQuestPlant = ARState.mindarThree.addAnchor(4);
+    // Rujukan anchor CellQuest aktif semasa (lalai: Sel Haiwan)
+    ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
 
     // Fasa 4D-C: Initialize CellQuest 3D Controller on Anchor 3
     if (typeof CellQuestARController !== 'undefined' && typeof CellQuestARController.init === 'function') {
@@ -6369,30 +6465,61 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }, ARState.HYSTERESIS_DELAY);
     };
 
-    // Target 3 (CellQuest 3D) Found Event
-    ARState.anchorCellQuest.onTargetFound = () => {
+    // Target 3 (Sel Haiwan 3D) Found Event
+    ARState.anchorCellQuestAnimal.onTargetFound = () => {
       // 🛡️ ISOLATION: If a game session is active, ignore other markers to prevent interruption
       if (GameSessionManager.isGameActive()) {
-        console.log('[KotakAR] 🛡️ Permainan aktif, pengesanan Marker CellQuest diabaikan.');
+        console.log('[KotakAR] 🛡️ Permainan aktif, pengesanan Marker Sel Haiwan diabaikan.');
         return;
       }
-      handleTargetFound(3, 'cellquest');
+      handleTargetFound(3, 'cellquest', 'animal');
     };
 
-    // Target 3 (CellQuest 3D) Lost Event with Debounce Hysteresis
-    ARState.anchorCellQuest.onTargetLost = () => {
-      console.log('[KotakAR] ⏳ Marker CellQuest hilang dari sasaran langsung...');
+    // Target 3 (Sel Haiwan 3D) Lost Event with Debounce Hysteresis
+    ARState.anchorCellQuestAnimal.onTargetLost = () => {
+      console.log('[KotakAR] ⏳ Marker Sel Haiwan hilang dari sasaran langsung...');
       clearTimeout(ARState.lostTimeout);
 
       ARState.lostTimeout = setTimeout(() => {
-        if (ARState.activeModule === 'cellquest') {
-          console.log('[KotakAR] Marker CellQuest hilang disahkan selepas tempoh hysteresis.');
+        if (ARState.activeModule === 'cellquest' && CellQuestARController.activeCellType === 'animal') {
+          console.log('[KotakAR] Marker Sel Haiwan hilang disahkan selepas tempoh hysteresis.');
           if (typeof CellQuestARController !== 'undefined' && typeof CellQuestARController.onTargetLost === 'function') {
             CellQuestARController.onTargetLost();
           }
         }
       }, ARState.HYSTERESIS_DELAY);
     };
+
+    // Target 4 (Sel Tumbuhan 3D) Found Event
+    ARState.anchorCellQuestPlant.onTargetFound = () => {
+      // 🛡️ ISOLATION: If a game session is active, ignore other markers to prevent interruption
+      if (GameSessionManager.isGameActive()) {
+        console.log('[KotakAR] 🛡️ Permainan aktif, pengesanan Marker Sel Tumbuhan diabaikan.');
+        return;
+      }
+      handleTargetFound(4, 'cellquest', 'plant');
+    };
+
+    // Target 4 (Sel Tumbuhan 3D) Lost Event with Debounce Hysteresis
+    ARState.anchorCellQuestPlant.onTargetLost = () => {
+      console.log('[KotakAR] ⏳ Marker Sel Tumbuhan hilang dari sasaran langsung...');
+      clearTimeout(ARState.lostTimeout);
+
+      ARState.lostTimeout = setTimeout(() => {
+        if (ARState.activeModule === 'cellquest' && CellQuestARController.activeCellType === 'plant') {
+          console.log('[KotakAR] Marker Sel Tumbuhan hilang disahkan selepas tempoh hysteresis.');
+          if (typeof CellQuestARController !== 'undefined' && typeof CellQuestARController.onTargetLost === 'function') {
+            CellQuestARController.onTargetLost();
+          }
+        }
+      }, ARState.HYSTERESIS_DELAY);
+    };
+
+    // Keserasian ke belakang untuk rujukan anchorCellQuest tunggal
+    if (ARState.anchorCellQuest) {
+      ARState.anchorCellQuest.onTargetFound = ARState.anchorCellQuestAnimal.onTargetFound;
+      ARState.anchorCellQuest.onTargetLost = ARState.anchorCellQuestAnimal.onTargetLost;
+    }
 
     // Start camera stream safely
     await startMindARTracking();

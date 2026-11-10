@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <!-- Blue, Cyan & Animal Cell Gradients -->
+    <linearGradient id="bgGradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="50%" stop-color="#172554"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+    <linearGradient id="blueMainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="cyanNeonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="amberGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <radialGradient id="glowAnimalCell" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#1d4ed8" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#090d16" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Deep High-Contrast Base (White Outer Margin for Crisp Target Boundary) -->
+  <rect width="1000" height="1000" fill="#ffffff"/>
+  <rect x="25" y="25" width="950" height="950" fill="url(#bgGradBlue)" rx="30" stroke="#1e3a8a" stroke-width="12"/>
+
+  <!-- High-Frequency Calibration Grid Pattern (For optical feature detection) -->
+  <g stroke="#1d4ed8" stroke-width="2" opacity="0.65">
+    <line x1="100" y1="50" x2="100" y2="950"/>
+    <line x1="200" y1="50" x2="200" y2="950"/>
+    <line x1="300" y1="50" x2="300" y2="950"/>
+    <line x1="700" y1="50" x2="700" y2="950"/>
+    <line x1="800" y1="50" x2="800" y2="950"/>
+    <line x1="900" y1="50" x2="900" y2="950"/>
+
+    <line x1="50" y1="100" x2="950" y2="100"/>
+    <line x1="50" y1="200" x2="950" y2="200"/>
+    <line x1="50" y1="300" x2="950" y2="300"/>
+    <line x1="50" y1="700" x2="950" y2="700"/>
+    <line x1="50" y1="800" x2="950" y2="800"/>
+    <line x1="50" y1="900" x2="950" y2="900"/>
+  </g>
+
+  <!-- 4 Corner Asymmetric Optical Tracking Targets -->
+  <!-- Top-Left Corner (Target Marker 04: Isometric 3D Cube Marker) -->
+  <g transform="translate(60, 60)">
+    <circle cx="50" cy="50" r="42" fill="#38bdf8"/>
+    <circle cx="50" cy="50" r="32" fill="#0f172a"/>
+    <circle cx="50" cy="50" r="22" fill="#ffffff"/>
+    <circle cx="50" cy="50" r="10" fill="#2563eb"/>
+    <line x1="50" y1="0" x2="50" y2="100" stroke="#fde047" stroke-width="4"/>
+    <line x1="0" y1="50" x2="100" y2="50" stroke="#fde047" stroke-width="4"/>
+    <polygon points="50,22 68,32 50,42 32,32" fill="#60a5fa"/>
+    <polygon points="32,32 50,42 50,62 32,52" fill="#2563eb"/>
+    <polygon points="50,42 68,32 68,52 50,62" fill="#1d4ed8"/>
+    <rect x="75" y="75" width="20" height="20" fill="#38bdf8"/>
+  </g>
+
+  <!-- Top-Right Corner (Asymmetric DNA / Molecular Tracker) -->
+  <g transform="translate(840, 60)">
+    <rect x="0" y="0" width="100" height="100" fill="#0f172a" rx="16" stroke="#38bdf8" stroke-width="4"/>
+    <line x1="20" y1="25" x2="80" y2="75" stroke="#60a5fa" stroke-width="4"/>
+    <line x1="20" y1="75" x2="80" y2="25" stroke="#60a5fa" stroke-width="4"/>
+    <circle cx="20" cy="25" r="10" fill="#38bdf8"/>
+    <circle cx="80" cy="75" r="10" fill="#fde047"/>
+    <circle cx="20" cy="75" r="10" fill="#fde047"/>
+    <circle cx="80" cy="25" r="10" fill="#38bdf8"/>
+    <circle cx="50" cy="50" r="12" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+  </g>
+
+  <!-- Bottom-Left Corner (Microscope Lens Tracker) -->
+  <g transform="translate(60, 840)">
+    <polygon points="50,5 95,50 50,95 5,50" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+    <polygon points="50,22 78,50 50,78 22,50" fill="#0f172a"/>
+    <circle cx="50" cy="50" r="14" fill="#38bdf8"/>
+    <circle cx="50" cy="50" r="7" fill="#ffffff"/>
+    <circle cx="20" cy="20" r="6" fill="#60a5fa"/>
+    <circle cx="80" cy="20" r="6" fill="#60a5fa"/>
+    <circle cx="80" cy="80" r="6" fill="#fde047"/>
+  </g>
+
+  <!-- Bottom-Right Corner (Matrix Optical Pattern) -->
+  <g transform="translate(840, 840)">
+    <circle cx="50" cy="50" r="45" fill="#1e3a8a" stroke="#38bdf8" stroke-width="4"/>
+    <rect x="25" y="25" width="22" height="22" fill="#ffffff" rx="4"/>
+    <rect x="53" y="25" width="22" height="22" fill="#60a5fa" rx="4"/>
+    <rect x="25" y="53" width="22" height="22" fill="#38bdf8" rx="4"/>
+    <rect x="53" y="53" width="22" height="22" fill="#ffffff" rx="4"/>
+    <circle cx="50" cy="50" r="6" fill="#0f172a"/>
+  </g>
+
+  <!-- Hexagonal Concentric Sci-Shield (Middle Anchor) -->
+  <polygon points="500,140 820,320 820,680 500,860 180,680 180,320" 
+           fill="none" stroke="#2563eb" stroke-width="16" opacity="0.85"/>
+  <polygon points="500,165 795,335 795,665 500,835 205,665 205,335" 
+           fill="none" stroke="#38bdf8" stroke-width="4" stroke-dasharray="16, 12"/>
+
+  <!-- Radial Glow Behind Center 3D Cell Hologram -->
+  <circle cx="500" cy="485" r="280" fill="url(#glowAnimalCell)"/>
+
+  <!-- Middle Emblem Base Shield -->
+  <circle cx="500" cy="485" r="235" fill="#0f172a" stroke="#38bdf8" stroke-width="14"/>
+  <circle cx="500" cy="485" r="215" fill="#172554" stroke="#60a5fa" stroke-width="4" stroke-dasharray="8, 6"/>
+
+  <!-- Side Sci Beacons -->
+  <!-- Left Side: Tokens -->
+  <g transform="translate(138, 430)">
+    <rect x="0" y="0" width="55" height="55" rx="14" fill="#2563eb" stroke="#ffffff" stroke-width="3"/>
+    <text x="27" y="38" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="22" fill="#ffffff" text-anchor="middle">SEL</text>
+  </g>
+  <g transform="translate(138, 510)">
+    <rect x="0" y="0" width="55" height="55" rx="14" fill="#0284c7" stroke="#ffffff" stroke-width="3"/>
+    <text x="27" y="38" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="22" fill="#ffffff" text-anchor="middle">3D</text>
+  </g>
+
+  <!-- Right Side: Animal Tokens -->
+  <g transform="translate(807, 430)">
+    <rect x="0" y="0" width="55" height="55" rx="14" fill="#0284c7" stroke="#ffffff" stroke-width="3"/>
+    <text x="27" y="38" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">HAI</text>
+  </g>
+  <g transform="translate(807, 510)">
+    <rect x="0" y="0" width="55" height="55" rx="14" fill="#1d4ed8" stroke="#ffffff" stroke-width="3"/>
+    <text x="27" y="38" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">WAN</text>
+  </g>
+
+  <!-- ============================================== -->
+  <!-- CENTRAL ICON: SPHERICAL ANIMAL CELL WITH ORGANELLES -->
+  <!-- ============================================== -->
+  <g id="center-animal-cell-icon" transform="translate(500, 485)">
+    <!-- Outer Flexible Membrane Orbit Rings -->
+    <ellipse cx="0" cy="0" rx="150" ry="70" fill="none" stroke="#38bdf8" stroke-width="5" transform="rotate(-20)"/>
+    <ellipse cx="0" cy="0" rx="150" ry="70" fill="none" stroke="#60a5fa" stroke-width="4" stroke-dasharray="10, 8" transform="rotate(30)"/>
+
+    <!-- Animal Cell Plasma Membrane (Flexible Rounded Geometry) -->
+    <path d="M 0,-95 C 65,-95 110,-55 115,0 C 120,60 70,100 0,95 C -75,90 -115,55 -115,0 C -115,-60 -65,-95 0,-95 Z" 
+          fill="url(#cyanNeonGrad)" stroke="#ffffff" stroke-width="6"/>
+
+    <!-- Cytoplasm Interior -->
+    <path d="M 0,-85 C 55,-85 98,-48 102,0 C 106,50 60,88 0,85 C -65,82 -100,50 -100,0 C -100,-50 -55,-85 0,-85 Z" 
+          fill="#172554" opacity="0.85"/>
+
+    <!-- Endoplasmic Reticulum (ER Ribbons) -->
+    <path d="M -30,-45 C -10,-60 15,-55 35,-40 C 45,-30 40,-15 25,-10 C 10,-5 -15,-15 -25,-30" 
+          fill="none" stroke="#818cf8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M -35,-35 C -15,-50 10,-45 28,-30 C 38,-20 32,-8 18,-3" 
+          fill="none" stroke="#c084fc" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Glowing Central Spherical Nucleus & Nucleolus -->
+    <circle cx="0" cy="2" r="34" fill="url(#amberGold)" stroke="#ffffff" stroke-width="4"/>
+    <circle cx="4" cy="-2" r="14" fill="#b45309"/>
+    <circle cx="-6" cy="-4" r="8" fill="#ffffff" opacity="0.6"/>
+
+    <!-- Organelle: Mitochondria 1 (Upper Left) -->
+    <g transform="translate(-52, -28) rotate(-35)">
+      <ellipse cx="0" cy="0" rx="22" ry="12" fill="#ef4444" stroke="#ffffff" stroke-width="2.5"/>
+      <path d="M -14 0 Q -7 -7 0 0 Q 7 7 14 0" fill="none" stroke="#fef08a" stroke-width="2.5"/>
+    </g>
+
+    <!-- Organelle: Mitochondria 2 (Lower Right) -->
+    <g transform="translate(54, 34) rotate(40)">
+      <ellipse cx="0" cy="0" rx="20" ry="11" fill="#ef4444" stroke="#ffffff" stroke-width="2.5"/>
+      <path d="M -12 0 Q -6 -6 0 0 Q 6 6 12 0" fill="none" stroke="#fef08a" stroke-width="2.5"/>
+    </g>
+
+    <!-- Organelle: Centrioles (Unique to Animal Cell) -->
+    <g transform="translate(-48, 38)">
+      <rect x="-14" y="-5" width="28" height="10" rx="3" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+      <rect x="-5" y="-14" width="10" height="28" rx="3" fill="#60a5fa" stroke="#ffffff" stroke-width="1.5"/>
+    </g>
+
+    <!-- Organelle: Golgi Apparatus (Curves) -->
+    <g transform="translate(45, -35) rotate(15)">
+      <path d="M -18,-8 Q 0,-16 18,-8" fill="none" stroke="#f43f5e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M -16,0 Q 0,-6 16,0" fill="none" stroke="#f43f5e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M -14,8 Q 0,4 14,8" fill="none" stroke="#fb7185" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <!-- Floating 3D Badge -->
+    <g transform="translate(0, -112)">
+      <rect x="-45" y="-16" width="90" height="32" rx="16" fill="#fde047" stroke="#0f172a" stroke-width="3"/>
+      <text x="0" y="6" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="15" fill="#0f172a" text-anchor="middle">HAIWAN</text>
+    </g>
+  </g>
+
+  <!-- Bottom Distinctive Banner -->
+  <g transform="translate(500, 890)">
+    <rect x="-380" y="-42" width="760" height="74" rx="37" fill="#090d16" stroke="#38bdf8" stroke-width="5"/>
+    <rect x="-370" y="-32" width="740" height="54" rx="27" fill="#1e3a8a"/>
+    
+    <!-- Mini Animal Cell Icon -->
+    <g transform="translate(-315, -5)">
+      <circle cx="0" cy="0" r="18" fill="#38bdf8"/>
+      <circle cx="0" cy="0" r="8" fill="#fde047"/>
+      <circle cx="-3" cy="-3" r="3" fill="#ffffff"/>
+    </g>
+
+    <!-- Primary Title -->
+    <text x="-275" y="6" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+          font-weight="900" font-size="28" fill="#ffffff" letter-spacing="3">SEL HAIWAN 3D</text>
+
+    <!-- Subtitle Badge -->
+    <rect x="135" y="-18" width="200" height="34" rx="17" fill="#38bdf8"/>
+    <text x="235" y="5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+          font-weight="900" font-size="15" fill="#090d16" letter-spacing="1.5" text-anchor="middle">KOTAK AR • 04</text>
+  </g>
+
+  <!-- Center Crosshairs for Optical Tracking Precision -->
+  <circle cx="500" cy="485" r="3" fill="#ffffff"/>
+  <line x1="485" y1="485" x2="475" y2="485" stroke="#ffffff" stroke-width="2"/>
+  <line x1="515" y1="485" x2="525" y2="485" stroke="#ffffff" stroke-width="2"/>
+  <line x1="500" y1="470" x2="500" y2="460" stroke="#ffffff" stroke-width="2"/>
+  <line x1="500" y1="500" x2="500" y2="510" stroke="#ffffff" stroke-width="2"/>
+</svg>

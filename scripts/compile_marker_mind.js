@@ -129,7 +129,7 @@ async function main() {
   await sendCDP(ws, 'Page.navigate', { url: `http://127.0.0.1:${PORT}/compiler-test` }, msgId++);
   await new Promise(r => setTimeout(r, 2500));
 
-  console.log('Compiling multi-marker targets (0: Video, 1: Nota, 2: Kuiz) with MindAR Compiler...');
+  console.log('Compiling 5 multi-marker targets (0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan) with MindAR Compiler...');
 
   const compileScript = `
     (async () => {
@@ -146,24 +146,28 @@ async function main() {
           img.src = src;
         });
 
-        console.log('Loading marker-video.png...');
+        console.log('Loading marker-video.png (Target 0)...');
         const img0 = await loadImage('/kotak_arselnel/assets/markers/marker-video.png');
         console.log('Target 0 loaded:', img0.width, 'x', img0.height);
 
-        console.log('Loading marker-nota.png...');
+        console.log('Loading marker-nota.png (Target 1)...');
         const img1 = await loadImage('/kotak_arselnel/assets/markers/marker-nota.png');
         console.log('Target 1 loaded:', img1.width, 'x', img1.height);
 
-        console.log('Loading marker-kuiz.png...');
+        console.log('Loading marker-kuiz.png (Target 2)...');
         const img2 = await loadImage('/kotak_arselnel/assets/markers/marker-kuiz.png');
         console.log('Target 2 loaded:', img2.width, 'x', img2.height);
 
-        console.log('Loading marker-cellquest.png...');
-        const img3 = await loadImage('/kotak_arselnel/assets/markers/marker-cellquest.png');
+        console.log('Loading marker-sel-haiwan.png (Target 3)...');
+        const img3 = await loadImage('/kotak_arselnel/assets/markers/marker-sel-haiwan.png');
         console.log('Target 3 loaded:', img3.width, 'x', img3.height);
 
-        console.log('Compiling 4-target array [Target 0: Video, Target 1: Nota, Target 2: Kuiz, Target 3: CellQuest]...');
-        await compiler.compileImageTargets([img0, img1, img2, img3], (progress) => {
+        console.log('Loading marker-sel-tumbuhan.png (Target 4)...');
+        const img4 = await loadImage('/kotak_arselnel/assets/markers/marker-sel-tumbuhan.png');
+        console.log('Target 4 loaded:', img4.width, 'x', img4.height);
+
+        console.log('Compiling 5-target array [0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan]...');
+        await compiler.compileImageTargets([img0, img1, img2, img3, img4], (progress) => {
           console.log('Compilation progress: ' + Math.round(progress) + '%');
         });
 

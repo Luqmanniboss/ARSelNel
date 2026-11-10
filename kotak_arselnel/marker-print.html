@@ -100,10 +100,15 @@
       color: #ffffff;
       box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
     }
-    .tab-btn.active.tab-cellquest {
+    .tab-btn.active.tab-haiwan {
       background: #2563eb;
       color: #ffffff;
       box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+    .tab-btn.active.tab-tumbuhan {
+      background: #059669;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
     }
     .actions-bar {
       display: flex;
@@ -171,6 +176,12 @@
     }
     .marker-frame.frame-kuiz {
       border: 3px solid #8b5cf6;
+    }
+    .marker-frame.frame-haiwan {
+      border: 3px solid #2563eb;
+    }
+    .marker-frame.frame-tumbuhan {
+      border: 3px solid #059669;
     }
     .marker-frame img {
       width: 100%;
@@ -258,23 +269,27 @@
   <div class="tab-bar no-print">
     <button type="button" class="tab-btn active tab-video" id="btn-show-video" onclick="showMarker('video')">
       <span class="material-symbols-outlined" style="font-size:18px;">smart_display</span>
-      <span>1. Video Pembelajaran</span>
+      <span>1. Video</span>
     </button>
     <button type="button" class="tab-btn tab-nota" id="btn-show-nota" onclick="showMarker('nota')">
       <span class="material-symbols-outlined" style="font-size:18px;">auto_stories</span>
-      <span>2. Nota Interaktif</span>
+      <span>2. Nota</span>
     </button>
     <button type="button" class="tab-btn tab-kuiz" id="btn-show-kuiz" onclick="showMarker('kuiz')">
       <span class="material-symbols-outlined" style="font-size:18px;">sports_esports</span>
-      <span>3. Kuiz &amp; Permainan</span>
+      <span>3. Kuiz</span>
     </button>
-    <button type="button" class="tab-btn tab-cellquest" id="btn-show-cellquest" onclick="showMarker('cellquest')">
-      <span class="material-symbols-outlined" style="font-size:18px;">view_in_ar</span>
-      <span>4. CellQuest 3D</span>
+    <button type="button" class="tab-btn tab-haiwan" id="btn-show-haiwan" onclick="showMarker('haiwan')">
+      <span class="material-symbols-outlined" style="font-size:18px;">biotech</span>
+      <span>4. Sel Haiwan</span>
+    </button>
+    <button type="button" class="tab-btn tab-tumbuhan" id="btn-show-tumbuhan" onclick="showMarker('tumbuhan')">
+      <span class="material-symbols-outlined" style="font-size:18px;">potted_plant</span>
+      <span>5. Sel Tumbuhan</span>
     </button>
     <button type="button" class="tab-btn" id="btn-show-all" onclick="showMarker('all')">
       <span class="material-symbols-outlined" style="font-size:18px;">grid_view</span>
-      <span>Papar Semua (4 Muka)</span>
+      <span>Papar Semua (5 Marker)</span>
     </button>
   </div>
 
@@ -319,12 +334,21 @@
       </div>
     </div>
 
-    <!-- MARKER 3: CELLQUEST 3D -->
-    <div class="marker-frame frame-cellquest" id="card-cellquest">
-      <img src="assets/markers/marker-cellquest.png" alt="Kotak ARSELNEL - Marker 4 CellQuest 3D" />
+    <!-- MARKER 3: SEL HAIWAN 3D -->
+    <div class="marker-frame frame-haiwan" id="card-haiwan">
+      <img src="assets/markers/marker-sel-haiwan.png" alt="Kotak ARSELNEL - Marker 4 Sel Haiwan 3D" />
       <div class="marker-specs">
-        <span style="color:#2563eb;">★ MUKA 4: CELLQUEST 3D</span>
+        <span style="color:#2563eb;">★ MUKA 4: SEL HAIWAN 3D</span>
         <span>INDEX 3 • 20 × 20 CM</span>
+      </div>
+    </div>
+
+    <!-- MARKER 4: SEL TUMBUHAN 3D -->
+    <div class="marker-frame frame-tumbuhan" id="card-tumbuhan" style="display:none;">
+      <img src="assets/markers/marker-sel-tumbuhan.png" alt="Kotak ARSELNEL - Marker 5 Sel Tumbuhan 3D" />
+      <div class="marker-specs">
+        <span style="color:#059669;">★ MUKA 5: SEL TUMBUHAN 3D</span>
+        <span>INDEX 4 • 20 × 20 CM</span>
       </div>
     </div>
   </div>
@@ -338,10 +362,11 @@
     <ol>
       <li><strong>Imbas Terus dari Skrin:</strong> Biarkan halaman ini terbuka pada laptop atau monitor. Buka pautan HTTPS di iPad/telefon anda (`https://[IP]:3443/kotak_arselnel/`), benarkan kamera dan halakan kamera ke arah mana-mana marker di atas.</li>
       <li><strong>Muka 1 (Video - Jingga):</strong> Memaparkan Pemain Video interaktif dan senarai video CMS sains sel.</li>
-      <li><strong>Muka 2 (Nota - Teal):</strong> Memaparkan Panel Nota Interaktif Sains KSSM dengan fungsi semakan slaid/PDF, kawalan saiz S/M/L, Zoom in/out, Screen-Pinned dan Gyroscope POV Lock (Yaw + Pitch)!</li>
-      <li><strong>Muka 3 (Kuiz &amp; Permainan - Ungu):</strong> Memaparkan katalog 5 permainan asal ARSELNEL, mod fokus penuh, dan pengasingan sesi permainan bebas gangguan.</li>
-      <li><strong>Muka 4 (CellQuest 3D - Biru):</strong> Memaparkan modul penerokaan 3D Sel Haiwan dan Sel Tumbuhan (Target Index 3).</li>
-      <li><strong>Pertukaran Modul Lancar:</strong> Apabila kamera beralih antara mana-mana 4 marker, sistem menukar modul secara automatik dan mengekalkan semua tetapan Screen-Pinned dan POV Lock.</li>
+      <li><strong>Muka 2 (Nota - Teal):</strong> Memaparkan Panel Nota Interaktif Sains KSSM dengan semakan slaid, kawalan saiz S/M/L, Zoom in/out, Screen-Pinned dan Gyroscope POV Lock!</li>
+      <li><strong>Muka 3 (Kuiz &amp; Permainan - Ungu):</strong> Memaparkan katalog 5 permainan asal ARSELNEL, mod fokus penuh, dan pengasingan sesi permainan bebas.</li>
+      <li><strong>Muka 4 (Sel Haiwan 3D - Biru/Sian):</strong> Memaparkan model 3D Sel Haiwan secara automatik (Target Index 3).</li>
+      <li><strong>Muka 5 (Sel Tumbuhan 3D - Zamrud/Hijau):</strong> Memaparkan model 3D Sel Tumbuhan secara automatik (Target Index 4).</li>
+      <li><strong>Pertukaran Modul &amp; Multi-Panel:</strong> Kamera boleh menambah modul secara bertahap melalui butang `+ Tambah Imbasan Baharu` tanpa meruntuhkan panel lain yang telah dikunci POV.</li>
     </ol>
   </div>
 
@@ -350,48 +375,63 @@
       const v = document.getElementById('card-video');
       const n = document.getElementById('card-nota');
       const k = document.getElementById('card-kuiz');
-      const c = document.getElementById('card-cellquest');
+      const h = document.getElementById('card-haiwan');
+      const t = document.getElementById('card-tumbuhan');
       const btnV = document.getElementById('btn-show-video');
       const btnN = document.getElementById('btn-show-nota');
       const btnK = document.getElementById('btn-show-kuiz');
-      const btnC = document.getElementById('btn-show-cellquest');
+      const btnH = document.getElementById('btn-show-haiwan');
+      const btnT = document.getElementById('btn-show-tumbuhan');
       const btnA = document.getElementById('btn-show-all');
 
       btnV.className = 'tab-btn tab-video';
       btnN.className = 'tab-btn tab-nota';
       btnK.className = 'tab-btn tab-kuiz';
-      btnC.className = 'tab-btn tab-cellquest';
+      btnH.className = 'tab-btn tab-haiwan';
+      btnT.className = 'tab-btn tab-tumbuhan';
       btnA.className = 'tab-btn';
 
       if (type === 'video') {
         v.style.display = 'block';
         n.style.display = 'none';
         k.style.display = 'none';
-        c.style.display = 'none';
+        h.style.display = 'none';
+        t.style.display = 'none';
         btnV.className = 'tab-btn active tab-video';
       } else if (type === 'nota') {
         v.style.display = 'none';
         n.style.display = 'block';
         k.style.display = 'none';
-        c.style.display = 'none';
+        h.style.display = 'none';
+        t.style.display = 'none';
         btnN.className = 'tab-btn active tab-nota';
       } else if (type === 'kuiz') {
         v.style.display = 'none';
         n.style.display = 'none';
         k.style.display = 'block';
-        c.style.display = 'none';
+        h.style.display = 'none';
+        t.style.display = 'none';
         btnK.className = 'tab-btn active tab-kuiz';
-      } else if (type === 'cellquest') {
+      } else if (type === 'haiwan') {
         v.style.display = 'none';
         n.style.display = 'none';
         k.style.display = 'none';
-        c.style.display = 'block';
-        btnC.className = 'tab-btn active tab-cellquest';
+        h.style.display = 'block';
+        t.style.display = 'none';
+        btnH.className = 'tab-btn active tab-haiwan';
+      } else if (type === 'tumbuhan') {
+        v.style.display = 'none';
+        n.style.display = 'none';
+        k.style.display = 'none';
+        h.style.display = 'none';
+        t.style.display = 'block';
+        btnT.className = 'tab-btn active tab-tumbuhan';
       } else {
         v.style.display = 'block';
         n.style.display = 'block';
         k.style.display = 'block';
-        c.style.display = 'block';
+        h.style.display = 'block';
+        t.style.display = 'block';
         btnA.className = 'tab-btn active';
       }
     }
