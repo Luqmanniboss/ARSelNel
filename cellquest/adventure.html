@@ -1100,31 +1100,39 @@
   </div>
 
   <!-- ==============================================================================
-       MODAL 8: CABARAN 3 SOALAN BONUS PETI HARTA KARUN ARSELNEL
+       MODAL 8: CABARAN 1 SOALAN SETIAP PETI HARTA KARUN (FASA A.4 MULTI-CHEST)
        ============================================================================== -->
   <div class="cq-modal-backdrop" id="treasure-chest-modal" role="dialog" aria-modal="true" aria-labelledby="tc-modal-title">
-    <div class="cq-modal" style="max-width: 520px; padding: 24px;">
+    <div class="cq-modal" style="max-width: 620px; padding: 22px;">
       <button type="button" class="cq-modal-close" id="close-treasure-modal-btn" aria-label="Tutup">
         <span class="material-symbols-outlined">close</span>
       </button>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
-        <div class="cq-station-badge-chip" style="background: rgba(45, 212, 191, 0.2); border-color: #2dd4bf; color: #5eead4; margin: 0;">🎁 PETI HARTA KARUN ARSELNEL</div>
-        <span id="tc-question-progress" style="font-size: 12px; font-weight: 900; color: #facc15; background: rgba(250, 204, 21, 0.15); padding: 3px 10px; border-radius: 999px;">Cabaran 1 / 3</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; padding-right: 32px;">
+        <div class="cq-station-badge-chip" id="tc-chest-badge" style="background: rgba(250, 204, 21, 0.2); border-color: #facc15; color: #fde047; margin: 0;">🎁 PETI HARTA KARUN 1</div>
+        <span id="tc-question-progress" style="font-size: 12px; font-weight: 900; color: #5eead4; background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.4); padding: 3px 12px; border-radius: 999px;">Soalan 1 / 1</span>
       </div>
-      <h2 id="tc-modal-title" style="font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 6px;">Ujian Pakar Sel: Buka Kunci Peti</h2>
-      <p style="font-size: 12.5px; color: #94a3b8; margin-bottom: 14px;">Jawab 3 soalan bonus biologi sel dengan tepat untuk membuka kunci peti harta karun!</p>
-
-      <div class="cq-quiz-box" style="margin: 0;">
-        <h3 class="cq-quiz-question" id="tc-quiz-question" style="font-size: 15px; margin-bottom: 12px;">Soalan...</h3>
-        <div class="cq-quiz-options" id="tc-quiz-options">
-          <!-- Populated dynamically -->
+      
+      <div class="tc-modal-grid" style="display: grid; grid-template-columns: minmax(140px, 180px) 1fr; gap: 16px; align-items: start;">
+        <!-- Visual Peti Cartoon Bercahaya -->
+        <div class="tc-visual-card" style="background: radial-gradient(circle at 50% 60%, rgba(124, 58, 237, 0.3) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1.5px solid rgba(250, 204, 21, 0.4); border-radius: 18px; padding: 16px 12px; text-align: center; box-shadow: inset 0 0 20px rgba(250, 204, 21, 0.15);">
+          <div style="font-size: 54px; filter: drop-shadow(0 0 12px rgba(250, 204, 21, 0.6)); animation: pulseGlow 2s infinite ease-in-out;">🎁</div>
+          <div style="font-size: 13px; font-weight: 900; color: #fde047; margin-top: 6px;" id="tc-visual-title">Peti 1 / 3</div>
+          <div style="font-size: 11px; color: #cbd5e1; margin-top: 2px;">+100 Markah Bonus</div>
         </div>
-        <div class="cq-feedback-box" id="tc-quiz-feedback" style="display:none; margin-top: 12px;"></div>
+
+        <!-- Soalan & Pilihan Jawapan -->
+        <div>
+          <h3 class="cq-quiz-question" id="tc-quiz-question" style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 12px; line-height: 1.4;">Soalan...</h3>
+          <div class="cq-quiz-options" id="tc-quiz-options" style="margin: 0;">
+            <!-- Populated dynamically -->
+          </div>
+          <div class="cq-feedback-box" id="tc-quiz-feedback" style="display:none; margin-top: 10px;"></div>
+        </div>
       </div>
 
-      <div class="cq-modal-actions" id="tc-modal-actions" style="margin-top: 14px; display: none;">
-        <button type="button" class="cq-btn-primary" id="tc-next-btn" style="width: 100%; justify-content: center;">
-          <span id="tc-next-btn-text">Soalan Seterusnya</span>
+      <div class="cq-modal-actions" id="tc-modal-actions" style="margin-top: 16px; display: none;">
+        <button type="button" class="cq-btn-primary" id="tc-next-btn" style="width: 100%; justify-content: center; font-size: 14.5px; padding: 11px 18px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          <span id="tc-next-btn-text">Tutup &amp; Cari Peti Seterusnya</span>
           <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
         </button>
       </div>
@@ -1239,6 +1247,10 @@
           <div class="cq-ar-stat-chip timer-chip" title="Masa Eksplorasi" aria-label="Masa">
             <span>⏱️</span>
             <strong id="ar-hud-timer">00:00</strong>
+          </div>
+          <div class="cq-ar-stat-chip chest-chip" id="ar-hud-chest-chip" style="display:none; border-color:#f59e0b; color:#fde047;" title="Peti Harta Karun Bonus (1 Soalan Setiap Peti)" aria-label="Peti Harta Karun">
+            <span>🎁</span>
+            <strong id="ar-hud-chests">0/3</strong>
           </div>
         </div>
 
