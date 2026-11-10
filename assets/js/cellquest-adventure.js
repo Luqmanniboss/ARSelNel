@@ -320,17 +320,19 @@
   // Dalam Mod Orientasi: sudut adalah relatif kepada arah hadapan kamera semasa sesi dimulakan.
   // Dalam Mod WebXR Spasial: koordinat dalam ruang XR sebenar.
 
-  // Susun atur 8 stesen AR dunia dengan Azimut Relatif (0°=Hadapan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
-  // dan Elevasi (sudut dongak + / tunduk - dalam darjah). Diedarkan luas 360° dengan variasi ketinggian.
+  // Susun atur 8 stesen AR Orientasi Dunia — Fasa A.1 Treasure Hunt Spatial Layout
+  // 1. Ketinggian Rendah: Berada pada paras lantai / meja (~20-40cm atas lantai, elevasi negatif -9° hingga -23°)
+  // 2. Sebaran 360° & Jarak Berbeza (Dekat: ~2.4m, Sederhana: ~3.4-4.2m, Jauh: ~5.2-6.6m)
+  // 3. Status Maya: Jarak maya yang realistik untuk pengalaman Treasure Hunt
   const AR_WORLD_STATIONS = [
-    { id: 'stn-1-nucleus',      slotNumber: 1, stationNumber: 1, markerId: 1, directionName: 'Hadapan',        stationKey: 'nucleus',      azimuthDeg: 0,   angleDeg: 0,   elevationDeg: -8,  radius: 5.4, height: 1.45, spatialOffset: [ 0.0,  -0.18, -1.45], label: 'Nukleus',                      color: 0x8b5cf6, icon: '🧬' },
-    { id: 'stn-2-membrane',     slotNumber: 2, stationNumber: 2, markerId: 4, directionName: 'Kanan Hadapan',  stationKey: 'membrane',     azimuthDeg: 45,  angleDeg: 45,  elevationDeg: -6,  radius: 5.4, height: 1.45, spatialOffset: [ 1.05, -0.14, -1.05], label: 'Membran Sel',                  color: 0x3b82f6, icon: '🛡️' },
-    { id: 'stn-3-cytoplasm',    slotNumber: 3, stationNumber: 3, markerId: 6, directionName: 'Kanan',          stationKey: 'cytoplasm',    azimuthDeg: 90,  angleDeg: 90,  elevationDeg: 4,   radius: 5.4, height: 1.45, spatialOffset: [ 1.45,  0.09,  0.0],  label: 'Sitoplasma',                   color: 0xeab308, icon: '💧' },
-    { id: 'stn-4-mitochondria', slotNumber: 4, stationNumber: 4, markerId: 0, directionName: 'Kanan Belakang', stationKey: 'mitochondria', azimuthDeg: 135, angleDeg: 135, elevationDeg: 18,  radius: 5.4, height: 1.45, spatialOffset: [ 1.05,  0.40,  1.05], label: 'Mitokondrion',                 color: 0xf97316, icon: '⚡' },
-    { id: 'stn-5-chloroplast',  slotNumber: 5, stationNumber: 5, markerId: 5, directionName: 'Belakang',       stationKey: 'chloroplast',  azimuthDeg: 180, angleDeg: 180, elevationDeg: 22,  radius: 5.4, height: 1.45, spatialOffset: [ 0.0,   0.49,  1.45], label: 'Kloroplas',                    color: 0x22c55e, icon: '🌿' },
-    { id: 'stn-6-cellwall',     slotNumber: 6, stationNumber: 6, markerId: 3, directionName: 'Kiri Belakang',  stationKey: 'wall',         azimuthDeg: 225, angleDeg: 225, elevationDeg: -7,  radius: 5.4, height: 1.45, spatialOffset: [-1.05, -0.16,  1.05], label: 'Dinding Sel',                  color: 0x92400e, icon: '🧱' },
-    { id: 'stn-7-vacuole',      slotNumber: 7, stationNumber: 7, markerId: 7, directionName: 'Kiri',           stationKey: 'vacuole',      azimuthDeg: 270, angleDeg: 270, elevationDeg: 12,  radius: 5.4, height: 1.45, spatialOffset: [-1.45,  0.27,  0.0],  label: 'Vakuol',                       color: 0x06b6d4, icon: '🫧' },
-    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Kiri Hadapan',   stationKey: 'comparison',   azimuthDeg: 315, angleDeg: 315, elevationDeg: -5,  radius: 5.4, height: 1.45, spatialOffset: [-1.05, -0.11, -1.05], label: 'Retikulum Endoplasma',         color: 0xec4899, icon: '⚖️' }
+    { id: 'stn-1-nucleus',      slotNumber: 1, stationNumber: 1, markerId: 1, directionName: 'Hadapan',        stationKey: 'nucleus',      azimuthDeg: 0,   angleDeg: 0,   elevationDeg: -23, radius: 2.4, distanceTier: 'Dekat',     height: 0.35, spatialOffset: [ 0.0,  -0.94, -2.20], label: 'Nukleus',                      color: 0x8b5cf6, icon: '🧬' },
+    { id: 'stn-2-membrane',     slotNumber: 2, stationNumber: 2, markerId: 4, directionName: 'Kanan Hadapan',  stationKey: 'membrane',     azimuthDeg: 45,  angleDeg: 45,  elevationDeg: -15, radius: 3.8, distanceTier: 'Sederhana', height: 0.35, spatialOffset: [ 2.60, -0.98, -2.60], label: 'Membran Sel',                  color: 0x3b82f6, icon: '🛡️' },
+    { id: 'stn-3-cytoplasm',    slotNumber: 3, stationNumber: 3, markerId: 6, directionName: 'Kanan',          stationKey: 'cytoplasm',    azimuthDeg: 90,  angleDeg: 90,  elevationDeg: -10, radius: 5.8, distanceTier: 'Jauh',      height: 0.35, spatialOffset: [ 5.71, -1.00,  0.00], label: 'Sitoplasma',                   color: 0xeab308, icon: '💧' },
+    { id: 'stn-4-mitochondria', slotNumber: 4, stationNumber: 4, markerId: 0, directionName: 'Kanan Belakang', stationKey: 'mitochondria', azimuthDeg: 140, angleDeg: 140, elevationDeg: -17, radius: 3.4, distanceTier: 'Sederhana', height: 0.35, spatialOffset: [ 2.10, -0.99,  2.50], label: 'Mitokondrion',                 color: 0xf97316, icon: '⚡' },
+    { id: 'stn-5-chloroplast',  slotNumber: 5, stationNumber: 5, markerId: 5, directionName: 'Belakang',       stationKey: 'chloroplast',  azimuthDeg: 185, angleDeg: 185, elevationDeg: -9,  radius: 6.6, distanceTier: 'Jauh',      height: 0.35, spatialOffset: [-0.58, -1.03,  6.50], label: 'Kloroplas',                    color: 0x22c55e, icon: '🌿' },
+    { id: 'stn-6-cellwall',     slotNumber: 6, stationNumber: 6, markerId: 3, directionName: 'Kiri Belakang',  stationKey: 'wall',         azimuthDeg: 225, angleDeg: 225, elevationDeg: -14, radius: 4.2, distanceTier: 'Sederhana', height: 0.35, spatialOffset: [-2.90, -1.02,  2.90], label: 'Dinding Sel',                  color: 0x92400e, icon: '🧱' },
+    { id: 'stn-7-vacuole',      slotNumber: 7, stationNumber: 7, markerId: 7, directionName: 'Kiri',           stationKey: 'vacuole',      azimuthDeg: 270, angleDeg: 270, elevationDeg: -21, radius: 2.8, distanceTier: 'Dekat',     height: 0.35, spatialOffset: [-2.61, -1.00,  0.00], label: 'Vakuol',                       color: 0x06b6d4, icon: '🫧' },
+    { id: 'stn-8-comparison',   slotNumber: 8, stationNumber: 8, markerId: 2, directionName: 'Kiri Hadapan',   stationKey: 'comparison',   azimuthDeg: 315, angleDeg: 315, elevationDeg: -11, radius: 5.2, distanceTier: 'Jauh',      height: 0.35, spatialOffset: [-3.60, -0.99, -3.60], label: 'Retikulum Endoplasma',         color: 0xec4899, icon: '⚖️' }
   ];
 
   // World-locked AR state — dikekalkan sepanjang sesi
@@ -7049,6 +7051,69 @@
   // AR WORLD-LOCKED STATION BUILDER — Bina 8 stesen AR pada lokasi berasingan
   // ==============================================================================
 
+  // Cipta sprite tanda soal '?' bercahaya ungu untuk Stage 1 (Stesen Jauh / Tersembunyi)
+  function createMysteryQuestionMarkSprite() {
+    const qCanvas = document.createElement('canvas');
+    qCanvas.width = 128;
+    qCanvas.height = 128;
+    const qCtx = qCanvas.getContext('2d');
+    qCtx.clearRect(0, 0, 128, 128);
+
+    const grad = qCtx.createRadialGradient(64, 64, 12, 64, 64, 54);
+    grad.addColorStop(0, 'rgba(168, 85, 247, 0.95)');
+    grad.addColorStop(0.85, 'rgba(126, 34, 206, 0.90)');
+    grad.addColorStop(1, 'rgba(88, 28, 135, 0.70)');
+
+    qCtx.beginPath();
+    qCtx.arc(64, 64, 52, 0, Math.PI * 2);
+    qCtx.fillStyle = grad;
+    qCtx.fill();
+    qCtx.strokeStyle = '#f3e8ff';
+    qCtx.lineWidth = 4.5;
+    qCtx.stroke();
+
+    qCtx.fillStyle = '#ffffff';
+    qCtx.font = '900 64px "Nunito", Arial, sans-serif';
+    qCtx.textAlign = 'center';
+    qCtx.textBaseline = 'middle';
+    qCtx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    qCtx.shadowBlur = 8;
+    qCtx.fillText('?', 64, 66);
+
+    const qTex = new THREE.CanvasTexture(qCanvas);
+    const qMat = new THREE.SpriteMaterial({ map: qTex, transparent: true, depthWrite: false });
+    const sprite = new THREE.Sprite(qMat);
+    sprite.scale.set(0.68, 0.68, 1.0);
+    return sprite;
+  }
+
+  // Cipta awan bayangan misteri geometri lembut untuk stesen tersembunyi
+  function createMysteryCloudMesh() {
+    const group = new THREE.Group();
+    const geo1 = new THREE.DodecahedronGeometry(0.34, 1);
+    const mat1 = new THREE.MeshBasicMaterial({
+      color: 0xa855f7,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.38,
+      depthWrite: false
+    });
+    const mesh1 = new THREE.Mesh(geo1, mat1);
+    group.add(mesh1);
+
+    const geo2 = new THREE.SphereGeometry(0.24, 12, 10);
+    const mat2 = new THREE.MeshBasicMaterial({
+      color: 0xc084fc,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false
+    });
+    const mesh2 = new THREE.Mesh(geo2, mat2);
+    group.add(mesh2);
+
+    return group;
+  }
+
   function buildARWorldStations() {
     // Bersih stesen lama jika ada
     arWorldState.stationGroups.forEach(g => { if (g.parent) g.parent.remove(g); });
@@ -7060,18 +7125,20 @@
 
       // 1. Model 3D Organel terperinci (KSSM Tingkatan 1 + GLB Sel Haiwan/Tumbuhan)
       const organelleModel = buildOrganelleModel(stnConfig.stationKey, stnConfig.color);
-      organelleModel.position.set(0, 0.15, 0);
+      organelleModel.position.set(0, 0.12, 0);
+      organelleModel.visible = false; // Tersembunyi pada Stage 1 sehingga murid mendekati
       stationGroup.add(organelleModel);
 
-      // 2. Papan nama stesen 3 baris yang kemas (melayang di atas model tanpa bertindih dengan model 3D)
+      // 2. Papan nama stesen 3 baris yang kemas (melayang di atas model pada paras rendah)
       const labelGroup = buildStationLabel(stnConfig.label, 'Ketik untuk Teroka', stnConfig.icon, stnConfig.color, stnConfig.stationNumber);
-      labelGroup.position.set(0, 1.24, 0);
+      labelGroup.position.set(0, 0.88, 0);
+      labelGroup.visible = false; // Tersembunyi pada Stage 1
       stationGroup.add(labelGroup);
 
-      // 3. Floating Scientific Hologram (Cincin nipis berbilang lapisan & cahaya holografik tanpa sebarang piring/meja fizikal)
+      // 3. Floating Scientific Hologram (Cincin nipis pada paras lantai/meja)
       const holoGroup = new THREE.Group();
       holoGroup.name = 'HologramBase';
-      holoGroup.position.y = -0.45;
+      holoGroup.position.y = -0.32;
 
       // Cincin hologram luar (luar nipis cyan/sky)
       const outerRingGeo = new THREE.RingGeometry(0.66, 0.70, 48);
@@ -7114,19 +7181,33 @@
 
       stationGroup.add(holoGroup);
 
+      // 3.1 Bayangan Misteri & Tanda Tanya '?' (Stage 1: Stesen Jauh / Tersembunyi)
+      const mysteryGroup = new THREE.Group();
+      mysteryGroup.name = 'MysteryGroup';
+      const cloud = createMysteryCloudMesh();
+      cloud.position.set(0, 0.12, 0);
+      mysteryGroup.add(cloud);
+
+      const qSprite = createMysteryQuestionMarkSprite();
+      qSprite.position.set(0, 0.64, 0);
+      mysteryGroup.add(qSprite);
+
+      mysteryGroup.visible = true;
+      stationGroup.add(mysteryGroup);
+
       // 4. Penanda Interaksi (Glowing Interactive Beacon di atas papan nama)
       const beacon = createBeaconMesh(stnConfig.color);
-      beacon.scale.setScalar(0.65);
-      beacon.position.set(0, 1.95, 0);
+      beacon.scale.setScalar(0.55);
+      beacon.position.set(0, 1.45, 0);
       stationGroup.add(beacon);
 
       // 5. Tiang cahaya hologram lembut (cone beam)
-      const beamGeo = new THREE.CylinderGeometry(0.04, 0.46, 2.0, 24, 1, true);
+      const beamGeo = new THREE.CylinderGeometry(0.04, 0.46, 1.6, 24, 1, true);
       const beamMat = new THREE.MeshBasicMaterial({
         color: 0x38bdf8, transparent: true, opacity: 0.09, depthWrite: false, side: THREE.DoubleSide
       });
       const beam = new THREE.Mesh(beamGeo, beamMat);
-      beam.position.y = 0.40;
+      beam.position.y = 0.35;
       stationGroup.add(beam);
 
       // 5.1 Zarah holografik halus terapung mengelilingi organel
@@ -7136,7 +7217,7 @@
       for (let pIdx = 0; pIdx < 4; pIdx++) {
         const pMesh = new THREE.Mesh(pGeo, pMat.clone());
         const angle = (pIdx / 4) * Math.PI * 2;
-        pMesh.position.set(Math.cos(angle) * 0.40, -0.2 + (pIdx * 0.15), Math.sin(angle) * 0.40);
+        pMesh.position.set(Math.cos(angle) * 0.40, -0.15 + (pIdx * 0.12), Math.sin(angle) * 0.40);
         pMesh.userData = { angle, baseRadius: 0.40, baseHeight: pMesh.position.y, speed: 0.8 + pIdx * 0.2 };
         stationGroup.add(pMesh);
         holoParticles.push(pMesh);
@@ -7147,7 +7228,7 @@
         new THREE.SphereGeometry(1.25, 12, 12),
         new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
       );
-      hitCollider.position.set(0, 0.35, 0);
+      hitCollider.position.set(0, 0.25, 0);
       hitCollider.userData = {
         id: stnConfig.stationKey,
         stationNumber: stnConfig.stationNumber,
@@ -7162,6 +7243,9 @@
         stationIndex: idx,
         organelleModel,
         labelGroup,
+        mysteryGroup,
+        qSprite,
+        cloud,
         beacon,
         ring: outerRing,
         outerRing,
@@ -7174,7 +7258,7 @@
         radius: stnConfig.radius
       };
 
-      //PENTING: Letakkan terus dalam scene (WORLD SPACE), BUKAN camera.add()!
+      // PENTING: Letakkan terus dalam scene (WORLD SPACE), BUKAN camera.add()!
       stationGroup.visible = false;
       scene.add(stationGroup);
       arWorldState.stationGroups.push(stationGroup);
@@ -7182,24 +7266,26 @@
   }
 
   // Kira koordinat world-space untuk 8 stesen berdasarkan Azimut Relatif (0°=Hadapan, 90°=Kanan, 180°=Belakang, 270°=Kiri)
-  // dan Elevasi (sudut dongak + / tunduk - dalam darjah)
+  // dan Elevasi (sudut tunduk negatif pada paras lantai / meja)
   function positionARWorldStations() {
-    const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
+    const eyeY = arWorldState.postureMode === 'seated' ? 1.20 : 1.50;
     arWorldState.stationGroups.forEach((group, idx) => {
       const cfg = group.userData.stationConfig;
       const azDeg = typeof cfg.azimuthDeg === 'number' ? cfg.azimuthDeg : (cfg.angleDeg || 0);
-      const elDeg = typeof cfg.elevationDeg === 'number' ? cfg.elevationDeg : 0;
+      let elDeg = typeof cfg.elevationDeg === 'number' ? cfg.elevationDeg : -15;
+      if (elDeg > 0) elDeg = -Math.abs(elDeg);
       cfg.azimuthDeg = azDeg;
       cfg.angleDeg = azDeg;
       cfg.elevationDeg = elDeg;
 
       const azRad = THREE.MathUtils.degToRad(azDeg);
       const elRad = THREE.MathUtils.degToRad(elDeg);
-      const R = cfg.radius || 5.4;
+      const R = cfg.radius || 4.0;
 
       const horizR = Math.cos(elRad) * R;
       const stationX = Math.sin(azRad) * horizR;
       const stationZ = -Math.cos(azRad) * horizR;
+      // Formula ketinggian aras lantai/meja: berada sekitar 0.45m - 0.55m dari aras lantai fizikal
       const stationY = eyeY + Math.sin(elRad) * R;
 
       group.position.set(stationX, stationY, stationZ);
@@ -7215,8 +7301,8 @@
     if (arWorldState.treasureChestGroup) {
       const chestCfg = arWorldState.treasureChestConfig;
       const azRad = THREE.MathUtils.degToRad(chestCfg.azimuthDeg);
-      const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg);
-      const R = chestCfg.radius || 4.8;
+      const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg || -12);
+      const R = chestCfg.radius || 3.8;
       const horizR = Math.cos(elRad) * R;
       const chestX = Math.sin(azRad) * horizR;
       const chestZ = -Math.cos(azRad) * horizR;
@@ -7612,9 +7698,10 @@
     updateARWorldCamera(gyroState.alpha, gyroState.beta, gyroState.gamma);
   }
 
-  // Sistem Penemuan Stesen (Bahagian 6) & Semakan Medan Pandangan Kamera
-  // PENTING: Semua 8 stesen kekal wujud dalam world space (group.visible = true) supaya tidak hilang secara tiba-tiba
-  // apabila murid mendongak/menunduk pada iPad Landscape!
+  // Sistem Penemuan Stesen (Bahagian 6) & Semakan Medan Pandangan Kamera — Fasa A.1 Multi-Stage Reveal
+  // Stage 1: Jauh / Belum Ditemui -> Bayangan Misteri + Tanda Tanya '?'
+  // Stage 2: Menghadap Arah Sasaran -> Model 3D Organel + Papan Nama muncul pada paras lantai/meja
+  // Stage 3: Sasaran Aktif / Dekat -> Kad Penerokaan Kanan Bawah muncul bersama butang "Teroka >"
   function checkARWorldStationVisibility() {
     if (!arWorldState.active || !camera) return;
     const camPos = new THREE.Vector3();
@@ -7638,17 +7725,37 @@
       const angleDeg = THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, dotProduct))));
 
       const deltaAz = Math.abs(shortestAngleDeltaDeg(cfg.azimuthDeg, arWorldState.currentHeadingDeg));
-      const deltaEl = Math.abs((cfg.elevationDeg || 0) - arWorldState.currentPitchDeg);
+      const deltaEl = Math.abs((cfg.elevationDeg || -15) - arWorldState.currentPitchDeg);
 
       const isWithinDiscovery = (deltaAz <= hTol && deltaEl <= vTol) || (angleDeg <= Math.hypot(hTol, vTol));
       const isVisibleInFrustum = (angleDeg <= 36) || isWithinDiscovery;
 
       arWorldState.stationVisibility[idx] = isVisibleInFrustum;
-      // Kekalkan group.visible = true supaya Three.js frustum culling menguruskan paparan semula jadi tanpa pop-out mengejut
       group.visible = true;
 
-      if (isWithinDiscovery) {
-        arWorldState.discoveredStations.add(cfg.stationNumber);
+      const isDiscovered = arWorldState.discoveredStations.has(cfg.stationNumber);
+      const isDone = State.completedStations.has(cfg.stationNumber);
+      const isTarget = (idx === arWorldState.targetStationIdx);
+
+      // Multi-stage reveal:
+      // Model dan papan nama didedahkan jika sudah ditemui, sudah siap, atau sedang disasarkan dalam toleransi FOV
+      const shouldReveal = isDiscovered || isDone || isWithinDiscovery || (isTarget && deltaAz <= (hTol + 4));
+
+      const organelle = group.userData.organelleModel;
+      const label = group.userData.labelGroup;
+      const mystery = group.userData.mysteryGroup;
+
+      if (shouldReveal) {
+        if (organelle) organelle.visible = true;
+        if (label) label.visible = true;
+        if (mystery) mystery.visible = false;
+        if (isWithinDiscovery) {
+          arWorldState.discoveredStations.add(cfg.stationNumber);
+        }
+      } else {
+        if (organelle) organelle.visible = false;
+        if (label) label.visible = false;
+        if (mystery) mystery.visible = true;
       }
 
       if (angleDeg < closestAngle || (isWithinDiscovery && angleDeg <= closestAngle + 4)) {
@@ -7667,7 +7774,7 @@
       const chestDot = camDir.dot(chestDir);
       const chestAngleDeg = THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, chestDot))));
       const deltaAzChest = Math.abs(shortestAngleDeltaDeg(chestCfg.azimuthDeg, arWorldState.currentHeadingDeg));
-      const deltaElChest = Math.abs((chestCfg.elevationDeg || 6) - arWorldState.currentPitchDeg);
+      const deltaElChest = Math.abs((chestCfg.elevationDeg || -12) - arWorldState.currentPitchDeg);
       const isChestWithinDiscovery = (deltaAzChest <= hTol && deltaElChest <= vTol) || (chestAngleDeg <= Math.hypot(hTol, vTol));
 
       if (isChestWithinDiscovery) {
@@ -7736,9 +7843,10 @@
       <div class="cq-detected-info">
         <span class="cq-detected-kicker" style="color:#fde047;">🎁 Misi Akhir ARSELNel</span>
         <strong class="cq-detected-title">Peti Harta Karun Ditemui!</strong>
+        <p class="cq-detected-desc">Buka peti harta karun untuk menuntut ganjaran dan sijil penyempurnaan Misi Jelajah Sel.</p>
       </div>
       <div class="cq-detected-actions">
-        <button type="button" class="cq-detected-explore-btn" id="ar-treasure-open-btn" style="background:linear-gradient(135deg, #f59e0b, #ea580c);">Buka Peti</button>
+        <button type="button" class="cq-detected-explore-btn" id="ar-treasure-open-btn" style="background:linear-gradient(135deg, #f59e0b, #ea580c);">Buka Peti &gt;</button>
         <button type="button" class="cq-detected-close-btn" id="ar-detected-close-btn" aria-label="Tutup notifikasi" title="Tutup">✕</button>
       </div>
     `;
@@ -7766,7 +7874,7 @@
     arWorldState.detectedBanner = banner;
   }
 
-  // Paparkan kad notifikasi ringkas "✓ Stesen Ditemui" di penjuru kanan bawah (Bahagian 7)
+  // Paparkan kad notifikasi ringkas "✓ Stesen Ditemui" di penjuru kanan bawah (Stage 3: Stesen Ditemui & Teroka)
   // Tanpa bertindih dengan Smart Radar (kiri bawah), model 3D (tengah), atau modal kuiz!
   function showARStationDetectedBanner(cfg) {
     if (!cfg) return;
@@ -7787,17 +7895,22 @@
       });
     }
     const hexColor = '#' + (typeof cfg.color === 'number' ? cfg.color.toString(16).padStart(6, '0') : '2dd4bf');
+    const info = ORGANELLE_DATA[cfg.stationKey] || {};
+    const descText = info.description || (State.stations && State.stations[cfg.stationNumber - 1]?.description) || 'Menjalankan aktiviti penting dan respirasi sel.';
+    const distTier = cfg.distanceTier || (cfg.radius <= 3.0 ? 'Dekat' : cfg.radius <= 5.0 ? 'Sederhana' : 'Jauh');
+
     banner.style.borderColor = hexColor;
     banner.style.display = 'flex';
     banner.style.opacity = '1';
     banner.style.pointerEvents = 'auto';
     banner.innerHTML = `
       <div class="cq-detected-info">
-        <span class="cq-detected-kicker">✓ Stesen Ditemui</span>
+        <span class="cq-detected-kicker" style="color:${hexColor};">📍 Stesen ${cfg.stationNumber} • ${cfg.directionName} (${distTier} ~${cfg.radius}m Maya)</span>
         <strong class="cq-detected-title">${cfg.icon || '🧬'} ${cfg.label}</strong>
+        <p class="cq-detected-desc">${descText}</p>
       </div>
       <div class="cq-detected-actions">
-        <button type="button" class="cq-detected-explore-btn" id="ar-detected-explore-btn" style="background:${hexColor};">Teroka</button>
+        <button type="button" class="cq-detected-explore-btn" id="ar-detected-explore-btn" style="background:${hexColor};">Teroka &gt;</button>
         <button type="button" class="cq-detected-close-btn" id="ar-detected-close-btn" aria-label="Tutup notifikasi" title="Tutup">✕</button>
       </div>
     `;
@@ -8198,33 +8311,34 @@
           color: #fff;
           border-color: #2dd4bf;
         }
-        /* NOTIFIKASI STESEN DITEMUI (KANAN BAWAH — Bahagian 7) */
+        /* NOTIFIKASI STESEN DITEMUI (KANAN BAWAH — Stage 3) */
         #ar-world-detected-banner {
           position: fixed;
           bottom: max(14px, env(safe-area-inset-bottom));
           right: max(14px, env(safe-area-inset-right));
           z-index: 31;
-          background: rgba(8, 15, 28, 0.93);
+          background: rgba(8, 15, 28, 0.94);
           border: 1.5px solid #2dd4bf;
-          border-radius: 16px;
-          padding: 8px 12px;
+          border-radius: 18px;
+          padding: 10px 14px;
           font-family: 'Nunito', Arial, sans-serif;
           color: #fff;
           pointer-events: auto;
           cursor: pointer;
-          box-shadow: 0 10px 26px rgba(0,0,0,0.55);
-          backdrop-filter: blur(10px);
+          box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+          backdrop-filter: blur(12px);
           display: none;
           align-items: center;
           justify-content: space-between;
-          gap: 10px;
-          max-width: min(295px, calc(100vw - 28px));
+          gap: 12px;
+          max-width: min(340px, calc(100vw - 28px));
           transition: opacity 0.2s ease, transform 0.2s ease;
         }
         .cq-detected-info {
           display: flex;
           flex-direction: column;
           min-width: 0;
+          gap: 2px;
         }
         .cq-detected-kicker {
           font-size: 10px;
@@ -8234,12 +8348,22 @@
           letter-spacing: 0.3px;
         }
         .cq-detected-title {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 900;
           color: #fff;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+        .cq-detected-desc {
+          margin: 2px 0 0 0;
+          font-size: 11px;
+          line-height: 1.35;
+          color: #cbd5e1;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
         .cq-detected-actions {
           display: flex;
@@ -8250,12 +8374,16 @@
         .cq-detected-explore-btn {
           border: none;
           border-radius: 10px;
-          padding: 6px 12px;
-          font-size: 11.5px;
+          padding: 7px 14px;
+          font-size: 12px;
           font-weight: 900;
           color: #fff;
           cursor: pointer;
           box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+          transition: transform 0.12s ease;
+        }
+        .cq-detected-explore-btn:active {
+          transform: scale(0.96);
         }
         .cq-detected-close-btn {
           width: 24px;
@@ -8580,10 +8708,16 @@
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    // 2. Gelang grid dalam radar & paksi silang
+    // 2. Gelang grid jarak maya Treasure Hunt (Dekat ~3.0m, Sederhana ~5.0m) & paksi silang
     ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.56, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.20)';
+    ctx.arc(cx, cy, r * 0.44, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(45, 212, 191, 0.22)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.72, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.18)';
     ctx.lineWidth = 1;
     ctx.stroke();
 
@@ -8623,9 +8757,10 @@
     const targetCfg = isChestTarget ? arWorldState.treasureChestConfig : (AR_WORLD_STATIONS[targetIdx] || AR_WORLD_STATIONS[0]);
     if (targetCfg) {
       const targetRelRad = THREE.MathUtils.degToRad(targetCfg.azimuthDeg) - headingRad;
-      const dotR = r - 15;
-      const tx = cx + Math.sin(targetRelRad) * dotR;
-      const ty = cy - Math.cos(targetRelRad) * dotR;
+      const targetNormR = Math.max(0, Math.min(1, ((targetCfg.radius || 4.0) - 2.0) / 4.8));
+      const targetDotR = (r * 0.32) + targetNormR * (r * 0.58);
+      const tx = cx + Math.sin(targetRelRad) * targetDotR;
+      const ty = cy - Math.cos(targetRelRad) * targetDotR;
       ctx.save();
       ctx.setLineDash([4, 3]);
       ctx.beginPath();
@@ -8637,20 +8772,22 @@
       ctx.restore();
     }
 
-    // 5. Lukis 8 titik stesen dengan warna status wajib (Bahagian 4):
-    //    - Biru (#38bdf8): Belum diteroka
-    //    - Kuning (#facc15): Sedang dicari (sasaran terpilih)
-    //    - Hijau (#10b981): Sudah selesai (lencana diperoleh)
+    // 5. Lukis 8 titik stesen dengan posisi jarak maya proporsional & status visual:
+    //    - Biru (#38bdf8): Belum diteroka / belum dalam pandangan
+    //    - Kuning (#facc15): Sedang dicari (sasaran aktif)
+    //    - Hijau (#10b981): Sudah selesai (lencana kuiz diperoleh)
     AR_WORLD_STATIONS.forEach((cfg, idx) => {
       const stationAngleRad = THREE.MathUtils.degToRad(cfg.azimuthDeg);
       const relAngle = stationAngleRad - headingRad;
-      const dotR = r - 15;
+      const normDist = Math.max(0, Math.min(1, ((cfg.radius || 4.0) - 2.0) / 4.8));
+      const dotR = (r * 0.32) + normDist * (r * 0.58);
       const dotX = cx + Math.sin(relAngle) * dotR;
       const dotY = cy - Math.cos(relAngle) * dotR;
 
       const isTarget = (idx === targetIdx);
       const isInView = (idx === arWorldState.lastDetectedIdx);
       const isDone = State.completedStations.has(cfg.stationNumber);
+      const isDiscovered = arWorldState.discoveredStations.has(cfg.stationNumber);
 
       let dotColor = '#38bdf8'; // Biru = Belum diteroka
       if (isDone) dotColor = '#10b981'; // Hijau = Sudah selesai
@@ -8658,13 +8795,13 @@
 
       if (isTarget || isInView) {
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 10.5, 0, Math.PI * 2);
-        ctx.fillStyle = isTarget ? 'rgba(250, 204, 21, 0.28)' : 'rgba(45, 212, 191, 0.28)';
+        ctx.arc(dotX, dotY, 11, 0, Math.PI * 2);
+        ctx.fillStyle = isTarget ? 'rgba(250, 204, 21, 0.30)' : 'rgba(45, 212, 191, 0.28)';
         ctx.fill();
       }
 
       ctx.beginPath();
-      ctx.arc(dotX, dotY, isTarget ? 7.8 : 6.4, 0, Math.PI * 2);
+      ctx.arc(dotX, dotY, isTarget ? 8.2 : 6.6, 0, Math.PI * 2);
       ctx.fillStyle = dotColor;
       ctx.fill();
       ctx.strokeStyle = (isTarget || isInView) ? '#ffffff' : 'rgba(15, 23, 42, 0.9)';
@@ -8675,14 +8812,14 @@
       ctx.font = '900 9.5px Nunito, Arial, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(cfg.stationNumber), dotX, dotY + 0.5);
+      ctx.fillText(isDone ? '✓' : String(cfg.stationNumber), dotX, dotY + 0.5);
     });
 
     // 5.1 Lukis titik Peti Harta Karun ARSELNel pada azimut dinamik jika Misi Akhir aktif & belum selesai
     if (State.treasureHuntActive && !State.treasureHuntCompleted) {
       const chestAngleRad = THREE.MathUtils.degToRad(arWorldState.treasureChestConfig.azimuthDeg);
       const chestRelAngle = chestAngleRad - headingRad;
-      const cDotR = r - 15;
+      const cDotR = r - 16;
       const chestDotX = cx + Math.sin(chestRelAngle) * cDotR;
       const chestDotY = cy - Math.cos(chestRelAngle) * cDotR;
 
@@ -8738,6 +8875,7 @@
     const elAligned = Math.abs(deltaEl) <= vTol;
     const isTargetDiscovered = azAligned && elAligned;
     const isDone = isChestTarget ? State.treasureHuntCompleted : State.completedStations.has(targetCfg.stationNumber);
+    const distTier = targetCfg.distanceTier || (targetCfg.radius <= 3.0 ? 'Dekat' : targetCfg.radius <= 5.0 ? 'Sederhana' : 'Jauh');
 
     // Kemas kini pil stesen 1..8
     AR_WORLD_STATIONS.forEach((cfg, idx) => {
@@ -8784,7 +8922,7 @@
         statusChip.style.color = '#5eead4';
         statusChip.style.borderColor = '#2dd4bf';
       } else {
-        statusChip.textContent = isChestTarget ? 'Harta Karun ARSELNel 🎁' : 'Sedang Dicari';
+        statusChip.textContent = isChestTarget ? 'Harta Karun ARSELNel 🎁' : `${distTier} (${targetCfg.radius}m Maya)`;
         statusChip.style.background = 'rgba(250, 204, 21, 0.2)';
         statusChip.style.color = '#fde047';
         statusChip.style.borderColor = 'rgba(250, 204, 21, 0.45)';
@@ -8792,14 +8930,14 @@
     }
 
     const azTargetEl = document.getElementById('ar-radar-az-target');
-    if (azTargetEl) azTargetEl.innerHTML = `Arah sasaran: <strong>${Math.round(targetAz)}°</strong> (${targetCfg.directionName})`;
+    if (azTargetEl) azTargetEl.innerHTML = `Arah sasaran: <strong>${Math.round(targetAz)}°</strong> (${targetCfg.directionName}) • <em style="color:#5eead4;">${distTier} (~${targetCfg.radius}m Maya)</em>`;
 
     const azCamEl = document.getElementById('ar-radar-az-cam');
     if (azCamEl) azCamEl.innerHTML = `Arah kamera: <strong>${Math.round(currentAz)}°</strong> relatif`;
 
     const fmtSignedDeg = (v) => (Math.round(v) > 0 ? `+${Math.round(v)}°` : `${Math.round(v)}°`);
     const elTargetEl = document.getElementById('ar-radar-el-target');
-    if (elTargetEl) elTargetEl.innerHTML = `Elevasi sasaran: <strong>${fmtSignedDeg(targetEl)}</strong>`;
+    if (elTargetEl) elTargetEl.innerHTML = `Elevasi sasaran: <strong>${fmtSignedDeg(targetEl)}</strong> (paras lantai/meja)`;
 
     const elCamEl = document.getElementById('ar-radar-el-cam');
     if (elCamEl) elCamEl.innerHTML = `Elevasi kamera: <strong>${fmtSignedDeg(currentEl)}</strong>`;
@@ -8838,7 +8976,7 @@
     const turnWord = deltaAz > 0 ? 'kanan' : 'kiri';
     if (coachEl) {
       if (isTargetDiscovered) {
-        coachEl.textContent = isChestTarget ? 'Peti Harta Karun ARSELNel ditemui! Ketik untuk buka.' : `Stesen ${targetCfg.label} ditemui! Ketik untuk meneroka.`;
+        coachEl.textContent = isChestTarget ? 'Peti Harta Karun ARSELNel ditemui! Ketik untuk buka.' : `Stesen ${targetCfg.label} dikesan! Teruskan bergerak dan ketik Teroka.`;
         coachEl.style.color = '#34d399';
       } else if (isChestTarget && azAligned && !elAligned) {
         const verb = deltaEl > 0 ? 'Naikkan' : 'Turunkan';
@@ -8848,19 +8986,19 @@
       } else if (!azAligned && absAz <= 28) {
         coachEl.textContent = isChestTarget
           ? `Bagus! Anda hampir menghadap Peti Harta Karun. Pusing ${turnWord} ${absAz}° lagi.`
-          : `Bagus! Anda hampir menghadap ${targetCfg.label}. Pusing ${turnWord} ${absAz}° lagi.`;
+          : `Stesen berada di hadapan (± ${distTier.toLowerCase()}). Pusing ${turnWord} ${absAz}° lagi.`;
         coachEl.style.color = '#fde047';
       } else if (!azAligned) {
         coachEl.textContent = isChestTarget
           ? `Peti Harta Karun berada di sebelah ${targetCfg.directionName.toLowerCase()}. Pusing ${turnWord} ${absAz}° lagi.`
-          : `${targetCfg.label} berada di sebelah ${targetCfg.directionName.toLowerCase()}. Pusing ${turnWord} ${absAz}° lagi.`;
+          : `Stesen ${targetCfg.label} berada di hadapan (± ${distTier.toLowerCase()}). Pusing ke arah penunjuk (${turnWord} ${absAz}°).`;
         coachEl.style.color = '#5eead4';
       } else if (!elAligned) {
         const verb = deltaEl > 0 ? 'Naikkan' : 'Turunkan';
         const arrow = deltaEl > 0 ? '⬆' : '⬇';
         coachEl.textContent = isChestTarget
           ? `${arrow} ${verb} kamera ${absEl}° untuk mencari Peti Harta Karun!`
-          : `Halakan kamera sedikit ke ${deltaEl > 0 ? 'atas' : 'bawah'} (${absEl}° lagi).`;
+          : `Halakan kamera ke paras lantai/meja sedikit (${deltaEl > 0 ? 'atas' : 'bawah'} ${absEl}° lagi).`;
         coachEl.style.color = '#38bdf8';
       }
     }
@@ -8868,7 +9006,7 @@
     // 8. Kemas kini Paparan Lalai Ringkas (Minimal Card — Bahagian 4)
     const compactTargetEl = document.getElementById('ar-compact-target-name');
     if (compactTargetEl) {
-      compactTargetEl.textContent = isChestTarget ? '🎁 Peti ARSELNel' : `🎯 ${targetCfg.label}`;
+      compactTargetEl.innerHTML = isChestTarget ? '🎁 Peti ARSELNel' : `🎯 ${targetCfg.label} <small style="color:#5eead4;font-size:10px;font-weight:700;">• ${distTier}</small>`;
     }
     const compactTurnEl = document.getElementById('ar-compact-turn-cmd');
     if (compactTurnEl) {
@@ -8897,22 +9035,22 @@
       }
     }
 
-    // 9. Kemas kini SATU Arahan Utama di bahagian bawah tengah (Bahagian 6)
+    // 9. Kemas kini SATU Arahan Utama di bahagian tengah (Bahagian 6 & Fasa A.1)
     if (DOM.arSingleInstruction && DOM.arSingleInstructionText && arWorldState.active) {
       DOM.arSingleInstruction.style.display = 'block';
       if (isTargetDiscovered) {
-        DOM.arSingleInstructionText.textContent = isChestTarget ? '✓ Peti Harta Karun Ditemui! Ketik untuk membuka.' : `✓ ${targetCfg.label} ditemui! Ketik untuk teroka.`;
+        DOM.arSingleInstructionText.textContent = isChestTarget ? '✓ Peti Harta Karun Ditemui! Ketik untuk membuka.' : `✓ Stesen ${targetCfg.label} dikesan! Dekati dan ketik untuk teroka.`;
         DOM.arSingleInstruction.classList.add('discovered');
       } else if (!azAligned) {
         const arrow = deltaAz > 0 ? '↷' : '↶';
         const lbl = isChestTarget ? 'Peti Harta Karun' : targetCfg.label;
-        DOM.arSingleInstructionText.textContent = `${arrow} Pusing ${turnWord} ${absAz}° untuk mencari ${lbl}.`;
+        DOM.arSingleInstructionText.textContent = `<<< 🔍 Pusing ${turnWord} ${absAz}° untuk mencari Stesen ${targetCfg.stationNumber} (${lbl} • ${distTier}) >>>`;
         DOM.arSingleInstruction.classList.remove('discovered');
       } else {
         const arrow = deltaEl > 0 ? '↑' : '↓';
         const verb = deltaEl > 0 ? 'Naikkan' : 'Turunkan';
         const lbl = isChestTarget ? 'Peti Harta Karun!' : targetCfg.label;
-        DOM.arSingleInstructionText.textContent = `${arrow} ${verb} kamera ${absEl}° untuk mencari ${lbl}`;
+        DOM.arSingleInstructionText.textContent = `${arrow} ${verb} kamera ${absEl}° ke paras meja/lantai untuk mencari ${lbl}`;
         DOM.arSingleInstruction.classList.remove('discovered');
       }
     }
@@ -8927,13 +9065,20 @@
     arWorldState.stationGroups.forEach((group, idx) => {
       if (!group.visible) return;
       const organelle = group.userData.organelleModel;
-      if (organelle) {
-        organelle.position.y = 0.15 + Math.sin(elapsedTime * 1.3 + idx * 0.8) * 0.05;
+      if (organelle && organelle.visible) {
+        organelle.position.y = 0.12 + Math.sin(elapsedTime * 1.3 + idx * 0.8) * 0.04;
         if (arState.autoRotate) {
           organelle.rotation.y = elapsedTime * 0.45 + idx * (Math.PI / 4);
         }
         if (organelle.userData && organelle.userData.isCytoplasmGel && organelle.userData.gelVisual) {
           organelle.userData.gelVisual.userData.updateAnimation(elapsedTime);
+        }
+      }
+      // Animasi kumpulan bayangan misteri (Stage 1)
+      if (group.userData.mysteryGroup && group.userData.mysteryGroup.visible) {
+        group.userData.mysteryGroup.rotation.y = elapsedTime * 0.6;
+        if (group.userData.qSprite) {
+          group.userData.qSprite.position.y = 0.64 + Math.sin(elapsedTime * 2.2 + idx * 0.7) * 0.05;
         }
       }
       if (group.userData.beacon) {
@@ -8952,7 +9097,7 @@
           const a = u.angle + elapsedTime * u.speed * 0.45;
           p.position.x = Math.cos(a) * u.baseRadius;
           p.position.z = Math.sin(a) * u.baseRadius;
-          p.position.y = u.baseHeight + Math.sin(elapsedTime * 1.6 + u.angle) * 0.05;
+          p.position.y = u.baseHeight + Math.sin(elapsedTime * 1.6 + u.angle) * 0.04;
         });
       }
       // Pastikan papan nama sentiasa menghadap kamera dengan tegak & skala terhad mengikut jarak (Bahagian 5)
@@ -9077,6 +9222,7 @@
     if (DOM.arSingleInstruction) {
       DOM.arSingleInstruction.style.display = 'block';
     }
+    document.body.classList.add('ar-world-active');
 
     updateARTrackingStatusBanner('ok', '');
   }
@@ -9150,6 +9296,7 @@
     const trackBanner = document.getElementById('ar-world-tracking-banner');
     if (trackBanner) trackBanner.style.display = 'none';
     if (DOM.arSingleInstruction) DOM.arSingleInstruction.style.display = 'none';
+    document.body.classList.remove('ar-world-active');
     hideARStationDetectedBanner();
   }
 

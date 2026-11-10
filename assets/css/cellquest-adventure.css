@@ -1299,6 +1299,25 @@ body.cq-ar-mode {
   background: rgba(6, 28, 24, 0.90);
 }
 
+/* Fasa A.1 Orientasi Dunia: Pil Navigasi Bawah Tengah (Treasure Hunt Pill) */
+body.ar-world-active .cq-ar-single-instruction {
+  top: auto;
+  bottom: max(22px, calc(env(safe-area-inset-bottom) + 8px));
+  z-index: 28;
+  background: rgba(8, 15, 28, 0.93);
+  border: 1.5px solid rgba(45, 212, 191, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  padding: 8px 22px;
+  font-size: clamp(12px, 1.35vw, 14px);
+}
+
+body.ar-world-active .cq-ar-single-instruction.discovered {
+  border-color: #10b981;
+  color: #34d399;
+  background: rgba(6, 28, 24, 0.95);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
+}
+
 /* Legacy Floating Hint Banner & Floating Bar — Hidden so only 1 instruction & clean radar show */
 .cq-ar-hint-banner {
   display: none !important;
