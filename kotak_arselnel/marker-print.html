@@ -287,9 +287,13 @@
       <span class="material-symbols-outlined" style="font-size:18px;">potted_plant</span>
       <span>5. Sel Tumbuhan</span>
     </button>
+    <button type="button" class="tab-btn tab-nota" id="btn-show-jelajah3d" onclick="showMarker('jelajah3d')">
+      <span class="material-symbols-outlined" style="font-size:18px;">explore</span>
+      <span>6. Jelajah 3D</span>
+    </button>
     <button type="button" class="tab-btn" id="btn-show-all" onclick="showMarker('all')">
       <span class="material-symbols-outlined" style="font-size:18px;">grid_view</span>
-      <span>Papar Semua (5 Marker)</span>
+      <span>Papar Semua (6 Marker)</span>
     </button>
   </div>
 
@@ -351,6 +355,15 @@
         <span>INDEX 4 • 20 × 20 CM</span>
       </div>
     </div>
+
+    <!-- MARKER 5: JELAJAH 3D (MAKMAL EKSPLORASI 3D) -->
+    <div class="marker-frame frame-nota" id="card-jelajah3d" style="display:none;">
+      <img src="assets/markers/marker-jelajah3d.png" alt="Kotak ARSELNEL - Marker 6 Jelajah 3D (Makmal Eksplorasi 3D)" />
+      <div class="marker-specs">
+        <span style="color:#0d9488;">★ MUKA 6: JELAJAH 3D • MAKMAL EKSPLORASI 3D</span>
+        <span>INDEX 5 • 20 × 20 CM</span>
+      </div>
+    </div>
   </div>
 
   <!-- HOW TO TEST INSTRUCTIONS -->
@@ -377,11 +390,13 @@
       const k = document.getElementById('card-kuiz');
       const h = document.getElementById('card-haiwan');
       const t = document.getElementById('card-tumbuhan');
+      const j = document.getElementById('card-jelajah3d');
       const btnV = document.getElementById('btn-show-video');
       const btnN = document.getElementById('btn-show-nota');
       const btnK = document.getElementById('btn-show-kuiz');
       const btnH = document.getElementById('btn-show-haiwan');
       const btnT = document.getElementById('btn-show-tumbuhan');
+      const btnJ = document.getElementById('btn-show-jelajah3d');
       const btnA = document.getElementById('btn-show-all');
 
       btnV.className = 'tab-btn tab-video';
@@ -389,49 +404,29 @@
       btnK.className = 'tab-btn tab-kuiz';
       btnH.className = 'tab-btn tab-haiwan';
       btnT.className = 'tab-btn tab-tumbuhan';
+      if (btnJ) btnJ.className = 'tab-btn tab-nota';
       btnA.className = 'tab-btn';
 
-      if (type === 'video') {
-        v.style.display = 'block';
-        n.style.display = 'none';
-        k.style.display = 'none';
-        h.style.display = 'none';
-        t.style.display = 'none';
-        btnV.className = 'tab-btn active tab-video';
-      } else if (type === 'nota') {
-        v.style.display = 'none';
-        n.style.display = 'block';
-        k.style.display = 'none';
-        h.style.display = 'none';
-        t.style.display = 'none';
-        btnN.className = 'tab-btn active tab-nota';
-      } else if (type === 'kuiz') {
-        v.style.display = 'none';
-        n.style.display = 'none';
-        k.style.display = 'block';
-        h.style.display = 'none';
-        t.style.display = 'none';
-        btnK.className = 'tab-btn active tab-kuiz';
-      } else if (type === 'haiwan') {
-        v.style.display = 'none';
-        n.style.display = 'none';
-        k.style.display = 'none';
-        h.style.display = 'block';
-        t.style.display = 'none';
-        btnH.className = 'tab-btn active tab-haiwan';
-      } else if (type === 'tumbuhan') {
-        v.style.display = 'none';
-        n.style.display = 'none';
-        k.style.display = 'none';
-        h.style.display = 'none';
-        t.style.display = 'block';
-        btnT.className = 'tab-btn active tab-tumbuhan';
+      const cards = { video: v, nota: n, kuiz: k, haiwan: h, tumbuhan: t, jelajah3d: j };
+      const btns = {
+        video: [btnV, 'tab-btn active tab-video'],
+        nota: [btnN, 'tab-btn active tab-nota'],
+        kuiz: [btnK, 'tab-btn active tab-kuiz'],
+        haiwan: [btnH, 'tab-btn active tab-haiwan'],
+        tumbuhan: [btnT, 'tab-btn active tab-tumbuhan'],
+        jelajah3d: [btnJ, 'tab-btn active tab-nota']
+      };
+
+      if (type !== 'all' && cards[type]) {
+        Object.keys(cards).forEach((key) => {
+          if (cards[key]) cards[key].style.display = key === type ? 'block' : 'none';
+        });
+        const [activeBtn, cls] = btns[type];
+        if (activeBtn) activeBtn.className = cls;
       } else {
-        v.style.display = 'block';
-        n.style.display = 'block';
-        k.style.display = 'block';
-        h.style.display = 'block';
-        t.style.display = 'block';
+        Object.keys(cards).forEach((key) => {
+          if (cards[key]) cards[key].style.display = 'block';
+        });
         btnA.className = 'tab-btn active';
       }
     }

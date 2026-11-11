@@ -6713,3 +6713,162 @@ body.cellquest-active #ar-container canvas {
   }
 }
 
+/* ==========================================================================
+   FASA 4E-E.2: PANEL PENGENALAN MARKER JELAJAH 3D (TARGET INDEX 5)
+   High-contrast light card with dark readable text for Safari iPad
+   ========================================================================== */
+#jelajah3d-marker-intro-backdrop {
+  z-index: 2650;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.jelajah3d-intro-card {
+  background: #ffffff !important;
+  border: 2px solid #14b8a6 !important;
+  border-radius: 22px !important;
+  padding: 24px 24px 22px !important;
+  max-width: 440px !important;
+  width: min(92vw, 440px) !important;
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.42), 0 0 0 4px rgba(20, 184, 166, 0.16) !important;
+  color: #0f172a !important;
+  text-align: left !important;
+}
+
+.jelajah3d-intro-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.jelajah3d-intro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ccfbf1;
+  border: 1.5px solid #14b8a6;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.jelajah3d-intro-badge .material-symbols-outlined {
+  font-size: 16px;
+  color: #0d9488;
+}
+
+.jelajah3d-intro-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.3);
+  flex-shrink: 0;
+}
+
+.jelajah3d-intro-icon .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.jelajah3d-intro-title {
+  margin: 0 0 8px 0 !important;
+  font-size: 21px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em;
+  color: #0f172a !important;
+  line-height: 1.25 !important;
+}
+
+.jelajah3d-intro-desc {
+  margin: 0 0 16px 0 !important;
+  font-size: 14.5px !important;
+  line-height: 1.5 !important;
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+.jelajah3d-intro-features {
+  list-style: none;
+  margin: 0 0 20px 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.jelajah3d-intro-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f0fdfa;
+  border: 1.5px solid #99f6e4;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.jelajah3d-intro-feature-item .material-symbols-outlined {
+  font-size: 18px;
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+.jelajah3d-intro-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.jelajah3d-intro-btn-close {
+  min-height: 46px;
+  padding: 10px 18px !important;
+  border-radius: 12px !important;
+  background: #f1f5f9 !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  cursor: pointer;
+}
+
+.jelajah3d-intro-btn-close:hover {
+  background: #e2e8f0 !important;
+}
+
+.jelajah3d-intro-btn-start {
+  min-height: 46px;
+  flex: 1;
+  padding: 10px 20px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #0d9488 0%, #059669 100%) !important;
+  border: 1.5px solid #14b8a6 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 14.5px !important;
+  box-shadow: 0 6px 18px rgba(13, 148, 136, 0.32) !important;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .jelajah3d-intro-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+

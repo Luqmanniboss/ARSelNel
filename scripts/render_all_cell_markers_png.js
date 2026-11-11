@@ -131,6 +131,10 @@ async function main() {
   fs.copyFileSync(outHaiwan, outCellQuest);
   console.log(`✅ Synced backwards-compatible marker-cellquest.png`);
 
+  // Render Jelajah 3D (Target Index 5 - Fasa 4E-E.2)
+  const outJelajah3D = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-jelajah3d.png');
+  await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-jelajah3d.svg', outJelajah3D);
+
   ws.close();
   chromeProc.kill();
   server.close();

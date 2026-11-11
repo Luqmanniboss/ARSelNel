@@ -603,6 +603,12 @@
     DOM.cqPovDeadSensorBox = document.getElementById('cq-pov-dead-sensor-box');
     DOM.cqBtnPovRetry = document.getElementById('cq-btn-pov-retry');
     DOM.cqBtnPovUsePin = document.getElementById('cq-btn-pov-use-pin');
+
+    // Fasa 4E-E.2: Jelajah 3D Marker Intro Panel Elements (Target Index 5)
+    DOM.jelajah3dIntroBackdrop = document.getElementById('jelajah3d-marker-intro-backdrop');
+    DOM.jelajah3dIntroCard = document.getElementById('jelajah3d-marker-intro-card');
+    DOM.btnJelajah3dIntroStart = document.getElementById('btn-jelajah3d-intro-start');
+    DOM.btnJelajah3dIntroClose = document.getElementById('btn-jelajah3d-intro-close');
   }
 
   /**
@@ -3525,6 +3531,26 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    * Fasa 4E-D.1: Menyokong parameter pilihan cellType ('animal' | 'plant')
    */
   function handleTargetFound(targetIndex, moduleName, cellType) {
+    // Fasa 4E-E.2: Target 5 = Marker Jelajah 3D (Lightweight Intro Panel)
+    if (targetIndex === 5 || moduleName === 'jelajah3d') {
+      if (typeof GameSessionManager !== 'undefined' && GameSessionManager.isGameActive()) {
+        return;
+      }
+      const now5 = Date.now();
+      if (ARState.markerCooldown && ARState.markerCooldown.jelajah3d && now5 < ARState.markerCooldown.jelajah3d) {
+        return;
+      }
+      ARState.targetVisible = true;
+      ARState.currentMarkerIndex = 5;
+      ARState.lastDetectedTarget = 5;
+      if (DOM.diagMarkerStatus) {
+        DOM.diagMarkerStatus.textContent = 'Sasaran 5 Dikesan (Jelajah 3D)';
+        DOM.diagMarkerStatus.className = 'v ok';
+      }
+      openJelajah3DIntroPanel();
+      return;
+    }
+
     if (!moduleName) {
       if (targetIndex === 0) moduleName = 'video';
       else if (targetIndex === 1) moduleName = 'nota';
@@ -6269,7 +6295,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    */
   function getMarkerMindUrl() {
     const loc = window.location;
-    const versionTag = 'v=fasa4ed12';
+    const versionTag = 'v=fasa4ee2';
     if (loc.pathname.includes('/kotak_arselnel')) {
       const rootPart = loc.pathname.substring(0, loc.pathname.indexOf('/kotak_arselnel') + '/kotak_arselnel'.length);
       return `${loc.origin}${rootPart}/assets/markers/kotak_arselnel.mind?${versionTag}`;
@@ -6473,6 +6499,24 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.anchorCellQuestAnimal = ARState.mindarThree.addAnchor(3);
     // Target 4 = SEL TUMBUHAN (CELLQUEST 3D)
     ARState.anchorCellQuestPlant = ARState.mindarThree.addAnchor(4);
+    // Target 5 = JELAJAH 3D (MAKMAL EKSPLORASI 3D INTRO PANEL)
+    ARState.anchorJelajah3D = ARState.mindarThree.addAnchor(5);
+    if (DOM.diagMarkerMindStatus) {
+      DOM.diagMarkerMindStatus.textContent = '6 Sasaran (0-5 Sedia)';
+      DOM.diagMarkerMindStatus.className = 'v ok';
+    }
+    if (ARState.anchorJelajah3D) {
+      ARState.anchorJelajah3D.onTargetFound = () => {
+        if (GameSessionManager.isGameActive()) return;
+        console.info('[KotakAR] MindAR Target 5 (Jelajah 3D) FOUND');
+        clearTimeout(ARState.hysteresisTimer);
+        handleTargetFound(5, 'jelajah3d');
+      };
+      ARState.anchorJelajah3D.onTargetLost = () => {
+        if (GameSessionManager.isGameActive()) return;
+        console.info('[KotakAR] MindAR Target 5 (Jelajah 3D) LOST');
+      };
+    }
     // Rujukan anchor CellQuest aktif semasa (lalai: Sel Haiwan)
     ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
 
@@ -8805,6 +8849,33 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    */
   const JELAJAH_3D_ROUTE = '/cellquest/adventure.html?mode=3d&from=kotak';
 
+  function openJelajah3DIntroPanel() {
+    const backdrop = DOM.jelajah3dIntroBackdrop || document.getElementById('jelajah3d-marker-intro-backdrop');
+    if (backdrop) {
+      backdrop.classList.remove('hidden');
+    }
+    ARState.jelajah3dIntroOpen = true;
+    return true;
+  }
+
+  function closeJelajah3DIntroPanel(applyCooldown = true) {
+    const backdrop = DOM.jelajah3dIntroBackdrop || document.getElementById('jelajah3d-marker-intro-backdrop');
+    if (backdrop) {
+      backdrop.classList.add('hidden');
+    }
+    ARState.jelajah3dIntroOpen = false;
+    if (applyCooldown) {
+      if (!ARState.markerCooldown) ARState.markerCooldown = {};
+      ARState.markerCooldown.jelajah3d = Date.now() + 2500;
+    }
+    return true;
+  }
+
+  function startJelajah3DFromIntroPanel() {
+    closeJelajah3DIntroPanel(false);
+    return launchJelajah3D(false);
+  }
+
   function showJelajah3DConfirmDialog() {
     if (DOM.jelajah3dModalBackdrop) {
       DOM.jelajah3dModalBackdrop.classList.remove('hidden');
@@ -9394,6 +9465,29 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       });
     }
 
+    // Fasa 4E-E.2: Jelajah 3D Marker Intro Panel Listeners (Target Index 5)
+    if (DOM.btnJelajah3dIntroStart) {
+      DOM.btnJelajah3dIntroStart.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startJelajah3DFromIntroPanel();
+      });
+    }
+
+    if (DOM.btnJelajah3dIntroClose) {
+      DOM.btnJelajah3dIntroClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeJelajah3DIntroPanel(true);
+      });
+    }
+
+    if (DOM.jelajah3dIntroBackdrop) {
+      DOM.jelajah3dIntroBackdrop.addEventListener('click', (e) => {
+        if (e.target === DOM.jelajah3dIntroBackdrop) {
+          closeJelajah3DIntroPanel(true);
+        }
+      });
+    }
+
     // Fasa 4D-D.2: CellQuest POV Setup Banner Listeners
     if (DOM.cqBtnPovAnchor) {
       DOM.cqBtnPovAnchor.addEventListener('click', (e) => {
@@ -9718,11 +9812,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     handlePanelClosed,
     setScanState,
     SCAN_STATES,
-    // Fasa 4E-E.1 Jelajah 3D Integration Exports
+    // Fasa 4E-E.1 & E.2 Jelajah 3D Integration Exports
     launchJelajah3D,
     confirmLaunchJelajah3D,
     showJelajah3DConfirmDialog,
     hideJelajah3DConfirmDialog,
+    openJelajah3DIntroPanel,
+    closeJelajah3DIntroPanel,
+    startJelajah3DFromIntroPanel,
     cleanupSession,
     JELAJAH_3D_ROUTE,
     getPanelElement: (id) => (id === 'pov-ar-anchor' || id === 'pov-panel-video' || id === 'video')
@@ -9782,6 +9879,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   global.ARState = ARState;
   global.launchJelajah3D = launchJelajah3D;
   global.confirmLaunchJelajah3D = confirmLaunchJelajah3D;
+  global.openJelajah3DIntroPanel = openJelajah3DIntroPanel;
+  global.closeJelajah3DIntroPanel = closeJelajah3DIntroPanel;
+  global.startJelajah3DFromIntroPanel = startJelajah3DFromIntroPanel;
 
   // Auto boot when DOM is ready
   if (document.readyState === 'loading') {

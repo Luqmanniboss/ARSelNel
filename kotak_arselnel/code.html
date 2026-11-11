@@ -1420,7 +1420,7 @@
         <div class="diag-row"><span class="k">Resolusi Video:</span><span class="v" id="diag-video-dim">0 x 0</span></div>
         <div class="diag-row"><span class="k">ReadyState Video:</span><span class="v" id="diag-video-ready">0 (HAVE_NOTHING)</span></div>
         <div class="diag-row"><span class="k">Status Engine MindAR:</span><span class="v" id="diag-mindar-status">IDLE</span></div>
-        <div class="diag-row"><span class="k">Fail Marker .mind:</span><span class="v" id="diag-marker-mind-status">5 Sasaran (0-4)</span></div>
+        <div class="diag-row"><span class="k">Fail Marker .mind:</span><span class="v" id="diag-marker-mind-status">6 Sasaran (0-5)</span></div>
         <div class="diag-row"><span class="k">Konteks WebGL:</span><span class="v" id="diag-webgl-status">Normal</span></div>
         <div class="diag-row"><span class="k">Ralat Terkini:</span><span class="v" id="diag-last-error">Tiada</span></div>
       </div>
@@ -1468,6 +1468,45 @@
       <div class="exit-modal-actions">
         <button type="button" class="exit-btn-cancel" id="btn-exit-cancel">Teruskan Pembelajaran</button>
         <button type="button" class="exit-btn-confirm" id="btn-exit-confirm">Keluar ke Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASA 4E-E.2: JELAJAH 3D MARKER INTRODUCTION PANEL (TARGET INDEX 5) -->
+  <div class="exit-modal-backdrop hidden" id="jelajah3d-marker-intro-backdrop" role="dialog" aria-modal="true" aria-labelledby="jelajah3d-intro-title">
+    <div class="exit-modal-card jelajah3d-intro-card" id="jelajah3d-marker-intro-card">
+      <div class="jelajah3d-intro-header">
+        <div class="jelajah3d-intro-badge">
+          <span class="material-symbols-outlined">qr_code_scanner</span>
+          <span>SASARAN 5 • MARKER JELAJAH 3D</span>
+        </div>
+        <div class="jelajah3d-intro-icon">
+          <span class="material-symbols-outlined">view_in_ar</span>
+        </div>
+      </div>
+      <h3 class="jelajah3d-intro-title" id="jelajah3d-intro-title">MAKMAL EKSPLORASI 3D</h3>
+      <p class="jelajah3d-intro-desc" id="jelajah3d-intro-desc">Terokai dunia sel melalui lapan stesen pembelajaran interaktif.</p>
+      <ul class="jelajah3d-intro-features" id="jelajah3d-intro-features" aria-label="Ciri Makmal Eksplorasi 3D">
+        <li class="jelajah3d-intro-feature-item">
+          <span class="material-symbols-outlined">hub</span>
+          <span>8 stesen organel</span>
+        </li>
+        <li class="jelajah3d-intro-feature-item">
+          <span class="material-symbols-outlined">deployed_code</span>
+          <span>Model 3D interaktif</span>
+        </li>
+        <li class="jelajah3d-intro-feature-item">
+          <span class="material-symbols-outlined">emoji_events</span>
+          <span>Kuiz dan ganjaran</span>
+        </li>
+        <li class="jelajah3d-intro-feature-item">
+          <span class="material-symbols-outlined">360</span>
+          <span>Joystick dan gyroscope 360°</span>
+        </li>
+      </ul>
+      <div class="exit-modal-actions jelajah3d-intro-actions">
+        <button type="button" class="exit-btn-cancel jelajah3d-intro-btn-close" id="btn-jelajah3d-intro-close">Tutup</button>
+        <button type="button" class="exit-btn-confirm btn-jelajah3d-confirm jelajah3d-intro-btn-start" id="btn-jelajah3d-intro-start">Mula Jelajah 3D</button>
       </div>
     </div>
   </div>

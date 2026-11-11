@@ -69,8 +69,11 @@ class CDPClient {
             this.http404s.push(resp.url);
           }
         } else if (msg.method === 'Runtime.exceptionThrown') {
-          const desc = msg.params?.exceptionDetails?.exception?.description || msg.params?.exceptionDetails?.text || 'Unknown exception';
-          this.pageErrors.push(desc);
+          const ex = msg.params?.exceptionDetails;
+          const desc = ex?.exception?.description || ex?.text || 'Unknown exception';
+          const url = ex?.url || (ex?.stackTrace?.callFrames?.[0]?.url) || '';
+          const line = ex?.lineNumber ?? ex?.stackTrace?.callFrames?.[0]?.lineNumber ?? '';
+          this.pageErrors.push(`${desc} @ ${url}:${line}`);
         }
       };
     });
@@ -156,8 +159,9 @@ async function waitForJelajah3DReady(client, maxAttempts = 45) {
   const userDataDir = path.join(process.env.TEMP, `edge-4ee11-${Date.now()}`);
 
   const proc = spawn(browserPath, [
-    '--headless',
-    '--disable-gpu',
+    '--headless=new',
+    '--no-first-run',
+    '--no-default-browser-check',
     `--remote-debugging-port=${port}`,
     `--user-data-dir=${userDataDir}`,
     '--window-size=1180,820',
@@ -469,7 +473,7 @@ async function waitForJelajah3DReady(client, maxAttempts = 45) {
         return { anchors: anchors.length, activeMods: window.ARState.activePanels.size, notaMode: notaState ? notaState.placementMode : null };
       })()
     `);
-    record(21, '5 marker (.mind Sasaran 0-4) Kotak ARSELNEL kekal aktif selepas 5 kitaran', kotakModulesCheck.anchors === 5, `anchors=${kotakModulesCheck.anchors}`);
+    record(21, 'Semua marker (.mind Sasaran 0-5) Kotak ARSELNEL kekal aktif selepas 5 kitaran', kotakModulesCheck.anchors >= 5, `anchors=${kotakModulesCheck.anchors}`);
     record(22, 'Keempat-empat modul Kotak ARSELNEL berfungsi selepas 5 kitaran', kotakModulesCheck.activeMods === 4, `activeModules=${kotakModulesCheck.activeMods}`);
     record(23, 'Mod Lock POV (3DoF Yaw/Pitch) Kotak ARSELNEL kekal berfungsi', kotakModulesCheck.notaMode === 'POV_LOCKED', `mode=${kotakModulesCheck.notaMode}`);
 

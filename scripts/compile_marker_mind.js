@@ -166,8 +166,12 @@ async function main() {
         const img4 = await loadImage('/kotak_arselnel/assets/markers/marker-sel-tumbuhan.png');
         console.log('Target 4 loaded:', img4.width, 'x', img4.height);
 
-        console.log('Compiling 5-target array [0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan]...');
-        await compiler.compileImageTargets([img0, img1, img2, img3, img4], (progress) => {
+        console.log('Loading marker-jelajah3d.png (Target 5 - Jelajah 3D)...');
+        const img5 = await loadImage('/kotak_arselnel/assets/markers/marker-jelajah3d.png');
+        console.log('Target 5 loaded:', img5.width, 'x', img5.height);
+
+        console.log('Compiling 6-target array [0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan, 5: Jelajah 3D]...');
+        await compiler.compileImageTargets([img0, img1, img2, img3, img4, img5], (progress) => {
           console.log('Compilation progress: ' + Math.round(progress) + '%');
         });
 
