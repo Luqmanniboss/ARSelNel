@@ -1004,15 +1004,25 @@
   // THREE.JS SCENE SETUP
   // ==============================================================================
 
-  // Mod A Gyroscope & Motion Look State
+  // Mod A Gyroscope & Motion Look State (Fasa A.5: Kuaternion 360° bebas gimbal lock & sokongan penuh iPad Portrait/Landscape)
   const modAGyro = {
-    supported: false,
+    supported: typeof window !== 'undefined' && 'DeviceOrientationEvent' in window,
     enabled: false,
     active: false,
+    listenerBound: false,
+    listenerCount: 0,
+    screenListenerBound: false,
     calibrated: false,
     hasCalibrated: false,
     yaw: 0,
     pitch: 0,
+    rawAzimuthDeg: 0,
+    rawElevationDeg: 0,
+    smoothedAzimuthDeg: 0,
+    smoothedElevationDeg: 0,
+    baseAzimuthDeg: null,
+    baseElevationDeg: null,
+    screenOrientationAngle: 0,
     baseAlpha: null,
     baseBeta: null,
     baseGamma: null,
@@ -1020,8 +1030,22 @@
     currentBeta: 0,
     currentGamma: 0,
     smoothedYaw: 0,
-    smoothedPitch: 0
+    smoothedPitch: 0,
+    quaternion: new THREE.Quaternion()
   };
+
+  // Fasa A.5: Muat naik tekstur ke memori GPU WebGL serta-merta semasa dicipta
+  // bagi mengelakkan pengusiran (eviction) backing store kanvas 2D luar skrin pada Safari iPadOS
+  function initTextureForGPU(tex) {
+    if (!tex) return tex;
+    tex.needsUpdate = true;
+    try {
+      if (renderer && typeof renderer.initTexture === 'function') {
+        renderer.initTexture(tex);
+      }
+    } catch (_) {}
+    return tex;
+  }
 
   let cellCoreCrystalGroup = null;
   let cellCoreChamberGroup = null;
@@ -1036,9 +1060,8 @@
     camera.position.set(player.x, player.y, player.z);
     scene.add(camera);
 
-    // Fasa A.4: Camera Headlamp (Lampu hadapan mengikut arah pandangan kamera 360°)
-    // Memastikan mana-mana organel yang dilihat pengguna di sekeliling 360° sentiasa disinari cahaya terang
-    const cameraHeadlamp = new THREE.DirectionalLight(0xffffff, 0.95);
+    // Fasa A.4 & A.5: Camera Headlamp (Lampu hadapan seimbang mengikut arah pandangan kamera 360°)
+    const cameraHeadlamp = new THREE.DirectionalLight(0xffffff, 0.52);
     cameraHeadlamp.name = 'CameraHeadlamp';
     cameraHeadlamp.position.set(0, 0, 1);
     camera.add(cameraHeadlamp);
@@ -1050,7 +1073,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.12;
+    renderer.toneMappingExposure = 0.94;
     renderer.xr.enabled = true; // Enable WebXR on renderer
 
     DOM.canvasContainer.appendChild(renderer.domElement);
@@ -1060,27 +1083,27 @@
     arObjectGroup.visible = false;
     scene.add(arObjectGroup);
 
-    // Ambient, Hemisphere & Directional PBR Studio Lighting (Fasa A.3: Pencahayaan dipertingkatkan untuk keterlihatan organel)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
+    // Ambient, Hemisphere & Directional PBR Studio Lighting (Seimbang untuk warna organel tepu & tidak over-exposed)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.68);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xf8fafc, 0x475569, 1.05);
+    const hemiLight = new THREE.HemisphereLight(0xf8fafc, 0x334155, 0.62);
     hemiLight.position.set(0, 15, 0);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.20);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
     dirLight.position.set(6, 14, 8);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 1024;
     dirLight.shadow.mapSize.height = 1024;
     scene.add(dirLight);
 
-    const fillDirLight = new THREE.DirectionalLight(0xe0f2fe, 0.85);
+    const fillDirLight = new THREE.DirectionalLight(0xe0f2fe, 0.45);
     fillDirLight.position.set(-6, 9, -6);
     scene.add(fillDirLight);
 
     // Lampu hadapan (camera view fill) untuk menerangi organel di paras rendah/lantai
-    const frontFillLight = new THREE.DirectionalLight(0xffffff, 0.75);
+    const frontFillLight = new THREE.DirectionalLight(0xffffff, 0.38);
     frontFillLight.position.set(0, 3, 6);
     scene.add(frontFillLight);
 
@@ -2531,27 +2554,32 @@
     const gelGroup = new THREE.Group();
     gelGroup.name = 'Cytoplasm_Gel_Visual';
 
-    // 1. Lapisan Gel Luar (Semi-translucent colloidal gel fluid)
+    // 1. Lapisan Gel Luar (Semi-translucent colloidal gel fluid — Biru cair separa lutsinar)
     const outerGeo = new THREE.IcosahedronGeometry(0.48, 3);
     const outerMat = new THREE.MeshStandardMaterial({
       color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.22,
       transparent: true,
-      opacity: 0.52,
-      roughness: 0.12,
-      metalness: 0.08,
+      opacity: 0.54,
+      roughness: 0.16,
+      metalness: 0.0,
       side: THREE.DoubleSide,
       depthWrite: false
     });
     const outerMesh = new THREE.Mesh(outerGeo, outerMat);
     gelGroup.add(outerMesh);
 
-    // 2. Lapisan Sol / Matriks Dalaman (Warm colloidal core)
+    // 2. Lapisan Sol / Matriks Dalaman (Colloidal core — Biru muda / sian lembut)
     const innerGeo = new THREE.IcosahedronGeometry(0.36, 2);
     const innerMat = new THREE.MeshStandardMaterial({
-      color: 0xfacc15,
+      color: 0x7dd3fc,
+      emissive: 0x0369a1,
+      emissiveIntensity: 0.20,
       transparent: true,
-      opacity: 0.32,
-      roughness: 0.25,
+      opacity: 0.36,
+      roughness: 0.24,
+      metalness: 0.0,
       side: THREE.DoubleSide,
       depthWrite: false
     });
@@ -2562,10 +2590,15 @@
     const cytoskelGroup = new THREE.Group();
     const fiberColors = [0x06b6d4, 0xf59e0b, 0xa855f7];
     for (let f = 0; f < 6; f++) {
-      const fiberMat = new THREE.MeshBasicMaterial({
-        color: fiberColors[f % fiberColors.length],
+      const fCol = fiberColors[f % fiberColors.length];
+      const fiberMat = new THREE.MeshStandardMaterial({
+        color: fCol,
+        emissive: fCol,
+        emissiveIntensity: 0.20,
+        roughness: 0.35,
+        metalness: 0.0,
         transparent: true,
-        opacity: 0.75
+        opacity: 0.78
       });
       const fiber = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.62, 8), fiberMat);
       fiber.rotation.set(
@@ -2582,10 +2615,13 @@
     const granColors = [0x67e8f9, 0xfde047, 0xf472b6, 0x4ade80, 0xa78bfa];
     const granuleMeshes = [];
     for (let g = 0; g < 14; g++) {
+      const gCol = granColors[g % granColors.length];
       const gMat = new THREE.MeshStandardMaterial({
-        color: granColors[g % granColors.length],
+        color: gCol,
+        emissive: gCol,
+        emissiveIntensity: 0.20,
         roughness: 0.3,
-        metalness: 0.2
+        metalness: 0.0
       });
       const gSize = 0.028 + (g % 3) * 0.012;
       const gMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(gSize), gMat);
@@ -2917,6 +2953,222 @@
     return batchedGroup;
   }
 
+  // Fasa A.5: Pemulihan & Penambahbaikan Material PBR Organel Pendidikan Sains Tingkatan 1
+  // Memastikan semua 8 stesen mempunyai warna saintifik yang terang, jelas, bertekstur & tidak pernah hitam (#000000) pada iPad Safari
+  function applyOrganelleEducationalMaterial(m, key, nodeName = '', cloneTextureWrapper = false) {
+    if (!m) return m;
+    let c = m.clone();
+
+    // Tukar MeshBasicMaterial (contoh: KHR_materials_unlit pada plantcellnew.glb) kepada MeshStandardMaterial
+    // supaya model mempunyai kedalaman pencahayaan 3D (bukan flat) dan sokongan emissive lembut
+    if (!c.isMeshStandardMaterial || c.type !== 'MeshStandardMaterial') {
+      const upgraded = new THREE.MeshStandardMaterial({
+        name: c.name || 'UpgradedOrganelleMat',
+        color: c.color ? c.color.clone() : new THREE.Color(0xffffff),
+        map: c.map || null,
+        transparent: !!c.transparent,
+        opacity: typeof c.opacity === 'number' ? c.opacity : 1.0,
+        alphaTest: c.alphaTest || 0,
+        roughness: 0.42,
+        metalness: 0.0,
+        side: THREE.DoubleSide
+      });
+      c = upgraded;
+    }
+
+    c.side = THREE.DoubleSide;
+    c.metalness = 0.0;
+    c.metalnessMap = null;
+    c.vertexColors = false; // Elakkan atribut COLOR_0 gelap menghitamkan tekstur/warna
+
+    if (c.map) {
+      if (cloneTextureWrapper && c.map.image) {
+        const clonedTex = c.map.clone();
+        clonedTex.image = c.map.image;
+        clonedTex.flipY = c.map.flipY;
+        clonedTex.encoding = THREE.sRGBEncoding;
+        clonedTex.needsUpdate = true;
+        c.map = clonedTex;
+      } else {
+        c.map.encoding = THREE.sRGBEncoding;
+        initTextureForGPU(c.map);
+      }
+    }
+    if (c.emissiveMap) {
+      c.emissiveMap.encoding = THREE.sRGBEncoding;
+    }
+
+    const matName = String(c.name || '').toLowerCase();
+    const nName = String(nodeName || '').toLowerCase();
+
+    if (key === 'nucleus') {
+      // Stesen 1 — Nukleus: Ungu / violet kaya dengan nukleolus lebih terang & kromatin jelas
+      c.map = null;
+      c.normalMap = null;
+      if (matName.includes('material.002') || nName.includes('nucleolus') || nName.includes('material_002')) {
+        // Nukleolus (Teras dalaman lebih terang — magenta / violet cerah)
+        c.color.setHex(0xec4899);
+        c.emissive.setHex(0x831843);
+        c.emissiveIntensity = 0.22;
+        c.roughness = 0.40;
+      } else if (matName.includes('material.003') || nName.includes('chromatin') || nName.includes('material_003')) {
+        // Benang Kromatin / DNA (Kuning keemasan jelas)
+        c.color.setHex(0xf59e0b);
+        c.emissive.setHex(0x78350f);
+        c.emissiveIntensity = 0.18;
+        c.roughness = 0.42;
+      } else if (matName.includes('material.004') || nName.includes('material_004')) {
+        // Liang Nukleus / Nuclear Pores (Ungu lavender terang)
+        c.color.setHex(0xd8b4fe);
+        c.emissive.setHex(0x581c87);
+        c.emissiveIntensity = 0.15;
+        c.roughness = 0.45;
+      } else {
+        // Membran Nukleus Luar (Material.001 — Ungu / Violet diraja yang jelas & kontras tinggi)
+        c.color.setHex(0x6d28d9);
+        c.emissive.setHex(0x2e1065);
+        c.emissiveIntensity = 0.12;
+        c.roughness = 0.55;
+      }
+    } else if (key === 'membrane') {
+      // Stesen 2 — Membran Sel: Kuning lembut / biru lapisan fosfolipid
+      if (matName.includes('lipid')) {
+        c.color.setHex(0xeab308);
+        c.emissive.setHex(0x713f12);
+        c.emissiveIntensity = 0.12;
+        c.roughness = 0.48;
+      } else if (matName.includes('protein1') || matName.includes('protein3')) {
+        c.color.setHex(0x0284c7);
+        c.emissive.setHex(0x0c4a6e);
+        c.emissiveIntensity = 0.14;
+        c.roughness = 0.44;
+      } else if (matName.includes('protein2')) {
+        c.color.setHex(0xdb2777);
+        c.emissive.setHex(0x831843);
+        c.emissiveIntensity = 0.14;
+        c.roughness = 0.45;
+      } else {
+        c.color.setHex(0x0d9488);
+        c.emissive.setHex(0x134e4a);
+        c.emissiveIntensity = 0.14;
+        c.roughness = 0.45;
+      }
+    } else if (key === 'mitochondria') {
+      // Stesen 4 — Mitokondrion: Merah-jingga kaya dengan lipatan dalaman (krista) jelas
+      if (matName.includes('object_2') || matName.includes('object_4') || nName.includes('object_2') || nName.includes('object_4')) {
+        // Lipatan dalaman krista & matriks (Jingga keemasan kontras dengan kulit luar merah-jingga)
+        c.color.setHex(0xf97316);
+        c.emissive.setHex(0x9a3412);
+        c.emissiveIntensity = 0.14;
+        c.roughness = 0.50;
+      } else {
+        // Membran luar & keratan rentas (Merah-jingga pekat #dc2626 / #ea580c)
+        c.color.setHex(0xdc2626);
+        c.emissive.setHex(0x7f1d1d);
+        c.emissiveIntensity = 0.14;
+        c.roughness = 0.52;
+      }
+    } else if (key === 'chloroplast') {
+      // Stesen 5 — Kloroplas: Hijau terang dengan cakera tilakoid hijau gelap
+      if (matName.includes('06_-_default')) {
+        // Cakera tilakoid / grana (Hijau zamrud gelap yang jelas)
+        c.color.setHex(0x14532d);
+        c.emissive.setHex(0x052e16);
+        c.emissiveIntensity = 0.14;
+        c.roughness = 0.45;
+      } else {
+        // Membran kloroplas & stroma (Hijau terang)
+        c.color.setHex(0x16a34a);
+        c.emissive.setHex(0x14532d);
+        c.emissiveIntensity = 0.14;
+        c.roughness = 0.48;
+      }
+    } else if (key === 'wall') {
+      // Stesen 6 — Dinding Sel: Hijau zamrud / struktur selulosa jelas
+      c.color.setHex(0x059669);
+      c.emissive.setHex(0x064e3b);
+      c.emissiveIntensity = 0.14;
+      c.roughness = 0.48;
+    } else if (key === 'vacuole') {
+      // Stesen 7 — Vakuol: Biru muda separa lutsinar
+      if (matName.includes('material.022') || c.transparent) {
+        c.color.setHex(0x38bdf8);
+        c.emissive.setHex(0x0369a1);
+        c.emissiveIntensity = 0.15;
+        c.transparent = true;
+        c.opacity = 0.62;
+        c.roughness = 0.28;
+      } else {
+        c.color.setHex(0x0284c7);
+        c.emissive.setHex(0x0c4a6e);
+        c.emissiveIntensity = 0.16;
+        c.roughness = 0.40;
+      }
+    } else if (key === 'er') {
+      // Stesen 8 — Retikulum Endoplasma: Ungu / merah jambu berstruktur jelas
+      if (matName.includes('cekirdek')) {
+        c.color.setHex(0x7e22ce);
+        c.emissive.setHex(0x3b0764);
+        c.emissiveIntensity = 0.12;
+        c.roughness = 0.52;
+      } else if (matName.includes('material.001')) {
+        c.color.setHex(0xdb2777);
+        c.emissive.setHex(0x500724);
+        c.emissiveIntensity = 0.12;
+        c.roughness = 0.50;
+      } else {
+        c.color.setHex(0xc026d3);
+        c.emissive.setHex(0x4a044e);
+        c.emissiveIntensity = 0.12;
+        c.roughness = 0.52;
+      }
+    } else if (key === 'plant') {
+      // Stesen 8 — Sel Tumbuhan (plantcellnew.glb): Hijau terang & struktur dalaman jelas tanpa bahagian hitam
+      if (matName.includes('37')) {
+        c.color.setHex(0x4ade80);
+        c.emissive.setHex(0x14532d);
+        c.emissiveIntensity = 0.12;
+        c.roughness = 0.50;
+      } else if (matName.includes('36')) {
+        c.color.setHex(0xfef08a);
+        c.emissive.setHex(0x065f46);
+        c.emissiveIntensity = 0.10;
+        c.roughness = 0.48;
+      } else {
+        c.color.setHex(0x22c55e);
+        c.emissive.setHex(0x14532d);
+        c.emissiveIntensity = 0.12;
+        c.roughness = 0.48;
+      }
+    } else if (key === 'animal') {
+      // Stesen 8 — Sel Haiwan (animal_cell_final.glb, termasuk Jasad Golgi merah jambu / ungu lembut)
+      if (c.roughness < 0.35) c.roughness = 0.48;
+      if (c.color) {
+        if (c.color.r < 0.26 && c.color.g < 0.18 && c.color.b < 0.45) {
+          c.color.setHex(0x9333ea);
+          c.emissive.setHex(0x3b0764);
+          c.emissiveIntensity = 0.12;
+        } else {
+          c.emissive.copy(c.color).multiplyScalar(0.15);
+          if (c.emissive.getHex() === 0) c.emissive.setHex(0x4a044e);
+          c.emissiveIntensity = 0.85;
+        }
+      }
+    } else {
+      if (c.roughness < 0.25) c.roughness = 0.40;
+      if (c.color && c.color.r < 0.15 && c.color.g < 0.15 && c.color.b < 0.15 && !c.map) {
+        c.color.setHex(0xe2e8f0);
+      }
+      if (c.emissive && c.emissive.getHex() === 0) {
+        c.emissive.setHex(0x1e293b);
+        c.emissiveIntensity = 0.15;
+      }
+    }
+
+    c.needsUpdate = true;
+    return c;
+  }
+
   // Muat turun & cache model GLB secara asynchronous dengan semakan ralat & statistik penuh
   function loadAndCacheOrganelleGLB(key) {
     const cfg = STATION_GLB_MAP[key];
@@ -2957,7 +3209,16 @@
       return Promise.reject(new Error('THREE.GLTFLoader tidak tersedia'));
     }
 
+    // Fasa A.5: Paksa GLTFLoader menggunakan THREE.TextureLoader (elemen <img> standard)
+    // dan bukannya THREE.ImageBitmapLoader yang menyebabkan tekstur GLB menjadi hitam pada Safari iPadOS (Three.js PR #22426)
+    if (typeof THREE !== 'undefined' && THREE.TextureLoader) {
+      THREE.ImageBitmapLoader = THREE.TextureLoader;
+    }
+
     const loader = new THREE.GLTFLoader();
+    if (THREE.TextureLoader) {
+      loader.textureLoader = new THREE.TextureLoader(loader.manager);
+    }
     const t0 = performance.now();
 
     const tryLoadUrl = (urlToLoad, isFallback) => new Promise((resolve, reject) => {
@@ -2992,7 +3253,7 @@
 
             gltf.scene.traverse(node => {
               if (!node.isMesh) return;
-              if (node.name === 'Labels') {
+              if (node.name === 'Labels' || node.name === 'Sphere' || node.name === 'gel-material') {
                 node.visible = false;
                 return;
               }
@@ -3002,21 +3263,25 @@
                 vertexCount += g.attributes.position.count;
                 triangleCount += g.index ? (g.index.count / 3) : (g.attributes.position.count / 3);
               }
-              const mats = Array.isArray(node.material) ? node.material : [node.material];
-              mats.forEach(m => {
-                if (!m) return;
-                matSet.add(m.uuid);
-                m.side = THREE.DoubleSide;
+              const upgradeNodeMat = m => {
+                if (!m) return m;
+                const upgraded = applyOrganelleEducationalMaterial(m, key, node.name, false);
+                matSet.add(upgraded.uuid);
                 ['map', 'emissiveMap'].forEach(tKey => {
-                  if (m[tKey]) {
-                    m[tKey].encoding = THREE.sRGBEncoding;
-                    texSet.add(m[tKey].uuid);
+                  if (upgraded[tKey]) {
+                    upgraded[tKey].encoding = THREE.sRGBEncoding;
+                    initTextureForGPU(upgraded[tKey]);
+                    texSet.add(upgraded[tKey].uuid);
                   }
                 });
                 ['normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'].forEach(tKey => {
-                  if (m[tKey]) texSet.add(m[tKey].uuid);
+                  if (upgraded[tKey]) texSet.add(upgraded[tKey].uuid);
                 });
-              });
+                return upgraded;
+              };
+              node.material = Array.isArray(node.material)
+                ? node.material.map(upgradeNodeMat)
+                : upgradeNodeMat(node.material);
             });
 
             const rawBox = new THREE.Box3().setFromObject(gltf.scene);
@@ -3150,35 +3415,11 @@
             node.visible = false;
             return;
           }
-          const cloneMat = m => {
-            if (!m) return m;
-            const c = m.clone();
-            c.side = THREE.DoubleSide;
-            if (c.map) {
-              c.map.encoding = THREE.sRGBEncoding;
-            }
-            if (c.emissiveMap) {
-              c.emissiveMap.encoding = THREE.sRGBEncoding;
-            }
-            // PENTING: Model organel biologi adalah bahan organik (non-metallic / dielectric).
-            // Menetapkan metalness = 0.0 & metalnessMap = null menjamin pantulan albedo penuh
-            // dan menghalang model menjadi hitam gelap pada Safari iPad tanpa HDR environment map.
-            if (c.isMeshStandardMaterial || c.isMeshPhysicalMaterial) {
-              c.metalness = 0.0;
-              c.metalnessMap = null;
-              if (c.roughness < 0.25) c.roughness = 0.40;
-              // Sokongan pencerahan albedo untuk bahan biologi organik yang gelap tanpa texture
-              if (c.color) {
-                if (c.color.r < 0.15 && c.color.g < 0.15 && c.color.b < 0.15 && !c.map) {
-                  c.color.setHex(0xe2e8f0);
-                }
-              }
-            }
-            return c;
-          };
+          const cloneMat = m => applyOrganelleEducationalMaterial(m, key, node.name, modeType === 'preview');
           node.material = Array.isArray(node.material) ? node.material.map(cloneMat) : cloneMat(node.material);
           node.castShadow = (modeType === '3d');
           node.receiveShadow = (modeType === '3d');
+          node.frustumCulled = false; // Pastikan model organel sentiasa sedia di GPU tanpa risiko tekstur hilang apabila kamera pusing 360°
         });
 
         // 1. Kira THREE.Box3 asal & auto-center pada (0, 0, 0)
@@ -3468,11 +3709,12 @@
 
       // Station Screen Label Canvas Texture
       const textCanvas = createStationCanvas(stn.number, stn.title, stn.color);
-      const textTexture = new THREE.CanvasTexture(textCanvas);
+      const textTexture = initTextureForGPU(new THREE.CanvasTexture(textCanvas));
       const screenFaceGeo = new THREE.PlaneGeometry(1.9, 1.0);
       const screenFaceMat = new THREE.MeshBasicMaterial({ map: textTexture });
       const screenFace = new THREE.Mesh(screenFaceGeo, screenFaceMat);
       screenFace.position.set(0, 2.38, -0.28);
+      screenFace.frustumCulled = false;
       screenFace.userData = {
         stationId: stn.id,
         stationNumber: stn.number,
@@ -4080,7 +4322,7 @@
     ctx.font = '800 24px Nunito, sans-serif';
     ctx.fillText(`★  ${subtitle}  ★`, 256, 115);
 
-    const texture = new THREE.CanvasTexture(canvas);
+    const texture = initTextureForGPU(new THREE.CanvasTexture(canvas));
     const plaqueGroup = new THREE.Group();
     const planeGeo = new THREE.PlaneGeometry(width, height);
     const planeMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide, transparent: true });
@@ -4088,12 +4330,14 @@
     // Front Face
     const frontPlane = new THREE.Mesh(planeGeo, planeMat);
     frontPlane.position.z = 0.01;
+    frontPlane.frustumCulled = false;
     plaqueGroup.add(frontPlane);
 
     // Back Face (Rotated 180° so text is never mirrored/backwards!)
     const backPlane = new THREE.Mesh(planeGeo, planeMat);
     backPlane.rotation.y = Math.PI;
     backPlane.position.z = -0.01;
+    backPlane.frustumCulled = false;
     plaqueGroup.add(backPlane);
 
     return plaqueGroup;
@@ -4157,6 +4401,7 @@
 
     // Instruction Banner
     ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.beginPath();
     ctx.roundRect ? ctx.roundRect(30, 140, 452, 80, 16) : ctx.fillRect(30, 140, 452, 80);
     ctx.fill();
 
@@ -4188,11 +4433,12 @@
     ctx.textBaseline = 'middle';
     ctx.fillText(text, 256, 64);
 
-    const texture = new THREE.CanvasTexture(canvas);
+    const texture = initTextureForGPU(new THREE.CanvasTexture(canvas));
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(width, height),
       new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
     );
+    plane.frustumCulled = false;
     return plane;
   }
 
@@ -4200,40 +4446,41 @@
   function createPosterPlane(title, bullets, headerColor) {
     const canvas = document.createElement('canvas');
     canvas.width = 512;
-    canvas.height = 360;
+    canvas.height = 512;
     const ctx = canvas.getContext('2d');
 
     ctx.fillStyle = '#0f1f2c';
-    ctx.fillRect(0, 0, 512, 360);
+    ctx.fillRect(0, 0, 512, 512);
 
     // Header banner
     ctx.fillStyle = headerColor;
-    ctx.fillRect(0, 0, 512, 64);
+    ctx.fillRect(0, 0, 512, 88);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 26px Nunito, sans-serif';
+    ctx.font = 'bold 28px Nunito, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(title, 256, 32);
+    ctx.fillText(title, 256, 44);
 
     // Bullet points
     ctx.fillStyle = '#e2e8f0';
-    ctx.font = '600 20px Nunito, sans-serif';
+    ctx.font = '600 22px Nunito, sans-serif';
     ctx.textAlign = 'left';
     bullets.forEach((b, i) => {
-      ctx.fillText(b, 30, 110 + (i * 44));
+      ctx.fillText(b, 32, 155 + (i * 64));
     });
 
     // Border
     ctx.strokeStyle = headerColor;
-    ctx.lineWidth = 6;
-    ctx.strokeRect(3, 3, 506, 354);
+    ctx.lineWidth = 8;
+    ctx.strokeRect(4, 4, 504, 504);
 
-    const texture = new THREE.CanvasTexture(canvas);
+    const texture = initTextureForGPU(new THREE.CanvasTexture(canvas));
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(3.6, 2.5),
       new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
     );
+    plane.frustumCulled = false;
     return plane;
   }
 
@@ -4323,6 +4570,8 @@
 
     // 3. Mobile Right-Side Touch Look Zone (Pan camera with right thumb)
     if (DOM.touchZone) {
+      let touchZoneStartX = 0;
+      let touchZoneStartY = 0;
       DOM.touchZone.addEventListener('touchstart', (e) => {
         if (State.isPaused || DOM.stationModal.classList.contains('open')) return;
         for (let i = 0; i < e.changedTouches.length; i++) {
@@ -4332,6 +4581,8 @@
             touchLookState.touchId = t.identifier;
             touchLookState.prevX = t.clientX;
             touchLookState.prevY = t.clientY;
+            touchZoneStartX = t.clientX;
+            touchZoneStartY = t.clientY;
             break;
           }
         }
@@ -4358,9 +4609,15 @@
       const endTouchLook = (e) => {
         if (!touchLookState.active) return;
         for (let i = 0; i < e.changedTouches.length; i++) {
-          if (e.changedTouches[i].identifier === touchLookState.touchId) {
+          const t = e.changedTouches[i];
+          if (t.identifier === touchLookState.touchId) {
             touchLookState.active = false;
             touchLookState.touchId = null;
+            if (State.mode === '3d' && !State.isPaused && !DOM.stationModal.classList.contains('open')) {
+              if (Math.hypot(t.clientX - touchZoneStartX, t.clientY - touchZoneStartY) < 12) {
+                handle3DStationRaycastTap(t.clientX, t.clientY);
+              }
+            }
             break;
           }
         }
@@ -4395,7 +4652,7 @@
     if (DOM.modeSelectBtn) DOM.modeSelectBtn.addEventListener('click', openModeDialog);
     if (DOM.gyroResetBtn) DOM.gyroResetBtn.addEventListener('click', () => {
       if (State.mode === '3d') {
-        calibrateModAGyroHeading();
+        calibrateModAGyroHeading(true);
       } else {
         resetGyroOrientation();
       }
@@ -4749,8 +5006,9 @@
       setTimeout(() => { thumb.style.transition = ''; }, 160);
     };
 
-    // Touch events
+    // Touch events (stopPropagation memastikan sentuhan joystick tidak bocor ke touch-look atau kanvas)
     base.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
       if (e.changedTouches.length > 0 && !joystickState.touchId) {
         e.preventDefault();
         const t = e.changedTouches[0];
@@ -4786,6 +5044,7 @@
 
     // Pointer events (Desktop mouse testing support)
     base.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
       if (e.pointerType === 'mouse' && e.button === 0) {
         base.setPointerCapture(e.pointerId);
         thumb.style.transition = '';
@@ -4794,12 +5053,14 @@
     });
 
     base.addEventListener('pointermove', (e) => {
+      e.stopPropagation();
       if (base.hasPointerCapture && base.hasPointerCapture(e.pointerId)) {
         updateJoystickPosition(e.clientX, e.clientY);
       }
     });
 
     const handlePointerUp = (e) => {
+      e.stopPropagation();
       if (base.hasPointerCapture && base.hasPointerCapture(e.pointerId)) {
         base.releasePointerCapture(e.pointerId);
         resetJoystick();
@@ -4908,68 +5169,239 @@
     }
   }
 
-  function onModADeviceOrientation(e) {
-    if (!modAGyro.active || State.mode !== '3d') return;
-    if (e.alpha === null || e.beta === null || e.gamma === null) return;
+  // ==============================================================================
+  // FASA A.5 — MODULAR QUATERNION 360° GYROSCOPE & CALIBRATION ENGINE (MOD JELAJAH 3D)
+  // Menyokong iPadOS Safari Portrait (0°), Landscape (90°/-90°/270°) & Upside-Down (180°)
+  // tanpa gimbal lock dan tanpa masalah kamera menghadap siling pada permulaan.
+  // ==============================================================================
 
-    if (!modAGyro.calibrated) {
-      modAGyro.calibrated = true;
-      modAGyro.baseAlpha = e.alpha;
-      modAGyro.baseBeta = e.beta;
-      modAGyro.baseGamma = e.gamma;
-      modAGyro.currentAlpha = e.alpha;
-      modAGyro.currentBeta = e.beta;
-      modAGyro.currentGamma = e.gamma;
-      return;
+  function initializeOrientation() {
+    modAGyro.supported = (typeof window !== 'undefined' && 'DeviceOrientationEvent' in window);
+    modAGyro.screenOrientationAngle = getScreenOrientationAngle();
+    if (!modAGyro.hasCalibrated) {
+      modAGyro.yaw = 0;
+      modAGyro.pitch = 0;
+      player.pitch = 0;
     }
 
-    const smoothing = 0.25;
-    modAGyro.currentAlpha += (e.alpha - modAGyro.currentAlpha) * smoothing;
-    modAGyro.currentBeta += (e.beta - modAGyro.currentBeta) * smoothing;
-    modAGyro.currentGamma += (e.gamma - modAGyro.currentGamma) * smoothing;
-
-    let deltaAlpha = modAGyro.currentAlpha - modAGyro.baseAlpha;
-    while (deltaAlpha > 180) deltaAlpha -= 360;
-    while (deltaAlpha < -180) deltaAlpha += 360;
-
-    const restingBeta = 45;
-    let deltaBeta = (modAGyro.currentBeta - restingBeta);
-    deltaBeta = Math.max(-60, Math.min(60, deltaBeta));
-
-    modAGyro.yaw = THREE.MathUtils.degToRad(-deltaAlpha);
-    modAGyro.pitch = THREE.MathUtils.degToRad(-deltaBeta);
+    if (!modAGyro.screenListenerBound && typeof window !== 'undefined') {
+      modAGyro.screenListenerBound = true;
+      const onScreenOrientChange = () => {
+        const nextAngle = getScreenOrientationAngle();
+        if (nextAngle !== modAGyro.screenOrientationAngle) {
+          modAGyro.screenOrientationAngle = nextAngle;
+          // Kalibrasi semula rujukan secara lancar apabila iPad diputar antara Portrait dan Landscape
+          if (modAGyro.active) {
+            modAGyro.calibrated = false;
+          }
+        }
+      };
+      window.addEventListener('orientationchange', onScreenOrientChange);
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.addEventListener === 'function') {
+        window.screen.orientation.addEventListener('change', onScreenOrientChange);
+      }
+    }
+    return modAGyro.supported;
   }
 
-  async function enableModAGyroscope() {
+  function bindModADeviceOrientationListenerOnce() {
+    if (typeof window === 'undefined') return;
+    if (!modAGyro.listenerBound) {
+      window.removeEventListener('deviceorientation', onModADeviceOrientation);
+      window.addEventListener('deviceorientation', onModADeviceOrientation);
+      modAGyro.listenerBound = true;
+      modAGyro.listenerCount = 1;
+    }
+  }
+
+  function updateDeviceOrientation(e, immediate = false) {
+    if (!modAGyro.active || State.mode !== '3d') return null;
+    if (!e || (e.alpha === null && e.beta === null && e.gamma === null)) return null;
+
+    // Jangan ubah orientasi kamera makmal semasa modal kuiz sedang dibuka (kecuali dalam ujian simulasi langsung)
+    if (!immediate && DOM.stationModal && DOM.stationModal.classList.contains('open')) {
+      return null;
+    }
+
+    const alpha = typeof e.alpha === 'number' ? e.alpha : 0;
+    const beta = typeof e.beta === 'number' ? e.beta : 90;
+    const gamma = typeof e.gamma === 'number' ? e.gamma : 0;
+    const screenAngle = getScreenOrientationAngle();
+    modAGyro.screenOrientationAngle = screenAngle;
+
+    const q = computeDeviceWorldQuaternion(alpha, beta, gamma, screenAngle);
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(q).normalize();
+    const rawAzimuthDeg = ((THREE.MathUtils.radToDeg(Math.atan2(forward.x, -forward.z)) % 360) + 360) % 360;
+    const rawElevationDeg = THREE.MathUtils.clamp(
+      THREE.MathUtils.radToDeg(Math.asin(Math.max(-1, Math.min(1, forward.y)))),
+      -65,
+      65
+    );
+
+    modAGyro.rawAzimuthDeg = rawAzimuthDeg;
+    modAGyro.rawElevationDeg = rawElevationDeg;
+    modAGyro.currentAlpha = alpha;
+    modAGyro.currentBeta = beta;
+    modAGyro.currentGamma = gamma;
+    modAGyro.quaternion.copy(q);
+
+    // Bacaan pertama (atau selepas tukar orientasi skrin): Jadikan kedudukan semasa peranti sebagai ufuk hadapan (pitch = 0, yaw = 0)
+    // Ini menghalang kamera daripada menghadap ke siling atau lantai semasa mula bermain pada iPad!
+    if (!modAGyro.calibrated || modAGyro.baseAzimuthDeg === null || modAGyro.baseElevationDeg === null) {
+      modAGyro.calibrated = true;
+      modAGyro.hasCalibrated = true;
+      modAGyro.baseAlpha = alpha;
+      modAGyro.baseBeta = beta;
+      modAGyro.baseGamma = gamma;
+      modAGyro.baseAzimuthDeg = rawAzimuthDeg;
+      modAGyro.baseElevationDeg = rawElevationDeg;
+      modAGyro.smoothedAzimuthDeg = rawAzimuthDeg;
+      modAGyro.smoothedElevationDeg = rawElevationDeg;
+      modAGyro.yaw = 0;
+      modAGyro.pitch = 0;
+      modAGyro.smoothedYaw = 0;
+      modAGyro.smoothedPitch = 0;
+      player.pitch = 0;
+      if (camera && State.mode === '3d') {
+        camera.rotation.set(0, player.rotY, 0, 'YXZ');
+      }
+      return {
+        yaw: 0,
+        pitch: 0,
+        rawAzimuthDeg,
+        rawElevationDeg
+      };
+    }
+
+    const smoothing = immediate ? 1.0 : 0.32;
+    const azStep = shortestAngleDeltaDeg(rawAzimuthDeg, modAGyro.smoothedAzimuthDeg) * smoothing;
+    modAGyro.smoothedAzimuthDeg = ((modAGyro.smoothedAzimuthDeg + azStep) % 360 + 360) % 360;
+    modAGyro.smoothedElevationDeg += (rawElevationDeg - modAGyro.smoothedElevationDeg) * smoothing;
+
+    // Kira perubahan sudut relatif terhadap rujukan kalibrasi (bebas gimbal lock & selamat merentasi 0°/360°)
+    const deltaAzimuthDeg = shortestAngleDeltaDeg(modAGyro.smoothedAzimuthDeg, modAGyro.baseAzimuthDeg);
+    const deltaElevationDeg = THREE.MathUtils.clamp(
+      modAGyro.smoothedElevationDeg - modAGyro.baseElevationDeg,
+      -65,
+      65
+    );
+
+    // Dalam Three.js Euler 'YXZ':
+    // - Pusing kiri (deltaAzimuthDeg < 0) -> +yaw (kamera pusing kiri)
+    // - Pusing kanan (deltaAzimuthDeg > 0) -> -yaw (kamera pusing kanan)
+    // - Dongak atas (deltaElevationDeg > 0) -> +pitch (kamera pandang atas)
+    // - Tunduk bawah (deltaElevationDeg < 0) -> -pitch (kamera pandang bawah)
+    modAGyro.yaw = THREE.MathUtils.degToRad(-deltaAzimuthDeg);
+    modAGyro.pitch = THREE.MathUtils.degToRad(deltaElevationDeg);
+    modAGyro.smoothedYaw = modAGyro.yaw;
+    modAGyro.smoothedPitch = modAGyro.pitch;
+
+    if (camera && State.mode === '3d' && !renderer.xr.isPresenting) {
+      const combinedPitch = Math.max(-1.05, Math.min(1.05, player.pitch + modAGyro.pitch));
+      camera.rotation.set(combinedPitch, player.rotY + modAGyro.yaw, 0, 'YXZ');
+    }
+
+    return {
+      yaw: modAGyro.yaw,
+      pitch: modAGyro.pitch,
+      rawAzimuthDeg,
+      rawElevationDeg,
+      deltaAzimuthDeg,
+      deltaElevationDeg
+    };
+  }
+
+  function onModADeviceOrientation(e) {
+    updateDeviceOrientation(e, false);
+  }
+
+  async function requestOrientationPermission() {
+    initializeOrientation();
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
       try {
         const response = await DeviceOrientationEvent.requestPermission();
         if (response === 'granted') {
+          modAGyro.enabled = true;
           modAGyro.active = true;
           modAGyro.calibrated = false;
-          window.addEventListener('deviceorientation', onModADeviceOrientation);
-          alertToast('🧭 Sensor pandangan diaktifkan!');
+          modAGyro.yaw = 0;
+          modAGyro.pitch = 0;
+          player.pitch = 0;
+          bindModADeviceOrientationListenerOnce();
+          alertToast('🧭 Sensor pandangan 360° diaktifkan & dikalibrasi!');
           return true;
         }
       } catch (err) {
         console.warn('Orientation permission error:', err);
       }
     } else if (typeof window !== 'undefined' && 'DeviceOrientationEvent' in window) {
+      modAGyro.enabled = true;
       modAGyro.active = true;
       modAGyro.calibrated = false;
-      window.addEventListener('deviceorientation', onModADeviceOrientation);
-      alertToast('🧭 Sensor pandangan diaktifkan!');
+      modAGyro.yaw = 0;
+      modAGyro.pitch = 0;
+      player.pitch = 0;
+      bindModADeviceOrientationListenerOnce();
+      alertToast('🧭 Sensor pandangan 360° diaktifkan & dikalibrasi!');
       return true;
     }
     modAGyro.active = false;
     return false;
   }
 
-  function calibrateModAGyroHeading() {
-    modAGyro.baseAlpha = modAGyro.currentAlpha;
+  async function enableModAGyroscope() {
+    return requestOrientationPermission();
+  }
+
+  function calibrateForwardDirection(showToast = true) {
+    // Jika sensor belum aktif tetapi disokong (tanpa perlu prompt iOS baharu), aktifkan listener
+    if (!modAGyro.listenerBound && typeof window !== 'undefined' && 'DeviceOrientationEvent' in window &&
+        typeof DeviceOrientationEvent.requestPermission !== 'function') {
+      modAGyro.enabled = true;
+      modAGyro.active = true;
+      bindModADeviceOrientationListenerOnce();
+    }
+
+    if (modAGyro.hasCalibrated || modAGyro.baseAzimuthDeg !== null) {
+      modAGyro.baseAzimuthDeg = modAGyro.smoothedAzimuthDeg;
+      modAGyro.baseElevationDeg = modAGyro.smoothedElevationDeg;
+      modAGyro.baseAlpha = modAGyro.currentAlpha;
+      modAGyro.baseBeta = modAGyro.currentBeta;
+      modAGyro.baseGamma = modAGyro.currentGamma;
+      modAGyro.calibrated = true;
+    } else {
+      modAGyro.calibrated = false;
+    }
+
     modAGyro.yaw = 0;
     modAGyro.pitch = 0;
-    alertToast('🎯 Pandangan dikalibrasi ke hadapan!');
+    modAGyro.smoothedYaw = 0;
+    modAGyro.smoothedPitch = 0;
+    player.pitch = 0;
+
+    if (camera && State.mode === '3d' && !renderer.xr.isPresenting) {
+      camera.rotation.set(0, player.rotY, 0, 'YXZ');
+    }
+
+    if (showToast) {
+      alertToast('🎯 Pandangan dikalibrasi semula ke arah hadapan & paras mendatar!');
+    }
+    return {
+      baseAzimuthDeg: modAGyro.baseAzimuthDeg,
+      baseElevationDeg: modAGyro.baseElevationDeg,
+      yaw: modAGyro.yaw,
+      pitch: modAGyro.pitch
+    };
+  }
+
+  function resetViewDirection(showToast = false) {
+    player.rotY = 0;
+    player.pitch = 0;
+    return calibrateForwardDirection(showToast);
+  }
+
+  function calibrateModAGyroHeading(showToast = true) {
+    return calibrateForwardDirection(showToast);
   }
 
   function showCellCorePrompt() {
@@ -6865,13 +7297,26 @@
 
       if (DOM.hudModeIcon) DOM.hudModeIcon.textContent = '🖥️';
       if (DOM.hudModeText) DOM.hudModeText.textContent = 'Mod Jelajah 3D';
-      if (DOM.gyroResetBtn) DOM.gyroResetBtn.style.display = 'none';
+      if (DOM.gyroResetBtn) DOM.gyroResetBtn.style.display = 'inline-flex';
+
+      // Fasa A.5: Mulakan orientasi 360° dan pastikan kamera menghadap mendatar (horizon level) pada permulaan
+      initializeOrientation();
+      if (!modAGyro.hasCalibrated) {
+        player.pitch = 0;
+        modAGyro.pitch = 0;
+        modAGyro.yaw = 0;
+      }
 
       // Restore player first-person camera
       camera.position.set(player.x, player.y, player.z);
-      camera.rotation.set(player.pitch, player.rotY, 0, 'YXZ');
+      camera.rotation.set(
+        player.pitch + (modAGyro.active ? modAGyro.pitch : 0),
+        player.rotY + (modAGyro.active ? modAGyro.yaw : 0),
+        0,
+        'YXZ'
+      );
 
-      alertToast('🖥️ Mod Jelajah 3D Aktif: Terokai makmal menggunakan kekunci atau joystick.');
+      alertToast('🖥️ Mod Jelajah 3D Aktif: Terokai makmal menggunakan peranti 360°, kekunci atau joystick.');
     } else if (mode === 'camera-ar') {
       // ----------------------------------------------------------------------
       // MOD C: AR ORIENTASI DUNIA (8 STESEN BERASINGAN DI SEKELILING MURID)
@@ -11961,6 +12406,83 @@
     activateCellCoreCrystal,
     enableModAGyroscope,
     calibrateModAGyroHeading,
+    initializeOrientation,
+    requestOrientationPermission,
+    getScreenOrientationAngle,
+    updateDeviceOrientation,
+    calibrateForwardDirection,
+    resetViewDirection,
+    simulateModADeviceOrientation: (alpha, beta, gamma, screenAngle = 0) => {
+      window.arSimulatedScreenOrientation = screenAngle;
+      modAGyro.enabled = true;
+      modAGyro.active = true;
+      bindModADeviceOrientationListenerOnce();
+      const res = updateDeviceOrientation({ alpha, beta, gamma }, true);
+      updatePlayerMovement();
+      return {
+        ...res,
+        cameraPitch: camera ? camera.rotation.x : 0,
+        cameraYaw: camera ? camera.rotation.y : 0,
+        playerPitch: player.pitch,
+        playerRotY: player.rotY,
+        gyroPitch: modAGyro.pitch,
+        gyroYaw: modAGyro.yaw
+      };
+    },
+    setJoystickInput: (x, y, active = true) => {
+      joystickState.x = x;
+      joystickState.y = y;
+      joystickState.active = active;
+      updatePlayerMovement();
+      return {
+        x: player.x,
+        z: player.z,
+        rotY: player.rotY,
+        pitch: player.pitch,
+        cameraYaw: camera ? camera.rotation.y : 0,
+        cameraPitch: camera ? camera.rotation.x : 0
+      };
+    },
+    inspectAll3DStationMaterials: () => {
+      return stationMeshes.map((st) => {
+        const meshes = [];
+        const root = st.organelleMesh || st.organelleVisual;
+        if (root) {
+          root.traverse((node) => {
+            if (!node.isMesh || !node.visible) return;
+            // Skip decorative 2D plane labels and flat aura rings when auditing 3D organelle materials
+            if (node.geometry && (node.geometry.type === 'PlaneGeometry' || node.geometry.type === 'RingGeometry')) {
+              return;
+            }
+            const mats = Array.isArray(node.material) ? node.material : [node.material];
+            mats.forEach((m) => {
+              if (!m) return;
+              meshes.push({
+                nodeName: node.name || 'unnamed',
+                visible: node.visible,
+                frustumCulled: node.frustumCulled,
+                materialType: m.type,
+                colorHex: m.color ? '#' + m.color.getHexString() : null,
+                emissiveHex: m.emissive ? '#' + m.emissive.getHexString() : null,
+                emissiveIntensity: m.emissiveIntensity,
+                roughness: m.roughness,
+                metalness: m.metalness,
+                vertexColors: !!m.vertexColors,
+                hasMap: !!m.map,
+                mapImageValid: !!(m.map && m.map.image && (m.map.image.width > 0 || m.map.image.naturalWidth > 0))
+              });
+            });
+          });
+        }
+        return {
+          stationId: st.data.id,
+          stationNum: st.data.number || st.data.num,
+          stationName: st.data.title || st.data.name,
+          meshCount: meshes.length,
+          meshes
+        };
+      });
+    },
     handlePlayerInteract,
     updateSecretDoorSign,
     getModAGyroState: () => modAGyro,
@@ -12086,6 +12608,7 @@
       completedCount: State.completedStations ? State.completedStations.size : 0
     })
   };
+  window.CellQuestTestAPI = window.CellQuestAR;
 
   // Run initialization when DOM is ready
   if (document.readyState === 'loading') {
