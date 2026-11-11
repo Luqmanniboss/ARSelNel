@@ -711,6 +711,8 @@
     hideLoadingScreen();
     animate();
 
+    bindModALifecycleHandlers();
+    updateSensorDiagnosticsUI();
     // Check URL search params for direct mode launch (e.g. ?mode=3d, ?mode=camera-ar, ?mode=marker-ar, ?mode=how)
     const urlParams = new URLSearchParams(window.location.search);
     const modeParam = urlParams.get('mode');
@@ -1007,11 +1009,30 @@
   // THREE.JS SCENE SETUP
   // ==============================================================================
 
-  // Mod A Gyroscope & Motion Look State (Fasa A.5: Kuaternion 360° bebas gimbal lock & sokongan penuh iPad Portrait/Landscape)
+  function isIOSGesturePermissionRequired() {
+    if (typeof window !== 'undefined' && window.__SIMULATE_IOS_SAFARI === true) {
+      return true;
+    }
+    if (typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission !== 'function') {
+      return false;
+    }
+    const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : '';
+    const isIOSUA = /iPad|iPhone|iPod/i.test(ua) || (typeof navigator !== 'undefined' && navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isCoarseTouch = typeof window !== 'undefined' && (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+    return isIOSUA || isCoarseTouch;
+  }
+
+  // Mod A Gyroscope & Motion Look State (Fasa A.5 + 4E-E.1.1: Kuaternion 360° W3C, iOS Safari Permission & BFCache Lifecycle)
   const modAGyro = {
     supported: typeof window !== 'undefined' && 'DeviceOrientationEvent' in window,
+    permissionState: (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function' && isIOSGesturePermissionRequired())
+      ? 'prompt'
+      : ((typeof window !== 'undefined' && 'DeviceOrientationEvent' in window) ? 'not-required' : 'unsupported'),
     enabled: false,
     active: false,
+    sensorReceived: false,
+    lastEventAt: 0,
+    touchOnlyChosen: false,
     listenerBound: false,
     listenerCount: 0,
     screenListenerBound: false,
@@ -1034,8 +1055,88 @@
     currentGamma: 0,
     smoothedYaw: 0,
     smoothedPitch: 0,
-    quaternion: new THREE.Quaternion()
+    quaternion: new THREE.Quaternion(),
+    baseQuaternion: new THREE.Quaternion(),
+    calibratedQuaternion: new THREE.Quaternion()
   };
+
+  let isRenderLoopActive = false;
+  let modALifecycleBound = false;
+  let diagnosticsVisible = false;
+  let diagnosticsPanelEl = null;
+
+  function isDiagnosticsDebugEnabled() {
+    if (diagnosticsVisible) return true;
+    try {
+      const qs = new URLSearchParams(window.location.search || '');
+      if (qs.get('debug') === '1' || qs.get('gyroDebug') === '1') return true;
+      if (window.localStorage && window.localStorage.getItem('arselnel_debug') === '1') return true;
+    } catch (_) {}
+    return false;
+  }
+
+  function getSensorDiagnostics() {
+    const camYawRad = camera ? camera.rotation.y : 0;
+    const camPitchRad = camera ? camera.rotation.x : 0;
+    const rawQ = modAGyro.quaternion || new THREE.Quaternion();
+    const calQ = modAGyro.calibratedQuaternion || new THREE.Quaternion();
+    return {
+      mode: State.mode,
+      permissionState: modAGyro.permissionState,
+      eventReceived: !!modAGyro.sensorReceived,
+      lastEventAt: modAGyro.lastEventAt,
+      alpha: +Number(modAGyro.currentAlpha || 0).toFixed(2),
+      beta: +Number(modAGyro.currentBeta || 0).toFixed(2),
+      gamma: +Number(modAGyro.currentGamma || 0).toFixed(2),
+      screenOrientation: modAGyro.screenOrientationAngle,
+      rawQuaternion: [+rawQ.x.toFixed(3), +rawQ.y.toFixed(3), +rawQ.z.toFixed(3), +rawQ.w.toFixed(3)],
+      calibratedQuaternion: [+calQ.x.toFixed(3), +calQ.y.toFixed(3), +calQ.z.toFixed(3), +calQ.w.toFixed(3)],
+      cameraYawRad: +Number(camYawRad).toFixed(4),
+      cameraYawDeg: +THREE.MathUtils.radToDeg(camYawRad).toFixed(2),
+      cameraPitchRad: +Number(camPitchRad).toFixed(4),
+      cameraPitchDeg: +THREE.MathUtils.radToDeg(camPitchRad).toFixed(2),
+      gyroStatus: modAGyro.active ? 'active' : 'inactive',
+      gyroActive: !!modAGyro.active,
+      rendererStatus: renderer ? 'active' : 'inactive',
+      rendererActive: !!renderer,
+      animationLoopStatus: isRenderLoopActive ? 'running' : 'stopped',
+      animationLoopActive: !!isRenderLoopActive,
+      listenerBound: !!modAGyro.listenerBound,
+      listenerCount: modAGyro.listenerCount || 0,
+      screenListenerBound: !!modAGyro.screenListenerBound,
+      calibrated: !!modAGyro.calibrated
+    };
+  }
+
+  function updateSensorDiagnosticsUI() {
+    if (!isDiagnosticsDebugEnabled()) {
+      if (diagnosticsPanelEl) diagnosticsPanelEl.style.display = 'none';
+      return;
+    }
+    if (typeof document === 'undefined' || !document.body) return;
+    if (!diagnosticsPanelEl) {
+      diagnosticsPanelEl = document.createElement('div');
+      diagnosticsPanelEl.id = 'cq-gyro-diag-panel';
+      diagnosticsPanelEl.style.cssText = 'position:fixed;left:10px;bottom:10px;z-index:99999;background:rgba(15,23,42,0.92);color:#e2e8f0;border:1px solid #38bdf8;border-radius:10px;padding:8px 10px;font:11px/1.35 ui-monospace,Consolas,monospace;pointer-events:none;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,0.4);';
+      document.body.appendChild(diagnosticsPanelEl);
+    }
+    diagnosticsPanelEl.style.display = 'block';
+    const d = getSensorDiagnostics();
+    diagnosticsPanelEl.textContent =
+      `[GYRO DIAG] perm=${d.permissionState} rx=${d.eventReceived}\n` +
+      `a=${d.alpha}° b=${d.beta}° g=${d.gamma}° scr=${d.screenOrientation}°\n` +
+      `rawQ=[${d.rawQuaternion.join(',')}]\n` +
+      `calQ=[${d.calibratedQuaternion.join(',')}]\n` +
+      `yaw=${d.cameraYawDeg}° pitch=${d.cameraPitchDeg}°\n` +
+      `gyro=${d.gyroStatus} ren=${d.rendererStatus} loop=${d.animationLoopStatus}\n` +
+      `listeners=${d.listenerCount} (bound=${d.listenerBound}, scr=${d.screenListenerBound})`;
+  }
+
+  function setDiagnosticsVisible(flag) {
+    diagnosticsVisible = !!flag;
+    updateSensorDiagnosticsUI();
+    return diagnosticsVisible;
+  }
 
   // Fasa A.5: Muat naik tekstur ke memori GPU WebGL serta-merta semasa dicipta
   // bagi mengelakkan pengusiran (eviction) backing store kanvas 2D luar skrin pada Safari iPadOS
@@ -4537,6 +4638,8 @@
       prevMouseX = e.clientX;
       prevMouseY = e.clientY;
 
+      // Single sensor ownership: jangan timpa orientasi kamera gyroscope apabila sensor Mod A sedang menerima bacaan
+      if (State.mode === '3d' && modAGyro.active && modAGyro.sensorReceived) return;
       player.rotY -= deltaX * 0.0035;
       player.pitch = Math.max(-0.75, Math.min(0.75, player.pitch - deltaY * 0.003));
     });
@@ -4602,8 +4705,11 @@
             touchLookState.prevX = t.clientX;
             touchLookState.prevY = t.clientY;
 
-            player.rotY -= deltaX * 0.0045;
-            player.pitch = Math.max(-0.75, Math.min(0.75, player.pitch - deltaY * 0.0035));
+            // Single sensor ownership: elakkan sentuhan menimpa orientasi gyroscope aktif pada iPad
+            if (!(State.mode === '3d' && modAGyro.active && modAGyro.sensorReceived)) {
+              player.rotY -= deltaX * 0.0045;
+              player.pitch = Math.max(-0.75, Math.min(0.75, player.pitch - deltaY * 0.0035));
+            }
             break;
           }
         }
@@ -4655,7 +4761,16 @@
     if (DOM.modeSelectBtn) DOM.modeSelectBtn.addEventListener('click', openModeDialog);
     if (DOM.gyroResetBtn) DOM.gyroResetBtn.addEventListener('click', () => {
       if (State.mode === '3d') {
-        calibrateModAGyroHeading(true);
+        if ((!modAGyro.active || !modAGyro.listenerBound) && isIOSGesturePermissionRequired() && modAGyro.permissionState !== 'granted') {
+          enableModAGyroscope().then((granted) => {
+            if (granted) {
+              closeLab3DCalibrationModal();
+              calibrateModAGyroHeading(true);
+            }
+          });
+        } else {
+          calibrateModAGyroHeading(true);
+        }
       } else {
         resetGyroOrientation();
       }
@@ -4758,20 +4873,32 @@
     // Mod A — Calibration Modal Buttons
     if (DOM.lab3dCalSensorBtn) {
       DOM.lab3dCalSensorBtn.addEventListener('click', () => {
-        enableModAGyroscope().then(() => {
+        // Panggil DeviceOrientationEvent.requestPermission() secara langsung dalam user gesture klik
+        enableModAGyroscope().then((granted) => {
           closeLab3DCalibrationModal();
-          launchMode('3d');
+          if (State.mode !== '3d' || isLobbyActive) {
+            launchMode('3d');
+          } else if (granted) {
+            calibrateModAGyroHeading(false);
+          }
+          updateSensorDiagnosticsUI();
         }).catch(() => {
           closeLab3DCalibrationModal();
-          launchMode('3d');
+          if (State.mode !== '3d' || isLobbyActive) {
+            launchMode('3d');
+          }
         });
       });
     }
     if (DOM.lab3dCalTouchBtn) {
       DOM.lab3dCalTouchBtn.addEventListener('click', () => {
         modAGyro.active = false;
+        modAGyro.touchOnlyChosen = true;
         closeLab3DCalibrationModal();
-        launchMode('3d');
+        if (State.mode !== '3d' || isLobbyActive) {
+          launchMode('3d');
+        }
+        updateSensorDiagnosticsUI();
       });
     }
 
@@ -5181,6 +5308,45 @@
   // tanpa gimbal lock dan tanpa masalah kamera menghadap siling pada permulaan.
   // ==============================================================================
 
+  function resetModAGyroCalibrationState(resetSensorReceived = true) {
+    modAGyro.calibrated = false;
+    modAGyro.hasCalibrated = false;
+    modAGyro.baseAzimuthDeg = null;
+    modAGyro.baseElevationDeg = null;
+    modAGyro.baseAlpha = null;
+    modAGyro.baseBeta = null;
+    modAGyro.baseGamma = null;
+    modAGyro.yaw = 0;
+    modAGyro.pitch = 0;
+    modAGyro.smoothedYaw = 0;
+    modAGyro.smoothedPitch = 0;
+    player.pitch = 0;
+    if (modAGyro.baseQuaternion) modAGyro.baseQuaternion.identity();
+    if (modAGyro.calibratedQuaternion) modAGyro.calibratedQuaternion.identity();
+    if (resetSensorReceived) {
+      modAGyro.sensorReceived = false;
+      modAGyro.lastEventAt = 0;
+    }
+    if (camera && State.mode === '3d' && (!renderer || !renderer.xr || !renderer.xr.isPresenting)) {
+      camera.rotation.set(0, player.rotY, 0, 'YXZ');
+    }
+    updateSensorDiagnosticsUI();
+  }
+
+  function onModAScreenOrientationChange() {
+    const nextAngle = getScreenOrientationAngle();
+    if (nextAngle !== modAGyro.screenOrientationAngle) {
+      modAGyro.screenOrientationAngle = nextAngle;
+      // Kalibrasi semula rujukan secara lancar apabila iPad diputar antara Portrait dan Landscape
+      if (modAGyro.active) {
+        modAGyro.calibrated = false;
+        modAGyro.baseAzimuthDeg = null;
+        modAGyro.baseElevationDeg = null;
+      }
+      updateSensorDiagnosticsUI();
+    }
+  }
+
   function initializeOrientation() {
     modAGyro.supported = (typeof window !== 'undefined' && 'DeviceOrientationEvent' in window);
     modAGyro.screenOrientationAngle = getScreenOrientationAngle();
@@ -5192,21 +5358,14 @@
 
     if (!modAGyro.screenListenerBound && typeof window !== 'undefined') {
       modAGyro.screenListenerBound = true;
-      const onScreenOrientChange = () => {
-        const nextAngle = getScreenOrientationAngle();
-        if (nextAngle !== modAGyro.screenOrientationAngle) {
-          modAGyro.screenOrientationAngle = nextAngle;
-          // Kalibrasi semula rujukan secara lancar apabila iPad diputar antara Portrait dan Landscape
-          if (modAGyro.active) {
-            modAGyro.calibrated = false;
-          }
-        }
-      };
-      window.addEventListener('orientationchange', onScreenOrientChange);
+      window.removeEventListener('orientationchange', onModAScreenOrientationChange);
+      window.addEventListener('orientationchange', onModAScreenOrientationChange);
       if (window.screen && window.screen.orientation && typeof window.screen.orientation.addEventListener === 'function') {
-        window.screen.orientation.addEventListener('change', onScreenOrientChange);
+        window.screen.orientation.removeEventListener('change', onModAScreenOrientationChange);
+        window.screen.orientation.addEventListener('change', onModAScreenOrientationChange);
       }
     }
+    updateSensorDiagnosticsUI();
     return modAGyro.supported;
   }
 
@@ -5217,7 +5376,24 @@
       window.addEventListener('deviceorientation', onModADeviceOrientation);
       modAGyro.listenerBound = true;
       modAGyro.listenerCount = 1;
+      updateSensorDiagnosticsUI();
     }
+  }
+
+  function teardownModAOrientation() {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('deviceorientation', onModADeviceOrientation);
+      window.removeEventListener('orientationchange', onModAScreenOrientationChange);
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.removeEventListener === 'function') {
+        window.screen.orientation.removeEventListener('change', onModAScreenOrientationChange);
+      }
+    }
+    modAGyro.listenerBound = false;
+    modAGyro.listenerCount = 0;
+    modAGyro.screenListenerBound = false;
+    modAGyro.active = false;
+    modAGyro.sensorReceived = false;
+    updateSensorDiagnosticsUI();
   }
 
   function updateDeviceOrientation(e, immediate = false) {
@@ -5234,15 +5410,14 @@
     const gamma = typeof e.gamma === 'number' ? e.gamma : 0;
     const screenAngle = getScreenOrientationAngle();
     modAGyro.screenOrientationAngle = screenAngle;
+    modAGyro.sensorReceived = true;
+    modAGyro.lastEventAt = Date.now();
 
     const q = computeDeviceWorldQuaternion(alpha, beta, gamma, screenAngle);
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(q).normalize();
     const rawAzimuthDeg = ((THREE.MathUtils.radToDeg(Math.atan2(forward.x, -forward.z)) % 360) + 360) % 360;
-    const rawElevationDeg = THREE.MathUtils.clamp(
-      THREE.MathUtils.radToDeg(Math.asin(Math.max(-1, Math.min(1, forward.y)))),
-      -65,
-      65
-    );
+    // Biarkan elevasi mentah tidak disekat pada [-65, 65] supaya sudut kecondongan selesa iPad (-45° hingga -60°) masih mempunyai ruang penuh ke atas/bawah
+    const rawElevationDeg = THREE.MathUtils.radToDeg(Math.asin(Math.max(-1, Math.min(1, forward.y))));
 
     modAGyro.rawAzimuthDeg = rawAzimuthDeg;
     modAGyro.rawElevationDeg = rawElevationDeg;
@@ -5251,8 +5426,8 @@
     modAGyro.currentGamma = gamma;
     modAGyro.quaternion.copy(q);
 
-    // Bacaan pertama (atau selepas tukar orientasi skrin): Jadikan kedudukan semasa peranti sebagai ufuk hadapan (pitch = 0, yaw = 0)
-    // Ini menghalang kamera daripada menghadap ke siling atau lantai semasa mula bermain pada iPad!
+    // Bacaan pertama (atau selepas tukar orientasi skrin / kalibrasi semula):
+    // Jadikan kedudukan semasa peranti sebagai ufuk hadapan (pitch = 0, yaw = 0)
     if (!modAGyro.calibrated || modAGyro.baseAzimuthDeg === null || modAGyro.baseElevationDeg === null) {
       modAGyro.calibrated = true;
       modAGyro.hasCalibrated = true;
@@ -5263,6 +5438,8 @@
       modAGyro.baseElevationDeg = rawElevationDeg;
       modAGyro.smoothedAzimuthDeg = rawAzimuthDeg;
       modAGyro.smoothedElevationDeg = rawElevationDeg;
+      modAGyro.baseQuaternion.copy(q);
+      modAGyro.calibratedQuaternion.identity();
       modAGyro.yaw = 0;
       modAGyro.pitch = 0;
       modAGyro.smoothedYaw = 0;
@@ -5271,6 +5448,7 @@
       if (camera && State.mode === '3d') {
         camera.rotation.set(0, player.rotY, 0, 'YXZ');
       }
+      updateSensorDiagnosticsUI();
       return {
         yaw: 0,
         pitch: 0,
@@ -5279,7 +5457,9 @@
       };
     }
 
-    const smoothing = immediate ? 1.0 : 0.32;
+    modAGyro.calibratedQuaternion.copy(modAGyro.baseQuaternion).invert().multiply(q).normalize();
+
+    const smoothing = immediate ? 1.0 : 0.35;
     const azStep = shortestAngleDeltaDeg(rawAzimuthDeg, modAGyro.smoothedAzimuthDeg) * smoothing;
     modAGyro.smoothedAzimuthDeg = ((modAGyro.smoothedAzimuthDeg + azStep) % 360 + 360) % 360;
     modAGyro.smoothedElevationDeg += (rawElevationDeg - modAGyro.smoothedElevationDeg) * smoothing;
@@ -5298,14 +5478,15 @@
     // - Dongak atas (deltaElevationDeg > 0) -> +pitch (kamera pandang atas)
     // - Tunduk bawah (deltaElevationDeg < 0) -> -pitch (kamera pandang bawah)
     modAGyro.yaw = THREE.MathUtils.degToRad(-deltaAzimuthDeg);
-    modAGyro.pitch = THREE.MathUtils.degToRad(deltaElevationDeg);
+    modAGyro.pitch = THREE.MathUtils.clamp(THREE.MathUtils.degToRad(deltaElevationDeg), -1.05, 1.05);
     modAGyro.smoothedYaw = modAGyro.yaw;
     modAGyro.smoothedPitch = modAGyro.pitch;
 
-    if (camera && State.mode === '3d' && !renderer.xr.isPresenting) {
-      const combinedPitch = Math.max(-1.05, Math.min(1.05, player.pitch + modAGyro.pitch));
-      camera.rotation.set(combinedPitch, player.rotY + modAGyro.yaw, 0, 'YXZ');
+    if (camera && State.mode === '3d' && (!renderer || !renderer.xr || !renderer.xr.isPresenting)) {
+      camera.rotation.set(modAGyro.pitch, player.rotY + modAGyro.yaw, 0, 'YXZ');
     }
+
+    updateSensorDiagnosticsUI();
 
     return {
       yaw: modAGyro.yaw,
@@ -5322,36 +5503,46 @@
   }
 
   async function requestOrientationPermission() {
-    initializeOrientation();
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
       try {
+        // Panggil serta-merta sebagai langkah pertama untuk mengekalkan status user gesture Safari iPadOS
         const response = await DeviceOrientationEvent.requestPermission();
         if (response === 'granted') {
+          modAGyro.permissionState = 'granted';
+          initializeOrientation();
           modAGyro.enabled = true;
           modAGyro.active = true;
-          modAGyro.calibrated = false;
-          modAGyro.yaw = 0;
-          modAGyro.pitch = 0;
-          player.pitch = 0;
+          modAGyro.touchOnlyChosen = false;
+          resetModAGyroCalibrationState(false);
           bindModADeviceOrientationListenerOnce();
           alertToast('🧭 Sensor pandangan 360° diaktifkan & dikalibrasi!');
           return true;
         }
+        modAGyro.permissionState = 'denied';
       } catch (err) {
         console.warn('Orientation permission error:', err);
+        modAGyro.permissionState = 'prompt';
       }
-    } else if (typeof window !== 'undefined' && 'DeviceOrientationEvent' in window) {
+      initializeOrientation();
+      modAGyro.active = false;
+      updateSensorDiagnosticsUI();
+      return false;
+    }
+
+    initializeOrientation();
+    if (typeof window !== 'undefined' && 'DeviceOrientationEvent' in window) {
+      modAGyro.permissionState = 'not-required';
       modAGyro.enabled = true;
       modAGyro.active = true;
-      modAGyro.calibrated = false;
-      modAGyro.yaw = 0;
-      modAGyro.pitch = 0;
-      player.pitch = 0;
+      modAGyro.touchOnlyChosen = false;
+      resetModAGyroCalibrationState(false);
       bindModADeviceOrientationListenerOnce();
       alertToast('🧭 Sensor pandangan 360° diaktifkan & dikalibrasi!');
       return true;
     }
+    modAGyro.permissionState = 'unsupported';
     modAGyro.active = false;
+    updateSensorDiagnosticsUI();
     return false;
   }
 
@@ -5360,9 +5551,10 @@
   }
 
   function calibrateForwardDirection(showToast = true) {
-    // Jika sensor belum aktif tetapi disokong (tanpa perlu prompt iOS baharu), aktifkan listener
+    // Jika sensor belum aktif tetapi tidak memerlukan prompt iOS, aktifkan listener dengan selamat
     if (!modAGyro.listenerBound && typeof window !== 'undefined' && 'DeviceOrientationEvent' in window &&
         typeof DeviceOrientationEvent.requestPermission !== 'function') {
+      modAGyro.permissionState = 'not-required';
       modAGyro.enabled = true;
       modAGyro.active = true;
       bindModADeviceOrientationListenerOnce();
@@ -5374,9 +5566,15 @@
       modAGyro.baseAlpha = modAGyro.currentAlpha;
       modAGyro.baseBeta = modAGyro.currentBeta;
       modAGyro.baseGamma = modAGyro.currentGamma;
+      if (modAGyro.baseQuaternion && modAGyro.quaternion) {
+        modAGyro.baseQuaternion.copy(modAGyro.quaternion);
+      }
+      if (modAGyro.calibratedQuaternion) modAGyro.calibratedQuaternion.identity();
       modAGyro.calibrated = true;
     } else {
       modAGyro.calibrated = false;
+      modAGyro.baseAzimuthDeg = null;
+      modAGyro.baseElevationDeg = null;
     }
 
     modAGyro.yaw = 0;
@@ -5385,9 +5583,11 @@
     modAGyro.smoothedPitch = 0;
     player.pitch = 0;
 
-    if (camera && State.mode === '3d' && !renderer.xr.isPresenting) {
+    if (camera && State.mode === '3d' && (!renderer || !renderer.xr || !renderer.xr.isPresenting)) {
       camera.rotation.set(0, player.rotY, 0, 'YXZ');
     }
+
+    updateSensorDiagnosticsUI();
 
     if (showToast) {
       alertToast('🎯 Pandangan dikalibrasi semula ke arah hadapan & paras mendatar!');
@@ -5601,8 +5801,10 @@
       camera.position.set(player.x, player.y, player.z);
 
       if (State.mode === '3d' && modAGyro.active) {
-        // Blend Mod A Gyroscope with mouse/touch look
-        const combinedPitch = Math.max(-1.05, Math.min(1.05, player.pitch + modAGyro.pitch));
+        // Single sensor ownership: jika sensor Mod A menerima bacaan aktif, gunakan yaw/pitch gyroscope tanpa ditimpa drag
+        const combinedPitch = modAGyro.sensorReceived
+          ? Math.max(-1.05, Math.min(1.05, modAGyro.pitch))
+          : Math.max(-1.05, Math.min(1.05, player.pitch + modAGyro.pitch));
         camera.rotation.set(combinedPitch, player.rotY + modAGyro.yaw, 0, 'YXZ');
       } else if (gyroState.active && State.mode === 'camera-ar') {
         const radYaw = THREE.MathUtils.degToRad(gyroState.alpha - (gyroState.initialAlpha || 0));
@@ -7305,22 +7507,35 @@
       if (DOM.hudModeText) DOM.hudModeText.textContent = 'Mod Jelajah 3D';
       if (DOM.gyroResetBtn) DOM.gyroResetBtn.style.display = 'inline-flex';
 
-      // Fasa A.5: Mulakan orientasi 360° dan pastikan kamera menghadap mendatar (horizon level) pada permulaan
+      // Fasa A.5 + 4E-E.1.1: Mulakan orientasi 360°, reset kalibrasi lama & aktifkan sensor tanpa konflik
       initializeOrientation();
-      if (!modAGyro.hasCalibrated) {
-        player.pitch = 0;
-        modAGyro.pitch = 0;
-        modAGyro.yaw = 0;
-      }
+      resetModAGyroCalibrationState(true);
+      startRenderLoop();
 
-      // Restore player first-person camera
+      // Restore player first-person camera pada ufuk mendatar (horizon level)
       camera.position.set(player.x, player.y, player.z);
-      camera.rotation.set(
-        player.pitch + (modAGyro.active ? modAGyro.pitch : 0),
-        player.rotY + (modAGyro.active ? modAGyro.yaw : 0),
-        0,
-        'YXZ'
-      );
+      camera.rotation.set(0, player.rotY, 0, 'YXZ');
+
+      const needsIOSPermission = isIOSGesturePermissionRequired();
+
+      if (!needsIOSPermission) {
+        if (typeof window !== 'undefined' && 'DeviceOrientationEvent' in window && !modAGyro.touchOnlyChosen) {
+          modAGyro.permissionState = 'not-required';
+          modAGyro.enabled = true;
+          modAGyro.active = true;
+          bindModADeviceOrientationListenerOnce();
+        }
+      } else {
+        // Safari iOS/iPadOS memerlukan user gesture langsung untuk DeviceOrientationEvent.requestPermission()
+        if (modAGyro.permissionState === 'granted' && !modAGyro.touchOnlyChosen) {
+          modAGyro.enabled = true;
+          modAGyro.active = true;
+          bindModADeviceOrientationListenerOnce();
+        } else if (!modAGyro.touchOnlyChosen && (!DOM.lab3dCalibrationModal || !DOM.lab3dCalibrationModal.classList.contains('open'))) {
+          openLab3DCalibrationModal();
+        }
+      }
+      updateSensorDiagnosticsUI();
 
       alertToast('🖥️ Mod Jelajah 3D Aktif: Terokai makmal menggunakan peranti 360°, kekunci atau joystick.');
     } else if (mode === 'camera-ar') {
@@ -7618,33 +7833,65 @@
     if (typeof window.arSimulatedScreenOrientation === 'number') {
       return window.arSimulatedScreenOrientation;
     }
-    if (window.screen && window.screen.orientation && typeof window.screen.orientation.angle === 'number') {
-      return window.screen.orientation.angle;
+    let angle = null;
+    if (typeof window.orientation !== 'undefined' && Number.isFinite(window.orientation)) {
+      angle = window.orientation;
     }
-    if (typeof window.orientation === 'number') {
-      return window.orientation;
+    if (angle === null && window.screen && window.screen.orientation && Number.isFinite(window.screen.orientation.angle)) {
+      angle = window.screen.orientation.angle;
     }
-    return 0;
+    if (angle === -90) angle = 270;
+    const isLandscape = (typeof window !== 'undefined' && window.innerWidth > window.innerHeight);
+    if (isLandscape && (angle === 0 || angle === 180 || angle === null)) {
+      angle = 90;
+    } else if (!isLandscape && (angle === 90 || angle === 270)) {
+      angle = 0;
+    }
+    return angle || 0;
   }
 
-  // Kira kuaternion orientasi 3D kamera dunia daripada W3C DeviceOrientation (alpha, beta, gamma)
-  // dengan pampasan penuh untuk orientasi skrin iPad (Portrait 0°, Landscape 90° / -90° / 270°, Upside-Down 180°)
+  const _EARTH_TO_THREE_MOD = new THREE.Matrix4().set(
+    1,  0,  0,  0,
+    0,  0,  1,  0,
+    0, -1,  0,  0,
+    0,  0,  0,  1
+  );
+
+  // Kira kuaternion orientasi 3D kamera dunia daripada matriks putaran W3C DeviceOrientation
+  // bagi menghapuskan gimbal lock Euler pada iPad Safari (Portrait 0°, Landscape 90°/270°/-90°)
   function computeDeviceWorldQuaternion(alphaDeg, betaDeg, gammaDeg, screenAngleDeg) {
     const degToRad = THREE.MathUtils.degToRad;
-    const alpha = degToRad(typeof alphaDeg === 'number' ? alphaDeg : 0);
-    const beta  = degToRad(typeof betaDeg === 'number' ? betaDeg : 90);
-    const gamma = degToRad(typeof gammaDeg === 'number' ? gammaDeg : 0);
-    const orient = degToRad(typeof screenAngleDeg === 'number' ? screenAngleDeg : 0);
+    const a = degToRad(typeof alphaDeg === 'number' && Number.isFinite(alphaDeg) ? alphaDeg : 0);
+    const b = degToRad(typeof betaDeg === 'number' && Number.isFinite(betaDeg) ? betaDeg : 90);
+    const g = degToRad(typeof gammaDeg === 'number' && Number.isFinite(gammaDeg) ? gammaDeg : 0);
+    const orient = degToRad(typeof screenAngleDeg === 'number' && Number.isFinite(screenAngleDeg) ? screenAngleDeg : 0);
 
-    const euler = new THREE.Euler(beta, alpha, -gamma, 'YXZ');
-    const q = new THREE.Quaternion().setFromEuler(euler);
-    // Laraskan daripada kerangka peranti ke ufuk dunia (-90° pada paksi X)
-    const q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
-    q.multiply(q1);
-    // Pampasan putaran skrin (Portrait / Landscape)
-    const q0 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orient);
-    q.multiply(q0);
-    return q;
+    const cX = Math.cos(b);
+    const cY = Math.cos(g);
+    const cZ = Math.cos(a);
+    const sX = Math.sin(b);
+    const sY = Math.sin(g);
+    const sZ = Math.sin(a);
+
+    // Matriks W3C Device-to-Earth (R = Rz * Rx * Ry)
+    const m = new THREE.Matrix4().set(
+      cZ * cY - sZ * sX * sY,   -cX * sZ,   cY * sZ * sX + cZ * sY,  0,
+      cY * sZ + cZ * sX * sY,    cX * cZ,   sZ * sY - cZ * cY * sX,  0,
+      -cX * sY,                  sX,        cX * cY,                 0,
+      0,                         0,         0,                       1
+    );
+
+    // Pampasan putaran skrin iPad/telefon
+    const mCamToDevice = new THREE.Matrix4().set(
+       Math.cos(orient),  Math.sin(orient), 0, 0,
+      -Math.sin(orient),  Math.cos(orient), 0, 0,
+       0,                 0,                1, 0,
+       0,                 0,                0, 1
+    );
+
+    const mCamToEarth = new THREE.Matrix4().multiplyMatrices(m, mCamToDevice);
+    const mCamToThree = new THREE.Matrix4().multiplyMatrices(_EARTH_TO_THREE_MOD, mCamToEarth);
+    return new THREE.Quaternion().setFromRotationMatrix(mCamToThree);
   }
 
   // Ekstrak azimut ikut jam (0°..360°) dan elevasi dongak/tunduk (-60°..+60°) daripada kuaternion kamera
@@ -7784,6 +8031,86 @@
     }
   }
 
+  function startRenderLoop() {
+    if (!renderer || typeof renderer.setAnimationLoop !== 'function') return false;
+    if (!isRenderLoopActive) {
+      renderer.setAnimationLoop(renderLoop);
+      isRenderLoopActive = true;
+      updateSensorDiagnosticsUI();
+    }
+    return true;
+  }
+
+  function stopRenderLoop() {
+    if (renderer && typeof renderer.setAnimationLoop === 'function') {
+      try {
+        renderer.setAnimationLoop(null);
+      } catch (_) {}
+    }
+    isRenderLoopActive = false;
+    updateSensorDiagnosticsUI();
+  }
+
+  function handleModAPageHide() {
+    stopRenderLoop();
+    teardownModAOrientation();
+    teardownDeviceOrientation();
+    stopInteractiveCamera();
+  }
+
+  function handleModAPageShow(e) {
+    const restoredFromBFCache = !!(e && e.persisted);
+    if (State.mode !== '3d' || isLobbyActive) {
+      if ((State.mode === 'camera-ar' || State.mode === 'marker-ar') && DOM.cameraFeed && cameraStream && DOM.cameraFeed.paused) {
+        DOM.cameraFeed.play().catch(() => {});
+      }
+      return;
+    }
+
+    if (restoredFromBFCache || !isRenderLoopActive || !modAGyro.listenerBound) {
+      initializeOrientation();
+      resetModAGyroCalibrationState(true);
+      startRenderLoop();
+      const needsIOSPerm = isIOSGesturePermissionRequired();
+      if (!needsIOSPerm && !modAGyro.touchOnlyChosen && typeof window !== 'undefined' && 'DeviceOrientationEvent' in window) {
+        modAGyro.permissionState = 'not-required';
+        modAGyro.enabled = true;
+        modAGyro.active = true;
+        bindModADeviceOrientationListenerOnce();
+      } else if (needsIOSPerm && modAGyro.permissionState === 'granted' && !modAGyro.touchOnlyChosen) {
+        modAGyro.enabled = true;
+        modAGyro.active = true;
+        bindModADeviceOrientationListenerOnce();
+      } else if (needsIOSPerm && !modAGyro.touchOnlyChosen) {
+        openLab3DCalibrationModal();
+      }
+      updateSensorDiagnosticsUI();
+    }
+  }
+
+  function handleModAVisibilityChange() {
+    if (State.mode !== '3d' || isLobbyActive) return;
+    if (document.hidden) {
+      stopRenderLoop();
+      modAGyro.calibrated = false;
+      updateSensorDiagnosticsUI();
+    } else {
+      startRenderLoop();
+      if (modAGyro.active && !modAGyro.listenerBound) {
+        bindModADeviceOrientationListenerOnce();
+      }
+      updateSensorDiagnosticsUI();
+    }
+  }
+
+  function bindModALifecycleHandlers() {
+    if (modALifecycleBound || typeof window === 'undefined') return;
+    modALifecycleBound = true;
+    window.addEventListener('pagehide', handleModAPageHide);
+    window.addEventListener('pageshow', handleModAPageShow);
+    document.addEventListener('visibilitychange', handleModAVisibilityChange);
+  }
+
   async function confirmExitToCellQuest(e, forceRedirect = false) {
     if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
     if (DOM.exitConfirmModal) {
@@ -7798,9 +8125,10 @@
     stopARWorldExploration();
     stopMarkerAR();
 
-    // 2. Hentikan semua camera stream tracks & sensor orientation listeners
+    // 2. Hentikan semua camera stream tracks & sensor orientation listeners (termasuk Mod A)
     stopInteractiveCamera();
     teardownDeviceOrientation();
+    teardownModAOrientation();
     if (State.timerInterval) {
       clearInterval(State.timerInterval);
       State.timerInterval = null;
@@ -7808,6 +8136,7 @@
 
     // 3. Navigasi kembali ke Lobi Makmal Sains (atau redirect ke code.html jika diminta)
     if (forceRedirect) {
+      stopRenderLoop();
       const targetUrl = 'code.html';
       arWorldState.lastExitTargetUrl = targetUrl;
       if (!window.CellQuestAR || !window.CellQuestAR.preventRedirectInTest) {
@@ -7841,23 +8170,14 @@
 
     // 2. Nyahaktifkan semua listener sensor orientasi & gyroscope Mod A
     teardownDeviceOrientation();
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('deviceorientation', onModADeviceOrientation);
-      modAGyro.listenerBound = false;
-      modAGyro.listenerCount = 0;
-      modAGyro.active = false;
-    }
+    teardownModAOrientation();
 
     // 3. Hentikan pemasa dan gelung animasi WebGL Three.js dengan selamat
     if (State.timerInterval) {
       clearInterval(State.timerInterval);
       State.timerInterval = null;
     }
-    if (renderer && typeof renderer.setAnimationLoop === 'function') {
-      try {
-        renderer.setAnimationLoop(null);
-      } catch (_) {}
-    }
+    stopRenderLoop();
 
     // 4. Simpan penanda kepulangan dalam sessionStorage
     try {
@@ -12389,7 +12709,7 @@
   const clock = new THREE.Clock();
 
   function animate() {
-    renderer.setAnimationLoop(renderLoop);
+    startRenderLoop();
   }
 
   function renderLoop(timestamp, frame) {
@@ -12467,9 +12787,18 @@
     initializeOrientation,
     requestOrientationPermission,
     getScreenOrientationAngle,
+    computeDeviceWorldQuaternion,
     updateDeviceOrientation,
     calibrateForwardDirection,
     resetViewDirection,
+    resetModAGyroCalibrationState,
+    teardownModAOrientation,
+    startRenderLoop,
+    stopRenderLoop,
+    getSensorDiagnostics,
+    setDiagnosticsVisible,
+    handleModAPageHide,
+    handleModAPageShow,
     simulateModADeviceOrientation: (alpha, beta, gamma, screenAngle = 0) => {
       window.arSimulatedScreenOrientation = screenAngle;
       modAGyro.enabled = true;

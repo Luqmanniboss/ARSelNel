@@ -698,8 +698,22 @@
       window.addEventListener('pageshow', (event) => {
         console.log('[ARRecovery] pageshow event fired, persisted:', event.persisted);
         if (event.persisted) {
+          // BFCache restore Safari iOS: bersihkan pendengar sensor lama sebelum pulihkan sesi kamera
+          try {
+            cleanupPOVListeners();
+            if (ARState.pov && ARState.pov.rafId) {
+              cancelAnimationFrame(ARState.pov.rafId);
+              ARState.pov.rafId = null;
+            }
+          } catch (_) {}
           this.recoverCameraSession();
         }
+      });
+
+      window.addEventListener('pagehide', () => {
+        console.log('[ARRecovery] pagehide event fired, cleaning up session & POV sensors');
+        try { cleanupPOVListeners(); } catch (_) {}
+        try { cleanupSession(); } catch (_) {}
       });
 
       // 2. Tab visibility changes (waking back up)
@@ -6284,6 +6298,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         } catch (e) {}
       });
     }
+    if (ARState.cameraStream && typeof ARState.cameraStream.getTracks === 'function') {
+      try {
+        ARState.cameraStream.getTracks().forEach((track) => track.stop());
+      } catch (e) {}
+      ARState.cameraStream = null;
+    }
     if (ARState.mindarThree) {
       try {
         ARState.mindarThree.stop();
@@ -9467,6 +9487,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       render5GamesCatalog();
       renderPOV5GamesCatalog();
       await initMindAR();
+
+      // Hide loading screen smoothly as soon as MindAR is initialized
+      if (DOM.loadingScreen) {
+        DOM.loadingScreen.classList.add('hidden');
+      }
 
       // Check if student returned from an interactive ARSELNEL game or Jelajah 3D
       try {
