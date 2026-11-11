@@ -135,6 +135,10 @@ async function main() {
   const outJelajah3D = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-jelajah3d.png');
   await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-jelajah3d.svg', outJelajah3D);
 
+  // Render AR Orientasi Dunia (Target Index 6 - Fasa 4E-E.3)
+  const outOrientasiDunia = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-orientasi-dunia.png');
+  await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-orientasi-dunia.svg', outOrientasiDunia);
+
   ws.close();
   chromeProc.kill();
   server.close();

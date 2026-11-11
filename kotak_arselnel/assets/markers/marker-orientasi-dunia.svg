@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <radialGradient id="bgOrientasi" cx="50%" cy="50%" r="72%">
+      <stop offset="0%" stop-color="#0a2740"/>
+      <stop offset="55%" stop-color="#07192b"/>
+      <stop offset="100%" stop-color="#030b14"/>
+    </radialGradient>
+    <linearGradient id="skyRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="chestGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Latar Belakang Kontras Tinggi -->
+  <rect x="0" y="0" width="1000" height="1000" fill="url(#bgOrientasi)"/>
+
+  <!-- Bingkai Sempadan Luar & Dalam Berkontras Tinggi untuk MindAR -->
+  <rect x="28" y="28" width="944" height="944" rx="28" fill="none" stroke="#38bdf8" stroke-width="18"/>
+  <rect x="56" y="56" width="888" height="888" rx="18" fill="none" stroke="#f8fafc" stroke-width="8" stroke-dasharray="36 18 14 18"/>
+
+  <!-- 4 Fiducial Penjuru Tak Simetri (Asymmetric High-Texture Corners untuk Orientasi Unik Sasaran 6) -->
+  <!-- Penjuru Kiri Atas (TL): Kompas + TigaSegi Bertingkat + Kod Biner -->
+  <g transform="translate(80, 80)">
+    <rect x="0" y="0" width="144" height="144" rx="14" fill="#04101d" stroke="#38bdf8" stroke-width="8"/>
+    <polygon points="72,16 96,72 72,58 48,72" fill="#38bdf8"/>
+    <polygon points="72,128 96,72 72,86 48,72" fill="#14b8a6"/>
+    <circle cx="72" cy="72" r="14" fill="#fde047"/>
+    <rect x="18" y="18" width="24" height="24" fill="#f8fafc"/>
+    <rect x="102" y="102" width="24" height="24" fill="#38bdf8"/>
+    <circle cx="114" cy="30" r="11" fill="#f59e0b"/>
+  </g>
+
+  <!-- Penjuru Kanan Atas (TR): Radar Suku + Palang Berlian + 4 Bar -->
+  <g transform="translate(776, 80)">
+    <rect x="0" y="0" width="144" height="144" rx="14" fill="#04101d" stroke="#14b8a6" stroke-width="8"/>
+    <path d="M 22 122 A 96 96 0 0 1 122 22 L 122 122 Z" fill="#0ea5e9" opacity="0.88"/>
+    <path d="M 52 122 A 64 64 0 0 1 122 52 L 122 122 Z" fill="#04101d"/>
+    <polygon points="44,44 68,26 58,64" fill="#fde047"/>
+    <rect x="82" y="82" width="32" height="32" fill="#f8fafc"/>
+    <circle cx="98" cy="98" r="9" fill="#04101d"/>
+    <rect x="18" y="18" width="14" height="44" fill="#2dd4bf"/>
+  </g>
+
+  <!-- Penjuru Kiri Bawah (BL): Peti Harta + Grid Bit Tak Simetri -->
+  <g transform="translate(80, 776)">
+    <rect x="0" y="0" width="144" height="144" rx="14" fill="#04101d" stroke="#fde047" stroke-width="8"/>
+    <rect x="22" y="58" width="100" height="62" rx="8" fill="#f59e0b" stroke="#fef08a" stroke-width="5"/>
+    <path d="M 22 58 Q 72 18 122 58 Z" fill="#38bdf8" stroke="#f8fafc" stroke-width="5"/>
+    <rect x="60" y="50" width="24" height="30" rx="5" fill="#fef08a" stroke="#04101d" stroke-width="4"/>
+    <circle cx="38" cy="90" r="9" fill="#04101d"/>
+    <circle cx="106" cy="90" r="9" fill="#04101d"/>
+    <rect x="20" y="20" width="20" height="20" fill="#f8fafc"/>
+  </g>
+
+  <!-- Penjuru Kanan Bawah (BR): 360° Gyro Cincin + Anak Panah Arah -->
+  <g transform="translate(776, 776)">
+    <rect x="0" y="0" width="144" height="144" rx="14" fill="#04101d" stroke="#38bdf8" stroke-width="8"/>
+    <ellipse cx="72" cy="72" rx="54" ry="26" fill="none" stroke="#38bdf8" stroke-width="8" transform="rotate(-28 72 72)"/>
+    <ellipse cx="72" cy="72" rx="54" ry="26" fill="none" stroke="#2dd4bf" stroke-width="8" transform="rotate(42 72 72)"/>
+    <polygon points="72,20 92,48 52,48" fill="#fde047"/>
+    <rect x="58" y="88" width="28" height="34" fill="#f8fafc"/>
+    <circle cx="28" cy="114" r="11" fill="#38bdf8"/>
+    <circle cx="116" cy="28" r="11" fill="#f59e0b"/>
+  </g>
+
+  <!-- Corak Kod Bar Sisi untuk Ciri ORB/FAST MindAR -->
+  <g fill="#38bdf8">
+    <rect x="260" y="76" width="34" height="18" rx="4"/>
+    <rect x="312" y="76" width="18" height="18" rx="4" fill="#f8fafc"/>
+    <rect x="348" y="76" width="52" height="18" rx="4" fill="#2dd4bf"/>
+    <rect x="418" y="76" width="22" height="18" rx="4" fill="#fde047"/>
+    <rect x="458" y="76" width="64" height="18" rx="4"/>
+    <rect x="540" y="76" width="26" height="18" rx="4" fill="#f8fafc"/>
+    <rect x="584" y="76" width="44" height="18" rx="4" fill="#2dd4bf"/>
+    <rect x="646" y="76" width="28" height="18" rx="4" fill="#fde047"/>
+    <rect x="692" y="76" width="48" height="18" rx="4"/>
+  </g>
+
+  <g fill="#2dd4bf">
+    <rect x="76" y="264" width="18" height="44" rx="4"/>
+    <rect x="76" y="326" width="18" height="22" rx="4" fill="#f8fafc"/>
+    <rect x="76" y="366" width="18" height="58" rx="4" fill="#38bdf8"/>
+    <rect x="76" y="442" width="18" height="28" rx="4" fill="#fde047"/>
+    <rect x="76" y="488" width="18" height="48" rx="4"/>
+    <rect x="76" y="554" width="18" height="26" rx="4" fill="#f8fafc"/>
+    <rect x="76" y="598" width="18" height="62" rx="4" fill="#38bdf8"/>
+    <rect x="76" y="678" width="18" height="34" rx="4" fill="#fde047"/>
+  </g>
+
+  <g fill="#38bdf8">
+    <rect x="906" y="256" width="18" height="56" rx="4" fill="#fde047"/>
+    <rect x="906" y="330" width="18" height="28" rx="4"/>
+    <rect x="906" y="376" width="18" height="44" rx="4" fill="#f8fafc"/>
+    <rect x="906" y="438" width="18" height="66" rx="4" fill="#2dd4bf"/>
+    <rect x="906" y="522" width="18" height="24" rx="4" fill="#fde047"/>
+    <rect x="906" y="564" width="18" height="52" rx="4"/>
+    <rect x="906" y="634" width="18" height="32" rx="4" fill="#f8fafc"/>
+    <rect x="906" y="684" width="18" height="42" rx="4" fill="#2dd4bf"/>
+  </g>
+
+  <!-- Cincin Smart Radar 360° di Tengah -->
+  <circle cx="500" cy="468" r="290" fill="#041221" stroke="url(#skyRing)" stroke-width="14"/>
+  <circle cx="500" cy="468" r="236" fill="none" stroke="#38bdf8" stroke-width="6" stroke-dasharray="28 14"/>
+  <circle cx="500" cy="468" r="176" fill="none" stroke="#14b8a6" stroke-width="6"/>
+  <circle cx="500" cy="468" r="112" fill="#07223b" stroke="#fde047" stroke-width="5"/>
+
+  <!-- Garis Paksi Radar & Pancaran Imbasan (Radar Sweep Cone) -->
+  <line x1="210" y1="468" x2="790" y2="468" stroke="#38bdf8" stroke-width="5" opacity="0.7"/>
+  <line x1="500" y1="178" x2="500" y2="758" stroke="#38bdf8" stroke-width="5" opacity="0.7"/>
+  <line x1="295" y1="263" x2="705" y2="673" stroke="#14b8a6" stroke-width="4" stroke-dasharray="14 14" opacity="0.7"/>
+  <line x1="705" y1="263" x2="295" y2="673" stroke="#14b8a6" stroke-width="4" stroke-dasharray="14 14" opacity="0.7"/>
+
+  <!-- Kon Imbasan Radar (Utara-Timur Laut) -->
+  <path d="M 500 468 L 418 192 A 288 288 0 0 1 656 226 Z" fill="#38bdf8" opacity="0.28"/>
+  <polygon points="500,152 522,196 478,196" fill="#fde047"/>
+  <polygon points="816,468 772,490 772,446" fill="#38bdf8"/>
+  <polygon points="500,784 522,740 478,740" fill="#14b8a6"/>
+  <polygon points="184,468 228,490 228,446" fill="#38bdf8"/>
+
+  <!-- Label Arah Kompas (U, T, S, B) -->
+  <text x="500" y="144" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="30" font-weight="900" fill="#fde047">U • 0°</text>
+  <text x="844" y="478" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="26" font-weight="900" fill="#38bdf8">T</text>
+  <text x="500" y="814" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="26" font-weight="900" fill="#2dd4bf">S</text>
+  <text x="154" y="478" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="26" font-weight="900" fill="#38bdf8">B</text>
+
+  <!-- 8 Nod Stesen Organel AR Tersebar 360° dengan Bentuk Berbeza -->
+  <!-- Stesen 1: Nukleus (Utara-Barat Laut) -->
+  <g transform="translate(432, 238)">
+    <circle cx="0" cy="0" r="28" fill="#ec4899" stroke="#f8fafc" stroke-width="6"/>
+    <circle cx="-6" cy="-4" r="9" fill="#fde047"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="20" font-weight="900" fill="#ffffff">1</text>
+  </g>
+  <!-- Stesen 2: Membran Sel (Timur Laut) -->
+  <g transform="translate(658, 286)">
+    <rect x="-26" y="-26" width="52" height="52" rx="12" fill="#0ea5e9" stroke="#f8fafc" stroke-width="6"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="20" font-weight="900" fill="#ffffff">2</text>
+  </g>
+  <!-- Stesen 3: Sitoplasma (Timur-Tenggara) -->
+  <g transform="translate(724, 492)">
+    <polygon points="0,-30 28,0 0,30 -28,0" fill="#14b8a6" stroke="#f8fafc" stroke-width="6"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="20" font-weight="900" fill="#04101d">3</text>
+  </g>
+  <!-- Stesen 4: Mitokondrion (Tenggara) -->
+  <g transform="translate(636, 654)">
+    <ellipse cx="0" cy="0" rx="32" ry="22" fill="#f97316" stroke="#f8fafc" stroke-width="6"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="20" font-weight="900" fill="#ffffff">4</text>
+  </g>
+  <!-- Stesen 5: Kloroplas (Selatan) -->
+  <g transform="translate(476, 698)">
+    <ellipse cx="0" cy="0" rx="32" ry="22" fill="#22c55e" stroke="#f8fafc" stroke-width="6"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="20" font-weight="900" fill="#04101d">5</text>
+  </g>
+  <!-- Stesen 6: Dinding Sel (Barat Daya) -->
+  <g transform="translate(328, 634)">
+    <polygon points="0,-28 26,-14 26,14 0,28 -26,14 -26,-14" fill="#84cc16" stroke="#f8fafc" stroke-width="6"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="20" font-weight="900" fill="#04101d">6</text>
+  </g>
+  <!-- Stesen 7: Vakuol (Barat) -->
+  <g transform="translate(268, 444)">
+    <rect x="-28" y="-22" width="56" height="44" rx="16" fill="#38bdf8" stroke="#f8fafc" stroke-width="6"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="20" font-weight="900" fill="#04101d">7</text>
+  </g>
+  <!-- Stesen 8: Perbandingan Sel (Barat Laut) -->
+  <g transform="translate(342, 296)">
+    <polygon points="0,-30 28,22 -28,22" fill="#a855f7" stroke="#f8fafc" stroke-width="6"/>
+    <text x="0" y="16" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="900" fill="#ffffff">8</text>
+  </g>
+
+  <!-- Ikon Tengah: Peti Harta Karun Emas + Kompas Dunia AR -->
+  <g transform="translate(500, 468)">
+    <!-- Badan Peti Harta Karun -->
+    <rect x="-64" y="-8" width="128" height="68" rx="10" fill="url(#chestGold)" stroke="#ffffff" stroke-width="6"/>
+    <!-- Tudung Peti Terbuka Sedikit dengan Pancaran Cahaya -->
+    <path d="M -68 -8 Q 0 -68 68 -8 Z" fill="#0ea5e9" stroke="#ffffff" stroke-width="6"/>
+    <line x1="-42" y1="-8" x2="-42" y2="60" stroke="#04101d" stroke-width="8"/>
+    <line x1="42" y1="-8" x2="42" y2="60" stroke="#04101d" stroke-width="8"/>
+    <!-- Kunci Peti Tengah -->
+    <rect x="-18" y="-20" width="36" height="40" rx="6" fill="#fef08a" stroke="#04101d" stroke-width="5"/>
+    <circle cx="0" cy="-3" r="6" fill="#04101d"/>
+    <polygon points="-5,-2 5,-2 8,12 -8,12" fill="#04101d"/>
+    <!-- Bintang Berlian di Atas Peti -->
+    <polygon points="0,-84 12,-58 38,-58 18,-42 26,-16 0,-32 -26,-16 -18,-42 -38,-58 -12,-58" fill="#fde047" stroke="#04101d" stroke-width="4"/>
+  </g>
+
+  <!-- Pita Tajuk Bawah Berkontras Tinggi -->
+  <rect x="150" y="844" width="700" height="84" rx="18" fill="#04101d" stroke="#38bdf8" stroke-width="7"/>
+  <rect x="166" y="858" width="56" height="56" rx="12" fill="#38bdf8"/>
+  <text x="194" y="898" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="34" font-weight="900" fill="#04101d">07</text>
+  <text x="526" y="885" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="28" font-weight="900" fill="#f8fafc" letter-spacing="1.5">AR ORIENTASI • DUNIA SEL</text>
+  <text x="526" y="914" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#2dd4bf" letter-spacing="2">SMART RADAR • 8 STESEN • PETI HARTA KARUN</text>
+</svg>
+

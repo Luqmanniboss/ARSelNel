@@ -291,9 +291,13 @@
       <span class="material-symbols-outlined" style="font-size:18px;">explore</span>
       <span>6. Jelajah 3D</span>
     </button>
+    <button type="button" class="tab-btn tab-haiwan" id="btn-show-orientasi" onclick="showMarker('orientasi')">
+      <span class="material-symbols-outlined" style="font-size:18px;">public</span>
+      <span>7. AR Orientasi Dunia</span>
+    </button>
     <button type="button" class="tab-btn" id="btn-show-all" onclick="showMarker('all')">
       <span class="material-symbols-outlined" style="font-size:18px;">grid_view</span>
-      <span>Papar Semua (6 Marker)</span>
+      <span>Papar Semua (7 Marker)</span>
     </button>
   </div>
 
@@ -364,6 +368,14 @@
         <span>INDEX 5 • 20 × 20 CM</span>
       </div>
     </div>
+
+    <div class="marker-frame frame-haiwan" id="card-orientasi" style="display:none;">
+      <img src="assets/markers/marker-orientasi-dunia.png" alt="Kotak ARSELNEL - Marker 7 AR Orientasi Dunia (Misi Jelajah Dunia Sel)" />
+      <div class="marker-specs">
+        <span style="color:#0284c7;">★ MUKA 7: AR ORIENTASI DUNIA • MISI JELAJAH DUNIA SEL</span>
+        <span>INDEX 6 • 20 × 20 CM</span>
+      </div>
+    </div>
   </div>
 
   <!-- HOW TO TEST INSTRUCTIONS -->
@@ -391,12 +403,14 @@
       const h = document.getElementById('card-haiwan');
       const t = document.getElementById('card-tumbuhan');
       const j = document.getElementById('card-jelajah3d');
+      const o = document.getElementById('card-orientasi');
       const btnV = document.getElementById('btn-show-video');
       const btnN = document.getElementById('btn-show-nota');
       const btnK = document.getElementById('btn-show-kuiz');
       const btnH = document.getElementById('btn-show-haiwan');
       const btnT = document.getElementById('btn-show-tumbuhan');
       const btnJ = document.getElementById('btn-show-jelajah3d');
+      const btnO = document.getElementById('btn-show-orientasi');
       const btnA = document.getElementById('btn-show-all');
 
       btnV.className = 'tab-btn tab-video';
@@ -405,16 +419,18 @@
       btnH.className = 'tab-btn tab-haiwan';
       btnT.className = 'tab-btn tab-tumbuhan';
       if (btnJ) btnJ.className = 'tab-btn tab-nota';
+      if (btnO) btnO.className = 'tab-btn tab-haiwan';
       btnA.className = 'tab-btn';
 
-      const cards = { video: v, nota: n, kuiz: k, haiwan: h, tumbuhan: t, jelajah3d: j };
+      const cards = { video: v, nota: n, kuiz: k, haiwan: h, tumbuhan: t, jelajah3d: j, orientasi: o };
       const btns = {
         video: [btnV, 'tab-btn active tab-video'],
         nota: [btnN, 'tab-btn active tab-nota'],
         kuiz: [btnK, 'tab-btn active tab-kuiz'],
         haiwan: [btnH, 'tab-btn active tab-haiwan'],
         tumbuhan: [btnT, 'tab-btn active tab-tumbuhan'],
-        jelajah3d: [btnJ, 'tab-btn active tab-nota']
+        jelajah3d: [btnJ, 'tab-btn active tab-nota'],
+        orientasi: [btnO, 'tab-btn active tab-haiwan']
       };
 
       if (type !== 'all' && cards[type]) {

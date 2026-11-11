@@ -170,8 +170,12 @@ async function main() {
         const img5 = await loadImage('/kotak_arselnel/assets/markers/marker-jelajah3d.png');
         console.log('Target 5 loaded:', img5.width, 'x', img5.height);
 
-        console.log('Compiling 6-target array [0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan, 5: Jelajah 3D]...');
-        await compiler.compileImageTargets([img0, img1, img2, img3, img4, img5], (progress) => {
+        console.log('Loading marker-orientasi-dunia.png (Target 6 - AR Orientasi Dunia)...');
+        const img6 = await loadImage('/kotak_arselnel/assets/markers/marker-orientasi-dunia.png');
+        console.log('Target 6 loaded:', img6.width, 'x', img6.height);
+
+        console.log('Compiling 7-target array [0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan, 5: Jelajah 3D, 6: AR Orientasi Dunia]...');
+        await compiler.compileImageTargets([img0, img1, img2, img3, img4, img5, img6], (progress) => {
           console.log('Compilation progress: ' + Math.round(progress) + '%');
         });
 

@@ -78,6 +78,11 @@
         <span>Jelajah 3D</span>
       </button>
 
+      <button type="button" class="ar-hud-btn btn-orientasi-dunia" id="btn-launch-orientasi-dunia" title="Buka AR Orientasi Dunia — Misi Jelajah Dunia Sel">
+        <span class="material-symbols-outlined">public</span>
+        <span>AR Orientasi Dunia</span>
+      </button>
+
       <button type="button" class="ar-hud-btn btn-diagnostics-toggle" id="btn-toggle-diagnostics" title="Papar Diagnostik Sensor & Sistem">
         <span class="material-symbols-outlined" style="font-size:16px;color:#2dd4bf;">developer_mode</span>
         <span>Diagnostik</span>
@@ -1420,7 +1425,7 @@
         <div class="diag-row"><span class="k">Resolusi Video:</span><span class="v" id="diag-video-dim">0 x 0</span></div>
         <div class="diag-row"><span class="k">ReadyState Video:</span><span class="v" id="diag-video-ready">0 (HAVE_NOTHING)</span></div>
         <div class="diag-row"><span class="k">Status Engine MindAR:</span><span class="v" id="diag-mindar-status">IDLE</span></div>
-        <div class="diag-row"><span class="k">Fail Marker .mind:</span><span class="v" id="diag-marker-mind-status">6 Sasaran (0-5)</span></div>
+        <div class="diag-row"><span class="k">Fail Marker .mind:</span><span class="v" id="diag-marker-mind-status">7 Sasaran (0-6)</span></div>
         <div class="diag-row"><span class="k">Konteks WebGL:</span><span class="v" id="diag-webgl-status">Normal</span></div>
         <div class="diag-row"><span class="k">Ralat Terkini:</span><span class="v" id="diag-last-error">Tiada</span></div>
       </div>
@@ -1507,6 +1512,53 @@
       <div class="exit-modal-actions jelajah3d-intro-actions">
         <button type="button" class="exit-btn-cancel jelajah3d-intro-btn-close" id="btn-jelajah3d-intro-close">Tutup</button>
         <button type="button" class="exit-btn-confirm btn-jelajah3d-confirm jelajah3d-intro-btn-start" id="btn-jelajah3d-intro-start">Mula Jelajah 3D</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASA 4E-E.3: MARKER AR ORIENTASI DUNIA (TARGET INDEX 6) INTRO PANEL -->
+  <div class="exit-modal-backdrop hidden" id="orientasi-dunia-marker-intro-backdrop" role="dialog" aria-modal="true" aria-labelledby="orientasi-intro-title">
+    <div class="exit-modal-card orientasi-intro-card">
+      <div class="orientasi-intro-header">
+        <div class="orientasi-intro-badge">
+          <span class="material-symbols-outlined">radar</span>
+          <span>SASARAN 6 • MARKER AR ORIENTASI DUNIA</span>
+        </div>
+        <div class="orientasi-intro-icon-wrap">
+          <span class="material-symbols-outlined">public</span>
+        </div>
+      </div>
+      <h3 class="exit-modal-title orientasi-intro-title" id="orientasi-intro-title">AR ORIENTASI DUNIA — MISI JELAJAH DUNIA SEL</h3>
+      <p class="exit-modal-desc orientasi-intro-subtitle">Terokai 8 stesen organel dalam ruang AR 360° menggunakan kamera, sensor orientasi, Smart Radar dan buka 3 Peti Harta Karun GLB 3D.</p>
+      <ul class="orientasi-intro-features" aria-label="Ciri-ciri AR Orientasi Dunia">
+        <li class="orientasi-intro-feature-item">
+          <span class="material-symbols-outlined">sensors</span>
+          <span>Kamera dan sensor orientasi</span>
+        </li>
+        <li class="orientasi-intro-feature-item">
+          <span class="material-symbols-outlined">radar</span>
+          <span>Smart Radar</span>
+        </li>
+        <li class="orientasi-intro-feature-item">
+          <span class="material-symbols-outlined">hub</span>
+          <span>8 stesen organel AR</span>
+        </li>
+        <li class="orientasi-intro-feature-item">
+          <span class="material-symbols-outlined">travel_explore</span>
+          <span>Misi pencarian</span>
+        </li>
+        <li class="orientasi-intro-feature-item">
+          <span class="material-symbols-outlined">quiz</span>
+          <span>Kuiz dan ganjaran</span>
+        </li>
+        <li class="orientasi-intro-feature-item">
+          <span class="material-symbols-outlined">redeem</span>
+          <span>Peti harta karun</span>
+        </li>
+      </ul>
+      <div class="exit-modal-actions orientasi-intro-actions">
+        <button type="button" class="exit-btn-cancel orientasi-intro-btn-close" id="btn-orientasi-intro-close">Tutup</button>
+        <button type="button" class="exit-btn-confirm orientasi-intro-btn-start" id="btn-orientasi-intro-start">Mula AR Orientasi Dunia</button>
       </div>
     </div>
   </div>

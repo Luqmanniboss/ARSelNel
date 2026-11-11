@@ -3551,6 +3551,26 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       return;
     }
 
+    // Fasa 4E-E.3: Target 6 = Marker AR Orientasi Dunia (Lightweight Intro Panel)
+    if (targetIndex === 6 || moduleName === 'orientasi') {
+      if (typeof GameSessionManager !== 'undefined' && GameSessionManager.isGameActive()) {
+        return;
+      }
+      const now6 = Date.now();
+      if (ARState.markerCooldown && ARState.markerCooldown.orientasi && now6 < ARState.markerCooldown.orientasi) {
+        return;
+      }
+      ARState.targetVisible = true;
+      ARState.currentMarkerIndex = 6;
+      ARState.lastDetectedTarget = 6;
+      if (DOM.diagMarkerStatus) {
+        DOM.diagMarkerStatus.textContent = 'Sasaran 6 Dikesan (AR Orientasi Dunia)';
+        DOM.diagMarkerStatus.className = 'v ok';
+      }
+      openOrientasiDuniaIntroPanel();
+      return;
+    }
+
     if (!moduleName) {
       if (targetIndex === 0) moduleName = 'video';
       else if (targetIndex === 1) moduleName = 'nota';
@@ -6295,7 +6315,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    */
   function getMarkerMindUrl() {
     const loc = window.location;
-    const versionTag = 'v=fasa4ee2';
+    const versionTag = 'v=fasa4ee3';
     if (loc.pathname.includes('/kotak_arselnel')) {
       const rootPart = loc.pathname.substring(0, loc.pathname.indexOf('/kotak_arselnel') + '/kotak_arselnel'.length);
       return `${loc.origin}${rootPart}/assets/markers/kotak_arselnel.mind?${versionTag}`;
@@ -6501,8 +6521,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.anchorCellQuestPlant = ARState.mindarThree.addAnchor(4);
     // Target 5 = JELAJAH 3D (MAKMAL EKSPLORASI 3D INTRO PANEL)
     ARState.anchorJelajah3D = ARState.mindarThree.addAnchor(5);
+    // Target 6 = AR ORIENTASI DUNIA (MISI JELAJAH DUNIA SEL INTRO PANEL)
+    ARState.anchorOrientasiDunia = ARState.mindarThree.addAnchor(6);
     if (DOM.diagMarkerMindStatus) {
-      DOM.diagMarkerMindStatus.textContent = '6 Sasaran (0-5 Sedia)';
+      DOM.diagMarkerMindStatus.textContent = '7 Sasaran (0-6 Sedia)';
       DOM.diagMarkerMindStatus.className = 'v ok';
     }
     if (ARState.anchorJelajah3D) {
@@ -6515,6 +6537,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       ARState.anchorJelajah3D.onTargetLost = () => {
         if (GameSessionManager.isGameActive()) return;
         console.info('[KotakAR] MindAR Target 5 (Jelajah 3D) LOST');
+      };
+    }
+    if (ARState.anchorOrientasiDunia) {
+      ARState.anchorOrientasiDunia.onTargetFound = () => {
+        if (GameSessionManager.isGameActive()) return;
+        console.info('[KotakAR] MindAR Target 6 (AR Orientasi Dunia) FOUND');
+        clearTimeout(ARState.hysteresisTimer);
+        handleTargetFound(6, 'orientasi');
+      };
+      ARState.anchorOrientasiDunia.onTargetLost = () => {
+        if (GameSessionManager.isGameActive()) return;
+        console.info('[KotakAR] MindAR Target 6 (AR Orientasi Dunia) LOST');
       };
     }
     // Rujukan anchor CellQuest aktif semasa (lalai: Sel Haiwan)
@@ -8927,17 +8961,78 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     // 4. Stop MindAR, camera MediaStreamTracks, and Three.js animation loop
     cleanupSession();
 
-    // 5. Navigate to canonical Jelajah 3D game route
-    window.location.href = JELAJAH_3D_ROUTE;
+    // 5. Navigate to canonical Jelajah 3D or AR Orientasi Dunia game route
+    const targetRoute = ARState.pendingExternalRoute || JELAJAH_3D_ROUTE;
+    ARState.pendingExternalRoute = null;
+    window.location.href = targetRoute;
   }
 
   function launchJelajah3D(forceImmediate = false) {
+    ARState.pendingExternalRoute = JELAJAH_3D_ROUTE;
+    const modalTitle = document.getElementById('jelajah3d-modal-title');
+    const modalDesc = document.getElementById('jelajah3d-modal-desc');
+    if (modalTitle) modalTitle.textContent = 'Buka Misi Jelajah Dunia Sel (3D)?';
+    if (modalDesc) modalDesc.textContent = 'Kamera AR dan overlay aktif semasa akan ditutup sebentar supaya Makmal Eksplorasi 3D berjalan lancar. Anda boleh kembali ke Kotak ARSELNEL pada bila-bila masa.';
+    if (DOM.btnJelajah3dConfirm) DOM.btnJelajah3dConfirm.textContent = 'Mula Jelajah 3D';
+
     const hasActiveOverlays = !!(ARState.activePanels && ARState.activePanels.size > 0);
     if (!forceImmediate && hasActiveOverlays && DOM.jelajah3dModalBackdrop) {
       showJelajah3DConfirmDialog();
       return false;
     }
     confirmLaunchJelajah3D();
+    return true;
+  }
+
+  /**
+   * Fasa 4E-E.3: Integrasi AR Orientasi Dunia (Target Index 6 & Butang HUD)
+   */
+  const ORIENTASI_DUNIA_ROUTE = '/cellquest/adventure.html?mode=camera-ar&from=kotak';
+
+  function openOrientasiDuniaIntroPanel() {
+    ARState.orientasiIntroOpen = true;
+    const backdrop = DOM.orientasiMarkerIntroBackdrop || document.getElementById('orientasi-dunia-marker-intro-backdrop');
+    if (backdrop) {
+      backdrop.classList.remove('hidden');
+    }
+  }
+
+  function closeOrientasiDuniaIntroPanel() {
+    ARState.orientasiIntroOpen = false;
+    const backdrop = DOM.orientasiMarkerIntroBackdrop || document.getElementById('orientasi-dunia-marker-intro-backdrop');
+    if (backdrop) {
+      backdrop.classList.add('hidden');
+    }
+    if (ARState.isScanningForAdd) {
+      cancelAddPanelScan();
+    }
+  }
+
+  function startOrientasiDuniaFromIntroPanel() {
+    closeOrientasiDuniaIntroPanel();
+    return launchOrientasiDunia(false);
+  }
+
+  function confirmLaunchOrientasiDunia() {
+    closeOrientasiDuniaIntroPanel();
+    ARState.pendingExternalRoute = ORIENTASI_DUNIA_ROUTE;
+    confirmLaunchJelajah3D();
+  }
+
+  function launchOrientasiDunia(forceImmediate = false) {
+    ARState.pendingExternalRoute = ORIENTASI_DUNIA_ROUTE;
+    const modalTitle = document.getElementById('jelajah3d-modal-title');
+    const modalDesc = document.getElementById('jelajah3d-modal-desc');
+    if (modalTitle) modalTitle.textContent = 'Buka AR Orientasi Dunia — Misi Jelajah Dunia Sel?';
+    if (modalDesc) modalDesc.textContent = 'Kamera MindAR dan overlay aktif semasa akan ditutup supaya AR Orientasi Dunia (Smart Radar, 8 Stesen Organel & Peti Harta Karun GLB) dapat menggunakan kamera dan sensor orientasi sepenuhnya.';
+    if (DOM.btnJelajah3dConfirm) DOM.btnJelajah3dConfirm.textContent = 'Mula AR Orientasi Dunia';
+
+    const hasActiveOverlays = !!(ARState.activePanels && ARState.activePanels.size > 0);
+    if (!forceImmediate && hasActiveOverlays && DOM.jelajah3dModalBackdrop) {
+      showJelajah3DConfirmDialog();
+      return false;
+    }
+    confirmLaunchOrientasiDunia();
     return true;
   }
 
@@ -9488,6 +9583,41 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       });
     }
 
+    // Fasa 4E-E.3: AR Orientasi Dunia HUD Button & Marker Intro Panel Listeners (Target Index 6)
+    const btnLaunchOrientasi = document.getElementById('btn-launch-orientasi-dunia');
+    if (btnLaunchOrientasi) {
+      btnLaunchOrientasi.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openOrientasiDuniaIntroPanel();
+      });
+    }
+
+    const btnOrientasiStart = document.getElementById('btn-orientasi-intro-start');
+    if (btnOrientasiStart) {
+      btnOrientasiStart.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startOrientasiDuniaFromIntroPanel();
+      });
+    }
+
+    const btnOrientasiClose = document.getElementById('btn-orientasi-intro-close');
+    if (btnOrientasiClose) {
+      btnOrientasiClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeOrientasiDuniaIntroPanel();
+      });
+    }
+
+    const orientasiBackdrop = document.getElementById('orientasi-dunia-marker-intro-backdrop');
+    if (orientasiBackdrop) {
+      orientasiBackdrop.addEventListener('click', (e) => {
+        if (e.target === orientasiBackdrop) {
+          closeOrientasiDuniaIntroPanel();
+        }
+      });
+    }
+
     // Fasa 4D-D.2: CellQuest POV Setup Banner Listeners
     if (DOM.cqBtnPovAnchor) {
       DOM.cqBtnPovAnchor.addEventListener('click', (e) => {
@@ -9820,6 +9950,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     openJelajah3DIntroPanel,
     closeJelajah3DIntroPanel,
     startJelajah3DFromIntroPanel,
+    // Fasa 4E-E.3 AR Orientasi Dunia Integration Exports
+    launchOrientasiDunia,
+    confirmLaunchOrientasiDunia,
+    openOrientasiDuniaIntroPanel,
+    closeOrientasiDuniaIntroPanel,
+    startOrientasiDuniaFromIntroPanel,
+    ORIENTASI_DUNIA_ROUTE,
     cleanupSession,
     JELAJAH_3D_ROUTE,
     getPanelElement: (id) => (id === 'pov-ar-anchor' || id === 'pov-panel-video' || id === 'video')

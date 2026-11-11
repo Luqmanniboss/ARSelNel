@@ -6786,128 +6786,327 @@
   }
 
   // Bina model 3D Peti Harta Karun ARSELNel di koordinat dunia (Fasa A.4: Reka Bentuk Kartun Ungu & Emas 3D)
-  function buildTreasureChest3D() {
-    if (arWorldState.treasureChestGroup) {
-      return arWorldState.treasureChestGroup;
-    }
-    const group = new THREE.Group();
-    group.name = 'ARWorld_TreasureChest';
+  // ==============================================================================
+  // FASA 4E-E.3: MODEL GLB PETI HARTA KARUN SEBENAR (../models/treasure_chest.glb)
+  // & SISTEM 3 PETI BERASINGAN (LOCKED -> UNLOCKED -> OPENED KEKAL)
+  // ==============================================================================
+  const TREASURE_CHEST_GLB_URL = '../models/treasure_chest.glb';
+  let cachedTreasureChestGLTF = null;
+  let treasureChestGLBLoadingPromise = null;
 
-    // Dimensi Peti Kartun Stylized: Lebar 1.40m, Ketinggian Badan Bawah 0.50m, Kedalaman 0.88m
+  function loadAndCacheTreasureChestGLB() {
+    if (cachedTreasureChestGLTF) {
+      return Promise.resolve(cachedTreasureChestGLTF);
+    }
+    if (treasureChestGLBLoadingPromise) {
+      return treasureChestGLBLoadingPromise;
+    }
+    if (typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') {
+      return Promise.resolve(null);
+    }
+
+    treasureChestGLBLoadingPromise = new Promise((resolve) => {
+      const loader = new THREE.GLTFLoader();
+      loader.load(
+        TREASURE_CHEST_GLB_URL,
+        (gltf) => {
+          if (gltf && gltf.scene) {
+            gltf.scene.traverse((node) => {
+              if (node.isMesh) {
+                node.frustumCulled = false;
+                node.castShadow = true;
+                node.receiveShadow = true;
+                const mats = Array.isArray(node.material) ? node.material : [node.material];
+                mats.forEach((m) => {
+                  if (!m) return;
+                  if (m.map) {
+                    m.map.encoding = THREE.sRGBEncoding;
+                    initTextureForGPU(m.map);
+                  }
+                  if (m.emissiveMap) {
+                    m.emissiveMap.encoding = THREE.sRGBEncoding;
+                    initTextureForGPU(m.emissiveMap);
+                  }
+                  if (m.normalMap) initTextureForGPU(m.normalMap);
+                  if (m.roughnessMap) initTextureForGPU(m.roughnessMap);
+                  if (m.metalnessMap) initTextureForGPU(m.metalnessMap);
+                  // Pastikan material PBR logam/kayu tidak kelihatan hitam pada Safari iPad tanpa envMap
+                  if (typeof m.metalness === 'number' && m.metalness > 0.65) {
+                    m.metalness = 0.55;
+                  }
+                  if (typeof m.roughness === 'number' && m.roughness < 0.22) {
+                    m.roughness = 0.28;
+                  }
+                  m.needsUpdate = true;
+                });
+              }
+            });
+          }
+          cachedTreasureChestGLTF = gltf;
+          glbDiagnostics['treasure_chest'] = {
+            loaded: true,
+            url: TREASURE_CHEST_GLB_URL,
+            animationsCount: Array.isArray(gltf.animations) ? gltf.animations.length : 0,
+            animationNames: Array.isArray(gltf.animations) ? gltf.animations.map(a => a.name) : []
+          };
+          // Pasang model GLB pada semua kumpulan peti yang telah dibina
+          if (Array.isArray(arWorldState.treasureChestGroups)) {
+            arWorldState.treasureChestGroups.forEach((grp, idx) => {
+              if (grp) attachTreasureChestGLBToGroup(grp, idx);
+            });
+          }
+          resolve(gltf);
+        },
+        undefined,
+        (err) => {
+          console.warn('[TreasureChestGLB] Gagal memuatkan ../models/treasure_chest.glb, menggunakan fallback:', err);
+          treasureChestGLBLoadingPromise = null;
+          resolve(null);
+        }
+      );
+    });
+    return treasureChestGLBLoadingPromise;
+  }
+
+  // Terapkan pose penutup peti (0.0 = tertutup/locked, 1.0 = terbuka penuh/opened)
+  // Menggunakan AnimationMixer pada klip 'Scene' (0.8333s -> 4.1417s peak open) + quaternion nod 'Lid'
+  function applyChestOpenPose(group, openProgress) {
+    if (!group || !group.userData) return;
+    const p = Math.max(0, Math.min(1, Number(openProgress) || 0));
+    group.userData.openProgress = p;
+
+    // 1. Jika GLB AnimationMixer wujud, scrub ke masa puncak terbuka (4.1417s) supaya tidak tertutup semula pada 9.58s
+    if (group.userData.mixer && group.userData.animAction) {
+      const closedTime = 0.0;
+      const unlockStartTime = 0.8333;
+      const peakOpenTime = 4.1417;
+      const targetTime = p <= 0.001 ? closedTime : (unlockStartTime + p * (peakOpenTime - unlockStartTime));
+      group.userData.animAction.paused = false;
+      group.userData.animAction.time = targetTime;
+      group.userData.mixer.update(0);
+      group.userData.animAction.paused = true;
+    }
+
+    // 2. Pastikan nod 'Lid' GLB berputar dengan bersih pada engselnya tanpa memusingkan badan peti
+    if (group.userData.glbLidNode) {
+      const closedQ = new THREE.Quaternion(0, 0, 0, 1);
+      const openQ = new THREE.Quaternion(-0.4612, 0, 0, 0.8873); // ~ -55° pada engsel X tempatan
+      group.userData.glbLidNode.quaternion.copy(closedQ).slerp(openQ, p);
+      group.userData.glbLidNode.updateMatrix();
+    }
+
+    // 3. Kemas kini juga pivot fallback, lampu dalaman & rasuk cahaya emas
+    if (group.userData.lidPivot) {
+      group.userData.lidPivot.rotation.x = -p * 1.25;
+    }
+    if (group.userData.chestLight) {
+      group.userData.chestLight.intensity = 0.85 + p * 2.35;
+    }
+    if (group.userData.chestBeamMesh && group.userData.chestBeamMesh.material) {
+      group.userData.chestBeamMesh.material.opacity = p * 0.48;
+    }
+
+    // Sinkronkan rujukan global jika peti ini ialah peti sasaran semasa
+    if (arWorldState.treasureChestGroup === group) {
+      arWorldState.isChestLidOpen = (p >= 0.5);
+    }
+  }
+
+  function attachTreasureChestGLBToGroup(group, chestIdx) {
+    if (!group || !cachedTreasureChestGLTF || !cachedTreasureChestGLTF.scene) return;
+    if (group.userData.glbAttached && group.userData.glbInstance) return;
+
+    const glbHolder = group.userData.glbHolder || new THREE.Group();
+    glbHolder.name = `TreasureChestGLBHolder_${chestIdx + 1}`;
+    glbHolder.clear();
+
+    const glbInstance = cachedTreasureChestGLTF.scene.clone(true);
+    glbInstance.name = `TreasureChestGLBScene_${chestIdx + 1}`;
+
+    let glbLidNode = null;
+    let glbLockNode = null;
+    let glbLockHingeNode = null;
+    let glbClipNode = null;
+    let glbHandleNode = null;
+    let glbGoldNode = null;
+    let glbChestBodyNode = null;
+
+    glbInstance.traverse((child) => {
+      if (child.name === 'Lid') glbLidNode = child;
+      else if (child.name === 'lock') glbLockNode = child;
+      else if (child.name === 'lochhinge') glbLockHingeNode = child;
+      else if (child.name === 'Clip') glbClipNode = child;
+      else if (child.name === 'Handle') glbHandleNode = child;
+      else if (child.name === 'Gold') glbGoldNode = child;
+      else if (child.name === 'Chest') glbChestBodyNode = child;
+      if (child.isMesh) {
+        child.frustumCulled = false;
+        child.userData.pickable = true;
+        child.userData.isTreasureChest = true;
+        child.userData.chestIndex = chestIdx;
+      }
+    });
+
+    // Pastikan pose tertutup semasa mengira kotak sempadan (bounding box)
+    if (glbLidNode) {
+      glbLidNode.quaternion.set(0, 0, 0, 1);
+    }
+    glbInstance.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(glbInstance);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const targetWidth = 1.38;
+    const scaleFactor = targetWidth / Math.max(size.x, 0.001);
+
+    glbInstance.scale.setScalar(scaleFactor);
+    glbInstance.position.set(
+      -center.x * scaleFactor,
+      -box.min.y * scaleFactor + 0.03,
+      -center.z * scaleFactor
+    );
+    glbHolder.add(glbInstance);
+
+    // Tambah pencahayaan tempatan supaya tekstur kayu, logam & syiling emas GLB terang & jelas di Safari iPad
+    const frontChestLight = new THREE.PointLight(0xfffbeb, 1.35, 4.5);
+    frontChestLight.position.set(0, 0.65, 1.15);
+    glbHolder.add(frontChestLight);
+
+    const topGoldLight = new THREE.PointLight(0xfde047, 1.15, 4.0);
+    topGoldLight.position.set(0, 1.15, 0.25);
+    glbHolder.add(topGoldLight);
+
+    // Sediakan AnimationMixer untuk klip animasi GLB ('Scene')
+    let mixer = null;
+    let animAction = null;
+    if (Array.isArray(cachedTreasureChestGLTF.animations) && cachedTreasureChestGLTF.animations.length > 0) {
+      mixer = new THREE.AnimationMixer(glbInstance);
+      const clip = cachedTreasureChestGLTF.animations[0];
+      animAction = mixer.clipAction(clip);
+      animAction.setLoop(THREE.LoopOnce, 1);
+      animAction.clampWhenFinished = true;
+      animAction.play();
+      animAction.paused = true;
+      animAction.time = 0;
+      mixer.update(0);
+    }
+
+    if (!group.userData.glbHolder) {
+      group.add(glbHolder);
+    }
+    group.userData.glbHolder = glbHolder;
+    group.userData.glbInstance = glbInstance;
+    group.userData.glbAttached = true;
+    group.userData.glbLidNode = glbLidNode;
+    group.userData.glbLockNode = glbLockNode;
+    group.userData.glbLockHingeNode = glbLockHingeNode;
+    group.userData.glbClipNode = glbClipNode;
+    group.userData.glbHandleNode = glbHandleNode;
+    group.userData.glbGoldNode = glbGoldNode;
+    group.userData.glbChestBodyNode = glbChestBodyNode;
+    group.userData.mixer = mixer;
+    group.userData.animAction = animAction;
+
+    // Sembunyikan geometri prosedural lama sebaik sahaja GLB sebenar dipasang
+    if (group.userData.proceduralHolder) {
+      group.userData.proceduralHolder.visible = false;
+    }
+    glbHolder.visible = true;
+
+    // Segerakkan dengan status semasa peti (locked vs opened)
+    const chestData = State.treasureHuntChests && State.treasureHuntChests[chestIdx];
+    const isAlreadyOpened = !!(chestData && (chestData.status === 'opened' || chestData.completed));
+    applyChestOpenPose(group, isAlreadyOpened ? 1.0 : (group.userData.openProgress || 0.0));
+  }
+
+  function updateChestLabelAndBeacon(group, chestIdx) {
+    if (!group || !State.treasureHuntChests || !State.treasureHuntChests[chestIdx]) return;
+    const chestCfg = State.treasureHuntChests[chestIdx];
+    const isOpened = !!(chestCfg.status === 'opened' || chestCfg.completed);
+
+    if (group.userData.labelGroup) {
+      group.remove(group.userData.labelGroup);
+      group.userData.labelGroup.traverse(child => {
+        if (child.isMesh) {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (child.material.map) child.material.map.dispose();
+            child.material.dispose();
+          }
+        }
+      });
+    }
+
+    const labelTitle = isOpened
+      ? `✅ ${chestCfg.title} (Dibuka)`
+      : `🎁 ${chestCfg.title}`;
+    const labelSub = isOpened
+      ? `Tahniah! Peti Harta Karun Dibuka! ✓`
+      : `Misi Bonus ${chestCfg.slotNumber}/3 • Ketik Buka`;
+    const badgeColor = isOpened ? 0x10b981 : 0xf59e0b;
+
+    const labelGroup = buildStationLabel(
+      labelTitle,
+      labelSub,
+      isOpened ? '✅' : '🎁',
+      badgeColor,
+      90 + chestCfg.slotNumber
+    );
+    labelGroup.position.set(0, 1.45, 0);
+    group.add(labelGroup);
+    group.userData.labelGroup = labelGroup;
+
+    if (group.userData.beacon && group.userData.beacon.children && group.userData.beacon.children[0]?.material) {
+      group.userData.beacon.children[0].material.color.setHex(badgeColor);
+    }
+    if (group.userData.ring && group.userData.ring.material) {
+      group.userData.ring.material.color.setHex(badgeColor);
+    }
+  }
+
+  function buildSingleTreasureChestGroup(chestIdx = 0) {
+    if (!Array.isArray(arWorldState.treasureChestGroups)) {
+      arWorldState.treasureChestGroups = [];
+    }
+    if (arWorldState.treasureChestGroups[chestIdx]) {
+      return arWorldState.treasureChestGroups[chestIdx];
+    }
+
+    const chestCfg = (State.treasureHuntChests && State.treasureHuntChests[chestIdx]) || State.treasureHuntChests[0];
+    if (chestCfg) {
+      if (!chestCfg.status) chestCfg.status = chestCfg.completed ? 'opened' : 'locked';
+      if (typeof chestCfg.isLidOpen !== 'boolean') chestCfg.isLidOpen = !!chestCfg.completed;
+      if (typeof chestCfg.rewardClaimed !== 'boolean') chestCfg.rewardClaimed = !!chestCfg.completed;
+    }
+
+    const group = new THREE.Group();
+    group.name = `ARWorld_TreasureChest_${chestIdx + 1}`;
+
+    const proceduralHolder = new THREE.Group();
+    proceduralHolder.name = `ProceduralChestFallback_${chestIdx + 1}`;
+    group.add(proceduralHolder);
+
+    const glbHolder = new THREE.Group();
+    glbHolder.name = `TreasureChestGLBHolder_${chestIdx + 1}`;
+    group.add(glbHolder);
+
+    // Dimensi Fallback Sementara menunggu GLB dimuatkan: Lebar 1.40m, Ketinggian 0.50m, Kedalaman 0.88m
     const chestW = 1.40;
     const chestH = 0.50;
     const chestD = 0.88;
 
-    // 1. Material Kartun Ungu Diraja (Royal Purple Stylized Satin)
-    const purpleMat = new THREE.MeshStandardMaterial({
-      color: 0x7c3aed,       // Ungu diraja cerah rujukan
-      roughness: 0.38,
-      metalness: 0.12
-    });
+    const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.45, metalness: 0.15 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.65, roughness: 0.25 });
+    const brightGoldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.72, roughness: 0.20 });
 
-    const darkPurpleMat = new THREE.MeshStandardMaterial({
-      color: 0x5b21b6,
-      roughness: 0.55,
-      metalness: 0.08
-    });
-
-    // 2. Material Emas Kartun Cerah & Berkilat (Bright Stylized Cartoon Gold)
-    const goldMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,       // Emas kuning pekat
-      metalness: 0.82,
-      roughness: 0.22
-    });
-    const brightGoldMat = new THREE.MeshStandardMaterial({
-      color: 0xfbbf24,       // Emas highlight cerah
-      metalness: 0.88,
-      roughness: 0.18
-    });
-
-    // Badan Peti Bawah (Purple Box)
-    const bodyGeo = new THREE.BoxGeometry(chestW, chestH, chestD);
-    const body = new THREE.Mesh(bodyGeo, purpleMat);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(chestW, chestH, chestD), woodMat);
     body.position.y = chestH / 2;
-    group.add(body);
+    proceduralHolder.add(body);
 
-    // Panel recessed depan & belakang warna ungu gelap (aksen kartun 3D)
-    const frontPanelGeo = new THREE.BoxGeometry(chestW - 0.24, chestH - 0.14, 0.02);
-    const frontPanel = new THREE.Mesh(frontPanelGeo, darkPurpleMat);
-    frontPanel.position.set(0, chestH / 2, chestD / 2 + 0.002);
-    group.add(frontPanel);
-
-    const backPanel = new THREE.Mesh(frontPanelGeo, darkPurpleMat);
-    backPanel.position.set(0, chestH / 2, -chestD / 2 - 0.002);
-    group.add(backPanel);
-
-    // 4 Sudut Logam Keemasan Tebal Kartun (Vertical Corner Plates)
-    const cornerW = 0.10;
-    const cornerH = chestH + 0.02;
-    const cornerD = 0.10;
-    const cornerPositions = [
-      [-chestW / 2 + cornerW / 2, chestH / 2, -chestD / 2 + cornerD / 2],
-      [ chestW / 2 - cornerW / 2, chestH / 2, -chestD / 2 + cornerD / 2],
-      [-chestW / 2 + cornerW / 2, chestH / 2,  chestD / 2 - cornerD / 2],
-      [ chestW / 2 - cornerW / 2, chestH / 2,  chestD / 2 - cornerD / 2]
-    ];
-    cornerPositions.forEach(pos => {
-      const cMesh = new THREE.Mesh(new THREE.BoxGeometry(cornerW, cornerH, cornerD), goldMat);
-      cMesh.position.set(pos[0], pos[1], pos[2]);
-      group.add(cMesh);
-
-      // Rivet bulat kartun (Spherical Gold Studs)
-      for (const ry of [0.10, 0.25, 0.40]) {
-        const rivet = new THREE.Mesh(new THREE.SphereGeometry(0.026, 10, 10), brightGoldMat);
-        rivet.position.set(pos[0] * 1.02, ry, pos[2] * 1.02);
-        group.add(rivet);
-      }
-    });
-
-    // Jalur Logam Keemasan Bawah & Rim Atas Badan Peti
-    const bottomTrim = new THREE.Mesh(new THREE.BoxGeometry(chestW + 0.04, 0.07, chestD + 0.04), goldMat);
-    bottomTrim.position.y = 0.035;
-    group.add(bottomTrim);
-
-    const rimTrim = new THREE.Mesh(new THREE.BoxGeometry(chestW + 0.03, 0.06, chestD + 0.03), goldMat);
-    rimTrim.position.y = chestH - 0.03;
-    group.add(rimTrim);
-
-    // 2. Bahagian Dalam Peti (Interior): Timbunan Emas & Syiling Kartun
     const interiorGroup = new THREE.Group();
     interiorGroup.position.set(0, chestH - 0.06, 0);
-
-    const moundGeo = new THREE.CylinderGeometry(0.40, 0.62, 0.20, 18);
-    const moundMesh = new THREE.Mesh(moundGeo, brightGoldMat);
+    const moundMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.40, 0.62, 0.20, 18), brightGoldMat);
     interiorGroup.add(moundMesh);
 
-    // Syiling Emas Bertaburan
-    const coinGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.016, 12);
-    for (let i = 0; i < 16; i++) {
-      const coin = new THREE.Mesh(coinGeo, brightGoldMat);
-      const angle = (i / 16) * Math.PI * 2;
-      const dist = 0.14 + (i % 3) * 0.12;
-      coin.position.set(Math.cos(angle) * dist, 0.11 + Math.random() * 0.03, Math.sin(angle) * dist);
-      coin.rotation.set((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4);
-      interiorGroup.add(coin);
-    }
-
-    // Kristal Pirus ARSELNel di dalam timbunan emas
-    const cryMat = new THREE.MeshStandardMaterial({
-      color: 0x22d3ee,
-      emissive: 0x06b6d4,
-      emissiveIntensity: 1.1,
-      roughness: 0.15,
-      metalness: 0.3
-    });
-    const cryOffsets = [[-0.20, 0.15, -0.06], [0.22, 0.16, 0.07], [0.03, 0.19, 0.16]];
-    cryOffsets.forEach((co, idx) => {
-      const cry = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), cryMat);
-      cry.position.set(co[0], co[1], co[2]);
-      cry.scale.set(0.85, 1.6, 0.85);
-      cry.rotation.set((idx % 2 ? 0.3 : -0.2), idx * 0.9, 0.2);
-      interiorGroup.add(cry);
-    });
-
-    // Rasuk Cahaya Emas / God Rays ke atas apabila peti dibuka
     const beamGeo = new THREE.CylinderGeometry(0.18, 0.85, 2.8, 18, 1, true);
     const beamMat = new THREE.MeshBasicMaterial({
       color: 0xfef08a,
@@ -6920,119 +7119,36 @@
     const beamMesh = new THREE.Mesh(beamGeo, beamMat);
     beamMesh.position.y = 1.35;
     interiorGroup.add(beamMesh);
-    arWorldState.chestBeamMesh = beamMesh;
-
     group.add(interiorGroup);
 
-    // 3. Penutup Peti Berengsel Melengkung Volumetrik (Volumetric Arched Hinged Lid)
     const lidPivot = new THREE.Group();
     lidPivot.position.set(0, chestH, -chestD / 2);
-
-    const lidRadius = chestD / 2; // 0.44m
-
-    // Kubah Melengkung Ungu (Arched Roof)
-    const lidArchGeo = new THREE.CylinderGeometry(lidRadius, lidRadius, chestW, 36, 1, false, 0, Math.PI);
-    const lidMesh = new THREE.Mesh(lidArchGeo, purpleMat);
+    const lidRadius = chestD / 2;
+    const lidMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(lidRadius, lidRadius, chestW, 24, 1, false, 0, Math.PI),
+      woodMat
+    );
     lidMesh.rotation.z = Math.PI / 2;
     lidMesh.rotation.y = Math.PI / 2;
     lidMesh.position.set(0, 0, lidRadius);
     lidPivot.add(lidMesh);
 
-    // Penutup Sisi Melengkung Berdimensi Volumetrik (Tebal 4cm, bukan 2D flat CircleGeometry)
-    const capThickness = 0.04;
-    const capGeo = new THREE.CylinderGeometry(lidRadius, lidRadius, capThickness, 32, 1, false, 0, Math.PI);
-
-    const capL = new THREE.Mesh(capGeo, purpleMat);
-    capL.rotation.z = Math.PI / 2;
-    capL.rotation.y = Math.PI / 2;
-    capL.position.set(-chestW / 2 + capThickness / 2, 0, lidRadius);
-    lidPivot.add(capL);
-
-    const capR = new THREE.Mesh(capGeo, purpleMat);
-    capR.rotation.z = Math.PI / 2;
-    capR.rotation.y = Math.PI / 2;
-    capR.position.set(chestW / 2 - capThickness / 2, 0, lidRadius);
-    lidPivot.add(capR);
-
-    // Rim Bawah Penutup Peti (Thick Golden Lid Rim)
-    const lidRim = new THREE.Mesh(new THREE.BoxGeometry(chestW + 0.04, 0.06, chestD + 0.04), goldMat);
-    lidRim.position.set(0, 0.03, lidRadius);
-    lidPivot.add(lidRim);
-
-    // 3 Jalur Logam Lengkung Keemasan di atas penutup melengkung (Thick Gold Arched Straps)
-    [-chestW / 2 + 0.12, 0, chestW / 2 - 0.12].forEach(strapX => {
-      const strapGeo = new THREE.CylinderGeometry(lidRadius + 0.014, lidRadius + 0.014, 0.09, 36, 1, false, 0, Math.PI);
-      const strapMesh = new THREE.Mesh(strapGeo, goldMat);
-      strapMesh.rotation.z = Math.PI / 2;
-      strapMesh.rotation.y = Math.PI / 2;
-      strapMesh.position.set(strapX, 0, lidRadius);
-      lidPivot.add(strapMesh);
-
-      // Rivet bulat kartun pada setiap jalur lengkung
-      for (let a = 0.35; a <= 2.8; a += 0.55) {
-        const sr = new THREE.Mesh(new THREE.SphereGeometry(0.024, 8, 8), brightGoldMat);
-        const rx = strapX;
-        const ry = Math.sin(a) * (lidRadius + 0.024);
-        const rz = lidRadius - Math.cos(a) * (lidRadius + 0.024);
-        sr.position.set(rx, ry, rz);
-        lidPivot.add(sr);
-      }
-    });
-
-    // 4. Plat Kunci Keemasan di Hadapan (Chunky Cartoon Keyhole Plate with Keyhole & Cyan Gem)
-    const claspGroup = new THREE.Group();
-    claspGroup.position.set(0, 0.02, lidRadius * 2);
-
     const claspPlate = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.30, 0.07), goldMat);
-    claspPlate.position.y = -0.05;
-    claspGroup.add(claspPlate);
+    claspPlate.position.set(0, -0.03, lidRadius * 2);
+    lidPivot.add(claspPlate);
+    proceduralHolder.add(lidPivot);
 
-    const claspTrim = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.10, 0.075), brightGoldMat);
-    claspTrim.position.y = 0.06;
-    claspGroup.add(claspTrim);
-
-    const keyholeTop = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.02, 16), darkPurpleMat);
-    keyholeTop.rotation.x = Math.PI / 2;
-    keyholeTop.position.set(0, -0.04, 0.038);
-    claspGroup.add(keyholeTop);
-
-    const keyholeBottom = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.04, 0.02), darkPurpleMat);
-    keyholeBottom.position.set(0, -0.065, 0.038);
-    claspGroup.add(keyholeBottom);
-
-    const coreGem = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.065, 0),
-      new THREE.MeshStandardMaterial({
-        color: 0x22d3ee,
-        emissive: 0x06b6d4,
-        emissiveIntensity: 1.2,
-        roughness: 0.1,
-        metalness: 0.2
-      })
-    );
-    coreGem.position.set(0, 0.04, 0.042);
-    claspGroup.add(coreGem);
-
-    const gemLight = new THREE.PointLight(0x06b6d4, 0.8, 1.8);
-    gemLight.position.set(0, 0.04, 0.15);
-    claspGroup.add(gemLight);
-
-    lidPivot.add(claspGroup);
-    group.add(lidPivot);
-    arWorldState.chestLidPivot = lidPivot;
-
-    // 5. Sumber Cahaya Emas di dalam Peti (Glow memancar apabila dibuka)
-    const chestLight = new THREE.PointLight(0xfbbf24, 0.8, 5.0);
-    chestLight.position.set(0, chestH + 0.2, 0);
+    // Sumber Cahaya Emas di dalam Peti (Glow memancar apabila dibuka)
+    const chestLight = new THREE.PointLight(0xfbbf24, 0.85, 5.5);
+    chestLight.position.set(0, chestH + 0.25, 0);
     group.add(chestLight);
-    arWorldState.chestLight = chestLight;
 
-    // 6. Zarah Cahaya Bintang Emas & Pirus (Sparkles Terapung)
+    // Zarah Cahaya Bintang Emas (Sparkles Terapung)
     const partGroup = new THREE.Group();
     const partMat = new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.95 });
     const partGeo = new THREE.OctahedronGeometry(0.055, 0);
-    arWorldState.chestParticles = [];
-    for (let i = 0; i < 18; i++) {
+    const chestParticles = [];
+    for (let i = 0; i < 14; i++) {
       const p = new THREE.Mesh(partGeo, partMat.clone());
       p.position.set(
         (Math.random() - 0.5) * 1.1,
@@ -7045,45 +7161,35 @@
         offset: Math.random() * Math.PI * 2
       };
       partGroup.add(p);
-      arWorldState.chestParticles.push(p);
+      chestParticles.push(p);
     }
     group.add(partGroup);
 
-    // 7. Hologram Gelang Penanda Terapung di Lantai (Golden Rings)
+    // Hologram Gelang Penanda Terapung di Lantai (Golden Rings)
     const chestHoloGroup = new THREE.Group();
     chestHoloGroup.position.y = 0.02;
-
-    const ringGeo1 = new THREE.RingGeometry(0.95, 1.05, 48);
-    const ringMat1 = new THREE.MeshBasicMaterial({
-      color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.85, depthWrite: false
-    });
-    const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+    const ring1 = new THREE.Mesh(
+      new THREE.RingGeometry(0.95, 1.05, 48),
+      new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide, transparent: true, opacity: 0.85, depthWrite: false })
+    );
     ring1.rotation.x = -Math.PI / 2;
     chestHoloGroup.add(ring1);
 
-    const ringGeo2 = new THREE.RingGeometry(1.25, 1.35, 48);
-    const ringMat2 = new THREE.MeshBasicMaterial({
-      color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.65, depthWrite: false
-    });
-    const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+    const ring2 = new THREE.Mesh(
+      new THREE.RingGeometry(1.25, 1.35, 48),
+      new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.65, depthWrite: false })
+    );
     ring2.rotation.x = -Math.PI / 2;
     chestHoloGroup.add(ring2);
-
     group.add(chestHoloGroup);
 
-    // 8. Penanda Interaksi (Glowing Diamond Beacon di atas peti)
+    // Penanda Interaksi (Glowing Diamond Beacon di atas peti)
     const beacon = createBeaconMesh(0xf59e0b);
     beacon.scale.setScalar(0.85);
     beacon.position.set(0, 2.05, 0);
     group.add(beacon);
 
-    // 9. Papan Nama 3D Peti Harta Karun Awal
-    const initialTitle = State.treasureHuntChests[0]?.title || 'Peti Harta Karun 1';
-    const labelGroup = buildStationLabel(`🎁 ${initialTitle}`, 'Misi Bonus 1/3 • Ketik Buka', '🎁', 0xf59e0b, 99);
-    labelGroup.position.set(0, 1.45, 0);
-    group.add(labelGroup);
-
-    // 10. Sfera Collider Besar untuk Ketikan Skrin Sentuh (Radius 1.65m)
+    // Sfera Collider Besar untuk Ketikan Skrin Sentuh (Radius 1.65m)
     const hitCollider = new THREE.Mesh(
       new THREE.SphereGeometry(1.65, 14, 14),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.001, depthWrite: false })
@@ -7092,75 +7198,48 @@
     hitCollider.userData = {
       pickable: true,
       isTreasureChest: true,
-      id: 'treasure_chest'
+      chestIndex: chestIdx,
+      id: `treasure_chest_${chestIdx + 1}`
     };
     group.add(hitCollider);
 
+    // Konfigurasi khusus bagi peti ini supaya ketikan pada mana-mana daripada 3 peti mengenal pasti indeksnya
+    const stationConfigForChest = {
+      stationNumber: 90 + (chestCfg ? chestCfg.slotNumber : (chestIdx + 1)),
+      stationKey: 'treasure_chest',
+      chestIndex: chestIdx,
+      label: chestCfg ? chestCfg.title : `Peti Harta Karun ${chestIdx + 1}`,
+      azimuthDeg: chestCfg ? chestCfg.azimuthDeg : 225,
+      elevationDeg: chestCfg ? chestCfg.elevationDeg : -12,
+      radius: chestCfg ? chestCfg.radius : 4.8,
+      directionName: chestCfg ? chestCfg.directionName : 'Barat Daya',
+      color: 0xf59e0b,
+      icon: '🎁'
+    };
+
     group.userData = {
-      stationConfig: arWorldState.treasureChestConfig,
-      labelGroup,
+      stationConfig: stationConfigForChest,
+      chestIndex: chestIdx,
+      proceduralHolder,
+      glbHolder,
+      glbAttached: false,
+      glbInstance: null,
+      glbLidNode: null,
+      lidPivot,
+      chestLight,
+      chestBeamMesh: beamMesh,
+      chestParticles,
       beacon,
       ring: ring1,
       hitCollider,
+      openProgress: (chestCfg && chestCfg.completed) ? 1.0 : 0.0,
       isTreasureChest: true
     };
 
-    group.visible = false;
-    scene.add(group);
-    arWorldState.treasureChestGroup = group;
-    return group;
-  }
-
-  // Mulakan Misi Multi-Peti: Buka Peti 1 (Fasa A.4)
-  function startTreasureHuntMission() {
-    hideTreasureHuntIntroModal();
-    State.treasureHuntUnlocked = true;
-    State.treasureHuntActive = true;
-    State.treasureHuntCompleted = false;
-    arWorldState.isTreasureHuntActive = true;
-    State.treasureHuntCurrentChestIndex = 0;
-    State.treasureHuntCompletedCount = 0;
-
-    spawnOrRelocateTreasureChest(0);
-    SoundFX.powerUp();
-    alertToast('🎁 TAHNIAH! Misi 8/8 Selesai! Cari Peti Harta Karun 1 menggunakan Smart Radar! (+100 Markah Bonus)');
-    updateHUD();
-  }
-
-  // Alih atau Lahirkan Peti 3D di koordinat khusus peti berkenaan (Peti 1, 2, atau 3)
-  function spawnOrRelocateTreasureChest(chestIdx) {
-    if (!State.treasureHuntChests || chestIdx < 0 || chestIdx >= State.treasureHuntChests.length) return;
-    State.treasureHuntCurrentChestIndex = chestIdx;
-    const chestCfg = State.treasureHuntChests[chestIdx];
-
-    // Kemas kini konfigurasi aktif Peti untuk radar & penjejakan spatial
-    arWorldState.treasureChestConfig.azimuthDeg = chestCfg.azimuthDeg;
-    arWorldState.treasureChestConfig.elevationDeg = chestCfg.elevationDeg;
-    arWorldState.treasureChestConfig.radius = chestCfg.radius;
-    arWorldState.treasureChestConfig.directionName = chestCfg.directionName;
-    arWorldState.treasureChestConfig.slotNumber = chestCfg.slotNumber;
-    arWorldState.treasureChestConfig.label = chestCfg.title;
-
-    buildTreasureChest3D();
-    const group = arWorldState.treasureChestGroup;
-    if (!group) return;
-
-    // Tutup semula penutup peti & tetapkan keamatan lampu
-    arWorldState.isChestLidOpen = false;
-    if (arWorldState.chestLidPivot) {
-      arWorldState.chestLidPivot.rotation.x = 0;
-    }
-    if (arWorldState.chestBeamMesh) {
-      arWorldState.chestBeamMesh.material.opacity = 0;
-    }
-    if (arWorldState.chestLight) {
-      arWorldState.chestLight.intensity = 0.6;
-    }
-
-    // Kira posisi 3D di koordinat spatial
-    const azRad = THREE.MathUtils.degToRad(chestCfg.azimuthDeg);
-    const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg);
-    const R = chestCfg.radius || 5.0;
+    // Letakkan peti pada koordinat dunia 3D tersendiri (tidak berkongsi posisi)
+    const azRad = THREE.MathUtils.degToRad(stationConfigForChest.azimuthDeg);
+    const elRad = THREE.MathUtils.degToRad(stationConfigForChest.elevationDeg);
+    const R = stationConfigForChest.radius || 5.0;
     const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
     const horizR = Math.cos(elRad) * R;
 
@@ -7171,31 +7250,129 @@
     );
     group.lookAt(0, group.position.y, 0);
 
-    // Kemas kini papan nama 3D (Label Billboard)
-    if (group.userData && group.userData.labelGroup) {
-      group.remove(group.userData.labelGroup);
-      group.userData.labelGroup.traverse(child => {
-        if (child.isMesh) {
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) {
-            if (child.material.map) child.material.map.dispose();
-            child.material.dispose();
-          }
-        }
+    updateChestLabelAndBeacon(group, chestIdx);
+    applyChestOpenPose(group, (chestCfg && chestCfg.completed) ? 1.0 : 0.0);
+
+    group.visible = false;
+    scene.add(group);
+    arWorldState.treasureChestGroups[chestIdx] = group;
+
+    // Muatkan dan pasang model GLB sebenar secara tak segerak (atau serta-merta jika sudah dalam cache)
+    if (cachedTreasureChestGLTF) {
+      attachTreasureChestGLBToGroup(group, chestIdx);
+    } else {
+      loadAndCacheTreasureChestGLB();
+    }
+
+    return group;
+  }
+
+  function buildTreasureChest3D(chestIdx = 0) {
+    if (!Array.isArray(arWorldState.treasureChestGroups)) {
+      arWorldState.treasureChestGroups = [];
+    }
+    for (let i = 0; i < (State.treasureHuntChests ? State.treasureHuntChests.length : 3); i++) {
+      buildSingleTreasureChestGroup(i);
+    }
+    const activeIdx = (typeof chestIdx === 'number' && chestIdx >= 0 && chestIdx < arWorldState.treasureChestGroups.length)
+      ? chestIdx
+      : (State.treasureHuntCurrentChestIndex || 0);
+    const activeGroup = arWorldState.treasureChestGroups[activeIdx] || arWorldState.treasureChestGroups[0];
+    arWorldState.treasureChestGroup = activeGroup;
+    if (activeGroup && activeGroup.userData) {
+      arWorldState.chestLidPivot = activeGroup.userData.lidPivot;
+      arWorldState.chestBeamMesh = activeGroup.userData.chestBeamMesh;
+      arWorldState.chestLight = activeGroup.userData.chestLight;
+      arWorldState.chestParticles = activeGroup.userData.chestParticles;
+    }
+    return activeGroup;
+  }
+
+  // Mulakan Misi Multi-Peti: Lahirkan kesemua 3 Peti Harta Karun GLB pada kedudukan berbeza (Fasa 4E-E.3)
+  function startTreasureHuntMission() {
+    hideTreasureHuntIntroModal();
+    State.treasureHuntUnlocked = true;
+    State.treasureHuntActive = true;
+    State.treasureHuntCompleted = false;
+    arWorldState.isTreasureHuntActive = true;
+    State.treasureHuntCurrentChestIndex = 0;
+    State.treasureHuntCompletedCount = 0;
+
+    if (Array.isArray(State.treasureHuntChests)) {
+      State.treasureHuntChests.forEach((c) => {
+        c.completed = false;
+        c.rewardClaimed = false;
+        c.isLidOpen = false;
+        c.status = 'locked';
       });
     }
-    const labelGroup = buildStationLabel(
-      `🎁 ${chestCfg.title}`,
-      `Misi Bonus ${chestCfg.slotNumber}/3 • Ketik Teroka`,
-      '🎁',
-      0xf59e0b,
-      90 + chestCfg.slotNumber
-    );
-    labelGroup.position.set(0, 1.45, 0);
-    group.add(labelGroup);
-    group.userData.labelGroup = labelGroup;
 
-    group.visible = true;
+    buildTreasureChest3D(0);
+    if (Array.isArray(arWorldState.treasureChestGroups)) {
+      arWorldState.treasureChestGroups.forEach((grp, idx) => {
+        if (!grp) return;
+        applyChestOpenPose(grp, 0.0);
+        updateChestLabelAndBeacon(grp, idx);
+        grp.visible = true;
+      });
+    }
+
+    spawnOrRelocateTreasureChest(0);
+    SoundFX.powerUp();
+    alertToast('🎁 TAHNIAH! Misi 8/8 Selesai! Cari Peti Harta Karun 1 menggunakan Smart Radar! (+100 Markah Bonus)');
+    updateHUD();
+  }
+
+  // Pilih atau Fokus Peti 3D pada koordinat khusus peti berkenaan (Peti 1, 2, atau 3) tanpa menutup peti yang telah dibuka
+  function spawnOrRelocateTreasureChest(chestIdx) {
+    if (!State.treasureHuntChests || chestIdx < 0 || chestIdx >= State.treasureHuntChests.length) return;
+    State.treasureHuntCurrentChestIndex = chestIdx;
+    const chestCfg = State.treasureHuntChests[chestIdx];
+    if (!chestCfg.status) {
+      chestCfg.status = chestCfg.completed ? 'opened' : 'locked';
+    }
+
+    // Kemas kini konfigurasi aktif Peti untuk radar & penjejakan spatial
+    arWorldState.treasureChestConfig.azimuthDeg = chestCfg.azimuthDeg;
+    arWorldState.treasureChestConfig.elevationDeg = chestCfg.elevationDeg;
+    arWorldState.treasureChestConfig.radius = chestCfg.radius;
+    arWorldState.treasureChestConfig.directionName = chestCfg.directionName;
+    arWorldState.treasureChestConfig.slotNumber = chestCfg.slotNumber;
+    arWorldState.treasureChestConfig.label = chestCfg.title;
+
+    buildTreasureChest3D(chestIdx);
+    const group = arWorldState.treasureChestGroups[chestIdx];
+    if (!group) return;
+
+    arWorldState.treasureChestGroup = group;
+    arWorldState.chestLidPivot = group.userData.lidPivot;
+    arWorldState.chestBeamMesh = group.userData.chestBeamMesh;
+    arWorldState.chestLight = group.userData.chestLight;
+    arWorldState.chestParticles = group.userData.chestParticles;
+
+    // Kekalkan status sebenar setiap peti: peti yang telah dibuka ('opened') KEKAL TERBUKA, peti belum selesai kekal tertutup ('locked')
+    arWorldState.treasureChestGroups.forEach((grp, idx) => {
+      if (!grp) return;
+      const cfg = State.treasureHuntChests[idx];
+      const isOpened = !!(cfg && (cfg.status === 'opened' || cfg.completed));
+      const azRad = THREE.MathUtils.degToRad(cfg.azimuthDeg);
+      const elRad = THREE.MathUtils.degToRad(cfg.elevationDeg);
+      const R = cfg.radius || 5.0;
+      const eyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
+      const horizR = Math.cos(elRad) * R;
+
+      grp.position.set(
+        Math.sin(azRad) * horizR,
+        eyeY + Math.sin(elRad) * R,
+        -Math.cos(azRad) * horizR
+      );
+      grp.lookAt(0, grp.position.y, 0);
+      applyChestOpenPose(grp, isOpened ? 1.0 : 0.0);
+      updateChestLabelAndBeacon(grp, idx);
+      grp.visible = true;
+    });
+
+    arWorldState.isChestLidOpen = !!(chestCfg.status === 'opened' || chestCfg.completed);
 
     // Arahkan Smart Radar kepada Peti (-1)
     selectRadarTargetStation(-1, false);
@@ -7207,20 +7384,67 @@
   }
 
   // Buka Modal Cabaran 1 Soalan Bonus untuk Peti Harta Karun Semasa
-  function openTreasureChestModal() {
+  function openTreasureChestModal(targetChestIdx) {
+    if (typeof targetChestIdx === 'number' && targetChestIdx >= 0 && targetChestIdx < State.treasureHuntChests.length) {
+      State.treasureHuntCurrentChestIndex = targetChestIdx;
+      const targetGrp = arWorldState.treasureChestGroups && arWorldState.treasureChestGroups[targetChestIdx];
+      if (targetGrp) {
+        arWorldState.treasureChestGroup = targetGrp;
+      }
+    }
+
     logARDiagnostic('MODAL', 'open_treasure_chest_modal', {
       currentChestIndex: State.treasureHuntCurrentChestIndex,
       completedCount: State.treasureHuntCompletedCount
     });
 
-    if (State.treasureHuntCompleted) {
-      showTreasureRewardModal();
-      return;
-    }
-
     const chestIdx = State.treasureHuntCurrentChestIndex || 0;
     const chest = State.treasureHuntChests[chestIdx];
     if (!chest) return;
+
+    // Jika peti ini sudah dibuka ('opened'), kekalkan terbuka & jangan beri ganjaran berulang
+    if (chest.completed || chest.status === 'opened') {
+      if (State.treasureHuntCompleted) {
+        showTreasureRewardModal();
+        return;
+      }
+      if (DOM.tcChestBadge) {
+        DOM.tcChestBadge.textContent = `✅ ${chest.title.toUpperCase()} (DIBUKA)`;
+      }
+      if (DOM.tcQuestionProgress) {
+        DOM.tcQuestionProgress.textContent = `Selesai ✓`;
+      }
+      if (DOM.tcVisualTitle) {
+        DOM.tcVisualTitle.textContent = `Peti ${chest.slotNumber} / 3 (Telah Dibuka)`;
+      }
+      if (DOM.tcQuizQuestion) {
+        DOM.tcQuizQuestion.textContent = chest.question ? chest.question.question : '';
+      }
+      if (DOM.tcQuizOptions) {
+        DOM.tcQuizOptions.innerHTML = '';
+      }
+      if (DOM.tcQuizFeedback) {
+        DOM.tcQuizFeedback.className = 'cq-feedback-box correct';
+        DOM.tcQuizFeedback.innerHTML = `
+          <strong style="color:#34d399;">🎉 Tahniah! Peti Harta Karun Dibuka!</strong>
+          <p style="margin-top: 6px; font-size: 13px; color:#e2e8f0;">Peti ini telah dibuka dan ganjaran +${chest.points || 100} Mata telah dituntut. Sila cari peti harta karun seterusnya!</p>
+        `;
+        DOM.tcQuizFeedback.style.display = 'block';
+      }
+      if (DOM.tcModalActions) {
+        DOM.tcModalActions.style.display = 'flex';
+      }
+      const nextUncompletedIdx = State.treasureHuntChests.findIndex(c => !c.completed);
+      if (DOM.tcNextBtnText) {
+        DOM.tcNextBtnText.textContent = nextUncompletedIdx >= 0
+          ? `Tutup & Cari Peti Harta Karun ${nextUncompletedIdx + 1} >`
+          : 'Buka Ganjaran Akhir 🏆';
+      }
+      if (DOM.treasureChestModal) {
+        DOM.treasureChestModal.classList.add('open');
+      }
+      return;
+    }
 
     if (DOM.tcChestBadge) {
       DOM.tcChestBadge.textContent = `🎁 ${chest.title.toUpperCase()}`;
@@ -7287,6 +7511,19 @@
     const chestIdx = State.treasureHuntCurrentChestIndex || 0;
     const chest = State.treasureHuntChests[chestIdx];
     if (!chest || !chest.question) return;
+    const chestGroup = (arWorldState.treasureChestGroups && arWorldState.treasureChestGroups[chestIdx]) || arWorldState.treasureChestGroup;
+
+    // Jika peti ini telah selesai/dibuka, kekalkan terbuka sepenuhnya & jangan beri markah berulang
+    if (chest.completed || chest.status === 'opened' || chest.rewardClaimed) {
+      chest.status = 'opened';
+      chest.isLidOpen = true;
+      if (chestGroup) {
+        applyChestOpenPose(chestGroup, 1.0);
+        updateChestLabelAndBeacon(chestGroup, chestIdx);
+      }
+      return;
+    }
+
     const q = chest.question;
 
     const optButtons = DOM.tcQuizOptions ? DOM.tcQuizOptions.querySelectorAll('.tc-quiz-opt') : [];
@@ -7299,31 +7536,46 @@
       if (chosenBtn) chosenBtn.classList.add('correct');
       SoundFX.correct();
 
-      // Animasi pembukaan penutup peti 3D dengan cahaya rasuk emas
+      // Status B ('unlocked' / sedang dibuka) -> Status C ('opened' / kekal terbuka)
+      chest.status = 'unlocked';
+      chest.isLidOpen = true;
       arWorldState.isChestLidOpen = true;
-      if (arWorldState.chestLidPivot) {
+
+      if (chestGroup) {
         let p = 0;
+        applyChestOpenPose(chestGroup, 0.15);
         const openInt = setInterval(() => {
-          p += 0.1;
-          if (p >= 1) { p = 1; clearInterval(openInt); }
-          if (arWorldState.chestLidPivot) arWorldState.chestLidPivot.rotation.x = -p * 1.25;
-          if (arWorldState.chestLight) arWorldState.chestLight.intensity = 0.6 + p * 2.2;
-          if (arWorldState.chestBeamMesh) arWorldState.chestBeamMesh.material.opacity = p * 0.45;
+          p += 0.12;
+          if (p >= 1) {
+            p = 1;
+            clearInterval(openInt);
+            chest.status = 'opened';
+            applyChestOpenPose(chestGroup, 1.0);
+            updateChestLabelAndBeacon(chestGroup, chestIdx);
+          } else {
+            applyChestOpenPose(chestGroup, p);
+          }
         }, 25);
+      } else {
+        chest.status = 'opened';
       }
 
-      // Berikan markah +100 SEKALI SAHAJA untuk peti ini
-      if (!chest.completed) {
+      // Berikan markah +100 SEKALI SAHAJA untuk peti ini (tiada ganjaran berganda)
+      if (!chest.completed && !chest.rewardClaimed) {
         chest.completed = true;
+        chest.rewardClaimed = true;
         State.score += (chest.points || 100);
-        State.treasureHuntCompletedCount = Math.min(3, (State.treasureHuntCompletedCount || 0) + 1);
+        State.treasureHuntCompletedCount = State.treasureHuntChests.filter(c => c.completed).length;
         updateHUD();
+      }
+      if (chestGroup) {
+        updateChestLabelAndBeacon(chestGroup, chestIdx);
       }
 
       if (DOM.tcQuizFeedback) {
         DOM.tcQuizFeedback.className = 'cq-feedback-box correct';
         DOM.tcQuizFeedback.innerHTML = `
-          <strong style="color:#34d399;">🎉 TAHNIAH! JAWAPAN TEPAT! (+${chest.points || 100} MATA BONUS)</strong>
+          <strong style="color:#34d399;">🎉 Tahniah! Peti Harta Karun Dibuka! (+${chest.points || 100} MATA BONUS)</strong>
           <p style="margin-top: 6px; font-size: 13px; color:#e2e8f0;">${q.explanation}</p>
         `;
         DOM.tcQuizFeedback.style.display = 'block';
@@ -7332,14 +7584,21 @@
       if (DOM.tcModalActions) {
         DOM.tcModalActions.style.display = 'flex';
       }
+      const nextUncompletedIdx = State.treasureHuntChests.findIndex(c => !c.completed);
       if (DOM.tcNextBtnText) {
-        if (chestIdx < 2) {
-          DOM.tcNextBtnText.textContent = `Tutup & Cari Peti Harta Karun ${chestIdx + 2} >`;
+        if (nextUncompletedIdx >= 0) {
+          DOM.tcNextBtnText.textContent = `Tutup & Cari Peti Harta Karun ${nextUncompletedIdx + 1} >`;
         } else {
           DOM.tcNextBtnText.textContent = 'Buka Ganjaran Akhir 🏆';
         }
       }
     } else {
+      // Jawapan salah: Peti KEKAL TERTUTUP ('locked'), tiada ganjaran diberikan, pengguna boleh mencuba semula
+      chest.status = 'locked';
+      chest.isLidOpen = false;
+      if (chestGroup) {
+        applyChestOpenPose(chestGroup, 0.0);
+      }
       if (chosenBtn) chosenBtn.classList.add('incorrect');
       if (optButtons[q.correct]) {
         optButtons[q.correct].classList.add('correct');
@@ -7371,12 +7630,13 @@
   function onTreasureNextButtonClicked() {
     closeTreasureChestModal();
     const currentIdx = State.treasureHuntCurrentChestIndex || 0;
+    const nextUncompletedIdx = State.treasureHuntChests.findIndex((c, idx) => idx > currentIdx && !c.completed);
+    const anyUncompletedIdx = nextUncompletedIdx >= 0 ? nextUncompletedIdx : State.treasureHuntChests.findIndex(c => !c.completed);
 
-    if (currentIdx < 2) {
-      const nextIdx = currentIdx + 1;
-      spawnOrRelocateTreasureChest(nextIdx);
+    if (anyUncompletedIdx >= 0) {
+      spawnOrRelocateTreasureChest(anyUncompletedIdx);
       SoundFX.powerUp();
-      alertToast(`🎉 Peti ${currentIdx + 1} Selesai! Peti Harta Karun ${nextIdx + 1} kini dikesan di arah ${State.treasureHuntChests[nextIdx].directionName}!`);
+      alertToast(`🎉 Peti ${currentIdx + 1} Selesai! Peti Harta Karun ${anyUncompletedIdx + 1} kini dikesan di arah ${State.treasureHuntChests[anyUncompletedIdx].directionName}!`);
     } else {
       onAllTreasureChestsCompleted();
     }
@@ -7397,7 +7657,7 @@
     }, 1000);
   }
 
-  // Tunjuk Modal 9: Ganjaran Akhir, Lencana Khas & Sijil
+  // Tunjuk Modal 9: Ganjaran Akhir, Lencana Khas & Sijil (Kekalkan 3 peti yang telah dibuka kelihatan di ruang 3D)
   function showTreasureRewardModal() {
     if (DOM.trFinalScore) {
       DOM.trFinalScore.textContent = `${State.score} Mata`;
@@ -7407,10 +7667,6 @@
     }
     if (DOM.treasureRewardModal) {
       DOM.treasureRewardModal.classList.add('open');
-    }
-    // Sembunyikan peti 3D daripada ruang AR selepas dituntut sepenuhnya
-    if (arWorldState.treasureChestGroup) {
-      arWorldState.treasureChestGroup.visible = false;
     }
     SoundFX.fanfare();
   }
@@ -8061,8 +8317,14 @@
   function handleModAPageShow(e) {
     const restoredFromBFCache = !!(e && e.persisted);
     if (State.mode !== '3d' || isLobbyActive) {
-      if ((State.mode === 'camera-ar' || State.mode === 'marker-ar') && DOM.cameraFeed && cameraStream && DOM.cameraFeed.paused) {
-        DOM.cameraFeed.play().catch(() => {});
+      if ((State.mode === 'camera-ar' || State.mode === 'marker-ar') && !isLobbyActive) {
+        if (restoredFromBFCache || !isRenderLoopActive) {
+          startRenderLoop();
+          setupDeviceOrientation();
+        }
+        if (DOM.cameraFeed && cameraStream && DOM.cameraFeed.paused) {
+          DOM.cameraFeed.play().catch(() => {});
+        }
       }
       return;
     }
@@ -9133,8 +9395,27 @@
       }
     });
 
-    // Semak juga pengesanan Peti Harta Karun ARSELNel jika Misi Akhir aktif & belum dituntut
-    if (State.treasureHuntActive && !State.treasureHuntCompleted && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
+    // Semak juga pengesanan kesemua 3 Peti Harta Karun ARSELNel jika Misi Akhir aktif
+    if (State.treasureHuntActive && Array.isArray(arWorldState.treasureChestGroups) && arWorldState.treasureChestGroups.length > 0) {
+      arWorldState.treasureChestGroups.forEach((chestGroup, cIdx) => {
+        if (!chestGroup || !chestGroup.visible) return;
+        const chestCfg = State.treasureHuntChests[cIdx] || arWorldState.treasureChestConfig;
+        const chestDir = new THREE.Vector3();
+        chestDir.subVectors(chestGroup.position, camPos).normalize();
+        const chestDot = camDir.dot(chestDir);
+        const chestAngleDeg = THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, chestDot))));
+        const deltaAzChest = Math.abs(shortestAngleDeltaDeg(chestCfg.azimuthDeg, arWorldState.currentHeadingDeg));
+        const deltaElChest = Math.abs((chestCfg.elevationDeg || -12) - arWorldState.currentPitchDeg);
+        const isChestWithinDiscovery = (deltaAzChest <= hTol && deltaElChest <= vTol) || (chestAngleDeg <= Math.hypot(hTol, vTol));
+
+        if (isChestWithinDiscovery && chestAngleDeg <= closestAngle + 6) {
+          closestAngle = chestAngleDeg;
+          closestInFOV = chestGroup;
+          closestIdx = -99;
+          arWorldState.lastDetectedChestIdx = cIdx;
+        }
+      });
+    } else if (State.treasureHuntActive && !State.treasureHuntCompleted && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
       const chestGroup = arWorldState.treasureChestGroup;
       const chestCfg = arWorldState.treasureChestConfig;
       const chestDir = new THREE.Vector3();
@@ -9149,6 +9430,7 @@
         closestAngle = chestAngleDeg;
         closestInFOV = chestGroup;
         closestIdx = -99;
+        arWorldState.lastDetectedChestIdx = State.treasureHuntCurrentChestIndex || 0;
       }
     }
 
@@ -9223,7 +9505,10 @@
       openBtn.onclick = (e) => {
         e.stopPropagation();
         hideARStationDetectedBanner();
-        openTreasureChestModal();
+        const detectedChestIdx = typeof arWorldState.lastDetectedChestIdx === 'number'
+          ? arWorldState.lastDetectedChestIdx
+          : State.treasureHuntCurrentChestIndex;
+        openTreasureChestModal(detectedChestIdx);
       };
     }
     const closeBtn = document.getElementById('ar-detected-close-btn');
@@ -9237,7 +9522,10 @@
       if (e.target.closest('#ar-detected-close-btn')) return;
       e.stopPropagation();
       hideARStationDetectedBanner();
-      openTreasureChestModal();
+      const detectedChestIdx = typeof arWorldState.lastDetectedChestIdx === 'number'
+        ? arWorldState.lastDetectedChestIdx
+        : State.treasureHuntCurrentChestIndex;
+      openTreasureChestModal(detectedChestIdx);
     };
     arWorldState.detectedBanner = banner;
   }
@@ -10500,47 +10788,38 @@
       });
     });
 
-    // Animasi Peti Harta Karun ARSELNel (Misi Akhir)
-    if (State.treasureHuntActive && !State.treasureHuntCompleted && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
-      const chest = arWorldState.treasureChestGroup;
-      const chestCfg = arWorldState.treasureChestConfig;
+    // Animasi kesemua 3 Peti Harta Karun ARSELNel (Misi Akhir)
+    if (State.treasureHuntActive && Array.isArray(arWorldState.treasureChestGroups) && arWorldState.treasureChestGroups.length > 0) {
       const baseEyeY = arWorldState.postureMode === 'seated' ? 1.25 : 1.6;
-      const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg || 6);
-      const R = chestCfg.radius || 4.8;
-      const baseY = baseEyeY + Math.sin(elRad) * R;
-      chest.position.y = baseY + Math.sin(elapsedTime * 2.2) * 0.05;
+      arWorldState.treasureChestGroups.forEach((chest, cIdx) => {
+        if (!chest || !chest.visible) return;
+        const chestCfg = (State.treasureHuntChests && State.treasureHuntChests[cIdx]) || arWorldState.treasureChestConfig;
+        const elRad = THREE.MathUtils.degToRad(chestCfg.elevationDeg || 6);
+        const R = chestCfg.radius || 4.8;
+        const baseY = baseEyeY + Math.sin(elRad) * R;
+        chest.position.y = baseY + Math.sin(elapsedTime * 2.2 + cIdx) * 0.05;
 
-      if (chest.userData.beacon) {
-        chest.userData.beacon.rotation.y = elapsedTime * 2.2;
-      }
-      if (chest.userData.labelGroup) {
-        chest.userData.labelGroup.lookAt(camPos);
-      }
-
-      // Animasi pembukaan penutup peti (lid opening lerp)
-      if (arWorldState.isChestLidOpen && arWorldState.chestLidPivot) {
-        arWorldState.chestLidPivot.rotation.x = THREE.MathUtils.lerp(
-          arWorldState.chestLidPivot.rotation.x,
-          -1.75,
-          0.06
-        );
-        if (arWorldState.chestLight) {
-          arWorldState.chestLight.intensity = THREE.MathUtils.lerp(
-            arWorldState.chestLight.intensity,
-            2.8,
-            0.06
-          );
+        if (chest.userData.beacon) {
+          chest.userData.beacon.rotation.y = elapsedTime * 2.2;
         }
-      }
+        if (chest.userData.labelGroup) {
+          chest.userData.labelGroup.lookAt(camPos);
+        }
 
-      // Animasi zarah bintang / sparkles
-      if (Array.isArray(arWorldState.chestParticles)) {
-        arWorldState.chestParticles.forEach(p => {
-          p.position.y = p.userData.baseY + Math.sin(elapsedTime * p.userData.speed + p.userData.offset) * 0.12;
-          p.rotation.y += 0.03;
-          p.rotation.x += 0.02;
-        });
-      }
+        const isOpened = !!(chestCfg && (chestCfg.status === 'opened' || chestCfg.completed));
+        if (isOpened && (chest.userData.openProgress || 0) < 0.99) {
+          const nextP = THREE.MathUtils.lerp(chest.userData.openProgress || 0, 1.0, 0.12);
+          applyChestOpenPose(chest, nextP > 0.98 ? 1.0 : nextP);
+        }
+
+        if (Array.isArray(chest.userData.chestParticles)) {
+          chest.userData.chestParticles.forEach(p => {
+            p.position.y = p.userData.baseY + Math.sin(elapsedTime * p.userData.speed + p.userData.offset) * 0.12;
+            p.rotation.y += 0.03;
+            p.rotation.x += 0.02;
+          });
+        }
+      });
     }
 
     if (arWorldState.subMode === 'spatial') {
@@ -10583,9 +10862,30 @@
     buildARWorldStations();
     buildARWorldCompass();
 
+    // Pramuat model GLB Peti Harta Karun (../models/treasure_chest.glb)
+    loadAndCacheTreasureChestGLB();
+
+    // Tunjuk butang Kembali ke Kotak ARSELNEL jika dilancarkan daripada Kotak AR (?from=kotak)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isFromKotak = urlParams.get('from') === 'kotak' || sessionStorage.getItem('arselnel_return_to_kotak') === 'true';
+      const arReturnBtn = document.getElementById('ar-return-kotak-btn');
+      const modalKotakBtn = document.getElementById('exit-confirm-kotak-btn');
+      if (arReturnBtn) {
+        arReturnBtn.style.display = isFromKotak ? 'inline-flex' : 'none';
+        arReturnBtn.onclick = (e) => returnToKotakARSELNEL(e);
+      }
+      if (modalKotakBtn) {
+        modalKotakBtn.style.display = isFromKotak ? 'inline-flex' : 'none';
+        modalKotakBtn.onclick = (e) => returnToKotakARSELNEL(e);
+      }
+    } catch (_) {}
+
     if (State.treasureHuntActive) {
       buildTreasureChest3D();
-      if (arWorldState.treasureChestGroup) {
+      if (Array.isArray(arWorldState.treasureChestGroups)) {
+        arWorldState.treasureChestGroups.forEach(g => { if (g) g.visible = true; });
+      } else if (arWorldState.treasureChestGroup) {
         arWorldState.treasureChestGroup.visible = true;
       }
     }
@@ -10675,6 +10975,9 @@
     arWorldState.focusedStationIdx = -1;
 
     arWorldState.stationGroups.forEach(g => { g.visible = false; });
+    if (Array.isArray(arWorldState.treasureChestGroups)) {
+      arWorldState.treasureChestGroups.forEach(g => { if (g) g.visible = false; });
+    }
 
     const calUI = document.getElementById('ar-world-calibration-ui');
     if (calUI) calUI.style.display = 'none';
@@ -10700,9 +11003,17 @@
       ? arMarkerState.anchors
       : (arWorldState.active ? [...arWorldState.stationGroups] : []);
 
-    // Sertakan Peti Harta Karun dalam sasaran ketikan jika Misi Akhir aktif
-    if (arWorldState.active && State.treasureHuntActive && arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
-      targetGroups.push(arWorldState.treasureChestGroup);
+    // Sertakan kesemua 3 Peti Harta Karun dalam sasaran ketikan jika Misi Akhir aktif
+    if (arWorldState.active && State.treasureHuntActive) {
+      if (Array.isArray(arWorldState.treasureChestGroups) && arWorldState.treasureChestGroups.length > 0) {
+        arWorldState.treasureChestGroups.forEach(cg => {
+          if (cg && cg.visible && !targetGroups.includes(cg)) {
+            targetGroups.push(cg);
+          }
+        });
+      } else if (arWorldState.treasureChestGroup && arWorldState.treasureChestGroup.visible) {
+        targetGroups.push(arWorldState.treasureChestGroup);
+      }
     }
 
     if (!targetGroups.length) return false;
@@ -10727,7 +11038,10 @@
       if (stationGroup && stationGroup.userData && stationGroup.userData.stationConfig) {
         if (stationGroup.userData.isTreasureChest) {
           SoundFX.interact();
-          openTreasureChestModal();
+          const tappedChestIdx = typeof stationGroup.userData.chestIndex === 'number'
+            ? stationGroup.userData.chestIndex
+            : State.treasureHuntCurrentChestIndex;
+          openTreasureChestModal(tappedChestIdx);
           return true;
         }
         const cfg = stationGroup.userData.stationConfig;
@@ -11972,6 +12286,9 @@
       // Sembunyikan 8 stesen keliling sementara apabila meninjau meja Makmal Mini
       arWorldState.active = false;
       arWorldState.stationGroups.forEach(g => { g.visible = false; });
+    if (Array.isArray(arWorldState.treasureChestGroups)) {
+      arWorldState.treasureChestGroups.forEach(g => { if (g) g.visible = false; });
+    }
       if (arObjectGroup) arObjectGroup.visible = true;
     }
 
@@ -12963,11 +13280,17 @@
       bonusClaimed: State.treasureHuntBonusClaimed,
       isChestLidOpen: arWorldState.isChestLidOpen,
       chestGroup: arWorldState.treasureChestGroup,
+      chestGroups: arWorldState.treasureChestGroups || [],
+      glbLoaded: !!cachedTreasureChestGLTF,
+      glbUrl: TREASURE_CHEST_GLB_URL,
       chestConfig: arWorldState.treasureChestConfig,
       currentChestIndex: State.treasureHuntCurrentChestIndex,
       completedCount: State.treasureHuntCompletedCount,
       chests: State.treasureHuntChests
     }),
+    loadTreasureChestGLB: () => loadAndCacheTreasureChestGLB(),
+    getTreasureChestGroups: () => arWorldState.treasureChestGroups || [],
+    applyChestOpenPose: (grp, p) => applyChestOpenPose(grp, p),
     getDiagnosticsLog: () => (window.__AR_DIAG_LOGS || []),
     getCurrentChestIndex: () => State.treasureHuntCurrentChestIndex,
     spawnChest: (idx) => spawnOrRelocateTreasureChest(idx),
@@ -12975,7 +13298,7 @@
     checkARCamera: () => checkAndRecoverARCamera(),
     getRewardChestPlacement: () => getRewardChestPlacement(),
     startTreasureHunt: () => startTreasureHuntMission(),
-    openTreasureChestModal: () => openTreasureChestModal(),
+    openTreasureChestModal: (idx) => openTreasureChestModal(idx),
     closeTreasureChestModal: () => closeTreasureChestModal(),
     answerBonusQuestion: (choiceIdx) => checkTreasureBonusAnswer(choiceIdx),
     nextBonusQuestion: () => onTreasureNextButtonClicked(),
