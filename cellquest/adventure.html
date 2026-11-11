@@ -58,12 +58,16 @@
       <!-- Topbar / Header (Kiri: Kembali | Kanan: Profil Murid) -->
       <header class="cq-lobby-header">
         <div class="cq-lobby-nav">
-          <!-- Kiri: Butang Kembali ke CellQuest -->
-          <div class="cq-nav-left">
+          <!-- Kiri: Butang Kembali ke CellQuest & Kotak ARSELNEL -->
+          <div class="cq-nav-left" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <a href="code.html" class="cq-lobby-back-btn" id="lobby-back-btn" title="Kembali ke Halaman Utama CellQuest">
               <span class="material-symbols-outlined">arrow_back</span>
               <span>Kembali ke CellQuest</span>
             </a>
+            <button type="button" class="cq-lobby-back-btn cq-lobby-kotak-btn" id="lobby-return-kotak-btn" title="Kembali ke Kotak ARSELNEL">
+              <span class="material-symbols-outlined">view_in_ar</span>
+              <span>Kembali ke Kotak ARSELNEL</span>
+            </button>
           </div>
 
           <!-- Kanan: Status Profil Murid -->
@@ -354,6 +358,10 @@
   <!-- Top HUD (Heads-Up Display) -->
   <header class="cq-hud" id="cq-walkthrough-hud">
     <div class="cq-hud-left">
+      <button type="button" class="cq-back-btn cq-return-kotak-btn" id="hud-return-kotak-btn" title="Kembali ke Kotak ARSELNEL">
+        <span class="material-symbols-outlined" style="font-size:18px">view_in_ar</span>
+        <span>Kembali ke Kotak ARSELNEL</span>
+      </button>
       <button type="button" class="cq-back-btn" id="hud-3d-back-btn" title="Kembali ke Lobi Makmal Sains">
         <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
         <span>Lobi Makmal</span>
@@ -1064,6 +1072,10 @@
         <button type="button" class="cq-btn-primary" id="exit-confirm-continue-btn" style="justify-content: center; width: 100%;">
           <span class="material-symbols-outlined" style="font-size:18px">play_arrow</span>
           <span>Teruskan Bermain</span>
+        </button>
+        <button type="button" class="cq-btn-secondary cq-return-kotak-modal-btn" id="exit-confirm-kotak-btn" style="justify-content: center; width: 100%; border-color: rgba(16, 185, 129, 0.55); color: #34d399;">
+          <span class="material-symbols-outlined" style="font-size:18px">view_in_ar</span>
+          <span>Kembali ke Kotak ARSELNEL</span>
         </button>
         <button type="button" class="cq-btn-secondary" id="exit-confirm-leave-btn" style="justify-content: center; width: 100%; border-color: rgba(45, 212, 191, 0.45); color: #5eead4;">
           <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>

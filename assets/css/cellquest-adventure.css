@@ -3811,3 +3811,76 @@ body.ar-world-active .cq-ar-single-instruction.discovered {
     display: none !important;
   }
 }
+
+/* ==============================================================================
+   FASA 4E-E.1: BUTANG KEMBALI KE KOTAK ARSELNEL (HUD & LOBI)
+   ============================================================================== */
+#cq-walkthrough-hud {
+  gap: 8px !important;
+  padding: 10px 14px !important;
+}
+
+#cq-walkthrough-hud .cq-hud-left,
+#cq-walkthrough-hud .cq-hud-center,
+#cq-walkthrough-hud .cq-hud-right {
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+#cq-walkthrough-hud .cq-title-badge h1,
+#cq-walkthrough-hud .cq-title-badge span,
+#cq-walkthrough-hud .cq-back-btn,
+#cq-walkthrough-hud .cq-stat-pill {
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1280px) {
+  #cq-walkthrough-hud .cq-title-badge {
+    display: none !important;
+  }
+}
+
+.cq-return-kotak-btn,
+#hud-return-kotak-btn {
+  background: linear-gradient(135deg, #10B981 0%, #0D9488 100%) !important;
+  border: 1.5px solid #34D399 !important;
+  color: #FFFFFF !important;
+  border-radius: 999px !important;
+  min-height: 44px !important;
+  padding: 6px 14px !important;
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease !important;
+  white-space: nowrap !important;
+}
+
+.cq-return-kotak-btn:hover,
+#hud-return-kotak-btn:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.06) !important;
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.48) !important;
+}
+
+.cq-return-kotak-btn:active,
+#hud-return-kotak-btn:active {
+  transform: translateY(0) scale(0.97) !important;
+}
+
+.cq-lobby-kotak-btn,
+#lobby-return-kotak-btn {
+  background: linear-gradient(135deg, #10B981 0%, #0D9488 100%) !important;
+  border: 1.5px solid #34D399 !important;
+  color: #FFFFFF !important;
+  border-radius: 999px !important;
+  min-height: 44px !important;
+  padding: 8px 16px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25) !important;
+}
+

@@ -6635,3 +6635,81 @@ body.cellquest-active #ar-container canvas {
 .cq-card-close:hover {
   background: #A5F3FC !important;
 }
+
+/* =============================================================================
+   FASA 4E-E.1: BUTANG INTEGRASI JELAJAH 3D & MODAL PENGESAHAN
+   ============================================================================= */
+#btn-launch-jelajah3d,
+.ar-hud-btn.btn-jelajah-3d {
+  background: linear-gradient(135deg, #10B981 0%, #0D9488 100%) !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #34D399 !important;
+  border-radius: 999px !important;
+  min-height: 44px !important;
+  padding: 8px 16px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.28), 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease !important;
+  white-space: nowrap !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+#btn-launch-jelajah3d .material-symbols-outlined,
+.ar-hud-btn.btn-jelajah-3d .material-symbols-outlined {
+  color: #FFFFFF !important;
+  font-size: 18px !important;
+}
+
+#btn-launch-jelajah3d:hover,
+.ar-hud-btn.btn-jelajah-3d:hover {
+  background: linear-gradient(135deg, #059669 0%, #0F766E 100%) !important;
+  border-color: #6EE7B7 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(13, 148, 136, 0.38) !important;
+}
+
+#btn-launch-jelajah3d:active,
+.ar-hud-btn.btn-jelajah-3d:active {
+  transform: translateY(0) scale(0.97) !important;
+  filter: brightness(0.95) !important;
+}
+
+#btn-launch-jelajah3d:focus-visible,
+.ar-hud-btn.btn-jelajah-3d:focus-visible {
+  outline: 3px solid rgba(16, 185, 129, 0.5) !important;
+  outline-offset: 2px !important;
+}
+
+.jelajah3d-modal-card {
+  border-color: rgba(16, 185, 129, 0.55) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 185, 129, 0.25) !important;
+}
+
+.jelajah3d-modal-icon {
+  background: rgba(16, 185, 129, 0.16) !important;
+  border-color: rgba(52, 211, 153, 0.45) !important;
+  color: #34D399 !important;
+}
+
+.btn-jelajah3d-confirm {
+  background: linear-gradient(135deg, #10B981 0%, #0D9488 100%) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+}
+
+@media (max-width: 768px) {
+  #btn-launch-jelajah3d,
+  .ar-hud-btn.btn-jelajah-3d {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    min-height: 44px !important;
+  }
+}
+

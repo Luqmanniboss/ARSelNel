@@ -878,6 +878,9 @@
     DOM.exitConfirmModal = document.getElementById('exit-confirm-modal');
     DOM.exitConfirmContinueBtn = document.getElementById('exit-confirm-continue-btn');
     DOM.exitConfirmLeaveBtn = document.getElementById('exit-confirm-leave-btn');
+    DOM.exitConfirmKotakBtn = document.getElementById('exit-confirm-kotak-btn');
+    DOM.hudReturnKotakBtn = document.getElementById('hud-return-kotak-btn');
+    DOM.lobbyReturnKotakBtn = document.getElementById('lobby-return-kotak-btn');
 
     // Misi Akhir: Treasure Hunt ARSELNel Dialogs
     DOM.treasureHuntIntroModal = document.getElementById('treasure-hunt-intro-modal');
@@ -4722,6 +4725,9 @@
     if (DOM.walkthroughBackBtn) DOM.walkthroughBackBtn.addEventListener('click', openExitConfirmDialog);
     if (DOM.exitConfirmContinueBtn) DOM.exitConfirmContinueBtn.addEventListener('click', closeExitConfirmDialog);
     if (DOM.exitConfirmLeaveBtn) DOM.exitConfirmLeaveBtn.addEventListener('click', confirmExitToCellQuest);
+    if (DOM.exitConfirmKotakBtn) DOM.exitConfirmKotakBtn.addEventListener('click', returnToKotakARSELNEL);
+    if (DOM.hudReturnKotakBtn) DOM.hudReturnKotakBtn.addEventListener('click', returnToKotakARSELNEL);
+    if (DOM.lobbyReturnKotakBtn) DOM.lobbyReturnKotakBtn.addEventListener('click', returnToKotakARSELNEL);
 
     // 12. Lobi Makmal Sains & Galeri Pendidikan
     if (DOM.lobbyBtnModA) {
@@ -7813,6 +7819,58 @@
     openScienceLabLobby();
     arWorldState.lastExitTargetUrl = 'lobby';
     return 'lobby';
+  }
+
+  // Fasa 4E-E.1: Navigasi Kembali ke Kotak ARSELNEL dengan Pembersihan Lifecycle Penuh
+  const KOTAK_ARSELNEL_RETURN_URL = '/kotak_arselnel/code.html';
+
+  async function returnToKotakARSELNEL(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (DOM.exitConfirmModal) {
+      DOM.exitConfirmModal.classList.remove('open');
+    }
+
+    // 1. Tutup sebarang sesi WebXR atau AR aktif
+    if (xrSession) {
+      try { await xrSession.end(); } catch (_) {}
+      xrSession = null;
+    }
+    stopARWorldExploration();
+    stopMarkerAR();
+    stopInteractiveCamera();
+
+    // 2. Nyahaktifkan semua listener sensor orientasi & gyroscope Mod A
+    teardownDeviceOrientation();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('deviceorientation', onModADeviceOrientation);
+      modAGyro.listenerBound = false;
+      modAGyro.listenerCount = 0;
+      modAGyro.active = false;
+    }
+
+    // 3. Hentikan pemasa dan gelung animasi WebGL Three.js dengan selamat
+    if (State.timerInterval) {
+      clearInterval(State.timerInterval);
+      State.timerInterval = null;
+    }
+    if (renderer && typeof renderer.setAnimationLoop === 'function') {
+      try {
+        renderer.setAnimationLoop(null);
+      } catch (_) {}
+    }
+
+    // 4. Simpan penanda kepulangan dalam sessionStorage
+    try {
+      sessionStorage.setItem('arselnel_returned_from_jelajah3d', 'true');
+      sessionStorage.removeItem('arselnel_return_to_kotak');
+    } catch (_) {}
+
+    // 5. Navigasi kembali ke halaman Kotak ARSELNEL
+    arWorldState.lastExitTargetUrl = KOTAK_ARSELNEL_RETURN_URL;
+    if (!window.CellQuestAR || !window.CellQuestAR.preventRedirectInTest) {
+      window.location.href = KOTAK_ARSELNEL_RETURN_URL;
+    }
+    return KOTAK_ARSELNEL_RETURN_URL;
   }
 
   function requestiOSOrientationPermission() {
@@ -12556,6 +12614,8 @@
     openExitConfirmDialog: () => openExitConfirmDialog(),
     closeExitConfirmDialog: () => closeExitConfirmDialog(),
     confirmExitToCellQuest: (skipRedirect = false) => confirmExitToCellQuest(skipRedirect),
+    returnToKotakARSELNEL: (e) => returnToKotakARSELNEL(e),
+    KOTAK_ARSELNEL_RETURN_URL,
     isCameraStreamActive: () => !!cameraStream,
     isSensorBound: () => !!(deviceOrientationBound || screenOrientationBound),
     placeSpatialStations: (pos, yaw) => positionARWorldStationsSpatial(pos, yaw),

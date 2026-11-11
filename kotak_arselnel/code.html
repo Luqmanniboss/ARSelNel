@@ -73,6 +73,11 @@
     </div>
 
     <div class="ar-hud-right-group">
+      <button type="button" class="ar-hud-btn btn-jelajah-3d" id="btn-launch-jelajah3d" title="Teroka Makmal Eksplorasi 3D — Misi Jelajah Dunia Sel">
+        <span class="material-symbols-outlined">explore</span>
+        <span>Jelajah 3D</span>
+      </button>
+
       <button type="button" class="ar-hud-btn btn-diagnostics-toggle" id="btn-toggle-diagnostics" title="Papar Diagnostik Sensor & Sistem">
         <span class="material-symbols-outlined" style="font-size:16px;color:#2dd4bf;">developer_mode</span>
         <span>Diagnostik</span>
@@ -1463,6 +1468,21 @@
       <div class="exit-modal-actions">
         <button type="button" class="exit-btn-cancel" id="btn-exit-cancel">Teruskan Pembelajaran</button>
         <button type="button" class="exit-btn-confirm" id="btn-exit-confirm">Keluar ke Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASA 4E-E.1: JELAJAH 3D LAUNCH CONFIRMATION MODAL (WHEN OVERLAYS ARE ACTIVE) -->
+  <div class="exit-modal-backdrop hidden" id="jelajah3d-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="jelajah3d-modal-title">
+    <div class="exit-modal-card jelajah3d-modal-card">
+      <div class="exit-modal-icon jelajah3d-modal-icon">
+        <span class="material-symbols-outlined">explore</span>
+      </div>
+      <h3 class="exit-modal-title" id="jelajah3d-modal-title">Buka Misi Jelajah Dunia Sel (3D)?</h3>
+      <p class="exit-modal-desc" id="jelajah3d-modal-desc">Kamera AR dan overlay aktif semasa akan ditutup sebentar supaya Makmal Eksplorasi 3D berjalan lancar. Anda boleh kembali ke Kotak ARSELNEL pada bila-bila masa.</p>
+      <div class="exit-modal-actions">
+        <button type="button" class="exit-btn-cancel" id="btn-jelajah3d-cancel">Kekal di Kotak AR</button>
+        <button type="button" class="exit-btn-confirm btn-jelajah3d-confirm" id="btn-jelajah3d-confirm">Mula Jelajah 3D</button>
       </div>
     </div>
   </div>

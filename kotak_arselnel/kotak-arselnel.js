@@ -489,6 +489,12 @@
     DOM.btnExitCancel = document.getElementById('btn-exit-cancel');
     DOM.btnExitConfirm = document.getElementById('btn-exit-confirm');
 
+    // Fasa 4E-E.1: Jelajah 3D Integration Button & Confirmation Modal
+    DOM.btnLaunchJelajah3d = document.getElementById('btn-launch-jelajah3d');
+    DOM.jelajah3dModalBackdrop = document.getElementById('jelajah3d-modal-backdrop');
+    DOM.btnJelajah3dCancel = document.getElementById('btn-jelajah3d-cancel');
+    DOM.btnJelajah3dConfirm = document.getElementById('btn-jelajah3d-confirm');
+
     // Fasa 4C.3: Scanner Recovery & Embedded Games
     DOM.scannerPromptIcon = document.getElementById('scanner-prompt-icon');
     DOM.scannerPromptText = document.getElementById('scanner-prompt-text');
@@ -6258,9 +6264,26 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   }
 
   /**
-   * Reset previous MindAR tracking session before restart
+   * Reset previous MindAR tracking session before restart or navigation
    */
   function cleanupSession() {
+    if (ARState.renderer) {
+      try {
+        ARState.renderer.setAnimationLoop(null);
+      } catch (e) {}
+    }
+    if (DOM.container) {
+      const videos = DOM.container.querySelectorAll('video');
+      videos.forEach((v) => {
+        try {
+          v.pause();
+          if (v.srcObject && typeof v.srcObject.getTracks === 'function') {
+            v.srcObject.getTracks().forEach((track) => track.stop());
+          }
+          v.srcObject = null;
+        } catch (e) {}
+      });
+    }
     if (ARState.mindarThree) {
       try {
         ARState.mindarThree.stop();
@@ -8758,6 +8781,76 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   }
 
   /**
+   * Fasa 4E-E.1: Jelajah 3D — Makmal Eksplorasi 3D Integration Lifecycle
+   */
+  const JELAJAH_3D_ROUTE = '/cellquest/adventure.html?mode=3d&from=kotak';
+
+  function showJelajah3DConfirmDialog() {
+    if (DOM.jelajah3dModalBackdrop) {
+      DOM.jelajah3dModalBackdrop.classList.remove('hidden');
+    }
+  }
+
+  function hideJelajah3DConfirmDialog() {
+    if (DOM.jelajah3dModalBackdrop) {
+      DOM.jelajah3dModalBackdrop.classList.add('hidden');
+    }
+  }
+
+  function confirmLaunchJelajah3D() {
+    hideJelajah3DConfirmDialog();
+
+    // 1. Save return metadata in sessionStorage
+    try {
+      sessionStorage.setItem('arselnel_return_to_kotak', 'true');
+      sessionStorage.setItem('arselnel_kotak_last_module', ARState.activeModule || 'video');
+      sessionStorage.setItem('arselnel_kotak_return_url', '/kotak_arselnel/code.html');
+    } catch (e) {
+      console.warn('[KotakAR] Gagal menyimpan status sessionStorage:', e);
+    }
+
+    // 2. Cleanly stop active video, embedded game, or CellQuest 3D session
+    try {
+      pauseVideo();
+    } catch (e) {}
+    if (ARState.activeGame) {
+      try {
+        closeEmbeddedGame();
+      } catch (e) {}
+    }
+    if (typeof CellQuestARController !== 'undefined' && CellQuestARController.isActive) {
+      try {
+        destroyCellQuestSession();
+      } catch (e) {}
+    }
+
+    // 3. Remove orientation/gyroscope listeners & cancel POV animation frame
+    try {
+      cleanupPOVListeners();
+      if (ARState.pov && ARState.pov.rafId) {
+        cancelAnimationFrame(ARState.pov.rafId);
+        ARState.pov.rafId = null;
+      }
+    } catch (e) {}
+
+    // 4. Stop MindAR, camera MediaStreamTracks, and Three.js animation loop
+    cleanupSession();
+
+    // 5. Navigate to canonical Jelajah 3D game route
+    window.location.href = JELAJAH_3D_ROUTE;
+  }
+
+  function launchJelajah3D(forceImmediate = false) {
+    const hasActiveOverlays = !!(ARState.activePanels && ARState.activePanels.size > 0);
+    if (!forceImmediate && hasActiveOverlays && DOM.jelajah3dModalBackdrop) {
+      showJelajah3DConfirmDialog();
+      return false;
+    }
+    confirmLaunchJelajah3D();
+    return true;
+  }
+
+  /**
    * Fasa 4D-B: CellQuest 3D Placeholder Choice Handler
    */
   function handleCellChoice(cellType) {
@@ -8797,6 +8890,29 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       DOM.btnExitConfirm.addEventListener('click', () => {
         cleanupSession();
         window.location.href = '../halaman_utama/code.html';
+      });
+    }
+
+    // Fasa 4E-E.1: Jelajah 3D Launch Button & Confirmation Modal Actions
+    if (DOM.btnLaunchJelajah3d) {
+      DOM.btnLaunchJelajah3d.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        launchJelajah3D(false);
+      });
+    }
+    if (DOM.btnJelajah3dCancel) {
+      DOM.btnJelajah3dCancel.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        hideJelajah3DConfirmDialog();
+      });
+    }
+    if (DOM.btnJelajah3dConfirm) {
+      DOM.btnJelajah3dConfirm.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        confirmLaunchJelajah3D();
       });
     }
 
@@ -9352,8 +9468,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       renderPOV5GamesCatalog();
       await initMindAR();
 
-      // Check if student returned from an interactive ARSELNEL game
+      // Check if student returned from an interactive ARSELNEL game or Jelajah 3D
       try {
+        const returnedFromJelajah = sessionStorage.getItem('arselnel_returned_from_jelajah3d') === 'true'
+          || (new URLSearchParams(window.location.search)).get('returned') === 'jelajah3d';
+        if (returnedFromJelajah) {
+          sessionStorage.removeItem('arselnel_returned_from_jelajah3d');
+          showToast('✨ Kembali ke Kotak ARSELNEL — Sedia mengimbas 5 marker AR!');
+        }
+
         const isReturning = sessionStorage.getItem('arselnel_return_to_ar') === 'true';
         const lastMod = sessionStorage.getItem('arselnel_last_module');
         if (isReturning && lastMod === 'kuiz') {
@@ -9570,6 +9693,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     handlePanelClosed,
     setScanState,
     SCAN_STATES,
+    // Fasa 4E-E.1 Jelajah 3D Integration Exports
+    launchJelajah3D,
+    confirmLaunchJelajah3D,
+    showJelajah3DConfirmDialog,
+    hideJelajah3DConfirmDialog,
+    cleanupSession,
+    JELAJAH_3D_ROUTE,
     getPanelElement: (id) => (id === 'pov-ar-anchor' || id === 'pov-panel-video' || id === 'video')
       ? DOM.povPanelVideo
       : (id === 'pov-panel-nota' || id === 'nota')
@@ -9625,6 +9755,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   global.setScanState = setScanState;
   global.SCAN_STATES = SCAN_STATES;
   global.ARState = ARState;
+  global.launchJelajah3D = launchJelajah3D;
+  global.confirmLaunchJelajah3D = confirmLaunchJelajah3D;
 
   // Auto boot when DOM is ready
   if (document.readyState === 'loading') {
