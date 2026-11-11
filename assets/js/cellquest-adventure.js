@@ -6900,10 +6900,10 @@
       group.userData.lidPivot.rotation.x = -p * 1.25;
     }
     if (group.userData.chestLight) {
-      group.userData.chestLight.intensity = 0.85 + p * 2.35;
+      group.userData.chestLight.intensity = 0.65 + p * 1.15;
     }
     if (group.userData.chestBeamMesh && group.userData.chestBeamMesh.material) {
-      group.userData.chestBeamMesh.material.opacity = p * 0.48;
+      group.userData.chestBeamMesh.material.opacity = p * 0.22;
     }
 
     // Sinkronkan rujukan global jika peti ini ialah peti sasaran semasa
@@ -6967,11 +6967,11 @@
     glbHolder.add(glbInstance);
 
     // Tambah pencahayaan tempatan supaya tekstur kayu, logam & syiling emas GLB terang & jelas di Safari iPad
-    const frontChestLight = new THREE.PointLight(0xfffbeb, 1.35, 4.5);
+    const frontChestLight = new THREE.PointLight(0xfffbeb, 0.95, 4.5);
     frontChestLight.position.set(0, 0.65, 1.15);
     glbHolder.add(frontChestLight);
 
-    const topGoldLight = new THREE.PointLight(0xfde047, 1.15, 4.0);
+    const topGoldLight = new THREE.PointLight(0xfde047, 0.75, 4.0);
     topGoldLight.position.set(0, 1.15, 0.25);
     glbHolder.add(topGoldLight);
 
@@ -7102,10 +7102,12 @@
     body.position.y = chestH / 2;
     proceduralHolder.add(body);
 
+    const moundMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.40, 0.62, 0.20, 18), brightGoldMat);
+    moundMesh.position.set(0, chestH - 0.06, 0);
+    proceduralHolder.add(moundMesh);
+
     const interiorGroup = new THREE.Group();
     interiorGroup.position.set(0, chestH - 0.06, 0);
-    const moundMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.40, 0.62, 0.20, 18), brightGoldMat);
-    interiorGroup.add(moundMesh);
 
     const beamGeo = new THREE.CylinderGeometry(0.18, 0.85, 2.8, 18, 1, true);
     const beamMat = new THREE.MeshBasicMaterial({

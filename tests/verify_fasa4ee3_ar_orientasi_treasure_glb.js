@@ -538,6 +538,7 @@ class CDPClient {
 
       // Halakan kamera tepat ke arah Peti 1 (azimuth 225°, elevation -12°)
       api.lookAtHeading(chest0.azimuthDeg, chest0.elevationDeg);
+      document.querySelectorAll('#cq-toast, #secret-door-toast').forEach(el => { el.style.display = 'none'; });
 
       const pos0 = grp0 ? grp0.position.toArray().map(v => +v.toFixed(2)) : [];
       const pos1 = grp1 ? grp1.position.toArray().map(v => +v.toFixed(2)) : [];
@@ -637,6 +638,7 @@ class CDPClient {
       // Tutup modal Peti 1 supaya kita boleh ambil screenshot Peti 1 GLB Terbuka di ruang 3D
       api.closeTreasureChestModal();
       api.lookAtHeading(chest0.azimuthDeg, chest0.elevationDeg);
+      document.querySelectorAll('#cq-toast, #secret-door-toast').forEach(el => { el.style.display = 'none'; });
 
       return {
         chest0Status: chest0.status,
