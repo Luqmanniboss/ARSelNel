@@ -396,14 +396,20 @@
             <span class="material-symbols-outlined" id="panel-category-icon" style="font-size:16px;">smart_display</span>
             <span id="panel-category-text">1. Video Pembelajaran</span>
           </div>
-          <div class="tracking-status-indicator" id="tracking-status-badge">
-            <div class="ping" id="tracking-ping"></div>
-            <span id="tracking-status-text">Kad AR Dikesan</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div class="tracking-status-indicator" id="floating-pov-status-badge" title="Status Kunci Pandangan">
+              <span class="material-symbols-outlined" id="floating-pov-status-icon" style="font-size:13px;color:#38bdf8;">lock_open</span>
+              <span id="floating-pov-status-text">Pandangan Belum Dikunci</span>
+            </div>
+            <div class="tracking-status-indicator" id="tracking-status-badge">
+              <div class="ping" id="tracking-ping"></div>
+              <span id="tracking-status-text">Kad AR Dikesan</span>
+            </div>
           </div>
         </div>
 
-        <!-- PINNED TOOLBAR: Size Controls & Battery-Saver Camera Toggle (Active when Pinned) -->
-        <div class="pinned-toolbar hidden" id="pinned-toolbar">
+        <!-- PINNED TOOLBAR: Size Controls & Battery-Saver Camera Toggle -->
+        <div class="pinned-toolbar" id="pinned-toolbar">
           <div class="size-controls-group">
             <span class="tool-label">Saiz:</span>
             <div class="size-segmented-control" role="group" aria-label="Ubah saiz panel">
@@ -714,7 +720,7 @@
         <div class="player-actions-bar">
           <button type="button" class="btn-place-video" id="btn-place-video" title="Sematkan panel ke kedudukan pilihan pada skrin">
             <span class="material-symbols-outlined">push_pin</span>
-            <span id="btn-place-text">Semat pada Skrin</span>
+            <span id="btn-place-text">Semat Skrin</span>
           </button>
 
           <button type="button" class="btn-pov-mode" id="btn-start-pov" title="Kunci arah panel menggunakan sensor giroskop 3DoF (Boleh tutup kamera)">
@@ -814,14 +820,14 @@
             </div>
             <div class="hud-chip status-chip">
               <span class="material-symbols-outlined hud-chip-icon" style="color:#10b981;">lock_open</span>
-              <span class="hud-chip-val" id="pov-val-status">Menghalakan</span>
+              <span class="hud-chip-val" id="pov-val-status">Pandangan Belum Dikunci</span>
             </div>
           </div>
 
           <!-- Instructional Guidance Banner -->
           <div class="pov-status-banner" id="pov-status-banner">
             <span class="material-symbols-outlined banner-icon" id="pov-banner-icon">sensors</span>
-            <span class="banner-text" id="pov-banner-text">Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".</span>
+            <span class="banner-text" id="pov-banner-text">Pandangan Belum Dikunci — Tekan "Kunci Pandangan" jika mahu mengunci arah 360°.</span>
             <div class="banner-action-buttons hidden" id="pov-banner-actions">
               <button type="button" class="btn-banner-retry" id="pov-btn-retry-sensor">Cuba Semula</button>
               <button type="button" class="btn-banner-fallback" id="pov-btn-fallback-pinned">Semat Skrin</button>
@@ -912,7 +918,12 @@
       <!-- C. STICKY FOOTER ACTIONS -->
       <footer class="panel-sticky-footer" id="pov-sticky-footer">
         <div class="player-actions-bar">
-          <button type="button" class="btn-place-video" id="pov-btn-anchor" title="Kunci arah orientasi peranti semasa">
+          <button type="button" class="btn-pov-mode" id="pov-btn-start-pov" title="Mulakan pemilihan arah Kunci Pandangan 360° secara manual">
+            <span class="material-symbols-outlined">explore</span>
+            <span>Kunci Pandangan</span>
+          </button>
+
+          <button type="button" class="btn-place-video hidden" id="pov-btn-anchor" title="Kunci arah orientasi peranti semasa">
             <span class="material-symbols-outlined" id="pov-anchor-icon">my_location</span>
             <span id="pov-anchor-text">Letak di Arah Ini</span>
           </button>
@@ -998,14 +1009,14 @@
             </div>
             <div class="hud-chip status-chip">
               <span class="material-symbols-outlined hud-chip-icon" style="color:#10b981;">lock_open</span>
-              <span class="hud-chip-val" id="pov-nota-val-status">Menghalakan</span>
+              <span class="hud-chip-val" id="pov-nota-val-status">Pandangan Belum Dikunci</span>
             </div>
           </div>
 
           <!-- Instructional Guidance Banner (Nota) -->
           <div class="pov-status-banner" id="pov-nota-status-banner">
             <span class="material-symbols-outlined banner-icon" id="pov-nota-banner-icon">sensors</span>
-            <span class="banner-text" id="pov-nota-banner-text">Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".</span>
+            <span class="banner-text" id="pov-nota-banner-text">Pandangan Belum Dikunci — Tekan "Kunci Pandangan" jika mahu mengunci arah 360°.</span>
             <div class="banner-action-buttons hidden" id="pov-nota-banner-actions">
               <button type="button" class="btn-banner-retry" id="pov-nota-btn-retry-sensor">Cuba Semula</button>
               <button type="button" class="btn-banner-fallback" id="pov-nota-btn-fallback-pinned">Semat Skrin</button>
@@ -1094,7 +1105,12 @@
       <!-- C. STICKY FOOTER ACTIONS (NOTA) -->
       <footer class="panel-sticky-footer" id="pov-nota-sticky-footer">
         <div class="player-actions-bar">
-          <button type="button" class="btn-place-video btn-place-nota" id="pov-nota-btn-anchor" title="Kunci arah orientasi peranti semasa">
+          <button type="button" class="btn-pov-mode" id="pov-nota-btn-start-pov" title="Mulakan pemilihan arah Kunci Pandangan 360° secara manual">
+            <span class="material-symbols-outlined">explore</span>
+            <span>Kunci Pandangan</span>
+          </button>
+
+          <button type="button" class="btn-place-video btn-place-nota hidden" id="pov-nota-btn-anchor" title="Kunci arah orientasi peranti semasa">
             <span class="material-symbols-outlined" id="pov-nota-anchor-icon">my_location</span>
             <span id="pov-nota-anchor-text">Letak di Arah Ini</span>
           </button>
@@ -1180,14 +1196,14 @@
             </div>
             <div class="hud-chip status-chip">
               <span class="material-symbols-outlined hud-chip-icon" style="color:#10b981;">lock_open</span>
-              <span class="hud-chip-val" id="pov-kuiz-val-status">Menghalakan</span>
+              <span class="hud-chip-val" id="pov-kuiz-val-status">Pandangan Belum Dikunci</span>
             </div>
           </div>
 
           <!-- Instructional Guidance Banner (Kuiz POV) -->
           <div class="pov-status-banner" id="pov-kuiz-status-banner">
             <span class="material-symbols-outlined banner-icon" id="pov-kuiz-banner-icon">sensors</span>
-            <span class="banner-text" id="pov-kuiz-banner-text">Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".</span>
+            <span class="banner-text" id="pov-kuiz-banner-text">Pandangan Belum Dikunci — Tekan "Kunci Pandangan" jika mahu mengunci arah 360°.</span>
             <div class="banner-action-buttons hidden" id="pov-kuiz-banner-actions">
               <button type="button" class="btn-banner-retry" id="pov-kuiz-btn-retry-sensor">Cuba Semula</button>
               <button type="button" class="btn-banner-fallback" id="pov-kuiz-btn-fallback-pinned">Semat Skrin</button>
@@ -1327,14 +1343,19 @@
       <!-- C. STICKY FOOTER ACTIONS (KUIZ) -->
       <footer class="panel-sticky-footer" id="pov-kuiz-sticky-footer">
         <div class="player-actions-bar">
-          <button type="button" class="btn-place-video btn-place-kuiz" id="pov-kuiz-btn-anchor" title="Kunci arah orientasi peranti semasa">
+          <button type="button" class="btn-pov-mode" id="pov-kuiz-btn-start-pov" title="Mulakan pemilihan arah Kunci Pandangan 360° secara manual">
+            <span class="material-symbols-outlined">explore</span>
+            <span>Kunci Pandangan</span>
+          </button>
+
+          <button type="button" class="btn-place-video btn-place-kuiz hidden" id="pov-kuiz-btn-anchor" title="Kunci arah orientasi peranti semasa">
             <span class="material-symbols-outlined" id="pov-kuiz-anchor-icon">my_location</span>
             <span id="pov-kuiz-anchor-text">Letak di Arah Ini</span>
           </button>
 
           <button type="button" class="btn-secondary-action" id="pov-kuiz-btn-change-content" title="Pilih kuiz atau permainan lain tanpa keluar mod Kunci Pandangan">
             <span class="material-symbols-outlined">sync</span>
-            <span>Tukar Kuiz</span>
+            <span>Tukar Permainan</span>
           </button>
 
           <button type="button" class="btn-secondary-action" id="pov-kuiz-btn-back-pinned" title="Kembali ke Mod Semat pada Skrin">

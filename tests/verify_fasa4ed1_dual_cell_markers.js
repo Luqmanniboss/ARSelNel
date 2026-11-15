@@ -116,6 +116,15 @@ async function run() {
       return res.result.value;
     };
 
+    // Fasa 4E-F.1: Selesaikan onboarding jika belum ditandakan supaya MindAR dimulakan
+    await evaluate(`(() => {
+      try { localStorage.setItem('arselnel_kotak_onboarding_v1', 'completed'); } catch(e) {}
+      if (typeof window.closeOnboardingModal === 'function') {
+        window.closeOnboardingModal(true);
+      }
+    })()`);
+    await new Promise(r => setTimeout(r, 1200));
+
     console.log('--- 1 & 2. PENDAFTARAN LIMA MARKER & SUSUNAN TARGET 0-4 ---');
     const anchorsInfo = await evaluate(`
       (() => {

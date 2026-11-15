@@ -406,6 +406,12 @@
     DOM.povValYaw = document.getElementById('pov-val-yaw');
     DOM.povValPitch = document.getElementById('pov-val-pitch');
     DOM.povValStatus = document.getElementById('pov-val-status');
+    DOM.povBtnStartPOV = document.getElementById('pov-btn-start-pov');
+    DOM.povNotaBtnStartPOV = document.getElementById('pov-nota-btn-start-pov');
+    DOM.povKuizBtnStartPOV = document.getElementById('pov-kuiz-btn-start-pov');
+    DOM.floatingPovStatusBadge = document.getElementById('floating-pov-status-badge');
+    DOM.floatingPovStatusIcon = document.getElementById('floating-pov-status-icon');
+    DOM.floatingPovStatusText = document.getElementById('floating-pov-status-text');
     DOM.povBtnAnchor = document.getElementById('pov-btn-anchor');
     DOM.povAnchorIcon = document.getElementById('pov-anchor-icon');
     DOM.povAnchorText = document.getElementById('pov-anchor-text');
@@ -977,10 +983,189 @@
       if (!p) return;
       p.placementMode = mode;
       p.isLocked = (mode === 'POV_LOCKED');
+      if (mode !== 'POV_LOCKED') {
+        p.referenceQuaternion = null;
+        p.anchorWorldVector = null;
+      }
       const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
       if (el) {
         el.setAttribute('data-placement-mode', mode);
       }
+      this.syncPanelControlUI(id);
+    },
+
+    syncPanelControlUI(id) {
+      const p = this.panels.get(id);
+      if (!p) return;
+      const mode = p.placementMode || 'MARKER_MODE';
+      const isLocked = (mode === 'POV_LOCKED');
+      const isSetup = (mode === 'POV_SETUP');
+
+      let btnStart = null, btnAnchor = null, anchorIcon = null, anchorText = null;
+      let valStatus = null, bannerIcon = null, bannerText = null;
+      let setupColor = '#38bdf8';
+
+      if (id === 'video') {
+        btnStart = DOM.povBtnStartPOV || document.getElementById('pov-btn-start-pov');
+        btnAnchor = DOM.povBtnAnchor || document.getElementById('pov-btn-anchor');
+        anchorIcon = DOM.povAnchorIcon || document.getElementById('pov-anchor-icon');
+        anchorText = DOM.povAnchorText || document.getElementById('pov-anchor-text');
+        valStatus = DOM.povValStatus || document.getElementById('pov-val-status');
+        bannerIcon = DOM.povBannerIcon || document.getElementById('pov-banner-icon');
+        bannerText = DOM.povBannerText || document.getElementById('pov-banner-text');
+      } else if (id === 'nota') {
+        btnStart = DOM.povNotaBtnStartPOV || document.getElementById('pov-nota-btn-start-pov');
+        btnAnchor = DOM.povNotaBtnAnchor || document.getElementById('pov-nota-btn-anchor');
+        anchorIcon = DOM.povNotaAnchorIcon || document.getElementById('pov-nota-anchor-icon');
+        anchorText = DOM.povNotaAnchorText || document.getElementById('pov-nota-anchor-text');
+        valStatus = DOM.povNotaValStatus || document.getElementById('pov-nota-val-status');
+        bannerIcon = DOM.povNotaBannerIcon || document.getElementById('pov-nota-banner-icon');
+        bannerText = DOM.povNotaBannerText || document.getElementById('pov-nota-banner-text');
+      } else if (id === 'kuiz') {
+        btnStart = DOM.povKuizBtnStartPOV || document.getElementById('pov-kuiz-btn-start-pov');
+        btnAnchor = DOM.povKuizBtnAnchor || document.getElementById('pov-kuiz-btn-anchor');
+        anchorIcon = DOM.povKuizAnchorIcon || document.getElementById('pov-kuiz-anchor-icon');
+        anchorText = DOM.povKuizAnchorText || document.getElementById('pov-kuiz-anchor-text');
+        valStatus = DOM.povKuizValStatus || document.getElementById('pov-kuiz-val-status');
+        bannerIcon = DOM.povKuizBannerIcon || document.getElementById('pov-kuiz-banner-icon');
+        bannerText = DOM.povKuizBannerText || document.getElementById('pov-kuiz-banner-text');
+        setupColor = '#c084fc';
+      }
+
+      if (isLocked) {
+        if (btnStart) btnStart.classList.add('hidden');
+        if (btnAnchor) {
+          btnAnchor.classList.remove('hidden');
+          btnAnchor.classList.add('is-locked');
+        }
+        if (anchorIcon) anchorIcon.textContent = 'refresh';
+        if (anchorText) anchorText.textContent = 'Alih / Letak Semula';
+        if (valStatus) {
+          valStatus.textContent = `Pandangan Dikunci (${Math.round(p.anchorYaw || 0)}°)`;
+          valStatus.style.color = '#10b981';
+        }
+        if (bannerIcon) bannerIcon.textContent = 'check_circle';
+        if (bannerText) bannerText.textContent = 'Pandangan Dikunci! Pusingkan peranti untuk melihat panel dalam ruang 360°.';
+      } else if (isSetup) {
+        if (btnStart) btnStart.classList.add('hidden');
+        if (btnAnchor) {
+          btnAnchor.classList.remove('hidden', 'is-locked');
+        }
+        if (anchorIcon) anchorIcon.textContent = 'my_location';
+        if (anchorText) anchorText.textContent = 'Letak di Arah Ini';
+        if (valStatus) {
+          valStatus.textContent = 'Halakan peranti ke arah pilihan';
+          valStatus.style.color = setupColor;
+        }
+        if (bannerIcon) bannerIcon.textContent = 'sensors';
+        if (bannerText) bannerText.textContent = 'Halakan peranti ke arah pilihan, kemudian tekan "Letak di Arah Ini".';
+      } else {
+        // MARKER_MODE / MARKER / SCREEN_PINNED (Belum dikunci)
+        if (btnStart) btnStart.classList.remove('hidden');
+        if (btnAnchor) {
+          btnAnchor.classList.add('hidden');
+          btnAnchor.classList.remove('is-locked');
+        }
+        if (anchorIcon) anchorIcon.textContent = 'my_location';
+        if (anchorText) anchorText.textContent = 'Letak di Arah Ini';
+        if (valStatus) {
+          valStatus.textContent = 'Pandangan Belum Dikunci';
+          valStatus.style.color = '#64748b';
+        }
+        if (bannerIcon) bannerIcon.textContent = 'push_pin';
+        if (bannerText) bannerText.textContent = 'Pandangan Belum Dikunci — Tekan "Kunci Pandangan" jika mahu mengunci arah 360°.';
+      }
+
+      if (DOM.floatingPovStatusText) {
+        if (ARState.systemMode === 'POV_LOCKED') {
+          DOM.floatingPovStatusText.textContent = 'Pandangan Dikunci';
+        } else if (ARState.systemMode === 'POV_SETUP') {
+          DOM.floatingPovStatusText.textContent = 'Halakan peranti ke arah pilihan';
+        } else {
+          DOM.floatingPovStatusText.textContent = 'Pandangan Belum Dikunci';
+        }
+      }
+    },
+
+    async enterPanelPOVSetup(id) {
+      const p = this.panels.get(id);
+      if (!p) return;
+      if (!ARState.pov.permissionGranted) {
+        try {
+          await requestSensorPermission();
+        } catch (err) {
+          console.warn('[KotakAR-POV] Ralat semasa meminta kebenaran sensor:', err);
+        }
+      }
+      initThreeHelpers();
+      initPOVVirtualCamera();
+      ARState.pov.active = true;
+      p.placementMode = 'POV_SETUP';
+      p.isLocked = false;
+      p.referenceQuaternion = null;
+      p.anchorWorldVector = null;
+
+      const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
+      if (el) {
+        el.classList.remove('hidden');
+        el.classList.add('is-visible', 'is-centered');
+        el.style.left = '50%';
+        el.style.top = '50%';
+        el.style.transform = 'translate(-50%, -50%)';
+        el.style.opacity = '1';
+        el.style.visibility = 'visible';
+        el.style.pointerEvents = 'auto';
+        el.setAttribute('data-placement-mode', 'POV_SETUP');
+      }
+
+      this.syncPanelControlUI(id);
+      setupPOVSensorListeners();
+      startPOVRenderLoop();
+      maybeShowPOVInteractiveGuide();
+      if (typeof focusPanel === 'function') focusPanel(id);
+
+      const pNames = { video: 'Video', nota: 'Nota', kuiz: 'Kuiz' };
+      showToast(`🧭 Mod Kunci Pandangan (${pNames[id] || id}): Halakan peranti ke arah pilihan dan tekan "Letak di Arah Ini".`);
+    },
+
+    pinPanelToScreen(id) {
+      const p = this.panels.get(id);
+      if (!p) return;
+      p.placementMode = 'SCREEN_PINNED';
+      p.isLocked = false;
+      p.referenceQuaternion = null;
+      p.anchorWorldVector = null;
+
+      const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
+      if (el) {
+        el.classList.remove('hidden');
+        el.classList.add('is-visible', 'is-centered');
+        el.style.left = '50%';
+        el.style.top = '50%';
+        el.style.transform = 'translate(-50%, -50%)';
+        el.style.opacity = '1';
+        el.style.visibility = 'visible';
+        el.style.pointerEvents = 'auto';
+        el.setAttribute('data-placement-mode', 'SCREEN_PINNED');
+      }
+
+      this.syncPanelControlUI(id);
+
+      const anyStillPOV = Array.from(this.panels.values()).some(
+        (panel) => panel.isVisible && (panel.placementMode === 'POV_SETUP' || panel.placementMode === 'POV_LOCKED')
+      );
+      if (!anyStillPOV) {
+        ARState.pov.active = false;
+        ARState.pov.isAnchored = false;
+        if (ARState.pov.rafId) {
+          cancelAnimationFrame(ARState.pov.rafId);
+          ARState.pov.rafId = null;
+        }
+        if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
+      }
+
+      const pNames = { video: 'Video', nota: 'Nota', kuiz: 'Kuiz' };
+      showToast(`📌 Panel ${pNames[id] || id} disematkan semula ke skrin.`);
     },
 
     setPanelSize(id, size) {
@@ -1077,43 +1262,7 @@
         el.setAttribute('data-placement-mode', 'POV_LOCKED');
       }
 
-      if (id === 'video') {
-        if (DOM.povBtnAnchor) DOM.povBtnAnchor.classList.add('is-locked');
-        if (DOM.povAnchorIcon) DOM.povAnchorIcon.textContent = 'refresh';
-        if (DOM.povAnchorText) DOM.povAnchorText.textContent = 'Alih / Letak Semula';
-        if (DOM.povValStatus) {
-          DOM.povValStatus.textContent = `Terkunci (${Math.round(p.anchorYaw)}°)`;
-          DOM.povValStatus.style.color = '#10b981';
-        }
-        if (DOM.povStatusBanner) {
-          if (DOM.povBannerIcon) DOM.povBannerIcon.textContent = 'check_circle';
-          if (DOM.povBannerText) DOM.povBannerText.textContent = 'Orientasi Video dikunci! Pusingkan peranti untuk menguji Pandangan 360°.';
-        }
-      } else if (id === 'nota') {
-        if (DOM.povNotaBtnAnchor) DOM.povNotaBtnAnchor.classList.add('is-locked');
-        if (DOM.povNotaAnchorIcon) DOM.povNotaAnchorIcon.textContent = 'refresh';
-        if (DOM.povNotaAnchorText) DOM.povNotaAnchorText.textContent = 'Alih / Letak Semula';
-        if (DOM.povNotaValStatus) {
-          DOM.povNotaValStatus.textContent = `Terkunci (${Math.round(p.anchorYaw)}°)`;
-          DOM.povNotaValStatus.style.color = '#10b981';
-        }
-        if (DOM.povNotaStatusBanner) {
-          if (DOM.povNotaBannerIcon) DOM.povNotaBannerIcon.textContent = 'check_circle';
-          if (DOM.povNotaBannerText) DOM.povNotaBannerText.textContent = 'Orientasi Nota dikunci! Pusingkan peranti untuk menguji Pandangan 360°.';
-        }
-      } else if (id === 'kuiz') {
-        if (DOM.povKuizBtnAnchor) DOM.povKuizBtnAnchor.classList.add('is-locked');
-        if (DOM.povKuizAnchorIcon) DOM.povKuizAnchorIcon.textContent = 'refresh';
-        if (DOM.povKuizAnchorText) DOM.povKuizAnchorText.textContent = 'Alih / Letak Semula';
-        if (DOM.povKuizValStatus) {
-          DOM.povKuizValStatus.textContent = `Terkunci (${Math.round(p.anchorYaw)}°)`;
-          DOM.povKuizValStatus.style.color = '#10b981';
-        }
-        if (DOM.povKuizStatusBanner) {
-          if (DOM.povKuizBannerIcon) DOM.povKuizBannerIcon.textContent = 'check_circle';
-          if (DOM.povKuizBannerText) DOM.povKuizBannerText.textContent = 'Orientasi Kuiz dikunci! Pusingkan peranti untuk menguji Pandangan 360°.';
-        }
-      }
+      this.syncPanelControlUI(id);
 
       // Backward compatibility for single panel / global tests
       ARState.pov.isAnchored = true;
@@ -1125,6 +1274,7 @@
 
       if (!ARState.pov.active) {
         ARState.pov.active = true;
+        setupPOVSensorListeners();
         startPOVRenderLoop();
       }
 
@@ -1153,43 +1303,7 @@
         el.setAttribute('data-placement-mode', 'POV_SETUP');
       }
 
-      if (id === 'video') {
-        if (DOM.povBtnAnchor) DOM.povBtnAnchor.classList.remove('is-locked');
-        if (DOM.povAnchorIcon) DOM.povAnchorIcon.textContent = 'my_location';
-        if (DOM.povAnchorText) DOM.povAnchorText.textContent = 'Letak di Arah Ini';
-        if (DOM.povValStatus) {
-          DOM.povValStatus.textContent = 'Menghalakan';
-          DOM.povValStatus.style.color = '#38bdf8';
-        }
-        if (DOM.povStatusBanner) {
-          if (DOM.povBannerIcon) DOM.povBannerIcon.textContent = 'sensors';
-          if (DOM.povBannerText) DOM.povBannerText.textContent = 'Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".';
-        }
-      } else if (id === 'nota') {
-        if (DOM.povNotaBtnAnchor) DOM.povNotaBtnAnchor.classList.remove('is-locked');
-        if (DOM.povNotaAnchorIcon) DOM.povNotaAnchorIcon.textContent = 'my_location';
-        if (DOM.povNotaAnchorText) DOM.povNotaAnchorText.textContent = 'Letak di Arah Ini';
-        if (DOM.povNotaValStatus) {
-          DOM.povNotaValStatus.textContent = 'Menghalakan';
-          DOM.povNotaValStatus.style.color = '#38bdf8';
-        }
-        if (DOM.povNotaStatusBanner) {
-          if (DOM.povNotaBannerIcon) DOM.povNotaBannerIcon.textContent = 'sensors';
-          if (DOM.povNotaBannerText) DOM.povNotaBannerText.textContent = 'Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".';
-        }
-      } else if (id === 'kuiz') {
-        if (DOM.povKuizBtnAnchor) DOM.povKuizBtnAnchor.classList.remove('is-locked');
-        if (DOM.povKuizAnchorIcon) DOM.povKuizAnchorIcon.textContent = 'my_location';
-        if (DOM.povKuizAnchorText) DOM.povKuizAnchorText.textContent = 'Letak di Arah Ini';
-        if (DOM.povKuizValStatus) {
-          DOM.povKuizValStatus.textContent = 'Menghalakan';
-          DOM.povKuizValStatus.style.color = '#c084fc';
-        }
-        if (DOM.povKuizStatusBanner) {
-          if (DOM.povKuizBannerIcon) DOM.povKuizBannerIcon.textContent = 'sensors';
-          if (DOM.povKuizBannerText) DOM.povKuizBannerText.textContent = 'Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".';
-        }
-      }
+      this.syncPanelControlUI(id);
 
       updateDiagnosticsData();
       const pNames = { video: 'Video', nota: 'Nota', kuiz: 'Kuiz' };
@@ -3247,10 +3361,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         p.playbackState = 'destroyed';
         p.isVisible = false;
         p.isLocked = false;
-        p.placementMode = 'MARKER';
+        p.placementMode = 'MARKER_MODE';
+        p.referenceQuaternion = null;
         p.anchorWorldVector = null;
       }
       SpatialPanelManager.setPanelVisibility('video', false);
+      SpatialPanelManager.syncPanelControlUI('video');
     }
     if (DOM.povPanelVideo) {
       DOM.povPanelVideo.classList.add('hidden');
@@ -3275,9 +3391,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povAnchorText) DOM.povAnchorText.textContent = 'Letak di Arah Ini';
     }
 
-    // Cooldown 2.5s supaya marker video tidak mencetuskan scan serta-merta jika kamera masih menghadapnya
+    // Cooldown 600ms supaya marker video tidak mencetuskan scan serta-merta semasa penutupan manual
     ARState.markerCooldown = ARState.markerCooldown || {};
-    ARState.markerCooldown['video'] = Date.now() + 2500;
+    ARState.markerCooldown['video'] = Date.now() + 600;
 
     if (typeof handlePanelClosed === 'function') {
       handlePanelClosed('video');
@@ -3335,10 +3451,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         p.isLoaded = false;
         p.isVisible = false;
         p.isLocked = false;
-        p.placementMode = 'MARKER';
+        p.placementMode = 'MARKER_MODE';
+        p.referenceQuaternion = null;
         p.anchorWorldVector = null;
       }
       SpatialPanelManager.setPanelVisibility('nota', false);
+      SpatialPanelManager.syncPanelControlUI('nota');
     }
     if (DOM.povPanelNota) {
       DOM.povPanelNota.classList.add('hidden');
@@ -3347,15 +3465,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       DOM.povPanelNota.style.visibility = 'hidden';
       DOM.povPanelNota.style.pointerEvents = 'none';
     }
+    if (DOM.floatingAnchor && ARState.activeModule === 'nota' && ARState.activePanels.size <= 1) {
+      DOM.floatingAnchor.classList.remove('is-visible');
+    }
     if (DOM.povNotaBtnAnchor) {
       DOM.povNotaBtnAnchor.classList.remove('is-locked');
       if (DOM.povNotaAnchorIcon) DOM.povNotaAnchorIcon.textContent = 'my_location';
       if (DOM.povNotaAnchorText) DOM.povNotaAnchorText.textContent = 'Letak di Arah Ini';
     }
 
-    // Cooldown 2.5s supaya marker nota tidak mencetuskan scan serta-merta jika kamera masih menghadapnya
+    // Cooldown 600ms supaya marker nota tidak mencetuskan scan serta-merta semasa penutupan manual
     ARState.markerCooldown = ARState.markerCooldown || {};
-    ARState.markerCooldown['nota'] = Date.now() + 2500;
+    ARState.markerCooldown['nota'] = Date.now() + 600;
 
     if (typeof handlePanelClosed === 'function') {
       handlePanelClosed('nota');
@@ -3407,10 +3528,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         p.isLoaded = false;
         p.isVisible = false;
         p.isLocked = false;
-        p.placementMode = 'MARKER';
+        p.placementMode = 'MARKER_MODE';
+        p.referenceQuaternion = null;
         p.anchorWorldVector = null;
       }
       SpatialPanelManager.setPanelVisibility('kuiz', false);
+      SpatialPanelManager.syncPanelControlUI('kuiz');
     }
     if (DOM.povPanelKuiz) {
       DOM.povPanelKuiz.classList.add('hidden');
@@ -3419,15 +3542,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       DOM.povPanelKuiz.style.visibility = 'hidden';
       DOM.povPanelKuiz.style.pointerEvents = 'none';
     }
+    if (DOM.floatingAnchor && ARState.activeModule === 'kuiz' && ARState.activePanels.size <= 1) {
+      DOM.floatingAnchor.classList.remove('is-visible');
+    }
     if (DOM.povKuizBtnAnchor) {
       DOM.povKuizBtnAnchor.classList.remove('is-locked');
       if (DOM.povKuizAnchorIcon) DOM.povKuizAnchorIcon.textContent = 'my_location';
       if (DOM.povKuizAnchorText) DOM.povKuizAnchorText.textContent = 'Letak di Arah Ini';
     }
 
-    // Cooldown 2.5s supaya marker kuiz tidak mencetuskan scan serta-merta jika kamera masih menghadapnya
+    // Cooldown 600ms supaya marker kuiz tidak mencetuskan scan serta-merta semasa penutupan manual
     ARState.markerCooldown = ARState.markerCooldown || {};
-    ARState.markerCooldown['kuiz'] = Date.now() + 2500;
+    ARState.markerCooldown['kuiz'] = Date.now() + 600;
 
     if (typeof handlePanelClosed === 'function') {
       handlePanelClosed('kuiz');
@@ -3651,53 +3777,101 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         addPanelToSpatialWorkspace(moduleName, cellType);
       } else {
         console.log(`[MultiPanel] ℹ️ Panel/Modul ${moduleName} sudah aktif dalam ruang kerja.`);
+        focusPanel(moduleName);
+        if (DOM.scannerOverlay) DOM.scannerOverlay.classList.add('hidden');
+        setScanState(SCAN_STATES.PANEL_ACTIVE);
+        showToast('Panel sudah aktif. Paparan difokuskan.');
       }
       return;
     }
 
-    // KES 2: Panel Sudah Aktif (PANEL_ACTIVE)
-    if (ARState.scanState === SCAN_STATES.PANEL_ACTIVE) {
-      if (ARState.activePanels.has(moduleName)) {
-        // Marker untuk modul yang sedang aktif dikesan semula
-        clearTimeout(ARState.lostTimeout);
-        ARState.isTracking = true;
-        if (moduleName === 'video' && ARState.anchorVideo) ARState.anchor = ARState.anchorVideo;
-        if (moduleName === 'nota' && ARState.anchorNota) ARState.anchor = ARState.anchorNota;
-        if (moduleName === 'kuiz' && ARState.anchorKuiz) ARState.anchor = ARState.anchorKuiz;
-        if (moduleName === 'cellquest') {
-          // 🛡️ FASA 4E-D.1: Jika modul CellQuest sudah aktif, hanya layani tracking jika marker sepadan
-          if (cellType && typeof CellQuestARController !== 'undefined' && CellQuestARController.activeCellType && cellType !== CellQuestARController.activeCellType) {
-            console.log(`[CellQuestAR] 🛡️ Sesi CellQuest (${CellQuestARController.activeCellType}) sedang aktif. Pengesanan marker ${cellType} diabaikan tanpa gangguan.`);
-            return;
-          }
-          if (cellType === 'plant' && ARState.anchorCellQuestPlant) {
-            ARState.anchorCellQuest = ARState.anchorCellQuestPlant;
-          } else if (ARState.anchorCellQuestAnimal) {
-            ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
-          }
-          if (ARState.anchorCellQuest) {
-            ARState.anchor = ARState.anchorCellQuest;
-          }
-          if (typeof CellQuestARController !== 'undefined') {
-            if (CellQuestARController.spatialMode === 'MARKER_MODE' && ARState.anchorCellQuest) {
-              CellQuestARController.anchorGroup = ARState.anchorCellQuest.group;
-              if (CellQuestARController.rootGroup && CellQuestARController.rootGroup.parent !== CellQuestARController.anchorGroup) {
-                CellQuestARController.anchorGroup.add(CellQuestARController.rootGroup);
-              }
+    // KES 2: Panel Sudah Aktif (PANEL_ACTIVE) ATAU modul ini sudah wujud dalam activePanels (Re-Scan)
+    if (ARState.activePanels.has(moduleName)) {
+      clearTimeout(ARState.lostTimeout);
+      ARState.isTracking = true;
+      if (moduleName === 'video' && ARState.anchorVideo) ARState.anchor = ARState.anchorVideo;
+      if (moduleName === 'nota' && ARState.anchorNota) ARState.anchor = ARState.anchorNota;
+      if (moduleName === 'kuiz' && ARState.anchorKuiz) ARState.anchor = ARState.anchorKuiz;
+
+      const nameMap = { video: 'Video', nota: 'Nota', kuiz: 'Kuiz', cellquest: 'CellQuest 3D' };
+      const modLabel = nameMap[moduleName] || moduleName;
+
+      if (moduleName === 'cellquest') {
+        if (cellType && typeof CellQuestARController !== 'undefined' && CellQuestARController.activeCellType && cellType !== CellQuestARController.activeCellType) {
+          console.log(`[CellQuestAR] 🛡️ Sesi CellQuest (${CellQuestARController.activeCellType}) sedang aktif. Pengesanan marker ${cellType} diabaikan tanpa gangguan.`);
+          return;
+        }
+        if (cellType === 'plant' && ARState.anchorCellQuestPlant) {
+          ARState.anchorCellQuest = ARState.anchorCellQuestPlant;
+        } else if (ARState.anchorCellQuestAnimal) {
+          ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
+        }
+        if (ARState.anchorCellQuest) {
+          ARState.anchor = ARState.anchorCellQuest;
+        }
+        if (typeof CellQuestARController !== 'undefined') {
+          if (CellQuestARController.spatialMode === 'MARKER_MODE' && ARState.anchorCellQuest) {
+            CellQuestARController.anchorGroup = ARState.anchorCellQuest.group;
+            if (CellQuestARController.rootGroup && CellQuestARController.rootGroup.parent !== CellQuestARController.anchorGroup) {
+              CellQuestARController.anchorGroup.add(CellQuestARController.rootGroup);
             }
-            if (typeof CellQuestARController.onTargetFound === 'function') {
-              CellQuestARController.onTargetFound();
-            }
+          }
+          if (typeof CellQuestARController.onTargetFound === 'function') {
+            CellQuestARController.onTargetFound();
           }
         }
+        if (DOM.scannerOverlay) DOM.scannerOverlay.classList.add('hidden');
+        hideScannerDelayedTips();
+        focusPanel('cellquest');
+        setScanState(SCAN_STATES.PANEL_ACTIVE);
+        showToast(`Panel ${modLabel} telah difokuskan.`);
+        return;
+      }
+
+      // Check whether panel is in single-panel mode (#floating-ar-anchor) or multi-panel SpatialPanelManager (#pov-panel-[mod])
+      const isMulti = ARState.activePanels.size > 1 || (typeof SpatialPanelManager !== 'undefined' && SpatialPanelManager.isPanelVisible(moduleName));
+      let wasHidden = false;
+
+      if (!isMulti && DOM.floatingAnchor && ARState.activePanels.size <= 1) {
+        wasHidden = !DOM.floatingAnchor.classList.contains('is-visible') || DOM.floatingAnchor.classList.contains('hidden');
+        DOM.floatingAnchor.classList.remove('hidden');
+        DOM.floatingAnchor.classList.add('is-visible');
+        requestAnimationFrame(() => clampPanelIntoViewport());
+      } else if (typeof SpatialPanelManager !== 'undefined') {
+        const p = SpatialPanelManager.getPanel(moduleName);
+        const el = p ? (p.element || document.getElementById(p.elementId)) : null;
+        wasHidden = !SpatialPanelManager.isPanelVisible(moduleName) || (el && (el.classList.contains('hidden') || el.style.opacity === '0' || el.style.visibility === 'hidden'));
+        SpatialPanelManager.setPanelVisibility(moduleName, true);
+        if (el) {
+          el.classList.remove('hidden');
+          el.classList.add('is-visible');
+          el.style.opacity = '1';
+          el.style.visibility = 'visible';
+          el.style.pointerEvents = 'auto';
+        }
+      }
+
+      if (DOM.scannerOverlay) DOM.scannerOverlay.classList.add('hidden');
+      hideScannerDelayedTips();
+      showPostDetectionGuide(moduleName);
+      focusPanel(moduleName);
+      setScanState(SCAN_STATES.PANEL_ACTIVE);
+
+      if (wasHidden) {
+        showToast(`Panel ${modLabel} telah dibuka semula.`);
       } else {
-        // Marker LAIN dikesan semasa panel sedang digunakan -> JANGAN GANTI ATAU TUTUP PANEL SEMASA!
-        console.log(`[MultiPanel] 🛡️ Panel aktif (${Array.from(ARState.activePanels).join(', ')}) dilindungi. Pengesanan marker ${moduleName} diabaikan. Tekan '+ Tambah Imbasan Baharu' untuk menambah modul ini.`);
+        showToast(`Panel ${modLabel} sudah aktif. Paparan telah difokuskan.`);
       }
       return;
     }
 
-    // KES 3: Initial Scan (atau tiada panel aktif) - PULIHKAN ALIRAN MARKER ASAL
+    // KES 3: Jika modul ini belum ada dan panel lain sudah aktif -> Tambah ke ruang kerja spatial
+    if (ARState.activePanels.size > 0) {
+      addPanelToSpatialWorkspace(moduleName, cellType);
+      return;
+    }
+
+    // KES 4: Initial Scan (atau tiada panel aktif) - PULIHKAN ALIRAN MARKER ASAL
     clearTimeout(ARState.lostTimeout);
     ARState.isTracking = true;
     if (moduleName === 'video' && ARState.anchorVideo) ARState.anchor = ARState.anchorVideo;
@@ -3742,6 +3916,54 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
     hideScannerDelayedTips();
     showPostDetectionGuide(moduleName);
+    focusPanel(moduleName);
+  }
+
+  /**
+   * Pengendali Kehilangan Marker (Target Lost)
+   */
+  function handleTargetLost(targetIndex, moduleName) {
+    if (!moduleName) {
+      if (targetIndex === 0) moduleName = 'video';
+      else if (targetIndex === 1) moduleName = 'nota';
+      else if (targetIndex === 2) moduleName = 'kuiz';
+      else if (targetIndex === 3 || targetIndex === 4) moduleName = 'cellquest';
+    }
+    if (ARState.markerCooldown && moduleName) {
+      ARState.markerCooldown[moduleName] = 0;
+    }
+    if (moduleName === 'cellquest' && ARState.markerCooldown) {
+      ARState.markerCooldown['cellquest_animal'] = 0;
+      ARState.markerCooldown['cellquest_plant'] = 0;
+    }
+  }
+
+  /**
+   * Helper: Promosikan panel terapung tunggal (#floating-ar-anchor) ke panel bebas SpatialPanelManager
+   */
+  function promoteFloatingPanelToWorkspace() {
+    ['video', 'nota', 'kuiz'].forEach((m) => {
+      if (ARState.activePanels.has(m) && typeof SpatialPanelManager !== 'undefined' && !SpatialPanelManager.isPanelVisible(m)) {
+        SpatialPanelManager.setPanelVisibility(m, true);
+        const p = SpatialPanelManager.getPanel(m);
+        if (p && p.placementMode !== 'POV_LOCKED') {
+          SpatialPanelManager.setPlacementMode(m, 'SCREEN_PINNED');
+        }
+        if (m === 'video') {
+          if (ARState.activeVideo) syncPOVVideoPlayer(ARState.activeVideo);
+          else renderPOVVideoCardsList();
+        } else if (m === 'nota') {
+          if (ARState.activeNote) syncPOVNoteContent();
+          else renderPOVNoteCardsList();
+        } else if (m === 'kuiz') {
+          if (!ARState.activeQuiz && !GameSessionManager.isGameActive()) renderPOV5GamesCatalog();
+        }
+      }
+    });
+    if (DOM.floatingAnchor) {
+      DOM.floatingAnchor.classList.remove('is-visible');
+      DOM.floatingAnchor.classList.add('hidden');
+    }
   }
 
   /**
@@ -3750,16 +3972,20 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    */
   function addPanelToSpatialWorkspace(moduleName, cellType) {
     console.log(`[MultiPanel] ➕ Menambah modul/panel ${moduleName}${cellType ? ':' + cellType : ''} ke ruang spatial...`);
+    promoteFloatingPanelToWorkspace();
     ARState.activePanels.add(moduleName);
 
     if (moduleName === 'nota') {
       // 1. Jeda audio video secara sopan, sesi iframe kekal utuh
       pauseVideo();
 
-      // 2. Buka panel Nota bebas (#pov-panel-nota)
+      // 2. Buka panel Nota bebas (#pov-panel-nota) dalam mod SCREEN_PINNED secara lalai
       if (typeof SpatialPanelManager !== 'undefined') {
         SpatialPanelManager.setPanelVisibility('nota', true);
-        SpatialPanelManager.setPlacementMode('nota', 'POV_SETUP');
+        const pNota = SpatialPanelManager.getPanel('nota');
+        if (!pNota || pNota.placementMode !== 'POV_LOCKED') {
+          SpatialPanelManager.setPlacementMode('nota', 'SCREEN_PINNED');
+        }
       }
       if (DOM.povPanelNota) {
         DOM.povPanelNota.classList.remove('hidden');
@@ -3771,19 +3997,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         DOM.povPanelNota.style.top = '50%';
         DOM.povPanelNota.style.transform = 'translate(-50%, -50%)';
       }
-      if (DOM.povNotaBtnAnchor) {
-        DOM.povNotaBtnAnchor.classList.remove('is-locked');
-        if (DOM.povNotaAnchorIcon) DOM.povNotaAnchorIcon.textContent = 'my_location';
-        if (DOM.povNotaAnchorText) DOM.povNotaAnchorText.textContent = 'Letak di Arah Ini';
-      }
-      if (DOM.povNotaValStatus) {
-        DOM.povNotaValStatus.textContent = 'Menghalakan';
-        DOM.povNotaValStatus.style.color = '#38bdf8';
-      }
-      if (!ARState.pov.active) {
-        ARState.pov.active = true;
-        setupPOVSensorListeners();
-        startPOVRenderLoop();
+      if (typeof SpatialPanelManager !== 'undefined') {
+        SpatialPanelManager.syncPanelControlUI('nota');
       }
 
       // 3. Paparkan pemilih atau pembaca Nota
@@ -3806,10 +4021,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
       showToast('Panel Nota berjaya ditambah ke ruang AR!');
     } else if (moduleName === 'video') {
-      // Buka panel Video bebas (#pov-panel-video)
+      // Buka panel Video bebas (#pov-panel-video) dalam mod SCREEN_PINNED secara lalai
       if (typeof SpatialPanelManager !== 'undefined') {
         SpatialPanelManager.setPanelVisibility('video', true);
-        SpatialPanelManager.setPlacementMode('video', 'POV_SETUP');
+        const pVid = SpatialPanelManager.getPanel('video');
+        if (!pVid || pVid.placementMode !== 'POV_LOCKED') {
+          SpatialPanelManager.setPlacementMode('video', 'SCREEN_PINNED');
+        }
       }
       if (DOM.povPanelVideo) {
         DOM.povPanelVideo.classList.remove('hidden');
@@ -3821,19 +4039,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         DOM.povPanelVideo.style.top = '50%';
         DOM.povPanelVideo.style.transform = 'translate(-50%, -50%)';
       }
-      if (DOM.povBtnAnchor) {
-        DOM.povBtnAnchor.classList.remove('is-locked');
-        if (DOM.povAnchorIcon) DOM.povAnchorIcon.textContent = 'my_location';
-        if (DOM.povAnchorText) DOM.povAnchorText.textContent = 'Letak di Arah Ini';
-      }
-      if (DOM.povValStatus) {
-        DOM.povValStatus.textContent = 'Menghalakan';
-        DOM.povValStatus.style.color = '#38bdf8';
-      }
-      if (!ARState.pov.active) {
-        ARState.pov.active = true;
-        setupPOVSensorListeners();
-        startPOVRenderLoop();
+      if (typeof SpatialPanelManager !== 'undefined') {
+        SpatialPanelManager.syncPanelControlUI('video');
       }
 
       if (!ARState.activeVideo) {
@@ -3857,10 +4064,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       // 1. Jeda video secara sopan jika sedang bermain
       pauseVideo();
 
-      // 2. Buka panel Kuiz bebas (#pov-panel-kuiz)
+      // 2. Buka panel Kuiz bebas (#pov-panel-kuiz) dalam mod SCREEN_PINNED secara lalai
       if (typeof SpatialPanelManager !== 'undefined') {
         SpatialPanelManager.setPanelVisibility('kuiz', true);
-        SpatialPanelManager.setPlacementMode('kuiz', 'POV_SETUP');
+        const pKuiz = SpatialPanelManager.getPanel('kuiz');
+        if (!pKuiz || pKuiz.placementMode !== 'POV_LOCKED') {
+          SpatialPanelManager.setPlacementMode('kuiz', 'SCREEN_PINNED');
+        }
       }
       if (DOM.povPanelKuiz) {
         DOM.povPanelKuiz.classList.remove('hidden');
@@ -3872,19 +4082,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         DOM.povPanelKuiz.style.top = '50%';
         DOM.povPanelKuiz.style.transform = 'translate(-50%, -50%)';
       }
-      if (DOM.povKuizBtnAnchor) {
-        DOM.povKuizBtnAnchor.classList.remove('is-locked');
-        if (DOM.povKuizAnchorIcon) DOM.povKuizAnchorIcon.textContent = 'my_location';
-        if (DOM.povKuizAnchorText) DOM.povKuizAnchorText.textContent = 'Letak di Arah Ini';
-      }
-      if (DOM.povKuizValStatus) {
-        DOM.povKuizValStatus.textContent = 'Menghalakan';
-        DOM.povKuizValStatus.style.color = '#c084fc';
-      }
-      if (!ARState.pov.active) {
-        ARState.pov.active = true;
-        setupPOVSensorListeners();
-        startPOVRenderLoop();
+      if (typeof SpatialPanelManager !== 'undefined') {
+        SpatialPanelManager.syncPanelControlUI('kuiz');
       }
 
       // 3. Paparkan pemilih Kuiz / katalog 5 permainan
@@ -3935,9 +4134,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     updateMultiPanelUI();
     hideScannerDelayedTips();
     showPostDetectionGuide(moduleName);
-    if (moduleName === 'video' || moduleName === 'nota' || moduleName === 'kuiz') {
-      maybeShowPOVInteractiveGuide();
-    }
+    focusPanel(moduleName);
 
     // Kembali ke mod aktif
     setScanState(SCAN_STATES.PANEL_ACTIVE);
@@ -4028,18 +4225,26 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    */
   function focusPanel(mod) {
     console.log(`[MultiPanel] 🔍 Fokus ke modul: ${mod}`);
-    if (mod === 'video' && DOM.povPanelVideo) {
-      DOM.povPanelVideo.style.zIndex = '2100';
+    ARState.activeModule = mod;
+    if (typeof SpatialPanelManager !== 'undefined') {
+      SpatialPanelManager.setActivePanel(mod);
+    }
+
+    if (mod === 'video') {
+      if (DOM.povPanelVideo) DOM.povPanelVideo.style.zIndex = '2150';
       if (DOM.povPanelNota) DOM.povPanelNota.style.zIndex = '2000';
       if (DOM.povPanelKuiz) DOM.povPanelKuiz.style.zIndex = '2000';
-    } else if (mod === 'nota' && DOM.povPanelNota) {
-      DOM.povPanelNota.style.zIndex = '2100';
+      if (DOM.floatingAnchor) DOM.floatingAnchor.style.zIndex = '2150';
+    } else if (mod === 'nota') {
+      if (DOM.povPanelNota) DOM.povPanelNota.style.zIndex = '2150';
       if (DOM.povPanelVideo) DOM.povPanelVideo.style.zIndex = '2000';
       if (DOM.povPanelKuiz) DOM.povPanelKuiz.style.zIndex = '2000';
-    } else if (mod === 'kuiz' && DOM.povPanelKuiz) {
-      DOM.povPanelKuiz.style.zIndex = '2100';
+      if (DOM.floatingAnchor) DOM.floatingAnchor.style.zIndex = '2150';
+    } else if (mod === 'kuiz') {
+      if (DOM.povPanelKuiz) DOM.povPanelKuiz.style.zIndex = '2150';
       if (DOM.povPanelVideo) DOM.povPanelVideo.style.zIndex = '2000';
       if (DOM.povPanelNota) DOM.povPanelNota.style.zIndex = '2000';
+      if (DOM.floatingAnchor) DOM.floatingAnchor.style.zIndex = '2150';
     } else if (mod === 'cellquest') {
       if (DOM.cellquestArHud) DOM.cellquestArHud.style.zIndex = '2200';
     }
@@ -4083,11 +4288,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
     if (DOM.cellquestArHud) DOM.cellquestArHud.classList.add('hidden');
 
-    // Berikan tempoh bertenang 2.5s agar tidak terus terbuka jika marker masih dalam pandangan kamera
+    // Berikan tempoh bertenang 600ms agar tidak terus terbuka jika marker masih dalam pandangan kamera
     if (!ARState.markerCooldown) ARState.markerCooldown = {};
-    ARState.markerCooldown['cellquest'] = Date.now() + 2500;
-    ARState.markerCooldown['cellquest_animal'] = Date.now() + 2500;
-    ARState.markerCooldown['cellquest_plant'] = Date.now() + 2500;
+    ARState.markerCooldown['cellquest'] = Date.now() + 600;
+    ARState.markerCooldown['cellquest_animal'] = Date.now() + 600;
+    ARState.markerCooldown['cellquest_plant'] = Date.now() + 600;
 
     handlePanelClosed('cellquest');
   }
@@ -4178,7 +4383,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       } else {
         hideNotaPanel();
       }
-      showKuizPanel();
+      if (ARState.systemMode === SYSTEM_MODES.POV_SETUP || ARState.systemMode === SYSTEM_MODES.POV_LOCKED || (typeof SpatialPanelManager !== 'undefined' && SpatialPanelManager.isPanelVisible('kuiz'))) {
+        showKuizPanel();
+      } else {
+        hideKuizPanel();
+      }
 
       // 2. Point active anchor to anchorKuiz
       if (ARState.anchorKuiz) {
@@ -4232,11 +4441,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         CellQuestARController.deactivate();
       }
 
-      // Hide MCQ runner and results views (always display the 5 games catalog!)
-      if (DOM.activeKuizView) DOM.activeKuizView.classList.add('hidden');
-      if (DOM.kuizResultView) DOM.kuizResultView.classList.add('hidden');
-      if (DOM.povActiveKuizView) DOM.povActiveKuizView.classList.add('hidden');
-      if (DOM.povKuizResultView) DOM.povKuizResultView.classList.add('hidden');
+      // Hide MCQ runner and results views (always display the 5 games catalog if no active quiz!)
+      if (!ARState.activeQuiz) {
+        if (DOM.activeKuizView) DOM.activeKuizView.classList.add('hidden');
+        if (DOM.kuizResultView) DOM.kuizResultView.classList.add('hidden');
+        if (DOM.povActiveKuizView) DOM.povActiveKuizView.classList.add('hidden');
+        if (DOM.povKuizResultView) DOM.povKuizResultView.classList.add('hidden');
+      }
 
       // Ensure 5 Original Games are loaded and rendered
       if (!ARState.games || ARState.games.length === 0) {
@@ -4275,7 +4486,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       } else {
         hideKuizPanel();
       }
-      showNotaPanel();
+      if (ARState.systemMode === SYSTEM_MODES.POV_SETUP || ARState.systemMode === SYSTEM_MODES.POV_LOCKED || (typeof SpatialPanelManager !== 'undefined' && SpatialPanelManager.isPanelVisible('nota'))) {
+        showNotaPanel();
+      } else {
+        hideNotaPanel();
+      }
 
       // 2. Point active anchor to anchorNota
       if (ARState.anchorNota) {
@@ -6134,33 +6349,46 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       // 5. Setup / Reset Button States
       ARState.pov.isAnchored = false;
       if (DOM.povBtnAnchor) {
-        DOM.povBtnAnchor.classList.remove('is-locked');
+        DOM.povBtnAnchor.classList.remove('is-locked', 'hidden');
         if (DOM.povAnchorIcon) DOM.povAnchorIcon.textContent = 'my_location';
         if (DOM.povAnchorText) DOM.povAnchorText.textContent = 'Letak di Arah Ini';
       }
+      if (DOM.povNotaBtnAnchor) {
+        DOM.povNotaBtnAnchor.classList.remove('is-locked', 'hidden');
+        if (DOM.povNotaAnchorIcon) DOM.povNotaAnchorIcon.textContent = 'my_location';
+        if (DOM.povNotaAnchorText) DOM.povNotaAnchorText.textContent = 'Letak di Arah Ini';
+      }
+      if (DOM.povKuizBtnAnchor) {
+        DOM.povKuizBtnAnchor.classList.remove('is-locked', 'hidden');
+        if (DOM.povKuizAnchorIcon) DOM.povKuizAnchorIcon.textContent = 'my_location';
+        if (DOM.povKuizAnchorText) DOM.povKuizAnchorText.textContent = 'Letak di Arah Ini';
+      }
       if (DOM.povValStatus) {
-        DOM.povValStatus.textContent = 'Menghalakan';
+        DOM.povValStatus.textContent = 'Halakan peranti ke arah pilihan';
         DOM.povValStatus.style.color = '#38bdf8';
       }
       if (DOM.povNotaValStatus) {
-        DOM.povNotaValStatus.textContent = 'Menghalakan';
+        DOM.povNotaValStatus.textContent = 'Halakan peranti ke arah pilihan';
         DOM.povNotaValStatus.style.color = '#38bdf8';
       }
       if (DOM.povKuizValStatus) {
-        DOM.povKuizValStatus.textContent = 'Menghalakan';
-        DOM.povKuizValStatus.style.color = '#38bdf8';
+        DOM.povKuizValStatus.textContent = 'Halakan peranti ke arah pilihan';
+        DOM.povKuizValStatus.style.color = '#c084fc';
       }
       if (DOM.povStatusBanner) {
         if (DOM.povBannerIcon) DOM.povBannerIcon.textContent = 'sensors';
-        if (DOM.povBannerText) DOM.povBannerText.textContent = 'Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".';
+        if (DOM.povBannerText) DOM.povBannerText.textContent = 'Halakan peranti ke arah pilihan, kemudian tekan "Letak di Arah Ini".';
       }
       if (DOM.povNotaStatusBanner) {
         if (DOM.povNotaBannerIcon) DOM.povNotaBannerIcon.textContent = 'sensors';
-        if (DOM.povNotaBannerText) DOM.povNotaBannerText.textContent = 'Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".';
+        if (DOM.povNotaBannerText) DOM.povNotaBannerText.textContent = 'Halakan peranti ke arah pilihan, kemudian tekan "Letak di Arah Ini".';
       }
       if (DOM.povKuizStatusBanner) {
         if (DOM.povKuizBannerIcon) DOM.povKuizBannerIcon.textContent = 'sensors';
-        if (DOM.povKuizBannerText) DOM.povKuizBannerText.textContent = 'Halakan peranti ke arah sasaran, kemudian tekan "Letak di Arah Ini".';
+        if (DOM.povKuizBannerText) DOM.povKuizBannerText.textContent = 'Halakan peranti ke arah pilihan, kemudian tekan "Letak di Arah Ini".';
+      }
+      if (DOM.floatingPovStatusText) {
+        DOM.floatingPovStatusText.textContent = 'Halakan peranti ke arah pilihan';
       }
       if (DOM.povBannerActions) DOM.povBannerActions.classList.add('hidden');
       if (DOM.povNotaBannerActions) DOM.povNotaBannerActions.classList.add('hidden');
@@ -6635,9 +6863,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.anchorVideo.onTargetLost = () => {
       console.log('[KotakAR] ⏳ Marker Video hilang dari pandangan...');
       clearTimeout(ARState.lostTimeout);
+      if (ARState.markerCooldown) ARState.markerCooldown['video'] = 0;
 
       ARState.lostTimeout = setTimeout(() => {
-        if (ARState.activeModule === 'video') {
+        if (ARState.activeModule === 'video' || ARState.activePanels.has('video')) {
           ARState.isTracking = false;
           console.log('[KotakAR] Marker Video disahkan hilang.');
 
@@ -6645,10 +6874,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
             ARSessionRecoveryManager.setState(ARSessionRecoveryManager.State.SCANNING);
           }
 
+          const pVid = (typeof SpatialPanelManager !== 'undefined') ? SpatialPanelManager.getPanel('video') : null;
+          const isLocked = pVid && pVid.placementMode === 'POV_LOCKED';
+
           // Only hide panel if video is NOT actively playing AND panel is in MARKER mode
-          if (!ARState.activeVideo && !ARState.isPinned && ARState.systemMode === SYSTEM_MODES.MARKER) {
-            if (DOM.floatingAnchor) DOM.floatingAnchor.classList.remove('is-visible');
-            if (DOM.scannerOverlay) DOM.scannerOverlay.classList.remove('hidden');
+          if (!ARState.activeVideo && !ARState.isPinned && ARState.systemMode === SYSTEM_MODES.MARKER && !isLocked) {
+            if (DOM.floatingAnchor && ARState.activePanels.size <= 1) DOM.floatingAnchor.classList.remove('is-visible');
+            if (DOM.scannerOverlay && ARState.activePanels.size <= 1) DOM.scannerOverlay.classList.remove('hidden');
           }
         }
       }, ARState.HYSTERESIS_DELAY);
@@ -6668,9 +6900,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.anchorNota.onTargetLost = () => {
       console.log('[KotakAR] ⏳ Marker Nota hilang dari pandangan...');
       clearTimeout(ARState.lostTimeout);
+      if (ARState.markerCooldown) ARState.markerCooldown['nota'] = 0;
 
       ARState.lostTimeout = setTimeout(() => {
-        if (ARState.activeModule === 'nota') {
+        if (ARState.activeModule === 'nota' || ARState.activePanels.has('nota')) {
           ARState.isTracking = false;
           console.log('[KotakAR] Marker Nota disahkan hilang.');
 
@@ -6678,10 +6911,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
             ARSessionRecoveryManager.setState(ARSessionRecoveryManager.State.SCANNING);
           }
 
+          const pNot = (typeof SpatialPanelManager !== 'undefined') ? SpatialPanelManager.getPanel('nota') : null;
+          const isLocked = pNot && pNot.placementMode === 'POV_LOCKED';
+
           // Only hide panel if note is NOT actively viewed AND panel is in MARKER mode
-          if (!ARState.activeNote && !ARState.isPinned && ARState.systemMode === SYSTEM_MODES.MARKER) {
-            if (DOM.floatingAnchor) DOM.floatingAnchor.classList.remove('is-visible');
-            if (DOM.scannerOverlay) DOM.scannerOverlay.classList.remove('hidden');
+          if (!ARState.activeNote && !ARState.isPinned && ARState.systemMode === SYSTEM_MODES.MARKER && !isLocked) {
+            if (DOM.floatingAnchor && ARState.activePanels.size <= 1) DOM.floatingAnchor.classList.remove('is-visible');
+            if (DOM.scannerOverlay && ARState.activePanels.size <= 1) DOM.scannerOverlay.classList.remove('hidden');
           }
         }
       }, ARState.HYSTERESIS_DELAY);
@@ -6703,9 +6939,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.anchorKuiz.onTargetLost = () => {
       console.log('[KotakAR] ⏳ Marker Kuiz hilang dari pandangan...');
       clearTimeout(ARState.lostTimeout);
+      if (ARState.markerCooldown) ARState.markerCooldown['kuiz'] = 0;
 
       ARState.lostTimeout = setTimeout(() => {
-        if (ARState.activeModule === 'kuiz') {
+        if (ARState.activeModule === 'kuiz' || ARState.activePanels.has('kuiz')) {
           ARState.isTracking = false;
           console.log('[KotakAR] Marker Kuiz disahkan hilang.');
 
@@ -6719,10 +6956,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
             ARSessionRecoveryManager.setState(ARSessionRecoveryManager.State.SCANNING);
           }
 
+          const pKuz = (typeof SpatialPanelManager !== 'undefined') ? SpatialPanelManager.getPanel('kuiz') : null;
+          const isLocked = pKuz && pKuz.placementMode === 'POV_LOCKED';
+
           // Only hide panel if quiz is NOT actively in progress AND panel is in MARKER mode
-          if (!ARState.activeQuiz && !ARState.isPinned && ARState.systemMode === SYSTEM_MODES.MARKER) {
-            if (DOM.floatingAnchor) DOM.floatingAnchor.classList.remove('is-visible');
-            if (DOM.scannerOverlay) DOM.scannerOverlay.classList.remove('hidden');
+          if (!ARState.activeQuiz && !ARState.isPinned && ARState.systemMode === SYSTEM_MODES.MARKER && !isLocked) {
+            if (DOM.floatingAnchor && ARState.activePanels.size <= 1) DOM.floatingAnchor.classList.remove('is-visible');
+            if (DOM.scannerOverlay && ARState.activePanels.size <= 1) DOM.scannerOverlay.classList.remove('hidden');
           }
         }
       }, ARState.HYSTERESIS_DELAY);
@@ -6742,6 +6982,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.anchorCellQuestAnimal.onTargetLost = () => {
       console.log('[KotakAR] ⏳ Marker Sel Haiwan hilang dari sasaran langsung...');
       clearTimeout(ARState.lostTimeout);
+      if (ARState.markerCooldown) {
+        ARState.markerCooldown['cellquest'] = 0;
+        ARState.markerCooldown['cellquest_animal'] = 0;
+      }
 
       ARState.lostTimeout = setTimeout(() => {
         if (ARState.activeModule === 'cellquest' && CellQuestARController.activeCellType === 'animal') {
@@ -6767,6 +7011,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.anchorCellQuestPlant.onTargetLost = () => {
       console.log('[KotakAR] ⏳ Marker Sel Tumbuhan hilang dari sasaran langsung...');
       clearTimeout(ARState.lostTimeout);
+      if (ARState.markerCooldown) {
+        ARState.markerCooldown['cellquest'] = 0;
+        ARState.markerCooldown['cellquest_plant'] = 0;
+      }
 
       ARState.lostTimeout = setTimeout(() => {
         if (ARState.activeModule === 'cellquest' && CellQuestARController.activeCellType === 'plant') {
@@ -6965,7 +7213,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     let minX = bounds.minX;
     let maxX = bounds.maxX;
     if (minX > maxX) {
-      clampedX = window.innerWidth / 2;
+      clampedX = window.innerWidth - bounds.rightSafe - bounds.halfW;
     } else {
       clampedX = Math.max(minX, Math.min(maxX, clampedX));
     }
@@ -7034,7 +7282,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       clampPanelIntoViewport();
     });
 
-    const modLabel = (ARState.activeModule === 'nota') ? 'Nota' : (ARState.activeModule === 'kuiz' ? 'Kuiz' : 'Video');
+    const modLabel = (ARState.activeModule === 'nota') ? 'Nota' : 'Video';
     showToast(`📌 ${modLabel} disematkan ke skrin! Anda boleh seret panel atau ubah saiz.`);
   }
 
@@ -7333,6 +7581,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.povNotaSizeM) DOM.povNotaSizeM.addEventListener('click', () => setPOVPanelSize('medium', 'nota'));
     if (DOM.povNotaSizeL) DOM.povNotaSizeL.addEventListener('click', () => setPOVPanelSize('large', 'nota'));
     if (DOM.povNotaBtnToggleCam) DOM.povNotaBtnToggleCam.addEventListener('click', toggleCameraPower);
+    if (DOM.povNotaBtnStartPOV) {
+      DOM.povNotaBtnStartPOV.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.enterPanelPOVSetup('nota');
+        } else {
+          startPOVMode();
+        }
+      });
+    }
     if (DOM.povNotaBtnAnchor) {
       DOM.povNotaBtnAnchor.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -7358,7 +7616,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         }
       });
     }
-    if (DOM.povNotaBtnBackPinned) DOM.povNotaBtnBackPinned.addEventListener('click', () => exitPOVMode(true));
+    if (DOM.povNotaBtnBackPinned) {
+      DOM.povNotaBtnBackPinned.addEventListener('click', () => {
+        if (typeof SpatialPanelManager !== 'undefined' && ARState.activePanels.size > 1) {
+          SpatialPanelManager.pinPanelToScreen('nota');
+        } else {
+          exitPOVMode(true);
+        }
+      });
+    }
     if (DOM.povNotaBtnClose) {
       DOM.povNotaBtnClose.addEventListener('click', (e) => {
         if (e && e.stopPropagation) e.stopPropagation();
@@ -7374,6 +7640,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.povKuizSizeM) DOM.povKuizSizeM.addEventListener('click', () => setPOVPanelSize('medium', 'kuiz'));
     if (DOM.povKuizSizeL) DOM.povKuizSizeL.addEventListener('click', () => setPOVPanelSize('large', 'kuiz'));
     if (DOM.povKuizBtnToggleCam) DOM.povKuizBtnToggleCam.addEventListener('click', toggleCameraPower);
+    if (DOM.povKuizBtnStartPOV) {
+      DOM.povKuizBtnStartPOV.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.enterPanelPOVSetup('kuiz');
+        } else {
+          startPOVMode();
+        }
+      });
+    }
     if (DOM.povKuizBtnAnchor) {
       DOM.povKuizBtnAnchor.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -7405,7 +7681,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         }
       });
     }
-    if (DOM.povKuizBtnBackPinned) DOM.povKuizBtnBackPinned.addEventListener('click', () => exitPOVMode(true));
+    if (DOM.povKuizBtnBackPinned) {
+      DOM.povKuizBtnBackPinned.addEventListener('click', () => {
+        if (typeof SpatialPanelManager !== 'undefined' && ARState.activePanels.size > 1) {
+          SpatialPanelManager.pinPanelToScreen('kuiz');
+        } else {
+          exitPOVMode(true);
+        }
+      });
+    }
     if (DOM.povKuizBtnClose) {
       DOM.povKuizBtnClose.addEventListener('click', (e) => {
         if (e && e.stopPropagation) e.stopPropagation();
@@ -8100,13 +8384,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     setupPOVSensorListeners();
     startPOVRenderLoop();
 
-    showToast('🧭 Halakan peranti ke arah pilihan dan tekan "Letak di Arah Ini".');
+    showToast('🧭 Halakan iPad ke arah pilihan dan tekan "Letak di Arah Ini".');
   }
 
   function exitPOVMode(switchToPinned = false) {
     if (switchToPinned) {
       setSystemMode(SYSTEM_MODES.SCREEN_PINNED);
-      const modLabel = (ARState.activeModule === 'nota') ? 'Nota' : (ARState.activeModule === 'kuiz' ? 'Kuiz' : 'Video');
+      const modLabel = (ARState.activeModule === 'nota') ? 'Nota' : 'Video';
       showToast(`📌 ${modLabel} disematkan semula ke skrin.`);
     } else {
       setSystemMode(SYSTEM_MODES.MARKER);
@@ -8119,7 +8403,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     showToast('🎯 Panel dikembalikan ke tengah skrin!');
   }
 
-  function anchorPOVAtCurrentHeading(specificPanelId = null) {
+  function anchorPOVAtCurrentHeading() {
+    const specificPanelId = (arguments.length > 0 && typeof arguments[0] === 'string') ? arguments[0] : null;
     if (ARState.systemMode !== SYSTEM_MODES.POV_SETUP && ARState.systemMode !== SYSTEM_MODES.POV_LOCKED) {
       return;
     }
@@ -8212,7 +8497,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (DOM.povKuizBannerText) DOM.povKuizBannerText.textContent = 'Orientasi dikunci! Pusingkan peranti ke kiri/kanan/atas/bawah untuk menguji Pandangan 360°.';
       }
 
-      showToast('🎯 Kunci Pandangan berjaya dikunci pada arah pilihan.');
+      showToast('🎯 Kunci Pandangan berjaya dikunci pada arah pilihan. POV berjaya dikunci pada arah pilihan.');
     } else {
       // Re-anchor (brings back to POV_SETUP so user can re-aim)
       bringPOVPanelToCenter();
@@ -9283,6 +9568,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
 
     // POV Card Controls
+    if (DOM.povBtnStartPOV) {
+      DOM.povBtnStartPOV.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.enterPanelPOVSetup('video');
+        } else {
+          startPOVMode();
+        }
+      });
+    }
     if (DOM.povBtnAnchor) {
       DOM.povBtnAnchor.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -9365,7 +9660,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
     if (DOM.povBtnBackPinned) {
       DOM.povBtnBackPinned.addEventListener('click', () => {
-        exitPOVMode(true);
+        if (typeof SpatialPanelManager !== 'undefined' && ARState.activePanels.size > 1) {
+          SpatialPanelManager.pinPanelToScreen('video');
+        } else {
+          exitPOVMode(true);
+        }
       });
     }
     if (DOM.povBtnClose) {
@@ -10386,6 +10685,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     startAddPanelScan,
     cancelAddPanelScan,
     handleTargetFound,
+    handleTargetLost,
     addPanelToSpatialWorkspace,
     arrangeMultiPanelSpatialLayout,
     updateMultiPanelUI,
@@ -10469,12 +10769,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   global.selectNote = selectNote;
   global.applySimAngles = applySimAngles;
   global.renderSinglePOVFrame = renderSinglePOVFrame;
+  global.startPOVMode = startPOVMode;
+  global.exitPOVMode = exitPOVMode;
   global.anchorPOVAtCurrentHeading = anchorPOVAtCurrentHeading;
   global.bringPOVPanelToCenter = bringPOVPanelToCenter;
   // Fasa 4E-B.2.1 Multi-Panel Global Helpers
   global.startAddPanelScan = startAddPanelScan;
   global.cancelAddPanelScan = cancelAddPanelScan;
   global.handleTargetFound = handleTargetFound;
+  global.handleTargetLost = handleTargetLost;
   global.addPanelToSpatialWorkspace = addPanelToSpatialWorkspace;
   global.arrangeMultiPanelSpatialLayout = arrangeMultiPanelSpatialLayout;
   global.updateMultiPanelUI = updateMultiPanelUI;
