@@ -1556,6 +1556,9 @@
             statusPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200';
             statusText.textContent = 'Kurikulum T1';
           }
+        } else {
+          statusPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200';
+          statusText.textContent = 'Mod Kurikulum';
         }
       } catch (_) {
         statusPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200';

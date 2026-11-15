@@ -657,9 +657,6 @@ Untuk perbualan terbuka tanpa had, guru/pentadbir boleh menetapkan GEMINI_API_KE
     return returnSuccess(`Maaf, saya menghadapi sedikit gangguan sambungan dengan pelayan AI. 
 
 Sila cuba hantar soalan anda sekali lagi atau pilih topik asas seperti "Fungsi nukleus" atau "Perbezaan sel haiwan dan tumbuhan".`, 'fallback', 'standard');
-      model: 'standard'
-    });
-
   } catch (err) {
     if (err.message === 'PAYLOAD_TOO_LARGE') {
       return sendJSON(res, 413, { success: false, error: 'Saiz mesej melebihi had yang dibenarkan.' });
