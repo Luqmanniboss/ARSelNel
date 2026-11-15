@@ -433,11 +433,11 @@ async function runVerification() {
       JSON.stringify(check12to15));
 
     assertCheck(13, 'Panel Nota bermula dalam mod biasa (BUKAN POV Lock secara automatik)',
-      check12to15.notaPlacementMode === 'SCREEN_PINNED' && !check12to15.notaIsLocked,
+      (check12to15.notaPlacementMode === 'MARKER_FOLLOW' || check12to15.notaPlacementMode === 'SCREEN_PINNED') && !check12to15.notaIsLocked,
       `placementMode: ${check12to15.notaPlacementMode}, isLocked: ${check12to15.notaIsLocked}`);
 
-    assertCheck(14, 'Status panel Nota memaparkan "Pandangan Belum Dikunci"',
-      check12to15.notaStatusText.includes('Pandangan Belum Dikunci'),
+    assertCheck(14, 'Status panel Nota memaparkan "Mod Imbasan AR — Panel Mengikuti Kad" atau "Pandangan Belum Dikunci"',
+      (check12to15.notaStatusText.includes('Mod Imbasan AR') || check12to15.notaStatusText.includes('Pandangan Belum Dikunci')),
       `notaStatusText: "${check12to15.notaStatusText}"`);
 
     assertCheck(15, 'Panel Video yang telah dikunci POV KEKAL terkunci (tidak terjejas oleh imbasan Nota)',
@@ -532,8 +532,8 @@ async function runVerification() {
       check19to20.hasKuiz && check19to20.kuizVisible && check19to20.activeCount === 3,
       JSON.stringify(check19to20));
 
-    assertCheck(20, 'Status panel Kuiz memaparkan "Pandangan Belum Dikunci"',
-      check19to20.kuizStatusText.includes('Pandangan Belum Dikunci'),
+    assertCheck(20, 'Status panel Kuiz memaparkan "Mod Imbasan AR — Panel Mengikuti Kad" atau "Pandangan Belum Dikunci"',
+      (check19to20.kuizStatusText.includes('Mod Imbasan AR') || check19to20.kuizStatusText.includes('Pandangan Belum Dikunci')),
       `kuizStatusText: "${check19to20.kuizStatusText}"`);
 
     // Semakan 21: Jawab sebahagian soalan, alihkan kamera, re-scan Kuiz
