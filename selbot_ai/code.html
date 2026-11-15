@@ -1093,6 +1093,10 @@
       scrollToBottom(isUser);
     }
 
+    // Expose helpers for testing & shell integration
+    window.appendMessage = appendMessage;
+    window.loadConversation = loadConversation;
+
     // =========================================================================
     // SUPABASE PERSISTENCE & MULTI-CONVERSATION MANAGEMENT
     // =========================================================================
@@ -1292,7 +1296,7 @@
           loader.remove();
 
           if (!error && Array.isArray(msgs)) {
-            msgs.forEach(m => {
+            msgs.forEach((m, idx) => {
               const isUser = m.role === 'user';
               appendMessage(m.content, isUser, {
                 modelInfo: m.model_info,
@@ -1302,6 +1306,20 @@
                 role: isUser ? 'user' : 'assistant',
                 content: m.content
               });
+
+              // Fasa 4E-G.1.4: Jika soalan lama ini tiada jawapan AI yang direkodkan dalam sesi lalu
+              if (isUser) {
+                const nextMsg = msgs[idx + 1];
+                if (!nextMsg || nextMsg.role === 'user') {
+                  const notice = document.createElement('div');
+                  notice.className = 'flex items-center gap-2 p-2.5 my-1.5 bg-amber-50/80 border border-amber-200/70 rounded-xl text-[11px] text-amber-800 font-medium max-w-[85%]';
+                  notice.innerHTML = `
+                    <span class="material-symbols-outlined text-sm text-amber-600 shrink-0">info</span>
+                    <span>Jawapan bagi soalan ini tidak direkodkan dalam sesi terdahulu. Anda boleh klik <strong>Tindakan Pantas</strong> atau hantar semula soalan untuk berbual lanjut.</span>
+                  `;
+                  messageContainer.appendChild(notice);
+                }
+              }
             });
             scrollToBottom(true);
           }
@@ -1557,6 +1575,30 @@
 
           appendMessage(replyText, false, { modelInfo: modelBadge });
           if (networkStatus) networkStatus.textContent = 'Status: Sedia';
+
+          // Fasa 4E-G.1.4: Dual Persistence Guarantee (Client fallback if server couldn't save to DB)
+          if (supabaseClient && requestUserId && requestUserId !== 'guest' && targetConvId && !data.saved) {
+            try {
+              // Attempt 1: Call RPC function selbot_record_assistant_message
+              const { error: rpcErr } = await supabaseClient.rpc('selbot_record_assistant_message', {
+                p_conversation_id: targetConvId,
+                p_content: replyText,
+                p_model_info: modelBadge
+              });
+              if (rpcErr) {
+                // Attempt 2: Direct insert into selbot_messages
+                await supabaseClient.from('selbot_messages').insert({
+                  conversation_id: targetConvId,
+                  user_id: requestUserId,
+                  role: 'assistant',
+                  content: replyText,
+                  model_info: modelBadge
+                });
+              }
+            } catch (fallbackErr) {
+              console.warn('[SelBot] Fallback assistant save notice:', fallbackErr.message);
+            }
+          }
 
           // Update conversation timestamp locally
           if (targetConvId) {

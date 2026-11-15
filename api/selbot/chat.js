@@ -402,12 +402,13 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Helper: Persist assistant message securely on trusted server path
+    // Helper: Persist assistant message securely on trusted server path (Fasa 4E-G.1.4 Hotfix)
     async function persistAssistantResponse(replyText, modelInfo) {
-      if (!verifiedUser || !conversation_id) return null;
+      if (!verifiedUser || !conversation_id) return { saved: false, message_id: null };
       try {
+        // Attempt 1: If SUPABASE_SERVICE_ROLE_KEY is present, call trusted server RPC
         if (SUPABASE_SERVICE_ROLE_KEY) {
-          const rpcRes = await fetchSupabase('/rest/v1/rpc/selbot_server_append_assistant_message', {
+          const rpcRes = await fetchSupabase('/rest/v1/rpc/selbot_record_assistant_message', {
             method: 'POST',
             headers: {
               Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
@@ -415,40 +416,79 @@ module.exports = async (req, res) => {
             },
             body: {
               p_conversation_id: conversation_id,
-              p_user_id: verifiedUser.id,
               p_content: replyText,
               p_model_info: modelInfo
             }
           });
-          return rpcRes.data?.message_id || null;
-        } else if (userToken) {
-          // Update conversation timestamp
-          await fetchSupabase(`/rest/v1/selbot_conversations?id=eq.${conversation_id}&user_id=eq.${verifiedUser.id}`, {
-            method: 'PATCH',
+          if (rpcRes.status >= 200 && rpcRes.status < 300) {
+            return { saved: true, message_id: rpcRes.data?.message_id || null };
+          }
+        }
+
+        // Attempt 2: Use userToken to execute selbot_record_assistant_message RPC as authenticated user
+        if (userToken) {
+          const rpcRes = await fetchSupabase('/rest/v1/rpc/selbot_record_assistant_message', {
+            method: 'POST',
             headers: {
               Authorization: `Bearer ${userToken}`,
               apikey: SUPABASE_KEY
             },
-            body: { updated_at: new Date().toISOString() }
-          }).catch(() => {});
-          return null;
+            body: {
+              p_conversation_id: conversation_id,
+              p_content: replyText,
+              p_model_info: modelInfo
+            }
+          });
+          if (rpcRes.status >= 200 && rpcRes.status < 300) {
+            return { saved: true, message_id: rpcRes.data?.message_id || null };
+          }
+
+          // Attempt 3: Direct insert into selbot_messages with verified userToken & RLS
+          const insertRes = await fetchSupabase('/rest/v1/selbot_messages', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${userToken}`,
+              apikey: SUPABASE_KEY,
+              Prefer: 'return=representation'
+            },
+            body: {
+              conversation_id: conversation_id,
+              user_id: verifiedUser.id,
+              role: 'assistant',
+              content: replyText,
+              model_info: modelInfo
+            }
+          });
+          if (insertRes.status >= 200 && insertRes.status < 300) {
+            const inserted = Array.isArray(insertRes.data) ? insertRes.data[0] : insertRes.data;
+            // Also update conversation timestamp
+            await fetchSupabase(`/rest/v1/selbot_conversations?id=eq.${conversation_id}&user_id=eq.${verifiedUser.id}`, {
+              method: 'PATCH',
+              headers: { Authorization: `Bearer ${userToken}`, apikey: SUPABASE_KEY },
+              body: { updated_at: new Date().toISOString() }
+            }).catch(() => {});
+            return { saved: true, message_id: inserted?.id || null };
+          }
         }
+
+        return { saved: false, message_id: null };
       } catch (saveErr) {
         console.warn('[SelBot] Server assistant persistence notice:', saveErr.message);
-        return null;
+        return { saved: false, message_id: null, error: saveErr.message };
       }
     }
 
     // Helper: Return success with automatic server persistence
     async function returnSuccess(replyText, provider, model) {
-      const savedMsgId = await persistAssistantResponse(replyText, model);
+      const persistRes = await persistAssistantResponse(replyText, model);
       return sendJSON(res, 200, {
         success: true,
         reply: replyText.trim(),
         provider,
         model,
         conversation_id: conversation_id || null,
-        message_id: savedMsgId || null
+        message_id: persistRes.message_id || null,
+        saved: persistRes.saved || false
       });
     }
 
