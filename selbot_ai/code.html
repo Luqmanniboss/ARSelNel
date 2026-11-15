@@ -320,6 +320,57 @@
     </div>
   </header>
 
+  <!-- SEJARAH PERBUALAN DRAWER & BACKDROP -->
+  <div id="history-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 hidden transition-opacity duration-300"></div>
+  <aside id="history-drawer" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white border-r border-pink-100 shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+    <!-- Drawer Header -->
+    <div class="p-4 border-b border-pink-100 flex items-center justify-between bg-[#fdf2f8]">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-pink-600">forum</span>
+        <h3 class="font-headline text-sm font-extrabold text-slate-800">Sejarah Perbualan</h3>
+      </div>
+      <button id="close-history-btn" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-pink-100/50" aria-label="Tutup Sejarah">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+    
+    <!-- New Chat Button inside drawer -->
+    <div class="p-3 border-b border-pink-50">
+      <button id="drawer-new-chat-btn" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs shadow-xs transition-all active:scale-98">
+        <span class="material-symbols-outlined text-base">add_comment</span>
+        Perbualan Baharu
+      </button>
+    </div>
+    
+    <!-- Search / Filter input -->
+    <div class="px-3 py-2 border-b border-pink-50">
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-slate-400 text-sm">search</span>
+        <input id="history-search-input" type="text" placeholder="Cari perbualan..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-200" />
+      </div>
+    </div>
+
+    <!-- Conversation List Feed -->
+    <div id="conversation-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 chat-scroll-container">
+      <div id="history-loading" class="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+        <span class="w-3 h-3 rounded-full border-2 border-pink-500 border-t-transparent animate-spin"></span>
+        <span>Memuatkan sejarah...</span>
+      </div>
+      <div id="history-empty" class="hidden p-6 text-center text-xs text-slate-400 space-y-2">
+        <span class="material-symbols-outlined text-3xl text-pink-300">chat_bubble_outline</span>
+        <p>Tiada sejarah perbualan lagi.<br>Mulakan soalan sains pertama anda!</p>
+      </div>
+    </div>
+
+    <!-- History Footer -->
+    <div id="history-footer" class="p-3 border-t border-pink-100 bg-slate-50 text-[11px] text-slate-500 flex items-center justify-between">
+      <span id="history-sync-indicator" class="flex items-center gap-1.5 text-emerald-600 font-semibold">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Disimpan di Supabase
+      </span>
+      <span id="history-count" class="text-[10px] text-slate-400 font-bold">0 sesi</span>
+    </div>
+  </aside>
+
   <!-- Main Content Container -->
   <main class="main-container mt-20 sm:mt-24 space-y-3.5">
     
@@ -373,9 +424,19 @@
               <span class="text-[10px] sm:text-[11px] font-semibold text-slate-500">Tutor Pintar Sains Tingkatan 1 KSSM</span>
             </div>
           </div>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <!-- New Conversation Button -->
+            <button id="new-chat-btn" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white transition-all active:scale-95 shadow-xs" title="Perbualan Baharu">
+              <span class="material-symbols-outlined text-base">add</span>
+              <span class="hidden sm:inline">Baharu</span>
+            </button>
+            <!-- Toggle History Button -->
+            <button id="toggle-history-btn" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 transition-all active:scale-95 shadow-xs" title="Sejarah Sembang">
+              <span class="material-symbols-outlined text-base">history</span>
+              <span class="hidden sm:inline">Sejarah</span>
+            </button>
             <!-- Reset Button -->
-            <button id="reset-chat-btn" class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors focus:outline-none" title="Padam Perbualan" aria-label="Padam Perbualan">
+            <button id="reset-chat-btn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors focus:outline-none" title="Kosongkan Paparan Sembang" aria-label="Kosongkan Paparan Sembang">
               <span class="material-symbols-outlined text-lg sm:text-xl">delete_sweep</span>
             </button>
           </div>
@@ -634,20 +695,27 @@
     </div>
   </footer>
 
-  <!-- JavaScript chatbot logic -->
+  <!-- JavaScript chatbot logic with Persistent History, Multi-Conversation & Supabase Auth -->
   <script>
     // State management
     let conversationHistory = [];
     let lastSentMessage = '';
     let isRequestInProgress = false;
+    let currentUser = null;
+    let currentUserId = null;
+    let activeConversationId = null;
+    let conversations = [];
+    let supabaseClient = null;
 
-    // DOM Elements
+    // DOM Elements - Chat
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('send-btn');
     const messageContainer = document.getElementById('message-container');
     const chatFeed = document.getElementById('chat-feed');
     const typingIndicator = document.getElementById('typing-indicator');
     const resetBtn = document.getElementById('reset-chat-btn');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const toggleHistoryBtn = document.getElementById('toggle-history-btn');
     const charCounter = document.getElementById('char-counter');
     const statusPill = document.getElementById('selbot-status-pill');
     const statusText = document.getElementById('selbot-status-text');
@@ -657,7 +725,19 @@
     const mobileMenu = document.getElementById('mobile-menu');
     const hamburgerIcon = document.getElementById('hamburger-icon');
 
-    // Toggle Hamburger Menu for Mobile/Tablet
+    // DOM Elements - History Drawer
+    const historyDrawer = document.getElementById('history-drawer');
+    const historyBackdrop = document.getElementById('history-backdrop');
+    const closeHistoryBtn = document.getElementById('close-history-btn');
+    const drawerNewChatBtn = document.getElementById('drawer-new-chat-btn');
+    const historySearchInput = document.getElementById('history-search-input');
+    const conversationList = document.getElementById('conversation-list');
+    const historyLoading = document.getElementById('history-loading');
+    const historyEmpty = document.getElementById('history-empty');
+    const historyCount = document.getElementById('history-count');
+    const historySyncIndicator = document.getElementById('history-sync-indicator');
+
+    // Toggle Mobile Navigation Menu
     hamburgerBtn?.addEventListener('click', () => {
       const isExpanded = mobileMenu.classList.contains('hidden');
       if (isExpanded) {
@@ -676,7 +756,41 @@
       }
     });
 
-    // Helper: Format current time
+    // Toggle History Drawer
+    function openHistoryDrawer() {
+      if (!historyDrawer || !historyBackdrop) return;
+      historyDrawer.classList.remove('-translate-x-full');
+      historyBackdrop.classList.remove('hidden');
+      renderConversationList(historySearchInput?.value || '');
+    }
+
+    function closeHistoryDrawer() {
+      if (!historyDrawer || !historyBackdrop) return;
+      historyDrawer.classList.add('-translate-x-full');
+      historyBackdrop.classList.add('hidden');
+    }
+
+    toggleHistoryBtn?.addEventListener('click', openHistoryDrawer);
+    closeHistoryBtn?.addEventListener('click', closeHistoryDrawer);
+    historyBackdrop?.addEventListener('click', closeHistoryDrawer);
+
+    // Helper: Format relative timestamp
+    function formatTimeLabel(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '';
+      const now = new Date();
+      const isToday = d.toDateString() === now.toDateString();
+      let hours = d.getHours();
+      const minutes = d.getMinutes();
+      const ampm = hours >= 12 ? 'ptg' : 'pagi';
+      hours = hours % 12 || 12;
+      const strMinutes = minutes < 10 ? '0' + minutes : minutes;
+      const timePart = `${hours}:${strMinutes} ${ampm}`;
+      if (isToday) return `Hari ini, ${timePart}`;
+      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+    }
+
     function getCurrentTime() {
       const now = new Date();
       let hours = now.getHours();
@@ -687,7 +801,6 @@
       return `${hours}:${strMinutes} ${ampm}`;
     }
 
-    // Set welcome time
     const welcomeTimeEl = document.getElementById('welcome-time');
     if (welcomeTimeEl) welcomeTimeEl.textContent = getCurrentTime();
 
@@ -706,21 +819,11 @@
     function formatEducationalReply(text) {
       if (!text) return '';
       let safe = escapeHTML(text);
-
-      // Bold text **bold**
       safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
-      // Italic text *italic*
       safe = safe.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
-
-      // Convert bullet lines
       safe = safe.replace(/(?:^|\n)[•*-]\s+(.+)/g, '<li class="ml-4 list-disc text-slate-700">$1</li>');
-
-      // Convert numbered lines
       safe = safe.replace(/(?:^|\n)(\d+)\.\s+(.+)/g, '<li class="ml-4 list-decimal text-slate-700"><span class="font-bold text-pink-700">$1.</span> $2</li>');
-
-      // Replace double linebreaks with paragraphs, single linebreaks with <br>
       safe = safe.replace(/\n\n/g, '<div class="h-2"></div>').replace(/\n/g, '<br>');
-
       return safe;
     }
 
@@ -750,10 +853,10 @@
 
     input.addEventListener('input', updateInputState);
 
-    // Smart Auto-scroll: only scrolls down if user is already near bottom or if forced (e.g. sending a message)
+    // Smart Auto-scroll
     function scrollToBottom(force = false) {
       if (!chatFeed) return;
-      const threshold = 140; // px tolerance
+      const threshold = 140;
       const isNearBottom = chatFeed.scrollHeight - chatFeed.scrollTop - chatFeed.clientHeight <= threshold;
       if (force || isNearBottom) {
         requestAnimationFrame(() => {
@@ -807,11 +910,11 @@
 
     // Append visual message bubble
     function appendMessage(text, isUser = true, options = {}) {
-      const { visualCardHtml = '', isError = false, modelInfo = '' } = options;
+      const { visualCardHtml = '', isError = false, modelInfo = '', timestamp = null } = options;
       const wrapper = document.createElement('div');
-      wrapper.className = isUser ? 'flex justify-end' : 'flex items-start gap-3 max-w-[90%]';
+      wrapper.className = isUser ? 'flex justify-end' : 'flex items-start gap-3 max-w-[92%] sm:max-w-[85%]';
       
-      const timeStr = getCurrentTime();
+      const timeStr = timestamp ? formatTimeLabel(timestamp) : getCurrentTime();
 
       if (isUser) {
         wrapper.innerHTML = `
@@ -838,7 +941,6 @@
             </div>
           </div>
         `;
-        // Attach retry listener
         const retryBtn = wrapper.querySelector('.retry-btn');
         if (retryBtn) {
           retryBtn.addEventListener('click', () => {
@@ -855,7 +957,7 @@
 
         wrapper.innerHTML = `
           <img src="../assets/selbot/selbot-avatar.svg" class="w-8 h-8 object-contain shrink-0 mt-0.5" alt="SelBot Avatar" />
-          <div class="bg-[#fdf2f8] border border-[#fbcfe8] p-4 rounded-[1.25rem] rounded-tl-none text-left w-full shadow-sm">
+          <div class="bg-[#fdf2f8] border border-[#fbcfe8] p-3.5 sm:p-4 rounded-[1.25rem] rounded-tl-none text-left w-full shadow-sm">
             <div class="font-body text-xs sm:text-sm text-slate-800 leading-relaxed">${formatted}</div>
             ${visualBadge}
             <div class="flex items-center justify-between mt-3 pt-2 border-t border-pink-200/60">
@@ -875,7 +977,330 @@
       scrollToBottom(isUser);
     }
 
-    // Submit question to real SelBot API
+    // =========================================================================
+    // SUPABASE PERSISTENCE & MULTI-CONVERSATION MANAGEMENT
+    // =========================================================================
+
+    // Render conversations in drawer
+    function renderConversationList(filterQuery = '') {
+      if (!conversationList) return;
+      conversationList.innerHTML = '';
+
+      const query = (filterQuery || '').toLowerCase().trim();
+      const filtered = query
+        ? conversations.filter(c => (c.title || '').toLowerCase().includes(query))
+        : conversations;
+
+      if (historyCount) {
+        historyCount.textContent = `${conversations.length} sesi`;
+      }
+
+      if (filtered.length === 0) {
+        if (historyEmpty) {
+          historyEmpty.classList.remove('hidden');
+          conversationList.appendChild(historyEmpty);
+        }
+        return;
+      }
+
+      filtered.forEach(c => {
+        const isActive = c.id === activeConversationId;
+        const item = document.createElement('div');
+        item.className = `group flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${
+          isActive 
+            ? 'bg-pink-50/90 border-pink-300 text-pink-900 shadow-xs' 
+            : 'bg-white border-slate-100 hover:border-pink-200 hover:bg-pink-50/40 text-slate-700'
+        }`;
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <span class="material-symbols-outlined text-base ${isActive ? 'text-pink-600' : 'text-slate-400 group-hover:text-pink-500'} shrink-0">
+              ${isActive ? 'chat' : 'chat_bubble_outline'}
+            </span>
+            <div class="min-w-0 flex-1 text-left">
+              <div class="text-xs font-bold truncate ${isActive ? 'text-pink-900' : 'text-slate-800'}">${escapeHTML(c.title || 'Perbualan')}</div>
+              <div class="text-[10px] text-slate-400 font-medium">${formatTimeLabel(c.updated_at || c.created_at)}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 opacity-80 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-1">
+            <button class="rename-conv-btn w-6 h-6 rounded-md hover:bg-pink-100 text-slate-400 hover:text-pink-700 flex items-center justify-center" title="Namakan Semula" data-id="${c.id}">
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </button>
+            <button class="delete-conv-btn w-6 h-6 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center" title="Padam Perbualan" data-id="${c.id}">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+        `;
+
+        // Click on item selects conversation
+        item.addEventListener('click', (e) => {
+          if (e.target.closest('.rename-conv-btn') || e.target.closest('.delete-conv-btn')) return;
+          loadConversation(c.id);
+          closeHistoryDrawer();
+        });
+
+        // Rename button
+        const renameBtn = item.querySelector('.rename-conv-btn');
+        renameBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          renameConversation(c.id, c.title);
+        });
+
+        // Delete button
+        const delBtn = item.querySelector('.delete-conv-btn');
+        delBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteConversation(c.id);
+        });
+
+        conversationList.appendChild(item);
+      });
+    }
+
+    // Filter search listener
+    historySearchInput?.addEventListener('input', (e) => {
+      renderConversationList(e.target.value);
+    });
+
+    // Start New Conversation
+    function startNewConversation() {
+      activeConversationId = null;
+      conversationHistory = [];
+      lastSentMessage = '';
+      if (currentUserId) {
+        sessionStorage.removeItem(`arselnel_active_conv_${currentUserId}`);
+      }
+      messageContainer.innerHTML = '';
+      renderConversationList();
+      closeHistoryDrawer();
+      if (networkStatus) networkStatus.textContent = 'Status: Sedia';
+      input?.focus();
+    }
+
+    newChatBtn?.addEventListener('click', startNewConversation);
+    drawerNewChatBtn?.addEventListener('click', startNewConversation);
+
+    // Rename Conversation
+    async function renameConversation(convId, currentTitle) {
+      const newTitle = prompt('Masukkan tajuk baharu untuk perbualan ini:', currentTitle || '');
+      if (!newTitle || !newTitle.trim() || newTitle.trim() === currentTitle) return;
+
+      const cleanTitle = newTitle.trim().slice(0, 50);
+
+      // Update in Supabase
+      if (supabaseClient && currentUserId) {
+        try {
+          const { error } = await supabaseClient
+            .from('selbot_conversations')
+            .update({ title: cleanTitle, updated_at: new Date().toISOString() })
+            .eq('id', convId)
+            .eq('user_id', currentUserId);
+
+          if (error) throw error;
+        } catch (err) {
+          console.warn('[SelBot] Rename notice:', err.message);
+        }
+      }
+
+      // Update local state
+      const target = conversations.find(c => c.id === convId);
+      if (target) {
+        target.title = cleanTitle;
+        target.updated_at = new Date().toISOString();
+        renderConversationList(historySearchInput?.value || '');
+      }
+    }
+
+    // Delete Conversation
+    async function deleteConversation(convId) {
+      if (!confirm('Adakah anda pasti mahu memadam perbualan ini? Semua mesej di dalamnya akan dipadamkan.')) {
+        return;
+      }
+
+      // Delete from Supabase
+      if (supabaseClient && currentUserId) {
+        try {
+          const { error } = await supabaseClient
+            .from('selbot_conversations')
+            .delete()
+            .eq('id', convId)
+            .eq('user_id', currentUserId);
+
+          if (error) throw error;
+        } catch (err) {
+          console.warn('[SelBot] Delete notice:', err.message);
+        }
+      }
+
+      // Remove from local list
+      conversations = conversations.filter(c => c.id !== convId);
+      
+      // If deleted conversation was active, reset to new
+      if (activeConversationId === convId) {
+        startNewConversation();
+      } else {
+        renderConversationList(historySearchInput?.value || '');
+      }
+    }
+
+    // Load messages of a specific conversation
+    async function loadConversation(convId) {
+      if (!convId) return;
+      activeConversationId = convId;
+      if (currentUserId) {
+        sessionStorage.setItem(`arselnel_active_conv_${currentUserId}`, convId);
+      }
+
+      messageContainer.innerHTML = '';
+      conversationHistory = [];
+
+      // Loading indicator in chat feed
+      const loader = document.createElement('div');
+      loader.id = 'chat-loading-spinner';
+      loader.className = 'py-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2';
+      loader.innerHTML = `
+        <span class="w-3.5 h-3.5 rounded-full border-2 border-pink-500 border-t-transparent animate-spin"></span>
+        <span>Memuatkan rekod perbualan...</span>
+      `;
+      messageContainer.appendChild(loader);
+
+      if (supabaseClient && currentUserId) {
+        try {
+          const { data: msgs, error } = await supabaseClient
+            .from('selbot_messages')
+            .select('*')
+            .eq('conversation_id', convId)
+            .eq('user_id', currentUserId)
+            .order('created_at', { ascending: true });
+
+          loader.remove();
+
+          if (!error && Array.isArray(msgs)) {
+            msgs.forEach(m => {
+              const isUser = m.role === 'user';
+              appendMessage(m.content, isUser, {
+                modelInfo: m.model_info,
+                timestamp: m.created_at
+              });
+              conversationHistory.push({
+                role: isUser ? 'user' : 'assistant',
+                content: m.content
+              });
+            });
+            scrollToBottom(true);
+          }
+        } catch (err) {
+          loader.remove();
+          console.warn('[SelBot] Load messages notice:', err.message);
+        }
+      } else {
+        loader.remove();
+      }
+
+      renderConversationList(historySearchInput?.value || '');
+    }
+
+    // Load all conversations for authenticated user
+    async function fetchUserConversations() {
+      if (!supabaseClient || !currentUserId) return;
+      if (historyLoading) historyLoading.classList.remove('hidden');
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('selbot_conversations')
+          .select('*')
+          .eq('user_id', currentUserId)
+          .order('updated_at', { ascending: false });
+
+        if (historyLoading) historyLoading.classList.add('hidden');
+
+        if (!error && Array.isArray(data)) {
+          conversations = data;
+          renderConversationList();
+
+          // Restore previously active conversation or latest
+          const savedActiveId = sessionStorage.getItem(`arselnel_active_conv_${currentUserId}`);
+          const targetId = savedActiveId && conversations.some(c => c.id === savedActiveId)
+            ? savedActiveId
+            : (conversations[0]?.id || null);
+
+          if (targetId) {
+            loadConversation(targetId);
+          }
+        } else {
+          conversations = [];
+          renderConversationList();
+        }
+      } catch (err) {
+        if (historyLoading) historyLoading.classList.add('hidden');
+        console.warn('[SelBot] fetchUserConversations notice:', err.message);
+      }
+    }
+
+    // Initialize Supabase Auth & Session
+    async function initAuthAndHistory() {
+      try {
+        if (window.ARSupabase && typeof window.ARSupabase.getClient === 'function') {
+          supabaseClient = await window.ARSupabase.getClient();
+        } else if (window.supabase) {
+          supabaseClient = window.supabase;
+        }
+
+        if (supabaseClient && supabaseClient.auth) {
+          const { data } = await supabaseClient.auth.getUser();
+          if (data && data.user) {
+            currentUser = data.user;
+            currentUserId = data.user.id;
+            if (historySyncIndicator) {
+              historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Disegerakkan ke Awan';
+            }
+            await fetchUserConversations();
+          } else if (window.AuthGuard && window.AuthGuard.isGuest()) {
+            // Guest mode
+            currentUserId = 'guest';
+            if (historySyncIndicator) {
+              historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Mod Tetamu (Sesi Semasa)';
+            }
+            if (historyLoading) historyLoading.classList.add('hidden');
+            renderConversationList();
+          }
+
+          // Listen for Auth State Changes (Login / Logout / Switch Account)
+          supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_OUT') {
+              currentUser = null;
+              currentUserId = null;
+              activeConversationId = null;
+              conversations = [];
+              conversationHistory = [];
+              messageContainer.innerHTML = '';
+              renderConversationList();
+              if (historySyncIndicator) {
+                historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Luar Talian';
+              }
+            } else if (event === 'SIGNED_IN' && session?.user) {
+              const newUserId = session.user.id;
+              if (newUserId !== currentUserId) {
+                currentUser = session.user;
+                currentUserId = newUserId;
+                activeConversationId = null;
+                conversations = [];
+                conversationHistory = [];
+                messageContainer.innerHTML = '';
+                await fetchUserConversations();
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('[SelBot] initAuthAndHistory notice:', e);
+      }
+    }
+
+    // =========================================================================
+    // SUBMIT QUESTION HANDLER
+    // =========================================================================
+
     async function submitQuestion(val) {
       if (!val || isRequestInProgress) return;
       const cleanVal = val.trim();
@@ -901,7 +1326,11 @@
         }
       }
 
-      // 1. Add student message to UI
+      // Capture request identity at start to guard against race conditions / session switch
+      const requestUserId = currentUserId;
+      let targetConvId = activeConversationId;
+
+      // 1. Add student message to UI immediately
       appendMessage(cleanVal, true);
       
       // Clear input and lock UI
@@ -915,17 +1344,68 @@
       scrollToBottom(true);
       if (networkStatus) networkStatus.textContent = 'Status: Sedang memproses...';
 
+      // 3. Create conversation in Supabase if this is a fresh conversation
+      if (supabaseClient && requestUserId && requestUserId !== 'guest' && !targetConvId) {
+        try {
+          const autoTitle = cleanVal.length > 36 ? cleanVal.slice(0, 36) + '...' : cleanVal;
+          const { data: newConv, error: newConvErr } = await supabaseClient
+            .from('selbot_conversations')
+            .insert({ user_id: requestUserId, title: autoTitle })
+            .select()
+            .single();
+
+          if (!newConvErr && newConv) {
+            targetConvId = newConv.id;
+            activeConversationId = newConv.id;
+            sessionStorage.setItem(`arselnel_active_conv_${requestUserId}`, activeConversationId);
+            conversations.unshift(newConv);
+            renderConversationList(historySearchInput?.value || '');
+          }
+        } catch (convErr) {
+          console.warn('[SelBot] Create conv notice:', convErr.message);
+        }
+      }
+
+      // 4. Save user message to Supabase
+      if (supabaseClient && requestUserId && requestUserId !== 'guest' && targetConvId) {
+        try {
+          await supabaseClient
+            .from('selbot_messages')
+            .insert({
+              conversation_id: targetConvId,
+              user_id: requestUserId,
+              role: 'user',
+              content: cleanVal
+            });
+        } catch (msgErr) {
+          console.warn('[SelBot] Save user msg notice:', msgErr.message);
+        }
+      }
+
+      // 5. Get current JWT token
+      let userToken = '';
+      if (supabaseClient?.auth) {
+        try {
+          const { data: sessionData } = await supabaseClient.auth.getSession();
+          userToken = sessionData?.session?.access_token || '';
+        } catch (_) {}
+      }
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (userToken) {
+          headers['Authorization'] = `Bearer ${userToken}`;
+        }
+
         const response = await fetch('/api/selbot/chat', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers,
           body: JSON.stringify({
             message: cleanVal,
+            conversation_id: targetConvId || undefined,
             history: conversationHistory
           }),
           signal: controller.signal
@@ -938,6 +1418,12 @@
         typingIndicator.classList.add('hidden');
         isRequestInProgress = false;
         updateInputState();
+
+        // Guard against asynchronous race condition (user logged out or switched while request was in-flight)
+        if (currentUserId !== requestUserId) {
+          console.warn('[SelBot] User switched accounts during response, discarding render.');
+          return;
+        }
 
         if (response.ok && data.success) {
           const replyText = data.reply || 'Maaf, saya tidak menerima respons yang lengkap.';
@@ -955,6 +1441,15 @@
 
           appendMessage(replyText, false, { modelInfo: modelBadge });
           if (networkStatus) networkStatus.textContent = 'Status: Sedia';
+
+          // Update conversation timestamp locally
+          if (targetConvId) {
+            const currentC = conversations.find(c => c.id === targetConvId);
+            if (currentC) {
+              currentC.updated_at = new Date().toISOString();
+              renderConversationList(historySearchInput?.value || '');
+            }
+          }
         } else {
           const errMsg = data.error || `Ralat pelayan (${response.status}). Sila cuba lagi sebentar lagi.`;
           appendMessage(errMsg, false, { isError: true });
@@ -999,13 +1494,12 @@
       });
     });
 
-    // Quick Actions Click Handlers (LANGKAH 5B)
+    // Quick Actions Click Handlers
     document.querySelectorAll('.quick-action-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const action = btn.getAttribute('data-action');
         let promptText = '';
 
-        // If there's recent history, tailor action to the last topic
         const lastUserTurn = [...conversationHistory].reverse().find(h => h.role === 'user');
         const topicContext = lastUserTurn ? `berkaitan soalan "${lastUserTurn.content.slice(0, 60)}..."` : 'tentang sel Sains Tingkatan 1';
 
@@ -1033,9 +1527,9 @@
       });
     });
 
-    // Clear dialog history button
+    // Clear current chat display button
     resetBtn.addEventListener('click', () => {
-      if (confirm('Padam semua sejarah sembang dengan SelBot untuk sesi ini?')) {
+      if (confirm('Kosongkan paparan sembang untuk sesi semasa?')) {
         messageContainer.innerHTML = '';
         conversationHistory = [];
         lastSentMessage = '';
@@ -1069,6 +1563,9 @@
       }
     }
     checkApiStatus();
+
+    // Initialize Auth & History on page ready
+    initAuthAndHistory();
 
     // Scroll effect for header shadow
     window.addEventListener('scroll', () => {

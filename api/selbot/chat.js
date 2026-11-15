@@ -6,6 +6,8 @@
  * Zero-dependency: Built with native fetch and strict security guards.
  */
 
+const https = require('https');
+
 // Universal response helper compatible with both Express/Vercel (res.status.json)
 // and native Node.js http.ServerResponse (res.writeHead/res.end)
 function sendJSON(res, statusCode, data) {
@@ -19,6 +21,51 @@ function sendJSON(res, statusCode, data) {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   });
   res.end(JSON.stringify(data));
+}
+
+// Supabase Configuration
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxjhlbudsiojpvzwqwva.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_XDyfEuHJHOSZdefeu1k3Og_kWXMzM0U';
+const SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
+
+function fetchSupabase(endpoint, options = {}) {
+  return new Promise((resolve, reject) => {
+    try {
+      const fullUrl = `${SUPABASE_URL}${endpoint}`;
+      const parsed = new URL(fullUrl);
+      const reqOptions = {
+        hostname: parsed.hostname,
+        port: 443,
+        path: parsed.pathname + parsed.search,
+        method: options.method || 'GET',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        }
+      };
+
+      const req = https.request(reqOptions, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const json = data ? JSON.parse(data) : null;
+            resolve({ status: res.statusCode, data: json });
+          } catch (_) {
+            resolve({ status: res.statusCode, data });
+          }
+        });
+      });
+
+      req.on('error', reject);
+      if (options.body) req.write(typeof options.body === 'string' ? options.body : JSON.stringify(options.body));
+      req.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
 // In-memory sliding rate limiter (20 requests per minute per IP)
@@ -285,7 +332,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    const { message, history = [] } = body || {};
+    const { message, conversation_id, history = [], message_id } = body || {};
 
     if (!message || typeof message !== 'string' || !message.trim()) {
       return sendJSON(res, 400, {
@@ -301,6 +348,107 @@ module.exports = async (req, res) => {
       return sendJSON(res, 400, {
         success: false,
         error: 'Soalan terlalu panjang (maksimum 500 aksara dibenarkan). Sila ringkaskan soalan anda.'
+      });
+    }
+
+    // Security: Verify user identity via Supabase Auth JWT if authorization header is provided
+    let verifiedUser = null;
+    let userToken = null;
+    const authHeader = req.headers['authorization'] || '';
+    if (authHeader) {
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      if (token) {
+        try {
+          const authRes = await fetchSupabase('/auth/v1/user', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (authRes.status === 200 && authRes.data && authRes.data.id) {
+            verifiedUser = authRes.data;
+            userToken = token;
+          } else {
+            return sendJSON(res, 401, {
+              success: false,
+              error: 'Sesi log masuk tidak sah atau telah luput. Sila log masuk semula.'
+            });
+          }
+        } catch (authErr) {
+          console.warn('[SelBot] Auth verification notice:', authErr.message);
+        }
+      }
+    }
+
+    // Security: Verify conversation ownership if conversation_id is supplied
+    if (verifiedUser && conversation_id) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(conversation_id)) {
+        return sendJSON(res, 400, { success: false, error: 'ID perbualan tidak sah.' });
+      }
+
+      try {
+        const convRes = await fetchSupabase(`/rest/v1/selbot_conversations?id=eq.${conversation_id}&user_id=eq.${verifiedUser.id}&select=id`, {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+            apikey: SUPABASE_KEY
+          }
+        });
+        if (convRes.status === 200 && Array.isArray(convRes.data) && convRes.data.length === 0) {
+          return sendJSON(res, 403, {
+            success: false,
+            error: 'Akses ditolak: Anda tidak memiliki perbualan ini.'
+          });
+        }
+      } catch (convErr) {
+        console.warn('[SelBot] Conversation check notice:', convErr.message);
+      }
+    }
+
+    // Helper: Persist assistant message securely on trusted server path
+    async function persistAssistantResponse(replyText, modelInfo) {
+      if (!verifiedUser || !conversation_id) return null;
+      try {
+        if (SUPABASE_SERVICE_ROLE_KEY) {
+          const rpcRes = await fetchSupabase('/rest/v1/rpc/selbot_server_append_assistant_message', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              apikey: SUPABASE_SERVICE_ROLE_KEY
+            },
+            body: {
+              p_conversation_id: conversation_id,
+              p_user_id: verifiedUser.id,
+              p_content: replyText,
+              p_model_info: modelInfo
+            }
+          });
+          return rpcRes.data?.message_id || null;
+        } else if (userToken) {
+          // Update conversation timestamp
+          await fetchSupabase(`/rest/v1/selbot_conversations?id=eq.${conversation_id}&user_id=eq.${verifiedUser.id}`, {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${userToken}`,
+              apikey: SUPABASE_KEY
+            },
+            body: { updated_at: new Date().toISOString() }
+          }).catch(() => {});
+          return null;
+        }
+      } catch (saveErr) {
+        console.warn('[SelBot] Server assistant persistence notice:', saveErr.message);
+        return null;
+      }
+    }
+
+    // Helper: Return success with automatic server persistence
+    async function returnSuccess(replyText, provider, model) {
+      const savedMsgId = await persistAssistantResponse(replyText, model);
+      return sendJSON(res, 200, {
+        success: true,
+        reply: replyText.trim(),
+        provider,
+        model,
+        conversation_id: conversation_id || null,
+        message_id: savedMsgId || null
       });
     }
 
@@ -391,12 +539,7 @@ module.exports = async (req, res) => {
         clearTimeout(timeoutId);
 
         if (replyText) {
-          return sendJSON(res, 200, {
-            success: true,
-            reply: replyText,
-            provider: 'google-gemini',
-            model: successfulModel
-          });
+          return returnSuccess(replyText, 'google-gemini', successfulModel);
         }
       } catch (geminiErr) {
         console.warn('[SelBot] Gemini API call error:', geminiErr.message);
@@ -439,12 +582,7 @@ module.exports = async (req, res) => {
           const data = await openAiRes.json();
           const replyText = data.choices?.[0]?.message?.content;
           if (replyText) {
-            return sendJSON(res, 200, {
-              success: true,
-              reply: replyText.trim(),
-              provider: 'openai',
-              model: 'gpt-4o-mini'
-            });
+            return returnSuccess(replyText, 'openai', 'gpt-4o-mini');
           }
         }
       } catch (openAiErr) {
@@ -488,12 +626,7 @@ module.exports = async (req, res) => {
           const data = await groqRes.json();
           const replyText = data.choices?.[0]?.message?.content;
           if (replyText) {
-            return sendJSON(res, 200, {
-              success: true,
-              reply: replyText.trim(),
-              provider: 'groq',
-              model: 'llama-3.3-70b-versatile'
-            });
+            return returnSuccess(replyText, 'groq', 'llama-3.3-70b-versatile');
           }
         }
       } catch (groqErr) {
@@ -504,20 +637,12 @@ module.exports = async (req, res) => {
     // CASE 4: Curriculum Fallback Knowledge Base (When API key not configured or offline)
     const curriculumAnswer = findCurriculumAnswer(cleanMessage);
     if (curriculumAnswer) {
-      return sendJSON(res, 200, {
-        success: true,
-        reply: curriculumAnswer,
-        provider: 'selbot-curriculum-base',
-        model: 'kssm-sains-t1',
-        isOfflineCurriculum: true
-      });
+      return returnSuccess(curriculumAnswer, 'selbot-curriculum-base', 'kssm-sains-t1');
     }
 
     // If no key configured and no curriculum match:
     if (!geminiKey && !openaiKey && !groqKey) {
-      return sendJSON(res, 200, {
-        success: true,
-        reply: `Hai! Saya SelBot, tutor Sains Tingkatan 1 anda.
+      return returnSuccess(`Hai! Saya SelBot, tutor Sains Tingkatan 1 anda.
 
 Pada masa ini, modul AI beroperasi dalam Mod Asas Sains Kurikulum. Anda boleh bertanyakan tentang:
 • Fungsi nukleus, mitokondria, kloroplas, membran plasma, atau dinding sel
@@ -525,21 +650,13 @@ Pada masa ini, modul AI beroperasi dalam Mod Asas Sains Kurikulum. Anda boleh be
 • Organisma unisel vs multisel
 • Organisasi sel (Sel → Tisu → Organ → Sistem → Organisma)
 
-Untuk perbualan terbuka tanpa had, guru/pentadbir boleh menetapkan GEMINI_API_KEY dalam fail konfigurasi pelayan.`,
-        provider: 'selbot-curriculum-base',
-        model: 'kssm-sains-t1',
-        isOfflineCurriculum: true,
-        unconfigured: true
-      });
+Untuk perbualan terbuka tanpa had, guru/pentadbir boleh menetapkan GEMINI_API_KEY dalam fail konfigurasi pelayan.`, 'selbot-curriculum-base', 'kssm-sains-t1');
     }
 
     // Generic fallback if provider failed
-    return sendJSON(res, 200, {
-      success: true,
-      reply: `Maaf, saya menghadapi sedikit gangguan sambungan dengan pelayan AI. 
+    return returnSuccess(`Maaf, saya menghadapi sedikit gangguan sambungan dengan pelayan AI. 
 
-Sila cuba hantar soalan anda sekali lagi atau pilih topik asas seperti "Fungsi nukleus" atau "Perbezaan sel haiwan dan tumbuhan".`,
-      provider: 'fallback',
+Sila cuba hantar soalan anda sekali lagi atau pilih topik asas seperti "Fungsi nukleus" atau "Perbezaan sel haiwan dan tumbuhan".`, 'fallback', 'standard');
       model: 'standard'
     });
 
