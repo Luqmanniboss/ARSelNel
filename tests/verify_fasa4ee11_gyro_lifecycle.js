@@ -168,7 +168,7 @@ async function waitForJelajah3DReady(client, maxAttempts = 45) {
     '--use-fake-device-for-media-stream',
     '--use-fake-ui-for-media-stream',
     '--autoplay-policy=no-user-gesture-required',
-    KOTAK_URL
+    'about:blank'
   ]);
 
   let client;
@@ -186,6 +186,10 @@ async function waitForJelajah3DReady(client, maxAttempts = 45) {
 
     client = new CDPClient(pageTarget.webSocketDebuggerUrl);
     await client.init();
+  await client.send('Page.addScriptToEvaluateOnNewDocument', {
+    source: "try { localStorage.setItem('arselnel_kotak_onboarding_v1', 'completed'); } catch (e) {}"
+  });
+    await client.send('Page.navigate', { url: KOTAK_URL });
 
     // 1. Kotak ready + launch button exists
     const kotakOk = await waitForKotakReady(client, 50);

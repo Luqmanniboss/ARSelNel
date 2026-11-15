@@ -1061,9 +1061,157 @@
   };
 
   let isRenderLoopActive = false;
+  let isPreviewLoopActive = false;
   let modALifecycleBound = false;
   let diagnosticsVisible = false;
   let diagnosticsPanelEl = null;
+
+  // Fasa 4E-E.3.1: Pengawasan Diagnostik & Mod Pengasingan Pasif (Zero-Impact kepada pengguna biasa)
+  const diagUrlParams = (() => {
+    try { return new URLSearchParams(window.location.search || ''); } catch (_) { return new URLSearchParams(''); }
+  })();
+  const diagIsolationMode = (() => {
+    const raw = (diagUrlParams.get('diag_isolation') || '').trim().toUpperCase();
+    return ['A', 'B', 'C', 'D', 'E'].includes(raw) ? raw : null;
+  })();
+  const isCrashDiagPanelRequested = diagUrlParams.get('diag') === '1' || diagIsolationMode !== null;
+
+  const crashDiagState = {
+    startedAt: Date.now(),
+    isolationMode: diagIsolationMode,
+    jsErrors: [],
+    unhandledRejections: [],
+    webglEvents: {
+      mainLost: 0,
+      mainRestored: 0,
+      previewLost: 0,
+      previewRestored: 0
+    },
+    lastEvents: []
+  };
+
+  function recordDiagEvent(type, detail = {}) {
+    const entry = {
+      tMs: Date.now() - crashDiagState.startedAt,
+      type,
+      detail
+    };
+    crashDiagState.lastEvents.push(entry);
+    if (crashDiagState.lastEvents.length > 25) {
+      crashDiagState.lastEvents.shift();
+    }
+    return entry;
+  }
+
+  function persistDiagSnapshotOnIncident(reason) {
+    try {
+      const snap = getCrashDiagnosticsSnapshot();
+      snap.incidentReason = reason;
+      window.sessionStorage && window.sessionStorage.setItem('arselnel_last_diag_snapshot', JSON.stringify(snap));
+    } catch (_) {}
+  }
+
+  if (typeof window !== 'undefined' && !window.__arselnelCrashDiagBound) {
+    window.__arselnelCrashDiagBound = true;
+    window.addEventListener('error', (ev) => {
+      const msg = String(ev && ev.message ? ev.message : ev);
+      crashDiagState.jsErrors.push({
+        tMs: Date.now() - crashDiagState.startedAt,
+        message: msg.slice(0, 180),
+        source: ev && ev.filename ? String(ev.filename).split('/').pop() : '',
+        line: ev ? ev.lineno : 0
+      });
+      if (crashDiagState.jsErrors.length > 10) crashDiagState.jsErrors.shift();
+      recordDiagEvent('js_error', { message: msg.slice(0, 120) });
+      persistDiagSnapshotOnIncident('window_error');
+    });
+    window.addEventListener('unhandledrejection', (ev) => {
+      const reason = ev && ev.reason ? (ev.reason.message || String(ev.reason)) : 'unknown';
+      crashDiagState.unhandledRejections.push({
+        tMs: Date.now() - crashDiagState.startedAt,
+        reason: String(reason).slice(0, 180)
+      });
+      if (crashDiagState.unhandledRejections.length > 10) crashDiagState.unhandledRejections.shift();
+      recordDiagEvent('unhandled_rejection', { reason: String(reason).slice(0, 120) });
+      persistDiagSnapshotOnIncident('unhandledrejection');
+    });
+  }
+
+  function getCrashDiagnosticsSnapshot() {
+    const mainMem = (renderer && renderer.info && renderer.info.memory)
+      ? { geometries: renderer.info.memory.geometries || 0, textures: renderer.info.memory.textures || 0 }
+      : { geometries: 0, textures: 0 };
+    const mainRender = (renderer && renderer.info && renderer.info.render)
+      ? { calls: renderer.info.render.calls || 0, triangles: renderer.info.render.triangles || 0 }
+      : { calls: 0, triangles: 0 };
+    const prevMem = (previewRenderer && previewRenderer.info && previewRenderer.info.memory)
+      ? { geometries: previewRenderer.info.memory.geometries || 0, textures: previewRenderer.info.memory.textures || 0 }
+      : { geometries: 0, textures: 0 };
+    const chestGroups = Array.isArray(arWorldState.treasureChestGroups) ? arWorldState.treasureChestGroups : [];
+    const activeMixers = chestGroups.filter(g => g && g.userData && g.userData.mixer).length;
+    const attachedChestGLBs = chestGroups.filter(g => g && g.userData && g.userData.glbAttached).length;
+    const loadedOrganelleKeys = Object.keys(cachedOrganelleGLBs || {});
+    let activeStreamTracks = 0;
+    try {
+      if (cameraStream && typeof cameraStream.getVideoTracks === 'function') {
+        activeStreamTracks = cameraStream.getVideoTracks().filter(t => t.readyState === 'live').length;
+      }
+    } catch (_) {}
+
+    return {
+      uptimeMs: Date.now() - crashDiagState.startedAt,
+      mode: State.mode,
+      isolationMode: crashDiagState.isolationMode,
+      activeRenderers: (renderer ? 1 : 0) + (previewRenderer ? 1 : 0),
+      renderers: { main: !!renderer, preview: !!previewRenderer },
+      activeAnimationLoops: (isRenderLoopActive ? 1 : 0) + (isPreviewLoopActive ? 1 : 0),
+      loops: { mainRenderLoop: !!isRenderLoopActive, previewRenderLoop: !!isPreviewLoopActive },
+      mainRendererInfo: { memory: mainMem, render: mainRender, pixelRatio: renderer ? renderer.getPixelRatio() : 0 },
+      previewRendererInfo: { memory: prevMem, pixelRatio: previewRenderer ? previewRenderer.getPixelRatio() : 0 },
+      glbLoaded: {
+        organelleCount: loadedOrganelleKeys.length,
+        organelleKeys: loadedOrganelleKeys,
+        animalDirectCached: !!cachedGltfScenes.animal,
+        plantDirectCached: !!cachedGltfScenes.plant,
+        treasureChestCached: !!cachedTreasureChestGLTF,
+        attachedChestGLBs,
+        chestGroupsCount: chestGroups.length
+      },
+      activeAnimationMixers: activeMixers,
+      cameraVideoTracksLive: activeStreamTracks,
+      webglEvents: { ...crashDiagState.webglEvents },
+      jsErrorsCount: crashDiagState.jsErrors.length,
+      unhandledRejectionsCount: crashDiagState.unhandledRejections.length,
+      jsErrors: crashDiagState.jsErrors,
+      unhandledRejections: crashDiagState.unhandledRejections,
+      lastEvents: crashDiagState.lastEvents.slice(-12)
+    };
+  }
+
+  let crashDiagOverlayEl = null;
+  function updateCrashDiagOverlay() {
+    if (!isCrashDiagPanelRequested || typeof document === 'undefined' || !document.body) return;
+    if (!crashDiagOverlayEl) {
+      crashDiagOverlayEl = document.createElement('div');
+      crashDiagOverlayEl.id = 'cq-crash-diag-overlay';
+      crashDiagOverlayEl.style.cssText = 'position:fixed;right:10px;top:64px;z-index:99999;background:rgba(2,6,23,0.88);color:#a5f3fc;border:1px solid #06b6d4;border-radius:10px;padding:7px 10px;font:10.5px/1.35 ui-monospace,Consolas,monospace;pointer-events:none;max-width:290px;';
+      document.body.appendChild(crashDiagOverlayEl);
+    }
+    const s = getCrashDiagnosticsSnapshot();
+    const lastEv = s.lastEvents.length ? s.lastEvents[s.lastEvents.length - 1].type : '-';
+    crashDiagOverlayEl.textContent =
+      `[DIAG ${s.isolationMode ? 'ISO-' + s.isolationMode : 'LIVE'}] ${Math.round(s.uptimeMs / 1000)}s\n` +
+      `Ren:${s.activeRenderers} Loops:${s.activeAnimationLoops} Mixers:${s.activeAnimationMixers}\n` +
+      `MainGeo:${s.mainRendererInfo.memory.geometries} Tex:${s.mainRendererInfo.memory.textures} Calls:${s.mainRendererInfo.render.calls}\n` +
+      `PrevGeo:${s.previewRendererInfo.memory.geometries} Tex:${s.previewRendererInfo.memory.textures}\n` +
+      `GLB:${s.glbLoaded.organelleCount} ChestGLB:${s.glbLoaded.treasureChestCached ? 'Y' : 'N'}(${s.glbLoaded.attachedChestGLBs})\n` +
+      `Err:${s.jsErrorsCount}/${s.unhandledRejectionsCount} WGL_Lost:${s.webglEvents.mainLost}/${s.webglEvents.previewLost}\n` +
+      `Last:${lastEv}`;
+  }
+
+  if (isCrashDiagPanelRequested && typeof window !== 'undefined') {
+    setInterval(updateCrashDiagOverlay, 1000);
+  }
 
   function isDiagnosticsDebugEnabled() {
     if (diagnosticsVisible) return true;
@@ -5993,6 +6141,19 @@
     previewRenderer.toneMapping = THREE.ACESFilmicToneMapping;
     previewRenderer.toneMappingExposure = 1.35;
 
+    if (previewRenderer.domElement) {
+      previewRenderer.domElement.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        crashDiagState.webglEvents.previewLost += 1;
+        recordDiagEvent('preview_webgl_context_lost', { activeStation: State.activeStationIndex });
+        persistDiagSnapshotOnIncident('preview_webglcontextlost');
+      });
+      previewRenderer.domElement.addEventListener('webglcontextrestored', () => {
+        crashDiagState.webglEvents.previewRestored += 1;
+        recordDiagEvent('preview_webgl_context_restored', {});
+      });
+    }
+
     // Studio PBR Lights for preview (Pencahayaan dipertingkatkan untuk organel & rongga dalaman)
     const ambLight = new THREE.AmbientLight(0xffffff, 1.45);
     previewScene.add(ambLight);
@@ -6122,8 +6283,10 @@
 
   function startStationPreviewLoop() {
     cancelAnimationFrame(previewAnimId);
+    isPreviewLoopActive = false;
     function animatePreview() {
       if (DOM.stationModal && DOM.stationModal.classList.contains('open')) {
+        isPreviewLoopActive = true;
         previewAnimId = requestAnimationFrame(animatePreview);
         if (previewModelGroup && !isPreviewDraggingGlobal && !previewZoomState.isPinching) {
           previewModelGroup.rotation.y += 0.006; // Putaran pameran lembut
@@ -6134,6 +6297,8 @@
         if (previewRenderer && previewScene && previewCamera) {
           previewRenderer.render(previewScene, previewCamera);
         }
+      } else {
+        isPreviewLoopActive = false;
       }
     }
     animatePreview();
@@ -6219,6 +6384,7 @@
   function openStationModal(index) {
     State.activeStationIndex = index;
     const stn = State.stations[index];
+    recordDiagEvent('open_station_modal', { stationNumber: stn ? stn.number : index + 1, stationId: stn ? stn.id : '' });
 
     DOM.stationModal.style.setProperty('--current-color', stn.color);
     DOM.stationNumberChip.textContent = `STESEN ${stn.number} • ${stn.organelle.toUpperCase()}`;
@@ -6250,8 +6416,10 @@
 
   function closeStationModal() {
     logARDiagnostic('MODAL', 'close_station_modal', { activeStation: State.activeStationIndex });
+    recordDiagEvent('close_station_modal', { activeStation: State.activeStationIndex });
     DOM.stationModal.classList.remove('open');
     cancelAnimationFrame(previewAnimId);
+    isPreviewLoopActive = false;
     State.activeStationIndex = -1;
 
     // Fasa A.4: Pastikan strim video kamera diteruskan semula jika dihentikan oleh WebKit iPad
@@ -6286,6 +6454,7 @@
   }
 
   function handleQuizAnswer(stn, selectedIdx, optBtn) {
+    recordDiagEvent('station_quiz_answer', { stationNumber: stn ? stn.number : -1, selectedIdx });
     // Disable all options after clicking
     const allBtns = DOM.quizOptions.querySelectorAll('.cq-quiz-opt');
     allBtns.forEach(b => b.disabled = true);
@@ -6795,6 +6964,10 @@
   let treasureChestGLBLoadingPromise = null;
 
   function loadAndCacheTreasureChestGLB() {
+    if (diagIsolationMode === 'A' || diagIsolationMode === 'D') {
+      recordDiagEvent('isolation_skip_chest_glb', { isolationMode: diagIsolationMode });
+      return Promise.resolve(null);
+    }
     if (cachedTreasureChestGLTF) {
       return Promise.resolve(cachedTreasureChestGLTF);
     }
@@ -6913,8 +7086,10 @@
   }
 
   function attachTreasureChestGLBToGroup(group, chestIdx) {
+    if (diagIsolationMode === 'A' || diagIsolationMode === 'D') return;
     if (!group || !cachedTreasureChestGLTF || !cachedTreasureChestGLTF.scene) return;
     if (group.userData.glbAttached && group.userData.glbInstance) return;
+    recordDiagEvent('attach_chest_glb', { chestIdx });
 
     const glbHolder = group.userData.glbHolder || new THREE.Group();
     glbHolder.name = `TreasureChestGLBHolder_${chestIdx + 1}`;
@@ -7273,7 +7448,13 @@
     if (!Array.isArray(arWorldState.treasureChestGroups)) {
       arWorldState.treasureChestGroups = [];
     }
-    for (let i = 0; i < (State.treasureHuntChests ? State.treasureHuntChests.length : 3); i++) {
+    if (diagIsolationMode === 'A') {
+      return null;
+    }
+    const totalChestsToBuild = (diagIsolationMode === 'B')
+      ? 1
+      : (State.treasureHuntChests ? State.treasureHuntChests.length : 3);
+    for (let i = 0; i < totalChestsToBuild; i++) {
       buildSingleTreasureChestGroup(i);
     }
     const activeIdx = (typeof chestIdx === 'number' && chestIdx >= 0 && chestIdx < arWorldState.treasureChestGroups.length)
@@ -7399,6 +7580,7 @@
       currentChestIndex: State.treasureHuntCurrentChestIndex,
       completedCount: State.treasureHuntCompletedCount
     });
+    recordDiagEvent('open_treasure_chest_modal', { chestIndex: State.treasureHuntCurrentChestIndex });
 
     const chestIdx = State.treasureHuntCurrentChestIndex || 0;
     const chest = State.treasureHuntChests[chestIdx];
@@ -7511,6 +7693,7 @@
   // Semak jawapan soalan bonus bagi peti semasa
   function checkTreasureBonusAnswer(choiceIdx) {
     const chestIdx = State.treasureHuntCurrentChestIndex || 0;
+    recordDiagEvent('treasure_quiz_answer', { chestIdx, choiceIdx });
     const chest = State.treasureHuntChests[chestIdx];
     if (!chest || !chest.question) return;
     const chestGroup = (arWorldState.treasureChestGroups && arWorldState.treasureChestGroups[chestIdx]) || arWorldState.treasureChestGroup;
@@ -7879,6 +8062,9 @@
     if (renderer && renderer.domElement) {
       renderer.domElement.addEventListener('webglcontextlost', (e) => {
         e.preventDefault(); // Benarkan pemulihan automatik WebGL context
+        crashDiagState.webglEvents.mainLost += 1;
+        recordDiagEvent('main_webgl_context_lost', { mode: State.mode, completedStations: State.completedStations.size });
+        persistDiagSnapshotOnIncident('main_webglcontextlost');
         logARDiagnostic('WEBGL', 'context_lost', {
           mode: State.mode,
           completedStations: State.completedStations.size,
@@ -7887,6 +8073,8 @@
       });
 
       renderer.domElement.addEventListener('webglcontextrestored', () => {
+        crashDiagState.webglEvents.mainRestored += 1;
+        recordDiagEvent('main_webgl_context_restored', { mode: State.mode });
         logARDiagnostic('WEBGL', 'context_restored', { mode: State.mode });
         // Pulihkan warna lut sinar dan null background untuk passthrough kamera
         if (State.mode === 'camera-ar' || State.mode === 'marker-ar') {
@@ -10865,7 +11053,11 @@
     buildARWorldCompass();
 
     // Pramuat model GLB Peti Harta Karun (../models/treasure_chest.glb)
-    loadAndCacheTreasureChestGLB();
+    // Dalam mod pengasingan A & D, elakkan muatan peti GLB untuk menguji kestabilan berasingan
+    if (diagIsolationMode !== 'A' && diagIsolationMode !== 'D') {
+      loadAndCacheTreasureChestGLB();
+    }
+    recordDiagEvent('start_ar_world_exploration', { isolationMode: diagIsolationMode });
 
     // Tunjuk butang Kembali ke Kotak ARSELNEL jika dilancarkan daripada Kotak AR (?from=kotak)
     try {
@@ -13294,6 +13486,7 @@
     getTreasureChestGroups: () => arWorldState.treasureChestGroups || [],
     applyChestOpenPose: (grp, p) => applyChestOpenPose(grp, p),
     getDiagnosticsLog: () => (window.__AR_DIAG_LOGS || []),
+    getCrashDiagnostics: () => getCrashDiagnosticsSnapshot(),
     getCurrentChestIndex: () => State.treasureHuntCurrentChestIndex,
     spawnChest: (idx) => spawnOrRelocateTreasureChest(idx),
     advanceChest: () => onTreasureNextButtonClicked(),

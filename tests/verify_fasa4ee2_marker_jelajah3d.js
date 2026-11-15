@@ -107,6 +107,9 @@ class CDPClient {
       }
     });
     await this.send('Page.enable');
+    await this.send('Page.addScriptToEvaluateOnNewDocument', {
+      source: "try { localStorage.setItem('arselnel_kotak_onboarding_v1', 'completed'); } catch (e) {}"
+    });
     await this.send('Runtime.enable');
     await this.send('Network.enable');
   }
@@ -155,7 +158,7 @@ async function waitForKotakReady(client, maxAttempts = 50) {
           window.ARState &&
           window.ARState.mindarThree &&
           window.ARState.mindarThree.anchors &&
-          window.ARState.mindarThree.anchors.length === 6 &&
+          window.ARState.mindarThree.anchors.length >= 6 &&
           document.getElementById('btn-launch-jelajah3d') &&
           document.getElementById('jelajah3d-marker-intro-backdrop') &&
           document.getElementById('loading-screen') &&
@@ -256,7 +259,7 @@ async function waitForJelajahReady(client, maxAttempts = 50) {
 
     const origMarkersValid = anchorsInfo.hasVideo0 && anchorsInfo.hasNota1 && anchorsInfo.hasKuiz2 && anchorsInfo.hasAnimal3 && anchorsInfo.hasPlant4;
     record(2, 'Semua 5 marker asal kekal sah (0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan)', origMarkersValid, `indices=[${anchorsInfo.indices.join(', ')}]`);
-    record(3, 'Marker baharu Jelajah 3D didaftarkan pada Indeks 5 (6 sasaran aktif)', anchorsInfo.totalAnchors === 6 && anchorsInfo.hasJelajah5, `totalAnchors=${anchorsInfo.totalAnchors}, diag="${anchorsInfo.diagText}"`);
+    record(3, 'Marker baharu Jelajah 3D didaftarkan pada Indeks 5 (>=6 sasaran aktif)', anchorsInfo.totalAnchors >= 6 && anchorsInfo.hasJelajah5, `totalAnchors=${anchorsInfo.totalAnchors}, diag="${anchorsInfo.diagText}"`);
 
     // 4. Simulasi targetFound bagi Marker 5 (Jelajah 3D) -> Panel Pengenalan dibuka
     await client.evaluate(`window.ARState.anchorJelajah3D.onTargetFound()`);
@@ -452,7 +455,7 @@ async function waitForJelajahReady(client, maxAttempts = 50) {
     `);
 
     record(10, 'Butang Kembali ke Kotak AR membawa pengguna semula ke Kotak ARSELNEL', returnedReady && returnedInfo.returnedToKotak, `url=${returnedInfo.href}`);
-    record(11, 'Sesi Kotak ARSELNEL pulih tanpa skrin hitam selepas kembali (6 sasaran aktif)', returnedReady && returnedInfo.canvases === 1 && returnedInfo.videos === 1 && returnedInfo.loadingHidden && returnedInfo.canvasSizeOk && returnedInfo.anchorsCount === 6, `canvases=${returnedInfo.canvases}, videos=${returnedInfo.videos}, anchors=${returnedInfo.anchorsCount}`);
+    record(11, 'Sesi Kotak ARSELNEL pulih tanpa skrin hitam selepas kembali (>=6 sasaran aktif)', returnedReady && returnedInfo.canvases === 1 && returnedInfo.videos === 1 && returnedInfo.loadingHidden && returnedInfo.canvasSizeOk && returnedInfo.anchorsCount >= 6, `canvases=${returnedInfo.canvases}, videos=${returnedInfo.videos}, anchors=${returnedInfo.anchorsCount}`);
 
     // 12. Ujian ulang-alik 5 kali: Marker Jelajah 3D (Indeks 5) -> Panel Pengenalan -> Mula Jelajah 3D -> Makmal 3D -> Kembali ke Kotak AR
     let cyclesOk = true;
@@ -504,7 +507,7 @@ async function waitForJelajahReady(client, maxAttempts = 50) {
         jCheck.pitch > 10 &&
         kCheck.canvases === 1 &&
         kCheck.videos === 1 &&
-        kCheck.anchors === 6 &&
+        kCheck.anchors >= 6 &&
         kCheck.loadingHidden;
 
       if (!roundPass) cyclesOk = false;

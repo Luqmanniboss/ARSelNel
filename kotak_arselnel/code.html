@@ -64,12 +64,12 @@
   <header class="ar-top-hud">
     <button type="button" class="ar-hud-btn" id="btn-back-dashboard" title="Kembali ke mod atau paparan sebelumnya">
       <span class="material-symbols-outlined" id="back-hud-icon">arrow_back</span>
-      <span id="back-hud-text">Dashboard</span>
+      <span id="back-hud-text">Kembali ke ARSELNEL</span>
     </button>
 
     <div class="ar-title-badge">
       <div class="logo-dot"></div>
-      <span id="ar-title-badge-text">KOTAK ARSELNEL • FASA 4C</span>
+      <span id="ar-title-badge-text">KOTAK ARSELNEL • IMBAS &amp; BELAJAR</span>
     </div>
 
     <div class="ar-hud-right-group">
@@ -83,14 +83,19 @@
         <span>AR Orientasi Dunia</span>
       </button>
 
-      <button type="button" class="ar-hud-btn btn-diagnostics-toggle" id="btn-toggle-diagnostics" title="Papar Diagnostik Sensor & Sistem">
+      <button type="button" class="ar-hud-btn ar-hud-user-guide-btn" id="btn-open-user-guide" title="Buka Panduan Pengguna Kotak ARSELNEL" aria-label="Panduan Pengguna">
+        <span class="material-symbols-outlined">menu_book</span>
+        <span>Panduan Pengguna</span>
+      </button>
+
+      <button type="button" class="ar-hud-btn btn-diagnostics-toggle" id="btn-toggle-diagnostics" title="Papar Diagnostik Sensor &amp; Sistem">
         <span class="material-symbols-outlined" style="font-size:16px;color:#2dd4bf;">developer_mode</span>
         <span>Diagnostik</span>
       </button>
 
-      <a href="marker-print.html" target="_blank" rel="noopener" class="ar-hud-btn" id="btn-open-marker" title="Buka Marker Video untuk Dicetak atau Diimbas">
+      <a href="marker-print.html" target="_blank" rel="noopener" class="ar-hud-btn" id="btn-open-marker" title="Buka Kad AR untuk Dicetak atau Diimbas">
         <span class="material-symbols-outlined">qr_code_2</span>
-        <span>Papar Marker</span>
+        <span>Papar Kad AR</span>
       </a>
     </div>
   </header>
@@ -100,7 +105,7 @@
        ========================================================================= -->
   <aside class="ar-multi-panel-bar hidden" id="ar-multi-panel-bar" aria-label="Pengurusan Multi-Panel Spatial">
     <div class="multi-bar-left">
-      <button type="button" class="btn-multi-add" id="btn-add-scan" title="Imbas marker baharu untuk menambah panel pembelajaran ke dalam ruang AR">
+      <button type="button" class="btn-multi-add" id="btn-add-scan" title="Imbas kad AR baharu untuk menambah panel pembelajaran ke dalam ruang AR">
         <span class="material-symbols-outlined">add_circle</span>
         <span>+ Tambah Imbasan Baharu</span>
       </button>
@@ -122,7 +127,7 @@
   </aside>
 
   <!-- FIXED FLOATING POV RECOVERY TOOLBAR (Always visible and immune to POV transforms) -->
-  <aside class="pov-fixed-recovery-bar hidden" id="pov-fixed-recovery-bar" aria-label="Kawalan Pemulihan POV">
+  <aside class="pov-fixed-recovery-bar hidden" id="pov-fixed-recovery-bar" aria-label="Kawalan Pemulihan Kunci Pandangan">
     <button type="button" class="recovery-btn recovery-primary" id="pov-rec-center" title="Bawa panel kembali ke tengah skrin">
       <span class="material-symbols-outlined">center_focus_strong</span>
       <span>Bawa ke Tengah</span>
@@ -139,7 +144,7 @@
       <span class="material-symbols-outlined">push_pin</span>
       <span>Semat Skrin</span>
     </button>
-    <button type="button" class="recovery-btn recovery-close" id="pov-rec-close" title="Keluar daripada mod POV">
+    <button type="button" class="recovery-btn recovery-close" id="pov-rec-close" title="Keluar daripada mod Kunci Pandangan">
       <span class="material-symbols-outlined">close</span>
       <span>Keluar</span>
     </button>
@@ -150,6 +155,11 @@
 
   <!-- SCANNER RETICLE & INSTRUCTION OVERLAY -->
   <div class="ar-scanner-overlay" id="scanner-overlay">
+    <div class="scanner-guide-banner" id="scanner-guide-banner">
+      <h2 class="scanner-guide-title" id="scanner-guide-title">Sedia untuk Mengimbas!</h2>
+      <p class="scanner-guide-subtitle" id="scanner-guide-subtitle">Halakan kamera ke arah kad AR dan tunggu sehingga kandungan muncul.</p>
+    </div>
+
     <div class="scanner-frame">
       <div class="scan-corner tl"></div>
       <div class="scan-corner tr"></div>
@@ -161,7 +171,21 @@
 
     <div class="ar-instruction-pill" id="ar-instruction-pill">
       <span class="material-symbols-outlined icon" id="scanner-prompt-icon">view_in_ar</span>
-      <span class="text" id="scanner-prompt-text">Halakan kamera ke mana-mana Marker pada Kotak ARSELNEL</span>
+      <span class="text" id="scanner-prompt-text">Halakan kamera ke mana-mana Kad AR pada Kotak ARSELNEL</span>
+    </div>
+
+    <!-- Petua Imbasan Tertunda (Fasa 4E-F.1) -->
+    <div class="scanner-tips-box hidden" id="scanner-tips-box" role="status" aria-live="polite">
+      <div class="scanner-tips-header">
+        <span class="material-symbols-outlined">tips_and_updates</span>
+        <span>Tip Imbasan Kad AR</span>
+      </div>
+      <ul class="scanner-tips-list">
+        <li>Pastikan kad tidak terlalu jauh.</li>
+        <li>Elakkan pantulan cahaya.</li>
+        <li>Pastikan keseluruhan corak kad kelihatan.</li>
+        <li>Pegang kamera dengan stabil.</li>
+      </ul>
     </div>
 
     <!-- Safari / BFCache Recovery Prompt (Visible if camera needs reactivation) -->
@@ -181,9 +205,9 @@
     <!-- Top Bar HUD (Responsive 3-Column Grid) -->
     <header class="cq-hud-header">
       <div class="cq-hud-left">
-        <button type="button" class="cq-hud-btn cq-hud-back" id="cq-hud-btn-back" title="Kembali ke Pengimbas Marker">
+        <button type="button" class="cq-hud-btn cq-hud-back" id="cq-hud-btn-back" title="Kembali ke Pengimbas Kad AR">
           <span class="material-symbols-outlined">arrow_back</span>
-          <span class="cq-btn-label">Tukar Marker</span>
+          <span class="cq-btn-label">Tukar Kad AR</span>
         </button>
       </div>
 
@@ -199,7 +223,7 @@
       <div class="cq-hud-right">
         <div class="cq-hud-tracking-status" id="cq-tracking-status">
           <span class="cq-status-dot"></span>
-          <span class="cq-status-text" id="cq-status-text">Marker Dikesan</span>
+          <span class="cq-status-text" id="cq-status-text">Kad AR Dikesan</span>
         </div>
         <button type="button" class="cq-hud-btn cq-hud-diag-btn" id="cq-hud-btn-diagnostics" title="Buka Diagnostik 3D & Sensor">
           <span class="material-symbols-outlined" style="font-size:16px;color:#2dd4bf;">developer_mode</span>
@@ -320,13 +344,13 @@
           <span class="material-symbols-outlined" id="cq-pin-icon">push_pin</span>
           <span class="cq-action-label" id="cq-pin-label">Semat Model</span>
         </button>
-        <button type="button" class="cq-action-btn" id="cq-btn-pov" title="Kunci POV 3DoF Berasaskan Sensor Giroskop">
+        <button type="button" class="cq-action-btn" id="cq-btn-pov" title="Kunci Pandangan 3DoF Berasaskan Sensor Giroskop">
           <span class="material-symbols-outlined" id="cq-pov-icon">explore</span>
-          <span class="cq-action-label" id="cq-pov-label">Kunci POV</span>
+          <span class="cq-action-label" id="cq-pov-label">Kunci Pandangan</span>
         </button>
       </div>
 
-      <!-- Baris 3: Utiliti Zum & Kedudukan (Zum +, Zum -, Reset, Bawa ke Tengah) -->
+      <!-- Baris 3: Utiliti Zum & Kedudukan (Zum +, Zum -, Set Semula, Bawa ke Tengah) -->
       <div class="cq-controls-row cq-row-utils">
         <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-zoom-in" title="Zum Masuk">
           <span class="material-symbols-outlined">zoom_in</span>
@@ -338,7 +362,7 @@
         </button>
         <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-reset" title="Kembalikan Orientasi & Saiz Asal">
           <span class="material-symbols-outlined">restart_alt</span>
-          <span class="cq-action-label">Reset</span>
+          <span class="cq-action-label">Set Semula</span>
         </button>
         <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-recenter" title="Bawa Model ke Tengah Skrin">
           <span class="material-symbols-outlined">filter_center_focus</span>
@@ -374,7 +398,7 @@
           </div>
           <div class="tracking-status-indicator" id="tracking-status-badge">
             <div class="ping" id="tracking-ping"></div>
-            <span id="tracking-status-text">Marker Dikesan</span>
+            <span id="tracking-status-text">Kad AR Dikesan</span>
           </div>
         </div>
 
@@ -394,9 +418,9 @@
             <span id="cam-toggle-text">Tutup Kamera</span>
           </button>
 
-          <button type="button" class="btn-cam-toggle btn-switch-pov" id="btn-switch-to-pov" title="Tukar ke Mod Kunci POV (Giroskop)">
+          <button type="button" class="btn-cam-toggle btn-switch-pov" id="btn-switch-to-pov" title="Tukar ke Mod Kunci Pandangan (Giroskop)">
             <span class="material-symbols-outlined" style="font-size:15px;color:#2dd4bf;">explore</span>
-            <span>Kunci POV</span>
+            <span>Kunci Pandangan</span>
           </button>
         </div>
       </header>
@@ -680,7 +704,7 @@
 
           <div class="cellquest-status-notice">
             <span class="material-symbols-outlined">info</span>
-            <span id="cellquest-status-notice-text">Model 3D akan diaktifkan dalam Fasa 4D-C. Marker 4 telah berjaya dikesan!</span>
+            <span id="cellquest-status-notice-text">Model 3D sedia diterokai. Kad AR 4 berjaya dikesan!</span>
           </div>
         </div>
       </main>
@@ -695,7 +719,7 @@
 
           <button type="button" class="btn-pov-mode" id="btn-start-pov" title="Kunci arah panel menggunakan sensor giroskop 3DoF (Boleh tutup kamera)">
             <span class="material-symbols-outlined">explore</span>
-            <span>Kunci POV</span>
+            <span>Kunci Pandangan</span>
           </button>
           
           <button type="button" class="btn-lock-video hidden" id="btn-lock-video" title="Kunci kedudukan panel atau alih semula">
@@ -744,7 +768,7 @@
         <div class="pov-header-bar">
           <div class="category-tag pov-tag pov-tag-video">
             <span class="material-symbols-outlined" style="font-size:16px;">explore</span>
-            <span>1. VIDEO PEMBELAJARAN • POV</span>
+            <span>1. VIDEO PEMBELAJARAN • PANDANGAN 360°</span>
           </div>
           <div class="pov-sensor-pill" id="pov-sensor-pill">
             <div class="ping" id="pov-sensor-ping"></div>
@@ -756,7 +780,7 @@
         <div class="pinned-toolbar" id="pov-toolbar">
           <div class="size-controls-group">
             <span class="tool-label">Saiz:</span>
-            <div class="size-segmented-control" role="group" aria-label="Ubah saiz panel POV">
+            <div class="size-segmented-control" role="group" aria-label="Ubah saiz panel Kunci Pandangan">
               <button type="button" class="btn-size" data-size="small" id="pov-size-s" title="Saiz Kecil (320px)">S</button>
               <button type="button" class="btn-size is-active" data-size="medium" id="pov-size-m" title="Saiz Sederhana (480px)">M</button>
               <button type="button" class="btn-size" data-size="large" id="pov-size-l" title="Saiz Besar (580px)">L</button>
@@ -780,12 +804,12 @@
           <div class="pov-telemetry-hud-strip" id="pov-telemetry-hud-strip">
             <div class="hud-chip">
               <span class="material-symbols-outlined hud-chip-icon">explore</span>
-              <span class="hud-chip-label">Yaw:</span>
+              <span class="hud-chip-label">Arah:</span>
               <span class="hud-chip-val" id="pov-val-yaw">0.0°</span>
             </div>
             <div class="hud-chip">
               <span class="material-symbols-outlined hud-chip-icon">swap_vert</span>
-              <span class="hud-chip-label">Pitch:</span>
+              <span class="hud-chip-label">Dongak:</span>
               <span class="hud-chip-val" id="pov-val-pitch">0.0°</span>
             </div>
             <div class="hud-chip status-chip">
@@ -818,7 +842,7 @@
         <div class="video-selection-view hidden" id="pov-video-selection-view">
           <div class="selection-title-box">
             <h3>Tukar Video Pembelajaran</h3>
-            <p>Pilih video sains sel lain untuk ditonton dalam mod Kunci POV.</p>
+            <p>Pilih video sains sel lain untuk ditonton dalam mod Kunci Pandangan.</p>
           </div>
           <div class="video-cards-scroll" id="pov-video-cards-scroll">
             <!-- Dynamic video items injected by kotak-arselnel.js -->
@@ -831,12 +855,12 @@
           <div class="pov-telemetry-hud-strip" id="pov-cq-telemetry-hud-strip">
             <div class="hud-chip">
               <span class="material-symbols-outlined hud-chip-icon">explore</span>
-              <span class="hud-chip-label">Yaw:</span>
+              <span class="hud-chip-label">Arah:</span>
               <span class="hud-chip-val" id="pov-cq-val-yaw">0.0°</span>
             </div>
             <div class="hud-chip">
               <span class="material-symbols-outlined hud-chip-icon">swap_vert</span>
-              <span class="hud-chip-label">Pitch:</span>
+              <span class="hud-chip-label">Dongak:</span>
               <span class="hud-chip-val" id="pov-cq-val-pitch">0.0°</span>
             </div>
             <div class="hud-chip status-chip">
@@ -880,7 +904,7 @@
 
           <div class="cellquest-status-notice">
             <span class="material-symbols-outlined">info</span>
-            <span id="pov-cellquest-status-notice-text">Model 3D akan diaktifkan dalam Fasa 4D-C. Marker 4 telah berjaya dikesan!</span>
+            <span id="pov-cellquest-status-notice-text">Model 3D sedia diterokai. Kad AR 4 berjaya dikesan!</span>
           </div>
         </div>
       </main>
@@ -893,7 +917,7 @@
             <span id="pov-anchor-text">Letak di Arah Ini</span>
           </button>
 
-          <button type="button" class="btn-secondary-action" id="pov-btn-change-video" title="Pilih video atau nota lain tanpa keluar mod POV">
+          <button type="button" class="btn-secondary-action" id="pov-btn-change-video" title="Pilih video atau nota lain tanpa keluar mod Kunci Pandangan">
             <span class="material-symbols-outlined">sync</span>
             <span id="pov-btn-change-content-text">Tukar Video</span>
           </button>
@@ -903,7 +927,7 @@
             <span>Semat Skrin</span>
           </button>
 
-          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-btn-close" title="Keluar dari mod POV">
+          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-btn-close" title="Keluar dari mod Kunci Pandangan">
             <span class="material-symbols-outlined">close</span>
             <span>Tutup</span>
           </button>
@@ -930,7 +954,7 @@
         <div class="pov-header-bar">
           <div class="category-tag pov-tag pov-tag-nota">
             <span class="material-symbols-outlined" style="font-size:16px;">auto_stories</span>
-            <span>2. NOTA INTERAKTIF • POV</span>
+            <span>2. NOTA INTERAKTIF • PANDANGAN 360°</span>
           </div>
           <div class="pov-sensor-pill pov-nota-sensor-pill" id="pov-nota-sensor-pill">
             <div class="ping" id="pov-nota-sensor-ping"></div>
@@ -964,12 +988,12 @@
           <div class="pov-telemetry-hud-strip" id="pov-nota-telemetry-hud-strip">
             <div class="hud-chip">
               <span class="material-symbols-outlined hud-chip-icon">explore</span>
-              <span class="hud-chip-label">Yaw:</span>
+              <span class="hud-chip-label">Arah:</span>
               <span class="hud-chip-val" id="pov-nota-val-yaw">0.0°</span>
             </div>
             <div class="hud-chip">
               <span class="material-symbols-outlined hud-chip-icon">swap_vert</span>
-              <span class="hud-chip-label">Pitch:</span>
+              <span class="hud-chip-label">Dongak:</span>
               <span class="hud-chip-val" id="pov-nota-val-pitch">0.0°</span>
             </div>
             <div class="hud-chip status-chip">
@@ -1059,7 +1083,7 @@
         <div class="nota-selection-view hidden" id="pov-nota-selection-view">
           <div class="selection-title-box nota-title-box">
             <h3>Tukar Nota Pembelajaran</h3>
-            <p>Pilih nota atau slaid sains lain untuk dibaca dalam mod Kunci POV.</p>
+            <p>Pilih nota atau slaid sains lain untuk dibaca dalam mod Kunci Pandangan.</p>
           </div>
           <div class="nota-cards-scroll" id="pov-nota-cards-scroll">
             <!-- Dynamic note items injected by kotak-arselnel.js -->
@@ -1075,7 +1099,7 @@
             <span id="pov-nota-anchor-text">Letak di Arah Ini</span>
           </button>
 
-          <button type="button" class="btn-secondary-action" id="pov-nota-btn-change-content" title="Pilih nota lain tanpa keluar mod POV">
+          <button type="button" class="btn-secondary-action" id="pov-nota-btn-change-content" title="Pilih nota lain tanpa keluar mod Kunci Pandangan">
             <span class="material-symbols-outlined">sync</span>
             <span>Tukar Nota</span>
           </button>
@@ -1085,7 +1109,7 @@
             <span>Semat Skrin</span>
           </button>
 
-          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-nota-btn-close" title="Keluar dari mod POV">
+          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-nota-btn-close" title="Keluar dari mod Kunci Pandangan">
             <span class="material-symbols-outlined">close</span>
             <span>Tutup</span>
           </button>
@@ -1111,7 +1135,7 @@
         <div class="pov-header-bar">
           <div class="category-tag pov-tag pov-tag-kuiz">
             <span class="material-symbols-outlined" style="font-size:16px;">sports_esports</span>
-            <span>3. KUIZ &amp; PERMAINAN • POV</span>
+            <span>3. KUIZ &amp; PERMAINAN • PANDANGAN 360°</span>
           </div>
           <div class="pov-sensor-pill pov-kuiz-sensor-pill" id="pov-kuiz-sensor-pill">
             <div class="ping" id="pov-kuiz-sensor-ping"></div>
@@ -1146,12 +1170,12 @@
           <div class="pov-telemetry-hud-strip" id="pov-kuiz-telemetry-hud-strip">
             <div class="hud-chip">
               <span class="material-symbols-outlined hud-chip-icon">explore</span>
-              <span class="hud-chip-label">Yaw:</span>
+              <span class="hud-chip-label">Arah:</span>
               <span class="hud-chip-val" id="pov-kuiz-val-yaw">0.0°</span>
             </div>
             <div class="hud-chip">
               <span class="material-symbols-outlined hud-chip-icon">swap_vert</span>
-              <span class="hud-chip-label">Pitch:</span>
+              <span class="hud-chip-label">Dongak:</span>
               <span class="hud-chip-val" id="pov-kuiz-val-pitch">0.0°</span>
             </div>
             <div class="hud-chip status-chip">
@@ -1173,7 +1197,7 @@
           <div class="selection-title-box kuiz-title-box">
             <div class="selection-title-header">
               <span class="material-symbols-outlined" style="color:#c084fc;font-size:20px;">sports_esports</span>
-              <h3>Kuiz &amp; Permainan ARSELNEL (POV)</h3>
+              <h3>Kuiz &amp; Permainan ARSELNEL (Pandangan 360°)</h3>
             </div>
             <p>5 Permainan Sains Interaktif Tingkatan 1. Pilih permainan untuk dimainkan.</p>
           </div>
@@ -1308,7 +1332,7 @@
             <span id="pov-kuiz-anchor-text">Letak di Arah Ini</span>
           </button>
 
-          <button type="button" class="btn-secondary-action" id="pov-kuiz-btn-change-content" title="Pilih kuiz atau permainan lain tanpa keluar mod POV">
+          <button type="button" class="btn-secondary-action" id="pov-kuiz-btn-change-content" title="Pilih kuiz atau permainan lain tanpa keluar mod Kunci Pandangan">
             <span class="material-symbols-outlined">sync</span>
             <span>Tukar Kuiz</span>
           </button>
@@ -1318,7 +1342,7 @@
             <span>Semat Skrin</span>
           </button>
 
-          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-kuiz-btn-close" title="Keluar dari mod POV">
+          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-kuiz-btn-close" title="Keluar dari mod Kunci Pandangan">
             <span class="material-symbols-outlined">close</span>
             <span>Tutup</span>
           </button>
@@ -1336,11 +1360,11 @@
   </div> <!-- /#spatial-panels-layer (Fasa 4E-B.2.4 Layer 3 Isolation) -->
 
   <!-- OFF-SCREEN TARGET POINTER (Pulsing Arrow when user turns away from anchored target) -->
-  <div class="pov-offscreen-pointer hidden" id="pov-offscreen-pointer" title="Arah sasaran panel POV">
+  <div class="pov-offscreen-pointer hidden" id="pov-offscreen-pointer" title="Arah sasaran panel Kunci Pandangan">
     <div class="pointer-content">
       <span class="material-symbols-outlined pointer-arrow" id="pov-pointer-arrow">arrow_back</span>
       <div class="pointer-text-box">
-        <span class="pointer-label">SASARAN KUNCI POV</span>
+        <span class="pointer-label">SASARAN PANEL TERKUNCI</span>
         <span class="pointer-bearing" id="pov-pointer-bearing">Panel di Kiri (45°)</span>
       </div>
     </div>
@@ -1351,7 +1375,7 @@
     <div class="sim-header">
       <div class="sim-header-left">
         <span class="material-symbols-outlined" style="font-size:16px;color:#2dd4bf;">screen_rotation</span>
-        <span>Simulasi Giroskop (Desktop)</span>
+        <span>Simulasi Giroskop (Komputer)</span>
       </div>
       <div class="sim-header-right">
         <span class="sim-angle-badge" id="pov-sim-angle-badge">0°</span>
@@ -1363,7 +1387,7 @@
     <div class="sim-controls" id="sim-controls-body">
       <!-- Yaw (Horizontal) -->
       <div class="sim-row">
-        <span class="sim-row-label">Yaw:</span>
+        <span class="sim-row-label">Arah (Yaw):</span>
         <button type="button" class="sim-btn" id="pov-sim-left" title="Pusing Kiri 45°">⬅️ -45°</button>
         <input type="range" min="-180" max="180" value="0" step="1" id="pov-sim-slider" class="sim-slider" />
         <button type="button" class="sim-btn" id="pov-sim-center" title="Pandang Depan 0°">🎯 0°</button>
@@ -1371,7 +1395,7 @@
       </div>
       <!-- Pitch (Vertical) -->
       <div class="sim-row">
-        <span class="sim-row-label">Pitch:</span>
+        <span class="sim-row-label">Dongak (Pitch):</span>
         <button type="button" class="sim-btn" id="pov-sim-down" title="Tunduk Bawah 30°">⬇️ -30°</button>
         <input type="range" min="-80" max="80" value="0" step="1" id="pov-sim-pitch-slider" class="sim-slider" />
         <button type="button" class="sim-btn" id="pov-sim-pitch-center" title="Tegak 0°">🎯 0°</button>
@@ -1395,24 +1419,24 @@
       <div class="diag-grid">
         <div class="diag-row"><span class="k">Peranti:</span><span class="v" id="diag-device">Menganalisis...</span></div>
         <div class="diag-row"><span class="k">Pelayar:</span><span class="v" id="diag-browser">Menganalisis...</span></div>
-        <div class="diag-row"><span class="k">Orientasi Skrin:</span><span class="v" id="diag-screen-orient">0° (Portrait)</span></div>
-        <div class="diag-row"><span class="k">Status Izin:</span><span class="v" id="diag-permission">Penyemakan...</span></div>
+        <div class="diag-row"><span class="k">Orientasi Skrin:</span><span class="v" id="diag-screen-orient">0° (Potret)</span></div>
+        <div class="diag-row"><span class="k">Status Kebenaran:</span><span class="v" id="diag-permission">Menyemak...</span></div>
         <div class="diag-row"><span class="k">Sensor Aktif:</span><span class="v" id="diag-sensor-active">TIDAK</span></div>
         <div class="diag-row"><span class="k">Acara Sensor:</span><span class="v" id="diag-event-count">0 acara</span></div>
         <div class="diag-row"><span class="k">Mentah α, β, γ:</span><span class="v" id="diag-raw-angles">0.0°, 0.0°, 0.0°</span></div>
-        <div class="diag-row"><span class="k">Yaw & Pitch:</span><span class="v"><span id="diag-yaw">0.0°</span>, <span id="diag-pitch">0.0°</span></span></div>
-        <div class="diag-row"><span class="k">Roll Semasa:</span><span class="v" id="diag-roll">0.0°</span></div>
-        <div class="diag-row"><span class="k">Rujukan Anchor:</span><span class="v" id="diag-anchor">Belum ditetapkan</span></div>
-        <div class="diag-row"><span class="k">Relatif ΔYaw:</span><span class="v" id="diag-delta-yaw">0.0°</span></div>
-        <div class="diag-row"><span class="k">Relatif ΔPitch:</span><span class="v" id="diag-delta-pitch">0.0°</span></div>
-        <div class="diag-row"><span class="k">Mod Sistem:</span><span class="v" id="diag-mode">MARKER</span></div>
+        <div class="diag-row"><span class="k">Arah & Dongak:</span><span class="v"><span id="diag-yaw">0.0°</span>, <span id="diag-pitch">0.0°</span></span></div>
+        <div class="diag-row"><span class="k">Condong Semasa:</span><span class="v" id="diag-roll">0.0°</span></div>
+        <div class="diag-row"><span class="k">Rujukan Penambat:</span><span class="v" id="diag-anchor">Belum ditetapkan</span></div>
+        <div class="diag-row"><span class="k">Relatif ΔArah:</span><span class="v" id="diag-delta-yaw">0.0°</span></div>
+        <div class="diag-row"><span class="k">Relatif ΔDongak:</span><span class="v" id="diag-delta-pitch">0.0°</span></div>
+        <div class="diag-row"><span class="k">Mod Sistem:</span><span class="v" id="diag-mode">KAD AR</span></div>
         <div class="diag-row"><span class="k">Modul Semasa:</span><span class="v" id="diag-module">VIDEO</span></div>
         <div class="diag-row"><span class="k">Kemas Kini Sensor:</span><span class="v" id="diag-last-update">Tiada</span></div>
         <div class="diag-row"><span class="k">Posisi Panel (X,Y):</span><span class="v" id="diag-panel-pos">512px, 384px</span></div>
         <div class="diag-row"><span class="k">Transformasi:</span><span class="v" id="diag-transform">translate(-50%, -50%)</span></div>
         <div class="diag-row"><span class="k">Status Kamera:</span><span class="v" id="diag-cam">AKTIF</span></div>
         <div class="diag-row"><span class="k">Paparan Panel:</span><span class="v" id="diag-panel-vis">TENGAH</span></div>
-        <div class="diag-row"><span class="k">Panel Video:</span><span class="v" id="diag-video-status">MARKER</span></div>
+        <div class="diag-row"><span class="k">Panel Video:</span><span class="v" id="diag-video-status">KAD AR</span></div>
         <div class="diag-row"><span class="k">Panel Nota:</span><span class="v" id="diag-nota-status">TIDAK AKTIF</span></div>
       </div>
 
@@ -1421,11 +1445,11 @@
         <span>📹 TELEMETRI KAMERA & MINDAR</span>
       </div>
       <div class="diag-grid" style="margin-top:8px;">
-        <div class="diag-row"><span class="k">Status Stream Kamera:</span><span class="v" id="diag-cam-status">MEMERIKSA...</span></div>
+        <div class="diag-row"><span class="k">Status Aliran Kamera:</span><span class="v" id="diag-cam-status">MEMERIKSA...</span></div>
         <div class="diag-row"><span class="k">Resolusi Video:</span><span class="v" id="diag-video-dim">0 x 0</span></div>
-        <div class="diag-row"><span class="k">ReadyState Video:</span><span class="v" id="diag-video-ready">0 (HAVE_NOTHING)</span></div>
-        <div class="diag-row"><span class="k">Status Engine MindAR:</span><span class="v" id="diag-mindar-status">IDLE</span></div>
-        <div class="diag-row"><span class="k">Fail Marker .mind:</span><span class="v" id="diag-marker-mind-status">7 Sasaran (0-6)</span></div>
+        <div class="diag-row"><span class="k">Keadaan Video:</span><span class="v" id="diag-video-ready">0 (TIADA DATA)</span></div>
+        <div class="diag-row"><span class="k">Status Enjin MindAR:</span><span class="v" id="diag-mindar-status">MENUNGGU</span></div>
+        <div class="diag-row"><span class="k">Fail Kad AR .mind:</span><span class="v" id="diag-marker-mind-status">7 Sasaran (0-6)</span></div>
         <div class="diag-row"><span class="k">Konteks WebGL:</span><span class="v" id="diag-webgl-status">Normal</span></div>
         <div class="diag-row"><span class="k">Ralat Terkini:</span><span class="v" id="diag-last-error">Tiada</span></div>
       </div>
@@ -1434,30 +1458,30 @@
       <div class="diag-section-header" style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.14);font-weight:700;color:#38bdf8;font-size:12px;display:flex;align-items:center;justify-content:space-between;">
         <span>🧬 TELEMETRI CELLQUEST 3D</span>
         <button type="button" id="diag-btn-toggle-debug-cube" style="background:#2563eb;color:#ffffff;border:1px solid #60a5fa;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">
-          Kiub Debug 3D
+          Kiub Ujian 3D
         </button>
       </div>
       <div class="diag-grid" style="margin-top:8px;">
-        <div class="diag-row"><span class="k">Status Muat GLB:</span><span class="v" id="diag-cq-glb-status">Belum Mula</span></div>
+        <div class="diag-row"><span class="k">Status Muat Model 3D:</span><span class="v" id="diag-cq-glb-status">Belum Mula</span></div>
         <div class="diag-row"><span class="k">Model Aktif:</span><span class="v" id="diag-cq-active-model">Sel Haiwan</span></div>
-        <div class="diag-row"><span class="k">Tracking State:</span><span class="v" id="diag-cq-tracking-state">MARKER_LOST</span></div>
-        <div class="diag-row"><span class="k">Mod Interaksi:</span><span class="v" id="diag-cq-interaction-mode">ROTATE</span></div>
+        <div class="diag-row"><span class="k">Status Pengesanan:</span><span class="v" id="diag-cq-tracking-state">KAD AR HILANG</span></div>
+        <div class="diag-row"><span class="k">Mod Interaksi:</span><span class="v" id="diag-cq-interaction-mode">PUTAR</span></div>
         <div class="diag-row"><span class="k">Semat Aktif:</span><span class="v" id="diag-cq-pin-enabled">TIDAK</span></div>
-        <div class="diag-row"><span class="k">Spatial Mode:</span><span class="v" id="diag-cq-spatial-mode">MARKER_MODE</span></div>
-        <div class="diag-row"><span class="k">Heading Rujukan:</span><span class="v" id="diag-cq-anchor-heading">-</span></div>
-        <div class="diag-row"><span class="k">vCam Ruang Kamera:</span><span class="v" id="diag-cq-vcam">-</span></div>
-        <div class="diag-row"><span class="k">ΔYaw / ΔPitch 3D:</span><span class="v" id="diag-cq-delta">-</span></div>
-        <div class="diag-row"><span class="k">Cam Near/Far:</span><span class="v" id="diag-cq-cam-near-far">0.1 / 100000</span></div>
-        <div class="diag-row"><span class="k">Frustum Status:</span><span class="v" id="diag-cq-frustum">Dalam Skrin</span></div>
+        <div class="diag-row"><span class="k">Mod Ruang 3D:</span><span class="v" id="diag-cq-spatial-mode">MOD KAD AR</span></div>
+        <div class="diag-row"><span class="k">Arah Rujukan:</span><span class="v" id="diag-cq-anchor-heading">-</span></div>
+        <div class="diag-row"><span class="k">Kamera Maya (vCam):</span><span class="v" id="diag-cq-vcam">-</span></div>
+        <div class="diag-row"><span class="k">ΔArah / ΔDongak 3D:</span><span class="v" id="diag-cq-delta">-</span></div>
+        <div class="diag-row"><span class="k">Julat Kamera (Near/Far):</span><span class="v" id="diag-cq-cam-near-far">0.1 / 100000</span></div>
+        <div class="diag-row"><span class="k">Status Paparan:</span><span class="v" id="diag-cq-frustum">Dalam Skrin</span></div>
         <div class="diag-row"><span class="k">Induk (Parent):</span><span class="v" id="diag-cq-parent">-</span></div>
         <div class="diag-row"><span class="k">Bilangan Mesh:</span><span class="v" id="diag-cq-mesh-count">0 mesh</span></div>
         <div class="diag-row"><span class="k">Kedudukan (X,Y,Z):</span><span class="v" id="diag-cq-pos">0, 0, 0</span></div>
-        <div class="diag-row"><span class="k">Skala (Scale):</span><span class="v" id="diag-cq-scale">1.00x</span></div>
-        <div class="diag-row"><span class="k">Pointer Event:</span><span class="v" id="diag-cq-pointer-event">-</span></div>
-        <div class="diag-row"><span class="k">Bounding Box:</span><span class="v" id="diag-cq-bounds">-</span></div>
-        <div class="diag-row"><span class="k">Sphere Radius:</span><span class="v" id="diag-cq-radius">-</span></div>
-        <div class="diag-row"><span class="k">Status Anchor:</span><span class="v" id="diag-cq-anchor">Hilang</span></div>
-        <div class="diag-row"><span class="k">WebGL Context:</span><span class="v" id="diag-cq-webgl">Normal (WebGL)</span></div>
+        <div class="diag-row"><span class="k">Skala Model:</span><span class="v" id="diag-cq-scale">1.00x</span></div>
+        <div class="diag-row"><span class="k">Input Sentuhan:</span><span class="v" id="diag-cq-pointer-event">-</span></div>
+        <div class="diag-row"><span class="k">Kotak Sempadan:</span><span class="v" id="diag-cq-bounds">-</span></div>
+        <div class="diag-row"><span class="k">Jejari Sfera:</span><span class="v" id="diag-cq-radius">-</span></div>
+        <div class="diag-row"><span class="k">Status Penambat:</span><span class="v" id="diag-cq-anchor">Hilang</span></div>
+        <div class="diag-row"><span class="k">Konteks WebGL:</span><span class="v" id="diag-cq-webgl">Normal (WebGL)</span></div>
       </div>
     </div>
   </div>
@@ -1469,10 +1493,10 @@
         <span class="material-symbols-outlined">logout</span>
       </div>
       <h3 class="exit-modal-title">Keluar daripada Kotak ARSELNEL?</h3>
-      <p class="exit-modal-desc">Sesi pembelajaran anda akan disimpan. Adakah anda pasti mahu kembali ke Dashboard ARSELNEL?</p>
+      <p class="exit-modal-desc">Sesi pembelajaran anda akan disimpan. Adakah anda pasti mahu kembali ke Halaman Utama ARSELNEL?</p>
       <div class="exit-modal-actions">
         <button type="button" class="exit-btn-cancel" id="btn-exit-cancel">Teruskan Pembelajaran</button>
-        <button type="button" class="exit-btn-confirm" id="btn-exit-confirm">Keluar ke Dashboard</button>
+        <button type="button" class="exit-btn-confirm" id="btn-exit-confirm">Keluar ke Halaman Utama</button>
       </div>
     </div>
   </div>
@@ -1483,7 +1507,7 @@
       <div class="jelajah3d-intro-header">
         <div class="jelajah3d-intro-badge">
           <span class="material-symbols-outlined">qr_code_scanner</span>
-          <span>SASARAN 5 • MARKER JELAJAH 3D</span>
+          <span>SASARAN 5 • KAD AR JELAJAH 3D</span>
         </div>
         <div class="jelajah3d-intro-icon">
           <span class="material-symbols-outlined">view_in_ar</span>
@@ -1506,7 +1530,7 @@
         </li>
         <li class="jelajah3d-intro-feature-item">
           <span class="material-symbols-outlined">360</span>
-          <span>Joystick dan gyroscope 360°</span>
+          <span>Kawalan kayu ria dan giroskop 360°</span>
         </li>
       </ul>
       <div class="exit-modal-actions jelajah3d-intro-actions">
@@ -1522,14 +1546,14 @@
       <div class="orientasi-intro-header">
         <div class="orientasi-intro-badge">
           <span class="material-symbols-outlined">radar</span>
-          <span>SASARAN 6 • MARKER AR ORIENTASI DUNIA</span>
+          <span>SASARAN 6 • KAD AR ORIENTASI DUNIA</span>
         </div>
         <div class="orientasi-intro-icon-wrap">
           <span class="material-symbols-outlined">public</span>
         </div>
       </div>
       <h3 class="exit-modal-title orientasi-intro-title" id="orientasi-intro-title">AR ORIENTASI DUNIA — MISI JELAJAH DUNIA SEL</h3>
-      <p class="exit-modal-desc orientasi-intro-subtitle">Terokai 8 stesen organel dalam ruang AR 360° menggunakan kamera, sensor orientasi, Smart Radar dan buka 3 Peti Harta Karun GLB 3D.</p>
+      <p class="exit-modal-desc orientasi-intro-subtitle">Terokai 8 stesen organel dalam ruang AR 360° menggunakan kamera, sensor orientasi, Radar Pintar dan buka 3 Peti Harta Karun GLB 3D.</p>
       <ul class="orientasi-intro-features" aria-label="Ciri-ciri AR Orientasi Dunia">
         <li class="orientasi-intro-feature-item">
           <span class="material-symbols-outlined">sensors</span>
@@ -1537,7 +1561,7 @@
         </li>
         <li class="orientasi-intro-feature-item">
           <span class="material-symbols-outlined">radar</span>
-          <span>Smart Radar</span>
+          <span>Radar Pintar</span>
         </li>
         <li class="orientasi-intro-feature-item">
           <span class="material-symbols-outlined">hub</span>
@@ -1570,7 +1594,7 @@
         <span class="material-symbols-outlined">explore</span>
       </div>
       <h3 class="exit-modal-title" id="jelajah3d-modal-title">Buka Misi Jelajah Dunia Sel (3D)?</h3>
-      <p class="exit-modal-desc" id="jelajah3d-modal-desc">Kamera AR dan overlay aktif semasa akan ditutup sebentar supaya Makmal Eksplorasi 3D berjalan lancar. Anda boleh kembali ke Kotak ARSELNEL pada bila-bila masa.</p>
+      <p class="exit-modal-desc" id="jelajah3d-modal-desc">Kamera AR dan paparan aktif semasa akan ditutup sebentar supaya Makmal Eksplorasi 3D berjalan lancar. Anda boleh kembali ke Kotak ARSELNEL pada bila-bila masa.</p>
       <div class="exit-modal-actions">
         <button type="button" class="exit-btn-cancel" id="btn-jelajah3d-cancel">Kekal di Kotak AR</button>
         <button type="button" class="exit-btn-confirm btn-jelajah3d-confirm" id="btn-jelajah3d-confirm">Mula Jelajah 3D</button>
@@ -1580,6 +1604,83 @@
   <div class="ar-toast" id="ar-toast" role="alert">
     <span class="material-symbols-outlined toast-icon">check_circle</span>
     <span class="toast-text" id="toast-text">Pemberitahuan</span>
+  </div>
+
+  <!-- FASA 4E-F.1: POST-DETECTION MODULE GUIDE BANNER -->
+  <div class="ar-post-detection-guide hidden" id="ar-post-detection-guide" role="status" aria-live="polite">
+    <div class="post-detect-icon-wrap" aria-hidden="true">
+      <span class="material-symbols-outlined" id="post-detect-icon">check_circle</span>
+    </div>
+    <div class="post-detect-content">
+      <div class="post-detect-title" id="post-detect-title">Kad AR Berjaya Dikesan!</div>
+      <div class="post-detect-subtitle" id="post-detect-subtitle">Ketik mana-mana butang di bawah untuk mula meneroka.</div>
+    </div>
+    <button type="button" class="btn-dismiss-post-detect" id="btn-dismiss-post-detect" aria-label="Tutup panduan kad AR">Fahami</button>
+  </div>
+
+  <!-- FASA 4E-F.1: 5-STEP INTERACTIVE POV GUIDE (KUNCI PANDANGAN) -->
+  <div class="ar-pov-interactive-guide hidden" id="ar-pov-interactive-guide" role="dialog" aria-label="Panduan Interaktif Kunci Pandangan">
+    <div class="pov-guide-header">
+      <div class="pov-guide-step-badge" id="pov-guide-step-badge">Langkah 1/5</div>
+      <button type="button" class="pov-guide-skip-btn" id="btn-pov-guide-skip">Tutup Panduan</button>
+    </div>
+    <h4 class="pov-guide-title" id="pov-guide-title">Apa itu Semat Skrin &amp; Kunci Pandangan?</h4>
+    <p class="pov-guide-desc" id="pov-guide-desc">"Semat pada Skrin" mengekalkan panel di skrin. "Kunci Pandangan" meletakkan panel di ruang sekeliling anda menggunakan sensor peranti.</p>
+    <div class="pov-guide-dots" id="pov-guide-dots" aria-hidden="true">
+      <span class="pov-dot is-active"></span>
+      <span class="pov-dot"></span>
+      <span class="pov-dot"></span>
+      <span class="pov-dot"></span>
+      <span class="pov-dot"></span>
+    </div>
+    <div class="pov-guide-actions">
+      <button type="button" class="btn-pov-guide-prev hidden" id="btn-pov-guide-prev">Kembali</button>
+      <button type="button" class="btn-pov-guide-next" id="btn-pov-guide-next">Seterusnya</button>
+    </div>
+  </div>
+
+  <!-- FASA 4E-F.1: 6-STEP ONBOARDING MODAL (PENGGUNA BAHARU & BUTANG PANDUAN PENGGUNA) -->
+  <div class="kotak-onboarding-backdrop hidden" id="kotak-onboarding-backdrop" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+    <div class="kotak-onboarding-card" id="kotak-onboarding-card">
+      <div class="onboarding-top-row">
+        <span class="onboarding-kicker">PANDUAN KOTAK ARSELNEL</span>
+        <span class="onboarding-progress-badge" id="onboarding-progress-text">1/6</span>
+      </div>
+      <div class="onboarding-progress-track" aria-hidden="true">
+        <div class="onboarding-progress-fill" id="onboarding-progress-fill" style="width:16.67%;"></div>
+      </div>
+
+      <div class="onboarding-hero">
+        <div class="onboarding-icon-circle" aria-hidden="true">
+          <span class="material-symbols-outlined" id="onboarding-visual-icon">view_in_ar</span>
+        </div>
+        <h2 class="onboarding-title" id="onboarding-title">Selamat Datang ke Kotak ARSELNEL!</h2>
+        <p class="onboarding-desc" id="onboarding-desc">Terokai pembelajaran Sains Tingkatan 1 secara Realiti Terimbuh (AR) menggunakan kad AR khas pada Kotak ARSELNEL anda.</p>
+      </div>
+
+      <div class="onboarding-tip-box" id="onboarding-tip-box">
+        <span class="material-symbols-outlined">lightbulb</span>
+        <span id="onboarding-tip-text">Pastikan anda berada di tempat yang terang supaya kamera dapat membaca kad AR dengan jelas.</span>
+      </div>
+
+      <div class="onboarding-step-dots" id="onboarding-step-dots" aria-hidden="true">
+        <span class="onboarding-dot is-active"></span>
+        <span class="onboarding-dot"></span>
+        <span class="onboarding-dot"></span>
+        <span class="onboarding-dot"></span>
+        <span class="onboarding-dot"></span>
+        <span class="onboarding-dot"></span>
+      </div>
+
+      <div class="onboarding-actions">
+        <button type="button" class="btn-onboarding-skip" id="btn-onboarding-skip">Langkau</button>
+        <div class="onboarding-nav-group">
+          <button type="button" class="btn-onboarding-prev hidden" id="btn-onboarding-prev">Kembali</button>
+          <button type="button" class="btn-onboarding-next" id="btn-onboarding-next">Seterusnya</button>
+          <button type="button" class="btn-onboarding-start hidden" id="btn-onboarding-start">Mula Mengimbas</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- LOADING SCREEN OVERLAY -->

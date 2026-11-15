@@ -122,6 +122,9 @@ class CDPClient {
       }
     });
     await this.send('Page.enable');
+    await this.send('Page.addScriptToEvaluateOnNewDocument', {
+      source: "try { localStorage.setItem('arselnel_kotak_onboarding_v1', 'completed'); } catch (e) {}"
+    });
     await this.send('Runtime.enable');
     await this.send('Network.enable');
   }

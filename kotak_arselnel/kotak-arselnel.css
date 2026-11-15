@@ -7026,5 +7026,692 @@ body.cellquest-active #ar-container canvas {
   }
 }
 
+/* =========================================================================
+   FASA 4E-F.1: PENYERAGAMAN BAHASA MELAYU & PANDUAN INTERAKTIF KOTAK ARSELNEL
+   ========================================================================= */
+
+@keyframes arFadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes arFadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Butang Panduan Pengguna pada Top HUD */
+.btn-user-guide {
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #0f172a !important;
+  border: 1.5px solid #38bdf8 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.25);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.btn-user-guide .material-symbols-outlined {
+  color: #0284c7;
+}
+
+.btn-user-guide:hover {
+  background: #e0f2fe !important;
+}
+
+/* Pastikan semua butang HUD mencapai sasaran sentuh minimum >= 44px */
+.ar-top-hud .ar-hud-btn,
+.ar-top-hud .btn-open-marker,
+.ar-top-hud .btn-jelajah3d-hud,
+.ar-top-hud .btn-orientasi-hud {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Sepanduk Panduan Imbasan (#scanner-overlay) */
+.ar-scanner-overlay {
+  padding-top: calc(88px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  padding-left: 14px;
+  padding-right: 14px;
+  gap: 10px;
+}
+
+.scanner-guide-banner {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  border: 2px solid #7dd3fc;
+  border-radius: 16px;
+  padding: 12px 18px;
+  max-width: min(92vw, 440px);
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+  pointer-events: none;
+  animation: arFadeSlideIn 0.35s ease;
+}
+
+.scanner-guide-title {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0c4a6e;
+  line-height: 1.25;
+}
+
+.scanner-guide-subtitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  line-height: 1.4;
+}
+
+/* Petua Imbasan Tertunda */
+.scanner-tips-box {
+  background: rgba(255, 251, 235, 0.97);
+  color: #1e293b;
+  border: 1.5px solid #f59e0b;
+  border-radius: 14px;
+  padding: 11px 16px;
+  max-width: min(92vw, 420px);
+  width: 100%;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+  pointer-events: none;
+  animation: arFadeSlideIn 0.3s ease;
+}
+
+.scanner-tips-box.hidden {
+  display: none !important;
+}
+
+.scanner-tips-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #b45309;
+  margin-bottom: 6px;
+}
+
+.scanner-tips-header .material-symbols-outlined {
+  font-size: 18px;
+  color: #d97706;
+}
+
+.scanner-tips-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #451a03;
+  line-height: 1.45;
+  display: grid;
+  gap: 3px;
+}
+
+/* Panduan Selepas Kad AR Dikesan (Tidak Menghalang Kawalan Modul) */
+.ar-post-detection-guide {
+  position: fixed;
+  top: calc(128px + env(safe-area-inset-top, 0px));
+  left: 16px;
+  right: 16px;
+  margin-inline: auto;
+  z-index: 10020;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: auto;
+  max-width: 520px;
+  background: rgba(236, 253, 245, 0.97);
+  color: #064e3b;
+  border: 2px solid #34d399;
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow: 0 12px 30px rgba(6, 78, 59, 0.22);
+  animation: arFadeSlideDown 0.3s ease;
+}
+
+.ar-post-detection-guide.hidden {
+  display: none !important;
+}
+
+.post-detect-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #d1fae5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.post-detect-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.post-detect-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #065f46;
+  line-height: 1.25;
+}
+
+.post-detect-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #047857;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.btn-dismiss-post-detect {
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  min-height: 44px;
+  min-width: 68px;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.btn-dismiss-post-detect:hover {
+  background: #047857;
+}
+
+/* Panduan Interaktif 5 Langkah Kunci Pandangan */
+.ar-pov-interactive-guide {
+  position: fixed;
+  right: 16px;
+  bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+  z-index: 10030;
+  width: min(92vw, 350px);
+  background: rgba(255, 255, 255, 0.97);
+  color: #0f172a;
+  border: 2px solid #818cf8;
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.26);
+  animation: arFadeSlideIn 0.3s ease;
+}
+
+.ar-pov-interactive-guide.hidden {
+  display: none !important;
+}
+
+.pov-guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pov-guide-step-badge {
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.pov-guide-skip-btn {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-height: 44px;
+  min-width: 44px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pov-guide-title {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e1b4b;
+  line-height: 1.3;
+}
+
+.pov-guide-desc {
+  margin: 0 0 10px 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.pov-guide-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.pov-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.pov-dot.is-active {
+  width: 22px;
+  background: #4f46e5;
+}
+
+.pov-dot.is-done {
+  background: #818cf8;
+}
+
+.pov-guide-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-pov-guide-prev,
+.btn-pov-guide-next {
+  min-height: 44px;
+  min-width: 84px;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-pov-guide-prev {
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1.5px solid #cbd5e1;
+}
+
+.btn-pov-guide-next {
+  background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%);
+  color: #ffffff;
+  border: none;
+}
+
+.btn-pov-guide-prev.hidden {
+  display: none !important;
+}
+
+/* Modal Onboarding 6 Langkah Kotak ARSELNEL */
+.kotak-onboarding-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10600;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.kotak-onboarding-backdrop.hidden {
+  display: none !important;
+}
+
+.kotak-onboarding-card {
+  width: min(100%, 490px);
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+  color: #0f172a;
+  border: 2px solid #bae6fd;
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.35);
+  animation: arFadeSlideIn 0.3s ease;
+}
+
+.onboarding-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.onboarding-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #0369a1;
+  background: #e0f2fe;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.onboarding-progress-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0c4a6e;
+  background: #dbeafe;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.onboarding-progress-track {
+  width: 100%;
+  height: 7px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.onboarding-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7 0%, #0d9488 100%);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.onboarding-hero {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.onboarding-icon-circle {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 12px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 100%);
+  border: 2px solid #7dd3fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0284c7;
+}
+
+.onboarding-icon-circle .material-symbols-outlined {
+  font-size: 36px;
+}
+
+.onboarding-title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.onboarding-desc {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.onboarding-tip-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  border-radius: 14px;
+  padding: 11px 14px;
+  color: #78350f;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
+.onboarding-tip-box .material-symbols-outlined {
+  font-size: 19px;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.onboarding-step-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.onboarding-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.onboarding-dot.is-active {
+  width: 24px;
+  background: #0284c7;
+}
+
+.onboarding-dot.is-done {
+  background: #14b8a6;
+}
+
+.onboarding-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.onboarding-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.btn-onboarding-skip,
+.btn-onboarding-prev,
+.btn-onboarding-next,
+.btn-onboarding-start {
+  min-height: 44px;
+  min-width: 84px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-onboarding-skip {
+  background: transparent;
+  color: #475569;
+  border: 1.5px solid #cbd5e1;
+}
+
+.btn-onboarding-prev {
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1.5px solid #cbd5e1;
+}
+
+.btn-onboarding-next {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+}
+
+.btn-onboarding-start {
+  background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.34);
+}
+
+.btn-onboarding-prev.hidden,
+.btn-onboarding-next.hidden,
+.btn-onboarding-start.hidden {
+  display: none !important;
+}
+
+/* Responsif Top HUD & Panduan Interaktif untuk iPad (1024px) & iPhone (390px) */
+@media (max-width: 1120px) {
+  .ar-top-hud {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 10px 6px;
+  }
+
+  .ar-top-hud .ar-hud-btn,
+  .ar-top-hud .btn-open-marker,
+  .ar-top-hud .btn-jelajah3d-hud,
+  .ar-top-hud .btn-orientasi-hud {
+    padding: 6px 10px;
+    font-size: 12px;
+    gap: 5px;
+  }
+
+  .ar-hud-right-group {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ar-top-hud {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    padding: calc(6px + env(safe-area-inset-top, 0px)) 8px 6px;
+  }
+
+  .ar-title-badge {
+    display: none !important;
+  }
+
+  .ar-hud-right-group {
+    display: contents;
+  }
+
+  .ar-top-hud .ar-hud-btn,
+  .ar-hud-right-group .ar-hud-btn,
+  .ar-hud-right-group .btn-open-marker,
+  .ar-hud-right-group .btn-jelajah3d-hud,
+  .ar-hud-right-group .btn-orientasi-hud {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 4px 6px;
+    font-size: 10.5px;
+    gap: 3px;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ar-top-hud .ar-hud-btn .material-symbols-outlined {
+    font-size: 15px !important;
+    flex-shrink: 0;
+  }
+
+  .ar-scanner-overlay {
+    padding-top: calc(116px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .scanner-guide-title {
+    font-size: 14.5px;
+  }
+
+  .scanner-guide-subtitle {
+    font-size: 12px;
+  }
+
+  .ar-post-detection-guide {
+    top: calc(116px + env(safe-area-inset-top, 0px));
+    left: 12px;
+    right: 12px;
+    margin-inline: auto;
+    padding: 9px 11px;
+    gap: 8px;
+  }
+
+  .ar-pov-interactive-guide {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: 366px;
+    margin-inline: auto;
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .kotak-onboarding-card {
+    padding: 18px 16px;
+    border-radius: 20px;
+  }
+
+  .onboarding-title {
+    font-size: 18px;
+  }
+
+  .onboarding-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .onboarding-nav-group {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .onboarding-nav-group button,
+  .btn-onboarding-skip {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanner-guide-banner,
+  .scanner-tips-box,
+  .ar-post-detection-guide,
+  .ar-pov-interactive-guide,
+  .kotak-onboarding-card,
+  .scan-laser,
+  .onboarding-progress-fill {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
 
 

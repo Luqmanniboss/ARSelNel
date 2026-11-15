@@ -166,6 +166,9 @@ async function run() {
   const client = new CDPClient(pageTarget.webSocketDebuggerUrl);
   await client.connect();
   await client.send('Page.enable');
+  await client.send('Page.addScriptToEvaluateOnNewDocument', {
+    source: "try { localStorage.setItem('arselnel_kotak_onboarding_v1', 'completed'); } catch (e) {}"
+  });
   await client.send('Runtime.enable');
   await client.send('Network.enable');
 
