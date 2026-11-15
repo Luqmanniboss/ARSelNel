@@ -156,6 +156,15 @@ const appHandler = async (req, res) => {
       }
     }
 
+    if (pathname === '/api/selbot/chat' || pathname.startsWith('/api/selbot/chat')) {
+      try {
+        const selbotChatHandler = require('./api/selbot/chat.js');
+        return selbotChatHandler(req, res);
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: 'SelBot API handler error: ' + err.message });
+      }
+    }
+
     if ((pathname === '/api/auth/login' || pathname === '/api/auth/register' || pathname === '/api/stats') && req.method !== 'OPTIONS') {
       return sendJSON(res, 501, { success: false, message: 'API pengesahan dan analitik sekolah belum dikonfigurasi. Gunakan mod demo setempat.' });
     }

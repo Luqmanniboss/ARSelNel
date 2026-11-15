@@ -1,0 +1,681 @@
+{
+  "totalSize": 929768630,
+  "totalSizeFormatted": "886.70 MB (929,768,630 B)",
+  "totalFiles": 3232,
+  "specificSizes": {
+    "models": {
+      "bytes": 378069847,
+      "formatted": "360.56 MB (378,069,847 B)"
+    },
+    "assets": {
+      "bytes": 68042969,
+      "formatted": "64.89 MB (68,042,969 B)"
+    },
+    "kotak_arselnel": {
+      "bytes": 29203005,
+      "formatted": "27.85 MB (29,203,005 B)"
+    },
+    "node_modules": {
+      "bytes": 0,
+      "formatted": "0 B"
+    },
+    "git": {
+      "bytes": 368884515,
+      "formatted": "351.80 MB (368,884,515 B)"
+    },
+    "tests": {
+      "bytes": 25316642,
+      "formatted": "24.14 MB (25,316,642 B)"
+    },
+    "test_screenshots": {
+      "bytes": 5484889,
+      "formatted": "5.23 MB (5,484,889 B)"
+    },
+    "test_results": {
+      "bytes": 0,
+      "formatted": "0 B"
+    }
+  },
+  "mediaFilesTotal": {
+    "count": 0,
+    "bytes": 0,
+    "formatted": "0 B",
+    "files": []
+  },
+  "top30Files": [
+    {
+      "path": "models\\endoplasmic_reticulum.glb",
+      "size": 68817428,
+      "sizeFormatted": "65.63 MB (68,817,428 B)",
+      "hash": "b2cb982ae8916f26de940e4b57eda687b0dfa3075d416f9f42e03a1baa906abd"
+    },
+    {
+      "path": "assets\\slides\\sel_tumbuhan_vs_sel_haiwan.pdf",
+      "size": 49424321,
+      "sizeFormatted": "47.13 MB (49,424,321 B)",
+      "hash": "fb5e62b0599ddfecff9fe98a179088790bf298579fd65cec6fef6a380c3010b2"
+    },
+    {
+      "path": ".git\\objects\\2e\\d3a834523b72de5682ba1237d001d6edd51a92",
+      "size": 49248997,
+      "sizeFormatted": "46.97 MB (49,248,997 B)",
+      "hash": "6db93f5311f636acf7acacc3c7014e066e1312f2d8be7160eecb91f7968ab2b2"
+    },
+    {
+      "path": "models\\plasma_membrane.glb",
+      "size": 48329912,
+      "sizeFormatted": "46.09 MB (48,329,912 B)",
+      "hash": "c50841b1a12918c492771437279500cfa69243dd12335a0455107aa89fd533a4"
+    },
+    {
+      "path": "models\\plasma_membrane_opt.glb",
+      "size": 48303952,
+      "sizeFormatted": "46.07 MB (48,303,952 B)",
+      "hash": "031b237e2c1351bffdc4e046c6bc53cf001ebcf14c20c62bce41f76ebd5d9208"
+    },
+    {
+      "path": "models\\endoplasmic_reticulum_opt.glb",
+      "size": 36059364,
+      "sizeFormatted": "34.39 MB (36,059,364 B)",
+      "hash": "0b34dd84e594b51365543e13ed8fac4938fa9826580279b43a7abe67cfd5e12e"
+    },
+    {
+      "path": "models\\treasure_chest.glb",
+      "size": 34892276,
+      "sizeFormatted": "33.28 MB (34,892,276 B)",
+      "hash": "990d06ba540b8ccc1fa74689b4b2aa850c7080513d4fa400b9aeef4b58e99914"
+    },
+    {
+      "path": ".git\\objects\\e6\\f2f17e58298cf056b32f980b444be2ec7907cb",
+      "size": 33996453,
+      "sizeFormatted": "32.42 MB (33,996,453 B)",
+      "hash": "675901a0fe322778b745a2bc53d11dc71da1a2488a440501ac1c824082111ac2"
+    },
+    {
+      "path": ".git\\objects\\b5\\579c417e78721e32a670ab1f38203e7aa7c483",
+      "size": 21242274,
+      "sizeFormatted": "20.26 MB (21,242,274 B)",
+      "hash": "d05eeefa66ce50bfc79bda1a0ad60deb5a67e5fc86895de02984c999a364821b"
+    },
+    {
+      "path": "models\\mitochondria.glb",
+      "size": 20677164,
+      "sizeFormatted": "19.72 MB (20,677,164 B)",
+      "hash": "668d7b772e8bb0cf3eff9bed58fda1d8b0d2dd9121dd217e99731ca02e0c3b48"
+    },
+    {
+      "path": ".git\\objects\\ec\\982e7d7c874d7966df1db353928d7e9a0f2695",
+      "size": 15717052,
+      "sizeFormatted": "14.99 MB (15,717,052 B)",
+      "hash": "6127d61128c89f7f6bcac3b7387baa990705efafb7383181a19b64204c5cd9e9"
+    },
+    {
+      "path": "models\\nucleus.glb",
+      "size": 15483648,
+      "sizeFormatted": "14.77 MB (15,483,648 B)",
+      "hash": "3a924cea0005c0e846affe557412a580dd51586062e081dbdd352de04431b9cd"
+    },
+    {
+      "path": "models\\nucleus_opt.glb",
+      "size": 15483648,
+      "sizeFormatted": "14.77 MB (15,483,648 B)",
+      "hash": "3a924cea0005c0e846affe557412a580dd51586062e081dbdd352de04431b9cd"
+    },
+    {
+      "path": "models\\chloroplast.glb",
+      "size": 14219436,
+      "sizeFormatted": "13.56 MB (14,219,436 B)",
+      "hash": "a809395c9ef2939820845521a1c2b8bb0e384397f7f33cca9153ef713efb4b8a"
+    },
+    {
+      "path": ".git\\objects\\22\\c18320e9b5d79a4e707799b68d87a3ef71cb92",
+      "size": 14159288,
+      "sizeFormatted": "13.50 MB (14,159,288 B)",
+      "hash": "111807761209e14158a6c47043264eca653d9e4cd54c54cf38f73b572be90268"
+    },
+    {
+      "path": ".git\\objects\\b6\\f33c0065d5864f05b5b4c1567cab56555fb518",
+      "size": 13882239,
+      "sizeFormatted": "13.24 MB (13,882,239 B)",
+      "hash": "10700616666b4e76f3d735ff5610bdc15e7cedc0a3b4909b20197a40a7d34478"
+    },
+    {
+      "path": "models\\plant_cell.glb",
+      "size": 13437556,
+      "sizeFormatted": "12.82 MB (13,437,556 B)",
+      "hash": "efed0cbbea5baa84d27b53ce7ed1a7276d5e30d965ff83313eb97f4c40304997"
+    },
+    {
+      "path": "models\\treasure_chests_asset_pack.glb",
+      "size": 12812188,
+      "sizeFormatted": "12.22 MB (12,812,188 B)",
+      "hash": "5f6bab28bfd436d26bea0b13288974d479645f732254470a7a12596688708d7a"
+    },
+    {
+      "path": ".git\\objects\\ae\\2474ed25d900aafca360b4dd5eb47f3e256b2f",
+      "size": 12603760,
+      "sizeFormatted": "12.02 MB (12,603,760 B)",
+      "hash": "a691f32602acddc379af650aedf32c6d214e23c0633494eb9612de120dfd1386"
+    },
+    {
+      "path": "models\\vacuole (1).glb",
+      "size": 12047088,
+      "sizeFormatted": "11.49 MB (12,047,088 B)",
+      "hash": "09c842a59cb28ef1e2ea48bc2ee040d0e7c74eae8e21316e5aecbc34e18c7327"
+    },
+    {
+      "path": "models\\plant baru\\source\\plantCell.glb",
+      "size": 10367540,
+      "sizeFormatted": "9.89 MB (10,367,540 B)",
+      "hash": "fdd91ba50ad9e361c05b55bd0b4532f508d8e71a68b1b9e4e3c3a4e7c58b39d9"
+    },
+    {
+      "path": ".git\\objects\\2b\\5fa13fb089dd3f71c8688bdb265b28165f74cb",
+      "size": 10195026,
+      "sizeFormatted": "9.72 MB (10,195,026 B)",
+      "hash": "7ebfc52126115d252b1d5960877385ca37f95fd5ed6824cee29eac924fa2f63d"
+    },
+    {
+      "path": "models\\plant baru\\source\\plantcellnew.glb",
+      "size": 9688656,
+      "sizeFormatted": "9.24 MB (9,688,656 B)",
+      "hash": "f15d04939d7b71de41a17a11d333cdb70779c8de2d0a450d4bb48b81835ce33a"
+    },
+    {
+      "path": "models\\plantcellnew.glb",
+      "size": 9688656,
+      "sizeFormatted": "9.24 MB (9,688,656 B)",
+      "hash": "f15d04939d7b71de41a17a11d333cdb70779c8de2d0a450d4bb48b81835ce33a"
+    },
+    {
+      "path": ".git\\objects\\19\\a24ef7e1f6be0f909c483164be6eb2e16c3f17",
+      "size": 9608483,
+      "sizeFormatted": "9.16 MB (9,608,483 B)",
+      "hash": "f02106b0f552bc7e7cc24148b1a90c866b9155cda608c5e73b72fa7908564968"
+    },
+    {
+      "path": ".git\\objects\\a6\\1a061370402248c17b574ba4c6f5c59f942414",
+      "size": 8999893,
+      "sizeFormatted": "8.58 MB (8,999,893 B)",
+      "hash": "7cdee750a4049f015b95f23bbaab81fa8be2af0f212645daaed853a97dffa0c5"
+    },
+    {
+      "path": ".git\\objects\\d5\\0ae7395543702316a863609651a58d0827f3c6",
+      "size": 8686215,
+      "sizeFormatted": "8.28 MB (8,686,215 B)",
+      "hash": "96858f3801481d19671cff4d79fd669a3ef6bc88f0c8ae4ea9d92a117a63df57"
+    },
+    {
+      "path": ".git\\objects\\7d\\d3ec024e1d22ecfd93610562cc91e8ce9b9a46",
+      "size": 8437496,
+      "sizeFormatted": "8.05 MB (8,437,496 B)",
+      "hash": "3e123b0208a0f9c59c88acd405b973981ad8e2d8f7444c51ba160c7e8db55598"
+    },
+    {
+      "path": "cellquest\\safari3d\\Build\\WebGL.wasm.br",
+      "size": 8060864,
+      "sizeFormatted": "7.69 MB (8,060,864 B)",
+      "hash": "c3ff70a605831201a076b96d3ffbced09908ee24e994261622da5bf7a7abdfef"
+    },
+    {
+      "path": ".git\\objects\\31\\dbc3db2bb8c086b719158478dc848adb048f10",
+      "size": 7798411,
+      "sizeFormatted": "7.44 MB (7,798,411 B)",
+      "hash": "da5ac4c2df030ee51323e3861393bb37acdb1a7dc178cef9d7731338d14b0ee0"
+    }
+  ],
+  "top15Folders": [
+    {
+      "folder": "models",
+      "bytes": 378069847,
+      "formatted": "360.56 MB (378,069,847 B)"
+    },
+    {
+      "folder": ".git",
+      "bytes": 368884515,
+      "formatted": "351.80 MB (368,884,515 B)"
+    },
+    {
+      "folder": ".git\\objects",
+      "bytes": 368691654,
+      "formatted": "351.61 MB (368,691,654 B)"
+    },
+    {
+      "folder": "assets",
+      "bytes": 68042969,
+      "formatted": "64.89 MB (68,042,969 B)"
+    },
+    {
+      "folder": "assets\\slides",
+      "bytes": 49424321,
+      "formatted": "47.13 MB (49,424,321 B)"
+    },
+    {
+      "folder": ".git\\objects\\2e",
+      "bytes": 49253113,
+      "formatted": "46.97 MB (49,253,113 B)"
+    },
+    {
+      "folder": ".git\\objects\\e6",
+      "bytes": 34123122,
+      "formatted": "32.54 MB (34,123,122 B)"
+    },
+    {
+      "folder": "kotak_arselnel",
+      "bytes": 29203005,
+      "formatted": "27.85 MB (29,203,005 B)"
+    },
+    {
+      "folder": "tests",
+      "bytes": 25316642,
+      "formatted": "24.14 MB (25,316,642 B)"
+    },
+    {
+      "folder": ".git\\objects\\b5",
+      "bytes": 23772381,
+      "formatted": "22.67 MB (23,772,381 B)"
+    },
+    {
+      "folder": "models\\plant baru",
+      "bytes": 22433939,
+      "formatted": "21.39 MB (22,433,939 B)"
+    },
+    {
+      "folder": "models\\plant baru\\source",
+      "bytes": 20056196,
+      "formatted": "19.13 MB (20,056,196 B)"
+    },
+    {
+      "folder": "kotak_arselnel\\assets\\markers",
+      "bytes": 17840853,
+      "formatted": "17.01 MB (17,840,853 B)"
+    },
+    {
+      "folder": "kotak_arselnel\\assets",
+      "bytes": 17840853,
+      "formatted": "17.01 MB (17,840,853 B)"
+    },
+    {
+      "folder": ".git\\objects\\d5",
+      "bytes": 16935928,
+      "formatted": "16.15 MB (16,935,928 B)"
+    }
+  ],
+  "duplicates": [
+    {
+      "hash": "3a924cea0005c0e846affe557412a580dd51586062e081dbdd352de04431b9cd",
+      "original": {
+        "path": "models\\nucleus.glb",
+        "size": 15483648,
+        "ext": ".glb"
+      },
+      "duplicate": {
+        "path": "models\\nucleus_opt.glb",
+        "size": 15483648,
+        "ext": ".glb"
+      },
+      "size": 15483648,
+      "sizeFormatted": "14.77 MB (15,483,648 B)"
+    },
+    {
+      "hash": "f15d04939d7b71de41a17a11d333cdb70779c8de2d0a450d4bb48b81835ce33a",
+      "original": {
+        "path": "models\\plant baru\\source\\plantcellnew.glb",
+        "size": 9688656,
+        "ext": ".glb"
+      },
+      "duplicate": {
+        "path": "models\\plantcellnew.glb",
+        "size": 9688656,
+        "ext": ".glb"
+      },
+      "size": 9688656,
+      "sizeFormatted": "9.24 MB (9,688,656 B)"
+    },
+    {
+      "hash": "9e0ed9226e505cff9b5ec5d127e4617c9a49329415e40c0c2c3fdafeee8bc9b6",
+      "original": {
+        "path": "assets\\images\\videobg.png",
+        "size": 1569698,
+        "ext": ".png"
+      },
+      "duplicate": {
+        "path": "background\\videobg.png",
+        "size": 1569698,
+        "ext": ".png"
+      },
+      "size": 1569698,
+      "sizeFormatted": "1.50 MB (1,569,698 B)"
+    },
+    {
+      "hash": "507acbaa21a44a3a99ef22ea0b3431eeb3a29ef3d07e386f81ad99d926d41360",
+      "original": {
+        "path": "assets\\images\\kuizbg.png",
+        "size": 1568961,
+        "ext": ".png"
+      },
+      "duplicate": {
+        "path": "background\\kuizbg.png",
+        "size": 1568961,
+        "ext": ".png"
+      },
+      "size": 1568961,
+      "sizeFormatted": "1.50 MB (1,568,961 B)"
+    },
+    {
+      "hash": "651d20314101da44cb1e89d9f0ba616e5e097e288493b939e25d5ba7695b1306",
+      "original": {
+        "path": "assets\\images\\cellquestbg.png",
+        "size": 1565905,
+        "ext": ".png"
+      },
+      "duplicate": {
+        "path": "background\\cellquestbg.png",
+        "size": 1565905,
+        "ext": ".png"
+      },
+      "size": 1565905,
+      "sizeFormatted": "1.49 MB (1,565,905 B)"
+    },
+    {
+      "hash": "d4c9e4a3185c9d85277742be6a7bf81dbaf4587db59cda4d43c7bb799ea27161",
+      "original": {
+        "path": "assets\\images\\notabg.png",
+        "size": 1508080,
+        "ext": ".png"
+      },
+      "duplicate": {
+        "path": "background\\notabg.png",
+        "size": 1508080,
+        "ext": ".png"
+      },
+      "size": 1508080,
+      "sizeFormatted": "1.44 MB (1,508,080 B)"
+    },
+    {
+      "hash": "ae9eb3305bd263c224f923bf1ff079d212c93ea31ce86bc1445a5dfde114067d",
+      "original": {
+        "path": "assets\\images\\tanyaaibg.png",
+        "size": 1480858,
+        "ext": ".png"
+      },
+      "duplicate": {
+        "path": "background\\tanyaaibg.png",
+        "size": 1480858,
+        "ext": ".png"
+      },
+      "size": 1480858,
+      "sizeFormatted": "1.41 MB (1,480,858 B)"
+    },
+    {
+      "hash": "416e82e9039876f65c41508466658cf24749b16016f72228f32651b97a0653ce",
+      "original": {
+        "path": "assets\\images\\dashboardbg.png",
+        "size": 1445836,
+        "ext": ".png"
+      },
+      "duplicate": {
+        "path": "background\\dashboardbg.png",
+        "size": 1445836,
+        "ext": ".png"
+      },
+      "size": 1445836,
+      "sizeFormatted": "1.38 MB (1,445,836 B)"
+    },
+    {
+      "hash": "dcd51b0aacc6116e4762c340a988ba2ea85959e417f9f872aee1ff8bea23384f",
+      "original": {
+        "path": "assets\\images\\sidebarbg.png",
+        "size": 989057,
+        "ext": ".png"
+      },
+      "duplicate": {
+        "path": "background\\sidebarbg.png",
+        "size": 989057,
+        "ext": ".png"
+      },
+      "size": 989057,
+      "sizeFormatted": "0.94 MB (989,057 B)"
+    },
+    {
+      "hash": "e1a3bf710578fda30e0929c4032617566a7acdad27e7778b021ab1297ec6b9c4",
+      "original": {
+        "path": "kotak_arselnel\\assets\\markers\\marker-cellquest.png",
+        "size": 446408,
+        "ext": ".png"
+      },
+      "duplicate": {
+        "path": "kotak_arselnel\\assets\\markers\\marker-sel-haiwan.png",
+        "size": 446408,
+        "ext": ".png"
+      },
+      "size": 446408,
+      "sizeFormatted": "0.43 MB (446,408 B)"
+    },
+    {
+      "hash": "902f30c1fb0597d0734bc34b979ec5d131f8f39a4b71b338083821216ec8d61b",
+      "original": {
+        "path": ".tmp_browser_1793815689505\\Default\\DawnGraphiteCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "duplicate": {
+        "path": ".tmp_browser_1793815689505\\Default\\DawnWebGPUCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "size": 270336,
+      "sizeFormatted": "0.26 MB (270,336 B)"
+    },
+    {
+      "hash": "902f30c1fb0597d0734bc34b979ec5d131f8f39a4b71b338083821216ec8d61b",
+      "original": {
+        "path": ".tmp_browser_1793815689505\\Default\\DawnGraphiteCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "duplicate": {
+        "path": ".tmp_browser_1793815689505\\Default\\GPUCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "size": 270336,
+      "sizeFormatted": "0.26 MB (270,336 B)"
+    },
+    {
+      "hash": "902f30c1fb0597d0734bc34b979ec5d131f8f39a4b71b338083821216ec8d61b",
+      "original": {
+        "path": ".tmp_browser_1793815689505\\Default\\DawnGraphiteCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "duplicate": {
+        "path": ".tmp_browser_1793815689505\\Default\\Storage\\ext\\ihmafllikibpmigkcoadcmckbfhibefp\\def\\DawnGraphiteCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "size": 270336,
+      "sizeFormatted": "0.26 MB (270,336 B)"
+    },
+    {
+      "hash": "902f30c1fb0597d0734bc34b979ec5d131f8f39a4b71b338083821216ec8d61b",
+      "original": {
+        "path": ".tmp_browser_1793815689505\\Default\\DawnGraphiteCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "duplicate": {
+        "path": ".tmp_browser_1793815689505\\Default\\Storage\\ext\\ihmafllikibpmigkcoadcmckbfhibefp\\def\\DawnWebGPUCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "size": 270336,
+      "sizeFormatted": "0.26 MB (270,336 B)"
+    },
+    {
+      "hash": "902f30c1fb0597d0734bc34b979ec5d131f8f39a4b71b338083821216ec8d61b",
+      "original": {
+        "path": ".tmp_browser_1793815689505\\Default\\DawnGraphiteCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "duplicate": {
+        "path": ".tmp_browser_1793815689505\\Default\\Storage\\ext\\ihmafllikibpmigkcoadcmckbfhibefp\\def\\GPUCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "size": 270336,
+      "sizeFormatted": "0.26 MB (270,336 B)"
+    },
+    {
+      "hash": "902f30c1fb0597d0734bc34b979ec5d131f8f39a4b71b338083821216ec8d61b",
+      "original": {
+        "path": ".tmp_browser_1793815689505\\Default\\DawnGraphiteCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "duplicate": {
+        "path": ".tmp_browser_1793815689505\\GrShaderCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "size": 270336,
+      "sizeFormatted": "0.26 MB (270,336 B)"
+    },
+    {
+      "hash": "902f30c1fb0597d0734bc34b979ec5d131f8f39a4b71b338083821216ec8d61b",
+      "original": {
+        "path": ".tmp_browser_1793815689505\\Default\\DawnGraphiteCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "duplicate": {
+        "path": ".tmp_browser_1793815689505\\ShaderCache\\data_1",
+        "size": 270336,
+        "ext": ""
+      },
+      "size": 270336,
+      "sizeFormatted": "0.26 MB (270,336 B)"
+    },
+    {
+      "hash": "8dac78adbc63eb98d77c2bcdfc94837b914b3272b5033edabe0cb5f439458147",
+      "original": {
+        "path": "models\\cell_wall (1).glb",
+        "size": 188524,
+        "ext": ".glb"
+      },
+      "duplicate": {
+        "path": "models\\cell_wall.glb",
+        "size": 188524,
+        "ext": ".glb"
+      },
+      "size": 188524,
+      "sizeFormatted": "0.18 MB (188,524 B)"
+    },
+    {
+      "hash": "542ca6110f9d07285ad2e44265a743e5eef889c099f43923f7877c1d83cc5fc3",
+      "original": {
+        "path": "kotak_arselnel\\kotak-arselnel.fasa4ec2.bak.css",
+        "size": 115999,
+        "ext": ".css"
+      },
+      "duplicate": {
+        "path": "kotak_arselnel\\kotak-arselnel.fasa4ec3a.bak.css",
+        "size": 115999,
+        "ext": ".css"
+      },
+      "size": 115999,
+      "sizeFormatted": "0.11 MB (115,999 B)"
+    },
+    {
+      "hash": "37683a7f0b204f8c24ec7f5cbb54efb3dd8d13a61841a931d9334f0c6f1206cd",
+      "original": {
+        "path": "kotak_arselnel\\kotak-arselnel.fasa4eb23.bak.css",
+        "size": 113937,
+        "ext": ".css"
+      },
+      "duplicate": {
+        "path": "kotak_arselnel\\kotak-arselnel.fasa4eb23.prehotfix.bak.css",
+        "size": 113937,
+        "ext": ".css"
+      },
+      "size": 113937,
+      "sizeFormatted": "0.11 MB (113,937 B)"
+    },
+    {
+      "hash": "4b043b8dec079e79af0c5977a42bf231227b018f66762fe0d1bce5f9b4a69192",
+      "original": {
+        "path": "kotak_arselnel\\kotak-arselnel.fasa4eb2.bak.css",
+        "size": 109311,
+        "ext": ".css"
+      },
+      "duplicate": {
+        "path": "kotak_arselnel\\kotak-arselnel.fasa4eb21.bak.css",
+        "size": 109311,
+        "ext": ".css"
+      },
+      "size": 109311,
+      "sizeFormatted": "0.10 MB (109,311 B)"
+    },
+    {
+      "hash": "08416bc65de7c204eed30fcd500e48334e50a2767fdf3fdc42441e540c746b5a",
+      "original": {
+        "path": "kotak_arselnel\\kotak-arselnel.fasa4dd3.bak.css",
+        "size": 106746,
+        "ext": ".css"
+      },
+      "duplicate": {
+        "path": "kotak_arselnel\\kotak-arselnel.fasa4eb1.bak.css",
+        "size": 106746,
+        "ext": ".css"
+      },
+      "size": 106746,
+      "sizeFormatted": "0.10 MB (106,746 B)"
+    },
+    {
+      "hash": "af53161607cf159e8e51c70f58b917a3144fd0c476c2224fa5bc33aeb1d1f4ed",
+      "original": {
+        "path": "kotak_arselnel\\code.fasa4eb24.bak.html",
+        "size": 75666,
+        "ext": ".html"
+      },
+      "duplicate": {
+        "path": "kotak_arselnel\\code.fasa4ec1.bak.html",
+        "size": 75666,
+        "ext": ".html"
+      },
+      "size": 75666,
+      "sizeFormatted": "0.07 MB (75,666 B)"
+    },
+    {
+      "hash": "d833f69709dff496a45d37dc136e5e42a51a00f302de7a436bdae02ceeac64b8",
+      "original": {
+        "path": "kotak_arselnel\\code.fasa4eb2.bak.html",
+        "size": 73401,
+        "ext": ".html"
+      },
+      "duplicate": {
+        "path": "kotak_arselnel\\code.fasa4eb21.bak.html",
+        "size": 73401,
+        "ext": ".html"
+      },
+      "size": 73401,
+      "sizeFormatted": "0.07 MB (73,401 B)"
+    },
+    {
+      "hash": "4825922749265b3039e3d5fabc9e5cbdd00406b0d256bafea9a835234ab38683",
+      "original": {
+        "path": ".tmp_browser_1793815689505\\Default\\Login Data",
+        "size": 51200,
+        "ext": ""
+      },
+      "duplicate": {
+        "path": ".tmp_browser_1793815689505\\Default\\Login Data For Account",
+        "size": 51200,
+        "ext": ""
+      },
+      "size": 51200,
+      "sizeFormatted": "0.05 MB (51,200 B)"
+    }
+  ]
+}

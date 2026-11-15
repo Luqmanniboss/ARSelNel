@@ -295,39 +295,50 @@
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
       
       <!-- LEFT COLUMN: Chat Panel (70%) -->
-      <div class="lg:col-span-8 bg-white border border-pink-100/80 rounded-2xl shadow-sm flex flex-col h-[560px] overflow-hidden">
+      <div class="lg:col-span-8 bg-white border border-pink-100/80 rounded-2xl shadow-sm flex flex-col h-[620px] overflow-hidden">
         
         <!-- Chat Panel Header -->
-        <div class="px-6 py-4 border-b border-pink-100/70 flex items-center justify-between bg-[#fdf2f8]/50">
+        <div class="px-5 py-3.5 border-b border-pink-100/70 flex items-center justify-between bg-[#fdf2f8]/60">
           <div class="flex items-center gap-3">
-            <img src="../assets/selbot/selbot-avatar.svg" class="w-10 h-10 object-contain" alt="SelBot Chat Avatar" />
+            <div class="relative">
+              <img src="../assets/selbot/selbot-avatar.svg" class="w-10 h-10 object-contain" alt="SelBot Chat Avatar" />
+              <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></span>
+            </div>
             <div>
-              <h3 class="font-headline text-sm font-extrabold text-slate-800 leading-snug">SelBot</h3>
-              <span class="text-[10px] font-bold text-pink-600 uppercase tracking-wider">Sains Tingkatan 1</span>
+              <div class="flex items-center gap-2">
+                <h3 class="font-headline text-sm font-extrabold text-slate-800 leading-snug">SelBot AI</h3>
+                <span id="selbot-status-pill" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-100 text-pink-700 border border-pink-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>
+                  <span id="selbot-status-text">Menyambung...</span>
+                </span>
+              </div>
+              <span class="text-[11px] font-semibold text-slate-500">Tutor Pintar Sains Tingkatan 1 KSSM</span>
             </div>
           </div>
           <div class="flex items-center gap-1.5">
             <!-- Reset Button -->
-            <button id="reset-chat-btn" class="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-red-500 hover:bg-slate-100 transition-colors focus:outline-none" aria-label="Padam Perbualan">
-              <span class="material-symbols-outlined text-xl">delete</span>
-            </button>
-            <button class="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-pink-600 hover:bg-slate-100 transition-colors focus:outline-none" aria-label="Lagi Pilihan">
-              <span class="material-symbols-outlined text-xl">more_vert</span>
+            <button id="reset-chat-btn" class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors focus:outline-none" title="Padam Perbualan" aria-label="Padam Perbualan">
+              <span class="material-symbols-outlined text-xl">delete_sweep</span>
             </button>
           </div>
         </div>
 
         <!-- Chat Conversation Feed -->
-        <div id="chat-feed" class="chat-scroll-container flex-1 overflow-y-auto p-6 space-y-4">
+        <div id="chat-feed" class="chat-scroll-container flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
           
           <!-- SelBot Welcome Bubble -->
-          <div class="flex items-start gap-3 max-w-[85%]">
+          <div class="flex items-start gap-3 max-w-[90%]">
             <img src="../assets/selbot/selbot-avatar.svg" class="w-8 h-8 object-contain shrink-0 mt-0.5" alt="SelBot Avatar" />
-            <div class="bg-[#fdf2f8] border border-[#fbcfe8] p-4 rounded-[1.25rem] rounded-tl-none text-left">
-              <p class="font-body text-xs sm:text-sm text-slate-700 leading-relaxed">
-                Hai! Saya SelBot. Tanyakan apa-apa soalan tentang struktur, fungsi dan organisasi sel. Sila pilih soalan cadangan di bawah atau taip sendiri!
+            <div class="bg-[#fdf2f8] border border-[#fbcfe8] p-4 rounded-[1.25rem] rounded-tl-none text-left shadow-sm">
+              <p class="font-body text-xs sm:text-sm text-slate-800 leading-relaxed">
+                Hai, Saintis Muda! Saya <strong>SelBot</strong>, pembantu pembelajaran Sains Tingkatan 1 anda. Tanyakan apa-apa sahaja tentang sel haiwan, sel tumbuhan, organel, atau organisasi sel. Anda juga boleh menggunakan <em>Tindakan Pantas</em> di bawah!
               </p>
-              <span class="block text-[9px] text-slate-400 font-semibold mt-2">10:24 pagi</span>
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-pink-200/60">
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-pink-700">
+                  <span class="material-symbols-outlined text-xs">verified</span> KSSM Bab 2
+                </span>
+                <span class="text-[9px] text-slate-400 font-semibold" id="welcome-time">10:00 pagi</span>
+              </div>
             </div>
           </div>
 
@@ -337,52 +348,97 @@
           <!-- Typing Indicator (Hidden by default) -->
           <div id="typing-indicator" class="hidden flex items-start gap-3 max-w-[85%]">
             <img src="../assets/selbot/selbot-avatar.svg" class="w-8 h-8 object-contain shrink-0 mt-0.5" alt="SelBot Avatar" />
-            <div class="bg-[#fdf2f8] border border-[#fbcfe8] px-4 py-3.5 rounded-[1.25rem] rounded-tl-none flex items-center gap-1">
-              <span class="bounce-dot"></span>
-              <span class="bounce-dot"></span>
-              <span class="bounce-dot"></span>
+            <div class="bg-[#fdf2f8] border border-[#fbcfe8] px-4 py-3 rounded-[1.25rem] rounded-tl-none flex items-center gap-2 shadow-sm">
+              <span class="text-xs font-semibold text-pink-700">SelBot sedang berfikir...</span>
+              <div class="flex items-center gap-1">
+                <span class="bounce-dot"></span>
+                <span class="bounce-dot"></span>
+                <span class="bounce-dot"></span>
+              </div>
             </div>
           </div>
 
         </div>
 
+        <!-- Quick Actions Toolbar (LANGKAH 5B) -->
+        <div class="px-5 py-2 border-t border-pink-100/60 bg-pink-50/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-extrabold text-pink-800 flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-pink-600">bolt</span>
+              Tindakan Pantas:
+            </span>
+            <span class="text-[10px] text-slate-400 font-medium">Klik untuk minta SelBot bertindak</span>
+          </div>
+          <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none pb-1">
+            <button class="quick-action-btn inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-pink-100 hover:text-pink-800 border border-pink-200 rounded-lg text-slate-700 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-action="explain_easy">
+              <span class="material-symbols-outlined text-sm text-pink-600">auto_fix_high</span>
+              Terangkan lebih mudah
+            </button>
+            <button class="quick-action-btn inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-pink-100 hover:text-pink-800 border border-pink-200 rounded-lg text-slate-700 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-action="give_example">
+              <span class="material-symbols-outlined text-sm text-amber-500">lightbulb</span>
+              Beri contoh
+            </button>
+            <button class="quick-action-btn inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-pink-100 hover:text-pink-800 border border-pink-200 rounded-lg text-slate-700 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-action="make_analogy">
+              <span class="material-symbols-outlined text-sm text-purple-600">compare_arrows</span>
+              Buat analogi
+            </button>
+            <button class="quick-action-btn inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-pink-100 hover:text-pink-800 border border-pink-200 rounded-lg text-slate-700 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-action="ask_kbat">
+              <span class="material-symbols-outlined text-sm text-rose-500">psychology</span>
+              Tanya soalan KBAT
+            </button>
+            <button class="quick-action-btn inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-pink-100 hover:text-pink-800 border border-pink-200 rounded-lg text-slate-700 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-action="quiz_me">
+              <span class="material-symbols-outlined text-sm text-emerald-600">checklist</span>
+              Kuiz saya
+            </button>
+          </div>
+        </div>
+
         <!-- Predefined Suggested Question Chips -->
-        <div class="px-6 py-2 border-t border-slate-50 flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-3">
-          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Apakah fungsi nukleus?">
-            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
+        <div class="px-5 py-2 border-t border-slate-100 flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none bg-white">
+          <span class="text-[10px] font-bold text-slate-400 shrink-0">Cadangan:</span>
+          <button class="suggestion-chip inline-flex items-center gap-1 px-3 h-8 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-200 rounded-full text-slate-600 font-headline text-[11px] font-bold transition-all active:scale-95 shrink-0" data-question="Apakah fungsi nukleus dalam sel?">
+            <span class="material-symbols-outlined text-xs text-pink-500">help</span>
             Apakah fungsi nukleus?
           </button>
-          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Apa beza sel haiwan dan sel tumbuhan?">
-            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
-            Apa beza sel haiwan dan sel tumbuhan?
+          <button class="suggestion-chip inline-flex items-center gap-1 px-3 h-8 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-200 rounded-full text-slate-600 font-headline text-[11px] font-bold transition-all active:scale-95 shrink-0" data-question="Apakah perbezaan antara sel haiwan dan sel tumbuhan?">
+            <span class="material-symbols-outlined text-xs text-pink-500">help</span>
+            Beza sel haiwan &amp; tumbuhan?
           </button>
-          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Terangkan maksud mitosis">
-            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
-            Terangkan maksud mitosis
+          <button class="suggestion-chip inline-flex items-center gap-1 px-3 h-8 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-200 rounded-full text-slate-600 font-headline text-[11px] font-bold transition-all active:scale-95 shrink-0" data-question="Apakah fungsi mitokondria?">
+            <span class="material-symbols-outlined text-xs text-pink-500">help</span>
+            Fungsi mitokondria?
           </button>
-          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Apakah fungsi mitokondria?">
-            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
-            Apakah fungsi mitokondria?
+          <button class="suggestion-chip inline-flex items-center gap-1 px-3 h-8 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-200 rounded-full text-slate-600 font-headline text-[11px] font-bold transition-all active:scale-95 shrink-0" data-question="Terangkan urutan organisasi sel dari sel hingga organisma.">
+            <span class="material-symbols-outlined text-xs text-pink-500">help</span>
+            Organisasi sel?
           </button>
-          <button class="suggestion-chip inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-100 rounded-full text-slate-600 font-headline text-xs font-bold transition-all active:scale-95 shrink-0" data-question="Bagaimana sel membentuk tisu?">
-            <span class="material-symbols-outlined text-sm text-pink-500">help</span>
-            Bagaimana sel membentuk tisu?
+          <button class="suggestion-chip inline-flex items-center gap-1 px-3 h-8 bg-slate-50 hover:bg-[#fdf2f8] hover:text-[#9d174d] hover:border-[#fbcfe8] border border-slate-200 rounded-full text-slate-600 font-headline text-[11px] font-bold transition-all active:scale-95 shrink-0" data-question="Beri contoh organisma unisel dan multisel.">
+            <span class="material-symbols-outlined text-xs text-pink-500">help</span>
+            Unisel vs Multisel?
           </button>
         </div>
 
         <!-- Chat Input Composer -->
-        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
-          <div class="relative flex items-center bg-white border border-pink-100 rounded-2xl shadow-sm pr-2 focus-within:border-pink-300 transition-colors">
-            <!-- Audio button -->
-            <button class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-pink-600 transition-colors focus:outline-none" aria-label="Input Suara">
+        <div class="px-5 py-3 border-t border-slate-100 bg-slate-50/50">
+          <div class="relative flex items-center bg-white border border-pink-200 rounded-2xl shadow-sm pr-2 focus-within:border-pink-500 focus-within:ring-2 focus-within:ring-pink-100 transition-all">
+            <!-- Audio/Mic hint button -->
+            <button id="mic-btn" class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-pink-600 transition-colors focus:outline-none" title="Input Teks (Mikrofon)" aria-label="Input Mikrofon">
               <span class="material-symbols-outlined">mic</span>
             </button>
-            <input id="chat-input" class="flex-grow h-12 border-none bg-transparent pl-2 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-0" placeholder="Tanya sesuatu tentang sel..." type="text" />
+            <!-- Chat Input (max 500 chars) -->
+            <input id="chat-input" maxlength="500" class="flex-grow h-12 border-none bg-transparent pl-2 pr-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-0" placeholder="Tanya apa-apa soalan tentang sel Sains Tingkatan 1..." type="text" autocomplete="off" />
             
-            <!-- Send Button -->
-            <button id="send-btn" class="w-9 h-9 bg-slate-200 text-slate-400 rounded-xl flex items-center justify-center transition-all focus:outline-none disabled:cursor-not-allowed" disabled aria-label="Hantar Soalan">
-              <span class="material-symbols-outlined text-lg font-bold">send</span>
+            <!-- Character Counter -->
+            <span id="char-counter" class="text-[10px] text-slate-400 font-mono pr-2 select-none">0/500</span>
+
+            <!-- Send Button (min 44x44px touch target) -->
+            <button id="send-btn" class="w-11 h-11 min-w-[44px] min-h-[44px] bg-slate-200 text-slate-400 rounded-xl flex items-center justify-center transition-all focus:outline-none disabled:cursor-not-allowed hover:shadow-sm" disabled title="Hantar Soalan (Enter)" aria-label="Hantar Soalan">
+              <span class="material-symbols-outlined text-xl font-bold">send</span>
             </button>
+          </div>
+          <div class="flex items-center justify-between mt-1 px-1 text-[10px] text-slate-400">
+            <span>Tekan <strong>Enter</strong> untuk hantar • <strong>Shift+Enter</strong> untuk baris baharu</span>
+            <span id="network-status" class="text-slate-400">Status: Sedia</span>
           </div>
         </div>
 
@@ -509,12 +565,29 @@
 
   <!-- JavaScript chatbot logic -->
   <script>
-    // Toggle Hamburger Menu for Mobile/Tablet
+    // State management
+    let conversationHistory = [];
+    let lastSentMessage = '';
+    let isRequestInProgress = false;
+
+    // DOM Elements
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const messageContainer = document.getElementById('message-container');
+    const chatFeed = document.getElementById('chat-feed');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const resetBtn = document.getElementById('reset-chat-btn');
+    const charCounter = document.getElementById('char-counter');
+    const statusPill = document.getElementById('selbot-status-pill');
+    const statusText = document.getElementById('selbot-status-text');
+    const networkStatus = document.getElementById('network-status');
+    const micBtn = document.getElementById('mic-btn');
     const hamburgerBtn = document.getElementById('hamburger-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     const hamburgerIcon = document.getElementById('hamburger-icon');
 
-    hamburgerBtn.addEventListener('click', () => {
+    // Toggle Hamburger Menu for Mobile/Tablet
+    hamburgerBtn?.addEventListener('click', () => {
       const isExpanded = mobileMenu.classList.contains('hidden');
       if (isExpanded) {
         mobileMenu.classList.remove('hidden');
@@ -525,217 +598,410 @@
       }
     });
 
-    // Close menu when clicking outside
     document.addEventListener('click', (e) => {
-      if (!hamburgerBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+      if (hamburgerBtn && mobileMenu && !hamburgerBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
         mobileMenu.classList.add('hidden');
-        hamburgerIcon.textContent = 'menu';
+        if (hamburgerIcon) hamburgerIcon.textContent = 'menu';
       }
     });
 
-    const input = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-    const messageContainer = document.getElementById('message-container');
-    const chatFeed = document.getElementById('chat-feed');
-    const typingIndicator = document.getElementById('typing-indicator');
-    const resetBtn = document.getElementById('reset-chat-btn');
-
-    // Enable/disable send button based on text input
-    input.addEventListener('input', () => {
-      const val = input.value.trim();
-      if (val.length > 0) {
-        sendBtn.disabled = false;
-        sendBtn.classList.remove('bg-slate-200', 'text-slate-400');
-        sendBtn.classList.add('bg-pink-600', 'text-white', 'hover:bg-pink-700');
-      } else {
-        sendBtn.disabled = true;
-        sendBtn.classList.add('bg-slate-200', 'text-slate-400');
-        sendBtn.classList.remove('bg-pink-600', 'text-white', 'hover:bg-pink-700');
-      }
-    });
-
-    // Helper to format current time
+    // Helper: Format current time
     function getCurrentTime() {
       const now = new Date();
       let hours = now.getHours();
       const minutes = now.getMinutes();
       const ampm = hours >= 12 ? 'petang' : 'pagi';
-      hours = hours % 12;
-      hours = hours ? hours : 12; // the hour '0' should be '12'
+      hours = hours % 12 || 12;
       const strMinutes = minutes < 10 ? '0' + minutes : minutes;
       return `${hours}:${strMinutes} ${ampm}`;
     }
 
-    // Append standard visual messages
-    function appendMessage(text, isUser = true, visualCardHtml = '') {
+    // Set welcome time
+    const welcomeTimeEl = document.getElementById('welcome-time');
+    if (welcomeTimeEl) welcomeTimeEl.textContent = getCurrentTime();
+
+    // Helper: Escape HTML to prevent XSS
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Helper: Safe Markdown-like formatting for educational text
+    function formatEducationalReply(text) {
+      if (!text) return '';
+      let safe = escapeHTML(text);
+
+      // Bold text **bold**
+      safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
+      // Italic text *italic*
+      safe = safe.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
+
+      // Convert bullet lines
+      safe = safe.replace(/(?:^|\n)[•*-]\s+(.+)/g, '<li class="ml-4 list-disc text-slate-700">$1</li>');
+
+      // Convert numbered lines
+      safe = safe.replace(/(?:^|\n)(\d+)\.\s+(.+)/g, '<li class="ml-4 list-decimal text-slate-700"><span class="font-bold text-pink-700">$1.</span> $2</li>');
+
+      // Replace double linebreaks with paragraphs, single linebreaks with <br>
+      safe = safe.replace(/\n\n/g, '<div class="h-2"></div>').replace(/\n/g, '<br>');
+
+      return safe;
+    }
+
+    // Enable/disable send button & update character counter
+    function updateInputState() {
+      const val = input.value;
+      const len = val.length;
+      charCounter.textContent = `${len}/500`;
+
+      if (len > 450) {
+        charCounter.classList.add('text-amber-500', 'font-bold');
+      } else {
+        charCounter.classList.remove('text-amber-500', 'font-bold');
+      }
+
+      const trimmed = val.trim();
+      if (trimmed.length > 0 && !isRequestInProgress) {
+        sendBtn.disabled = false;
+        sendBtn.classList.remove('bg-slate-200', 'text-slate-400');
+        sendBtn.classList.add('bg-pink-600', 'text-white', 'hover:bg-pink-700', 'active:scale-95');
+      } else {
+        sendBtn.disabled = true;
+        sendBtn.classList.add('bg-slate-200', 'text-slate-400');
+        sendBtn.classList.remove('bg-pink-600', 'text-white', 'hover:bg-pink-700', 'active:scale-95');
+      }
+    }
+
+    input.addEventListener('input', updateInputState);
+
+    // Auto-scroll chat feed
+    function scrollToBottom() {
+      requestAnimationFrame(() => {
+        chatFeed.scrollTop = chatFeed.scrollHeight;
+      });
+    }
+
+    // Visual organelle badge generator
+    function generateVisualBadge(text) {
+      const lower = text.toLowerCase();
+      if (lower.includes('nukleus')) {
+        return `
+          <div class="mt-3 p-3 bg-white border border-pink-200 rounded-xl flex items-center justify-between gap-3 shadow-xs">
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-pink-700 block">Pusat Kawalan Sel</span>
+              <span class="text-xs font-bold text-slate-800">Nukleus mengawal semua aktiviti sel &amp; membawa DNA.</span>
+            </div>
+            <img src="../assets/nota/icon_topic2.svg" class="w-10 h-10 object-contain p-1 bg-pink-50 rounded-lg shrink-0 border border-pink-100" alt="Nukleus" />
+          </div>`;
+      }
+      if (lower.includes('mitokondria')) {
+        return `
+          <div class="mt-3 p-3 bg-white border border-amber-200 rounded-xl flex items-center justify-between gap-3 shadow-xs">
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block">Stesen Tenaga Sel</span>
+              <span class="text-xs font-bold text-slate-800">Menghasilkan tenaga melalui respirasi selular.</span>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 font-bold shrink-0 border border-amber-100">
+              <span class="material-symbols-outlined">bolt</span>
+            </div>
+          </div>`;
+      }
+      if (lower.includes('kloroplas')) {
+        return `
+          <div class="mt-3 p-3 bg-white border border-emerald-200 rounded-xl flex items-center justify-between gap-3 shadow-xs">
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">Dapur Sel Tumbuhan</span>
+              <span class="text-xs font-bold text-slate-800">Mengandungi klorofil untuk fotosintesis tenaga solar.</span>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold shrink-0 border border-emerald-100">
+              <span class="material-symbols-outlined">eco</span>
+            </div>
+          </div>`;
+      }
+      return '';
+    }
+
+    // Append visual message bubble
+    function appendMessage(text, isUser = true, options = {}) {
+      const { visualCardHtml = '', isError = false, modelInfo = '' } = options;
       const wrapper = document.createElement('div');
-      wrapper.className = isUser ? 'flex justify-end' : 'flex items-start gap-3 max-w-[85%]';
+      wrapper.className = isUser ? 'flex justify-end' : 'flex items-start gap-3 max-w-[90%]';
       
       const timeStr = getCurrentTime();
 
       if (isUser) {
         wrapper.innerHTML = `
-          <div class="bg-gradient-to-r from-pink-600 to-rose-500 text-white p-4 rounded-[1.25rem] rounded-tr-none text-left shadow-sm">
-            <p class="font-body text-xs sm:text-sm leading-relaxed">${text}</p>
+          <div class="bg-gradient-to-r from-pink-600 to-rose-500 text-white p-3.5 sm:p-4 rounded-[1.25rem] rounded-tr-none text-left shadow-sm max-w-[85%]">
+            <p class="font-body text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">${escapeHTML(text)}</p>
             <span class="block text-[9px] text-pink-100 text-right font-semibold mt-1.5">${timeStr}</span>
           </div>
         `;
-      } else {
+      } else if (isError) {
         wrapper.innerHTML = `
           <img src="../assets/selbot/selbot-avatar.svg" class="w-8 h-8 object-contain shrink-0 mt-0.5" alt="SelBot Avatar" />
-          <div class="bg-[#fdf2f8] border border-[#fbcfe8] p-4 rounded-[1.25rem] rounded-tl-none text-left w-full">
-            <p class="font-body text-xs sm:text-sm text-slate-700 leading-relaxed">${text}</p>
-            ${visualCardHtml}
-            <span class="block text-[9px] text-slate-400 font-semibold mt-2">${timeStr}</span>
+          <div class="bg-rose-50 border border-rose-200 p-4 rounded-[1.25rem] rounded-tl-none text-left w-full shadow-sm">
+            <div class="flex items-center gap-2 text-rose-800 font-bold text-xs mb-1.5">
+              <span class="material-symbols-outlined text-base text-rose-600">error</span>
+              <span>Ralat Sambungan</span>
+            </div>
+            <p class="font-body text-xs sm:text-sm text-rose-700 leading-relaxed">${escapeHTML(text)}</p>
+            <div class="flex items-center justify-between mt-3 pt-2 border-t border-rose-200/60">
+              <button class="retry-btn inline-flex items-center gap-1 px-3 py-1 bg-white hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg border border-rose-300 transition-all active:scale-95 shadow-xs">
+                <span class="material-symbols-outlined text-sm">refresh</span>
+                Cuba Lagi
+              </button>
+              <span class="text-[9px] text-rose-400 font-semibold">${timeStr}</span>
+            </div>
+          </div>
+        `;
+        // Attach retry listener
+        const retryBtn = wrapper.querySelector('.retry-btn');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', () => {
+            if (lastSentMessage) {
+              wrapper.remove();
+              submitQuestion(lastSentMessage);
+            }
+          });
+        }
+      } else {
+        const formatted = formatEducationalReply(text);
+        const visualBadge = visualCardHtml || generateVisualBadge(text);
+        const modelLabel = modelInfo ? `<span class="text-[9px] font-bold text-pink-600 bg-pink-100/70 px-2 py-0.5 rounded-full">${escapeHTML(modelInfo)}</span>` : '';
+
+        wrapper.innerHTML = `
+          <img src="../assets/selbot/selbot-avatar.svg" class="w-8 h-8 object-contain shrink-0 mt-0.5" alt="SelBot Avatar" />
+          <div class="bg-[#fdf2f8] border border-[#fbcfe8] p-4 rounded-[1.25rem] rounded-tl-none text-left w-full shadow-sm">
+            <div class="font-body text-xs sm:text-sm text-slate-800 leading-relaxed">${formatted}</div>
+            ${visualBadge}
+            <div class="flex items-center justify-between mt-3 pt-2 border-t border-pink-200/60">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold text-pink-700 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-xs">smart_toy</span> SelBot Tutor
+                </span>
+                ${modelLabel}
+              </div>
+              <span class="text-[9px] text-slate-400 font-semibold">${timeStr}</span>
+            </div>
           </div>
         `;
       }
       
       messageContainer.appendChild(wrapper);
-      
-      // Auto scroll to bottom
-      chatFeed.scrollTop = chatFeed.scrollHeight;
+      scrollToBottom();
     }
 
-    // Submit dialog response
-    function submitQuestion(val) {
-      if (!val) return;
-      
-      // 1. Add student message
-      appendMessage(val, true);
-      
-      // Clear input and disable send button
-      input.value = '';
-      sendBtn.disabled = true;
-      sendBtn.classList.add('bg-slate-200', 'text-slate-400');
-      sendBtn.classList.remove('bg-pink-600', 'text-white', 'hover:bg-pink-700');
+    // Submit question to real SelBot API
+    async function submitQuestion(val) {
+      if (!val || isRequestInProgress) return;
+      const cleanVal = val.trim();
+      if (!cleanVal) return;
 
-      // 2. Show typing indicator
-      typingIndicator.classList.remove('hidden');
-      chatFeed.scrollTop = chatFeed.scrollHeight;
+      lastSentMessage = cleanVal;
 
-      // Guest mode restriction check: allow max 2 messages, on 3rd prompt warn and trigger modal
+      // Guest mode restriction check
       if (window.AuthGuard && window.AuthGuard.isGuest()) {
         const guestPromptCount = window.AuthGuard.incrementGuestAiPrompts();
         if (guestPromptCount > 2) {
+          appendMessage(cleanVal, true);
+          input.value = '';
+          updateInputState();
+          
           setTimeout(() => {
-            typingIndicator.classList.add('hidden');
-            const limitReply = "Anda telah mencapai had pertanyaan mod tetamu. Sila log masuk untuk meneruskan sesi pembelajaran tanpa had!";
-            appendMessage(limitReply, false);
-            setTimeout(() => {
-              if (window.showGuestLimitModal) {
-                window.showGuestLimitModal('Selbot AI Assistant', 'Anda telah mencapai had 2 soalan dalam Mod Tetamu. Sila log masuk atau daftar akaun percuma untuk meneruskan sesi pembelajaran tanpa had bersama SelBot AI!');
-              }
-            }, 600);
-          }, 700);
+            appendMessage("Anda telah mencapai had 2 soalan dalam Mod Tetamu. Sila log masuk atau daftar akaun percuma untuk meneruskan sesi pembelajaran tanpa had bersama SelBot AI!", false);
+            if (window.showGuestLimitModal) {
+              window.showGuestLimitModal('Selbot AI Assistant', 'Anda telah mencapai had 2 soalan dalam Mod Tetamu. Sila log masuk atau daftar akaun percuma untuk meneruskan sesi pembelajaran tanpa had bersama SelBot AI!');
+            }
+          }, 400);
           return;
         }
       }
 
-      // 3. Delayed reply response
-      setTimeout(() => {
+      // 1. Add student message to UI
+      appendMessage(cleanVal, true);
+      
+      // Clear input and lock UI
+      input.value = '';
+      updateInputState();
+      isRequestInProgress = true;
+      sendBtn.disabled = true;
+
+      // 2. Show typing indicator
+      typingIndicator.classList.remove('hidden');
+      scrollToBottom();
+      if (networkStatus) networkStatus.textContent = 'Status: Sedang memproses...';
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const response = await fetch('/api/selbot/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: cleanVal,
+            history: conversationHistory
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        const data = await response.json().catch(() => ({}));
+
         typingIndicator.classList.add('hidden');
-        
-        let response = "Maaf, saya tidak pasti tentang soalan itu. Sila tanya soalan yang berkaitan dengan sains sel haiwan, sel tumbuhan, atau organel.";
-        let visualCardHtml = '';
+        isRequestInProgress = false;
+        updateInputState();
 
-        const normalizedVal = val.toLowerCase().trim();
+        if (response.ok && data.success) {
+          const replyText = data.reply || 'Maaf, saya tidak menerima respons yang lengkap.';
+          const modelBadge = data.provider === 'google-gemini' ? 'Gemini AI' :
+                             data.provider === 'openai' ? 'GPT-4o Mini' :
+                             data.provider === 'groq' ? 'Groq Llama' :
+                             'Kurikulum Sains T1';
 
-        if (normalizedVal.includes('nukleus')) {
-          response = "Nukleus ialah pusat kawalan sel. Ia menyimpan bahan genetik dan mengawal aktiviti seperti pertumbuhan, pembahagian serta penghasilan protein.";
-          visualCardHtml = `
-            <div class="mt-3 p-3.5 bg-white border border-pink-200 rounded-xl flex items-center gap-3">
-              <div class="flex-grow">
-                <h4 class="font-headline text-[13px] font-extrabold text-[#9d174d]">Fungsi Utama Nukleus</h4>
-                <ul class="text-[11px] text-slate-600 font-semibold space-y-0.5 list-disc pl-4 mt-1.5">
-                  <li>Menyimpan DNA/bahan genetik</li>
-                  <li>Mengawal aktiviti sel</li>
-                  <li>Membantu pembahagian sel</li>
-                </ul>
-              </div>
-              <img src="../assets/nota/icon_topic2.svg" class="w-12 h-12 object-contain bg-pink-50 rounded-xl p-1 border border-pink-100 shrink-0" alt="Nukleus Visual" />
-            </div>
-          `;
-        } else if (normalizedVal.includes('beza') || normalizedVal.includes('haiwan dan sel tumbuhan') || normalizedVal.includes('haiwan atau sel tumbuhan')) {
-          response = "Sel tumbuhan mempunyai dinding sel, kloroplas, dan vakuol yang besar, manakala sel haiwan tiada dinding sel atau kloroplas, dan biasanya mempunyai vakuol kecil atau tiada langsung.";
-          visualCardHtml = `
-            <div class="mt-3 p-3 bg-white border border-pink-200 rounded-xl">
-              <h4 class="font-headline text-[13px] font-extrabold text-[#9d174d] mb-2">Perbandingan Ringkas</h4>
-              <div class="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-700">
-                <div class="p-2 bg-pink-50 border border-pink-100 rounded-lg">
-                  <span class="text-[#9d174d] font-extrabold block text-xs">Sel Tumbuhan</span>
-                  • Ada Dinding Sel<br>• Ada Kloroplas<br>• Vakuol Besar
-                </div>
-                <div class="p-2 bg-purple-50 border border-purple-100 rounded-lg">
-                  <span class="text-purple-700 font-extrabold block text-xs">Sel Haiwan</span>
-                  • Tiada Dinding Sel<br>• Tiada Kloroplas<br>• Vakuol Kecil/Tiada
-                </div>
-              </div>
-            </div>
-          `;
-        } else if (normalizedVal.includes('mitosis')) {
-          response = "Mitosis ialah proses pembahagian sel yang menghasilkan dua sel anak yang seiras, mengandungi bilangan kromosom yang sama dengan sel induk. Ia penting untuk pertumbuhan dan menggantikan sel yang rosak.";
-        } else if (normalizedVal.includes('mitokondria')) {
-          response = "Mitokondria ialah tapak penjanaan tenaga bagi sel melalui proses respirasi selular.";
-        } else if (normalizedVal.includes('tisu') || normalizedVal.includes('sel membentuk tisu')) {
-          response = "Sel-sel yang mempunyai struktur dan fungsi yang sama akan berkumpul bersama untuk membentuk tisu.";
+          // Update conversation history state
+          conversationHistory.push({ role: 'user', content: cleanVal });
+          conversationHistory.push({ role: 'assistant', content: replyText });
+          if (conversationHistory.length > 10) {
+            conversationHistory = conversationHistory.slice(-10);
+          }
+
+          appendMessage(replyText, false, { modelInfo: modelBadge });
+          if (networkStatus) networkStatus.textContent = 'Status: Sedia';
+        } else {
+          const errMsg = data.error || `Ralat pelayan (${response.status}). Sila cuba lagi sebentar lagi.`;
+          appendMessage(errMsg, false, { isError: true });
+          if (networkStatus) networkStatus.textContent = 'Status: Ralat';
         }
 
-        appendMessage(response, false, visualCardHtml);
-      }, 1000);
+      } catch (err) {
+        clearTimeout(timeoutId);
+        typingIndicator.classList.add('hidden');
+        isRequestInProgress = false;
+        updateInputState();
+
+        let friendlyError = 'Tidak dapat menghubungi pelayan SelBot. Sila periksa sambungan internet anda dan cuba lagi.';
+        if (err.name === 'AbortError') {
+          friendlyError = 'Masa menunggu tamat (respons terlalu lama). Sila cuba lagi.';
+        }
+        appendMessage(friendlyError, false, { isError: true });
+        if (networkStatus) networkStatus.textContent = 'Status: Terputus';
+      }
     }
 
     // Trigger send on button click
     sendBtn.addEventListener('click', () => {
-      const val = input.value.trim();
-      submitQuestion(val);
+      submitQuestion(input.value);
     });
 
-    // Enter key submits question
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        const val = input.value.trim();
-        submitQuestion(val);
+    // Enter key submits question; Shift+Enter allows newline
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitQuestion(input.value);
       }
     });
 
-    // Click suggested questions chips
+    // Predefined question chips click
     document.querySelectorAll('.suggestion-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         const question = chip.getAttribute('data-question');
-        submitQuestion(question);
+        if (question) {
+          submitQuestion(question);
+        }
+      });
+    });
+
+    // Quick Actions Click Handlers (LANGKAH 5B)
+    document.querySelectorAll('.quick-action-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-action');
+        let promptText = '';
+
+        // If there's recent history, tailor action to the last topic
+        const lastUserTurn = [...conversationHistory].reverse().find(h => h.role === 'user');
+        const topicContext = lastUserTurn ? `berkaitan soalan "${lastUserTurn.content.slice(0, 60)}..."` : 'tentang sel Sains Tingkatan 1';
+
+        switch (action) {
+          case 'explain_easy':
+            promptText = `Boleh terangkan semula topik tadi ${topicContext} dengan cara yang lebih mudah dan santai untuk murid Tingkatan 1?`;
+            break;
+          case 'give_example':
+            promptText = `Boleh berikan contoh-contoh praktikal dalam kehidupan harian ${topicContext}?`;
+            break;
+          case 'make_analogy':
+            promptText = `Boleh bina analogi yang menarik dan mudah diingat ${topicContext}?`;
+            break;
+          case 'ask_kbat':
+            promptText = `Boleh berikan saya satu soalan Kemahiran Berfikir Aras Tinggi (KBAT) ${topicContext} untuk menguji kefahaman saya?`;
+            break;
+          case 'quiz_me':
+            promptText = `Boleh uji saya dengan satu soalan kuiz aneka pilihan (A, B, C, D) ${topicContext}?`;
+            break;
+          default:
+            promptText = 'Boleh bantu saya mengulang kaji Sains Tingkatan 1?';
+        }
+
+        submitQuestion(promptText);
       });
     });
 
     // Clear dialog history button
     resetBtn.addEventListener('click', () => {
-      if (confirm('Padam semua sejarah sembang dengan SelBot?')) {
+      if (confirm('Padam semua sejarah sembang dengan SelBot untuk sesi ini?')) {
         messageContainer.innerHTML = '';
+        conversationHistory = [];
+        lastSentMessage = '';
+        if (networkStatus) networkStatus.textContent = 'Status: Sedia';
       }
     });
 
-    // Micro-interactions and touch feedbacks
-    document.querySelectorAll('a, button, [onclick]').forEach(el => {
-      el.addEventListener('mousedown', () => {
-        el.classList.add('scale-98');
-      });
-      el.addEventListener('mouseup', () => {
-        el.classList.remove('scale-98');
-      });
-      el.addEventListener('mouseleave', () => {
-        el.classList.remove('scale-98');
-      });
+    // Microphone hint button
+    micBtn?.addEventListener('click', () => {
+      alert('Input suara: Sila gunakan mikrofon papan kekunci maya telefon/iPad anda atau taip soalan terus ke dalam kotak teks.');
+      input.focus();
     });
+
+    // Check backend API status on page load
+    async function checkApiStatus() {
+      try {
+        const res = await fetch('/api/selbot/chat');
+        if (res.ok) {
+          const status = await res.json();
+          if (status.configured) {
+            statusPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+            statusText.textContent = 'AI Aktif (LLM)';
+          } else {
+            statusPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200';
+            statusText.textContent = 'Kurikulum T1';
+          }
+        }
+      } catch (_) {
+        statusPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200';
+        statusText.textContent = 'Luar Talian';
+      }
+    }
+    checkApiStatus();
 
     // Scroll effect for header shadow
     window.addEventListener('scroll', () => {
       const header = document.querySelector('header');
-      if (window.scrollY > 15) {
-        header.classList.add('shadow-md', 'border-slate-200');
-        header.classList.remove('border-slate-100');
-      } else {
-        header.classList.remove('shadow-md', 'border-slate-200');
-        header.classList.add('border-slate-100');
+      if (header) {
+        if (window.scrollY > 15) {
+          header.classList.add('shadow-md', 'border-slate-200');
+          header.classList.remove('border-slate-100');
+        } else {
+          header.classList.remove('shadow-md', 'border-slate-200');
+          header.classList.add('border-slate-100');
+        }
       }
     });
   </script>
