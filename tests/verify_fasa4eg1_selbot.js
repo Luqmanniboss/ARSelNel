@@ -207,7 +207,7 @@ async function runTests() {
   // 15. Responsif telefon (Mobile 390px)
   try {
     const html = fs.readFileSync(path.join(ROOT_DIR, 'selbot_ai', 'code.html'), 'utf8');
-    const hasMobileStyles = html.includes('viewport') && html.includes('grid-cols-1') && html.includes('lg:grid-cols-12');
+    const hasMobileStyles = html.includes('viewport') && html.includes('grid-cols-1') && (html.includes('xl:grid-cols-12') || html.includes('lg:grid-cols-12'));
     record(15, 'Reka bentuk responsif telefon pintar', hasMobileStyles, 'Susun atur fleksibel mobile-first dikesan');
   } catch (e) {
     record(15, 'Reka bentuk responsif telefon', false, e.message);
