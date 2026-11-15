@@ -151,15 +151,25 @@
   color: #fff;
 }
 
+.cq-kotak-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
 .cq-kotak-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 13px 28px;
+  min-height: 48px;
+  padding: 12px 24px;
   border-radius: 16px;
   background: linear-gradient(135deg, #3B82F6 0%, #2563EB 55%, #1D4ED8 100%);
   color: #ffffff !important;
-  font-weight: 900;
+  font-family: inherit;
+  font-weight: 800;
   font-size: 14.5px;
   text-decoration: none;
   box-shadow: 0 8px 24px rgba(37, 99, 235, 0.42), 0 0 16px rgba(34, 211, 238, 0.25);
@@ -172,6 +182,21 @@
   transform: translateY(-2px);
   background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 55%, #2563EB 100%);
   box-shadow: 0 12px 30px rgba(37, 99, 235, 0.55), 0 0 22px rgba(34, 211, 238, 0.45);
+}
+
+.cq-kotak-btn.cq-kotak-btn-secondary {
+  background: #FFFFFF !important;
+  color: #5B21B6 !important;
+  border: 1.5px solid rgba(196, 181, 253, 0.95);
+  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.12), 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.cq-kotak-btn.cq-kotak-btn-secondary:hover {
+  background: #F5F3FF !important;
+  color: #4C1D95 !important;
+  border-color: #8B5CF6;
+  box-shadow: 0 10px 26px rgba(124, 58, 237, 0.22);
+  transform: translateY(-2px);
 }
 
 .cq-kotak-btn:active {
@@ -209,8 +234,578 @@
     width: 150px;
     height: 150px;
   }
-  .cq-kotak-btn {
+}
+
+@media (max-width: 640px) {
+  .cq-kotak-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+  .cq-kotak-actions .cq-kotak-btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* =============================================================================
+   FASA 4E-G.3: MODAL GALERI & CETAKAN KAD AR KOTAK ARSELNEL
+   ============================================================================= */
+.ar-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.25s ease;
+}
+
+.ar-modal-backdrop.hidden {
+  display: none !important;
+}
+
+.ar-modal-card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.35);
+  max-width: 1080px;
+  width: 100%;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(196, 181, 253, 0.5);
+  animation: arModalSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes arModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header Modal */
+.ar-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #E2E8F0;
+  background: linear-gradient(180deg, #FAF5FF 0%, #FFFFFF 100%);
+}
+
+.ar-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ar-modal-header-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(109, 40, 217, 0.3);
+  flex-shrink: 0;
+}
+
+.ar-modal-header-text h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  color: #1E1B4B;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ar-modal-header-text p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.ar-modal-close-btn {
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.ar-modal-close-btn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+/* Modal Body */
+.ar-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Panduan Pengguna */
+.ar-modal-guide-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 20px;
+}
+
+.ar-modal-guide-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #4C1D95;
+  margin-bottom: 10px;
+}
+
+.ar-modal-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+  padding-left: 20px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.ar-modal-guide-tip {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #FAF5FF;
+  border: 1px solid #DDD6FE;
+  font-size: 12px;
+  color: #6B21A8;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Toolbar Tindakan */
+.ar-modal-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+}
+
+.ar-modal-selection-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.ar-modal-selection-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #7C3AED;
+  cursor: pointer;
+}
+
+.ar-modal-selection-badge {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #EDE9FE;
+  color: #6D28D9;
+}
+
+.ar-modal-actions-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.ar-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: none;
+}
+
+.ar-btn-action-primary {
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.35);
+}
+
+.ar-btn-action-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  box-shadow: 0 6px 18px rgba(109, 40, 217, 0.45);
+  transform: translateY(-1px);
+}
+
+.ar-btn-action-secondary {
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1px solid #CBD5E1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.ar-btn-action-secondary:hover:not(:disabled) {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+  transform: translateY(-1px);
+}
+
+/* Grid Kad Marker */
+.ar-marker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.ar-marker-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.ar-marker-card:hover {
+  border-color: #C4B5FD;
+  box-shadow: 0 10px 24px rgba(109, 40, 217, 0.12);
+  transform: translateY(-2px);
+}
+
+.ar-marker-card.selected {
+  border-color: #7C3AED;
+  background: #FAF5FF;
+  box-shadow: 0 8px 20px rgba(109, 40, 217, 0.15);
+}
+
+.ar-marker-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ar-marker-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.ar-marker-checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #7C3AED;
+  cursor: pointer;
+}
+
+.ar-marker-target-badge {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ar-marker-img-wrapper {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.ar-marker-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.ar-marker-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ar-marker-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px;
+}
+
+.ar-marker-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748B;
+  margin: 0 0 12px;
+  flex: 1;
+}
+
+.ar-marker-btn-single {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.ar-marker-btn-single:hover {
+  background: #EDE9FE;
+  color: #6D28D9;
+  border-color: #C4B5FD;
+}
+
+/* Footer Modal */
+.ar-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #E2E8F0;
+  background: #FAF5FF;
+}
+
+.ar-modal-footer-note {
+  font-size: 12px;
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Responsif Modal */
+@media (max-width: 768px) {
+  .ar-modal-card {
+    max-height: 96vh;
+    border-radius: 18px;
+  }
+  .ar-modal-header {
+    padding: 16px 18px;
+  }
+  .ar-modal-body {
+    padding: 16px;
+    gap: 14px;
+  }
+  .ar-marker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .ar-modal-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ar-modal-actions-right {
+    width: 100%;
+  }
+  .ar-modal-actions-right .ar-btn-action {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* =============================================================================
+   PRINT STYLESHEET: A4 MULTI-PAGE MARKER PRINTING
+   ============================================================================= */
+#ar-print-sheet {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 1cm;
+  }
+
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  body > *:not(#ar-print-sheet) {
+    display: none !important;
+  }
+
+  #ar-print-sheet {
+    display: block !important;
+    width: 100% !important;
+    background: #FFFFFF !important;
+  }
+
+  .ar-print-page {
+    page-break-after: always;
+    break-after: page;
+    width: 100%;
+    min-height: 25.5cm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+    padding: 0.5cm 0;
+  }
+
+  .ar-print-page:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .ar-print-brand {
+    font-size: 12pt;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: #581C87;
+    margin-bottom: 4px;
+  }
+
+  .ar-print-card-title {
+    font-size: 16pt;
+    font-weight: 900;
+    color: #0F172A;
+    margin: 0 0 4px;
+  }
+
+  .ar-print-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 12px;
+  }
+
+  .ar-print-cut-zone {
+    border: 2px dashed #334155 !important;
+    padding: 12px;
+    text-align: center;
+    background: #FFFFFF !important;
+    margin: 10px 0;
+  }
+
+  .ar-print-cut-label {
+    font-size: 8pt;
+    font-weight: 800;
+    color: #475569;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .ar-print-marker-frame {
+    width: 14.5cm !important;
+    height: 14.5cm !important;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFFFFF;
+  }
+
+  .ar-print-marker-img {
+    width: 14.5cm !important;
+    height: 14.5cm !important;
+    max-width: 14.5cm !important;
+    max-height: 14.5cm !important;
+    object-fit: contain !important;
+    display: block !important;
+  }
+
+  .ar-print-footer {
+    border-top: 1px solid #CBD5E1;
+    padding-top: 8px;
+    font-size: 9pt;
+    line-height: 1.4;
+    color: #1E293B;
+  }
+
+  .ar-print-instructions {
+    margin-top: 6px;
+    font-size: 8pt;
+    color: #334155;
+  }
+
+  .ar-print-instructions ol {
+    margin: 4px 0;
+    padding-left: 18px;
+  }
+
+  .ar-print-tip {
+    font-size: 7.5pt;
+    color: #6D28D9;
+    font-weight: 700;
+    margin-top: 4px;
   }
 }

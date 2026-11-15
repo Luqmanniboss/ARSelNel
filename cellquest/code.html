@@ -11,6 +11,8 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script defer src="../assets/js/student-shell.js"></script><script defer src="../assets/js/cellquest3d.js"></script><script defer src="../assets/js/cellquest-ar.js"></script>
+  <script src="../assets/js/jspdf.umd.min.js"></script>
+  <script defer src="../assets/js/kotak-marker-modal.js"></script>
 </head>
 <body data-page-theme="cellquest">
 <main class="cq-main">
@@ -61,8 +63,12 @@
         </div>
       </div>
 
-      <!-- Main Action Button -->
-      <div>
+      <!-- Main Action Buttons (Fasa 4E-G.3: Cetak Kad AR & Imbas Kotak ARSELNEL) -->
+      <div class="cq-kotak-actions">
+        <button type="button" class="cq-kotak-btn cq-kotak-btn-secondary" id="btn-open-print-modal" title="Buka Galeri & Cetak Kad AR Kotak ARSELNEL">
+          <span class="material-symbols-outlined" style="font-size:22px">print</span>
+          <span>Cetak Kad AR</span>
+        </button>
         <a href="../kotak_arselnel/code.html" class="cq-kotak-btn" id="btn-open-kotak-arselnel" title="Buka pengimbas WebAR Kotak ARSELNEL">
           <span class="material-symbols-outlined" style="font-size:22px">center_focus_strong</span>
           <span>Imbas Kotak ARSELNEL</span>
@@ -275,6 +281,248 @@
     </section>
   </section>
 </div>
+
+<!-- =========================================================================
+     FASA 4E-G.3: MODAL GALERI & CETAK KAD AR KOTAK ARSELNEL
+     ========================================================================= -->
+<div class="ar-modal-backdrop hidden" id="ar-print-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ar-print-modal-title" aria-hidden="true">
+  <div class="ar-modal-card" id="ar-print-modal">
+    <!-- Header -->
+    <header class="ar-modal-header">
+      <div class="ar-modal-header-left">
+        <div class="ar-modal-header-icon" aria-hidden="true">
+          <span class="material-symbols-outlined" style="font-size:26px;">print</span>
+        </div>
+        <div class="ar-modal-header-text">
+          <h3 id="ar-print-modal-title">
+            <span>Kad AR Kotak ARSELNEL</span>
+          </h3>
+          <p>Pilih, cetak pada kertas A4 atau muat turun fail PDF marker rasmi sebelum mengimbas dengan WebAR.</p>
+        </div>
+      </div>
+      <button type="button" class="ar-modal-close-btn" id="btn-close-print-modal" title="Tutup Paparan" aria-label="Tutup Paparan">
+        <span class="material-symbols-outlined" style="font-size:24px;">close</span>
+      </button>
+    </header>
+
+    <!-- Body -->
+    <div class="ar-modal-body">
+      <!-- Panduan Murid Tingkatan 1 -->
+      <section class="ar-modal-guide-box" aria-label="Panduan Mencetak dan Mengimbas">
+        <div class="ar-modal-guide-title">
+          <span class="material-symbols-outlined" style="font-size:20px;">help</span>
+          <span>Panduan Penggunaan Marker untuk Murid Tingkatan 1:</span>
+        </div>
+        <ol class="ar-modal-guide-grid">
+          <li><strong>Pilih Kad:</strong> Pilih kad AR yang ingin digunakan di bawah.</li>
+          <li><strong>Skala A4 100%:</strong> Cetak pada kertas A4 menggunakan saiz sebenar atau skala 100%.</li>
+          <li><strong>Penuh &amp; Jelas:</strong> Pastikan keseluruhan marker jelas dan tidak terpotong.</li>
+          <li><strong>Permukaan Rata:</strong> Letakkan kad pada permukaan rata dengan pencahayaan yang baik.</li>
+          <li><strong>Buka Kamera:</strong> Tekan "Imbas Kotak ARSELNEL" untuk membuka pengimbas.</li>
+          <li><strong>Halakan &amp; Teroka:</strong> Halakan kamera ke kad untuk membuka kandungan AR.</li>
+        </ol>
+        <div class="ar-modal-guide-tip">
+          <span class="material-symbols-outlined" style="font-size:18px;">lightbulb</span>
+          <span><strong>Peringatan:</strong> Untuk hasil terbaik, gunakan imej berwarna, cetakan jelas dan elakkan pantulan cahaya.</span>
+        </div>
+      </section>
+
+      <!-- Toolbar Pilihan & Tindakan Cetak/PDF -->
+      <div class="ar-modal-toolbar">
+        <label class="ar-modal-selection-toggle" for="cb-select-all-markers">
+          <input type="checkbox" id="cb-select-all-markers" checked />
+          <span>Pilih Semua Kad</span>
+          <span class="ar-modal-selection-badge" id="marker-selected-count">7 daripada 7 kad dipilih</span>
+        </label>
+        <div class="ar-modal-actions-right">
+          <button type="button" class="ar-btn-action ar-btn-action-primary" id="btn-print-selected" title="Cetak kad AR yang dipilih pada kertas A4">
+            <span class="material-symbols-outlined" style="font-size:18px;">print</span>
+            <span>Cetak Kad Dipilih (A4)</span>
+          </button>
+          <button type="button" class="ar-btn-action ar-btn-action-secondary" id="btn-download-pdf" title="Muat turun fail dokumen PDF A4 lengkap untuk dicetak kemudian">
+            <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+            <span>Muat Turun PDF (A4)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Galeri 7 Marker Rasmi MindAR -->
+      <div class="ar-marker-grid" id="ar-marker-gallery">
+        <!-- Target 0: Video -->
+        <article class="ar-marker-card selected" id="card-marker-video" data-marker-id="marker-video">
+          <div class="ar-marker-card-top">
+            <label class="ar-marker-checkbox-label" for="cb-marker-video">
+              <input type="checkbox" id="cb-marker-video" checked />
+              <span style="font-weight:800; font-size:13px; color:#1E293B;">Muka 1</span>
+            </label>
+            <span class="ar-marker-target-badge" style="background:#FFEDD5; color:#EA580C; border:1px solid #FDBA74;">INDEX 0 • VIDEO</span>
+          </div>
+          <div class="ar-marker-img-wrapper">
+            <img src="../kotak_arselnel/assets/markers/marker-video.png" alt="Marker Muka 1 - Video Pembelajaran Sains KSSM" class="ar-marker-img" loading="lazy" />
+          </div>
+          <div class="ar-marker-info">
+            <h4 class="ar-marker-title">Video Pembelajaran Sains</h4>
+            <p class="ar-marker-desc">Imbas untuk memainkan video penerangan konsep sel, struktur sel hidup, dan fungsi organel secara interaktif.</p>
+            <button type="button" class="ar-marker-btn-single" id="btn-print-single-marker-video" title="Cetak kad ini sahaja">
+              <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+              <span>Cetak Kad Ini</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- Target 1: Nota -->
+        <article class="ar-marker-card selected" id="card-marker-nota" data-marker-id="marker-nota">
+          <div class="ar-marker-card-top">
+            <label class="ar-marker-checkbox-label" for="cb-marker-nota">
+              <input type="checkbox" id="cb-marker-nota" checked />
+              <span style="font-weight:800; font-size:13px; color:#1E293B;">Muka 2</span>
+            </label>
+            <span class="ar-marker-target-badge" style="background:#CCFBF1; color:#0D9488; border:1px solid #5EEAD4;">INDEX 1 • NOTA</span>
+          </div>
+          <div class="ar-marker-img-wrapper">
+            <img src="../kotak_arselnel/assets/markers/marker-nota.png" alt="Marker Muka 2 - Nota & Infografik Interaktif" class="ar-marker-img" loading="lazy" />
+          </div>
+          <div class="ar-marker-info">
+            <h4 class="ar-marker-title">Nota &amp; Infografik Interaktif</h4>
+            <p class="ar-marker-desc">Imbas untuk membaca nota sains KSSM Bab 2, ringkasan perbandingan sel, serta slaid maya beranimasi.</p>
+            <button type="button" class="ar-marker-btn-single" id="btn-print-single-marker-nota" title="Cetak kad ini sahaja">
+              <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+              <span>Cetak Kad Ini</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- Target 2: Kuiz -->
+        <article class="ar-marker-card selected" id="card-marker-kuiz" data-marker-id="marker-kuiz">
+          <div class="ar-marker-card-top">
+            <label class="ar-marker-checkbox-label" for="cb-marker-kuiz">
+              <input type="checkbox" id="cb-marker-kuiz" checked />
+              <span style="font-weight:800; font-size:13px; color:#1E293B;">Muka 3</span>
+            </label>
+            <span class="ar-marker-target-badge" style="background:#EDE9FE; color:#7C3AED; border:1px solid #C4B5FD;">INDEX 2 • KUIZ</span>
+          </div>
+          <div class="ar-marker-img-wrapper">
+            <img src="../kotak_arselnel/assets/markers/marker-kuiz.png" alt="Marker Muka 3 - Kuiz & Permainan Sel" class="ar-marker-img" loading="lazy" />
+          </div>
+          <div class="ar-marker-info">
+            <h4 class="ar-marker-title">Kuiz &amp; Arked Permainan</h4>
+            <p class="ar-marker-desc">Imbas untuk mengaktifkan arked 5 permainan sel: Padanan Sel, Memori Sel, Labirin Organel, Penembak Sel &amp; Cabaran.</p>
+            <button type="button" class="ar-marker-btn-single" id="btn-print-single-marker-kuiz" title="Cetak kad ini sahaja">
+              <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+              <span>Cetak Kad Ini</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- Target 3: Sel Haiwan 3D -->
+        <article class="ar-marker-card selected" id="card-marker-sel-haiwan" data-marker-id="marker-sel-haiwan">
+          <div class="ar-marker-card-top">
+            <label class="ar-marker-checkbox-label" for="cb-marker-sel-haiwan">
+              <input type="checkbox" id="cb-marker-sel-haiwan" checked />
+              <span style="font-weight:800; font-size:13px; color:#1E293B;">Muka 4</span>
+            </label>
+            <span class="ar-marker-target-badge" style="background:#DBEAFE; color:#2563EB; border:1px solid #93C5FD;">INDEX 3 • HAIWAN</span>
+          </div>
+          <div class="ar-marker-img-wrapper">
+            <img src="../kotak_arselnel/assets/markers/marker-sel-haiwan.png" alt="Marker Muka 4 - Model 3D Sel Haiwan" class="ar-marker-img" loading="lazy" />
+          </div>
+          <div class="ar-marker-info">
+            <h4 class="ar-marker-title">Model 3D Sel Haiwan (AR)</h4>
+            <p class="ar-marker-desc">Imbas untuk memunculkan model 3D hologram Sel Haiwan secara realiti terimbuh dengan keupayaan pusingan POV.</p>
+            <button type="button" class="ar-marker-btn-single" id="btn-print-single-marker-sel-haiwan" title="Cetak kad ini sahaja">
+              <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+              <span>Cetak Kad Ini</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- Target 4: Sel Tumbuhan 3D -->
+        <article class="ar-marker-card selected" id="card-marker-sel-tumbuhan" data-marker-id="marker-sel-tumbuhan">
+          <div class="ar-marker-card-top">
+            <label class="ar-marker-checkbox-label" for="cb-marker-sel-tumbuhan">
+              <input type="checkbox" id="cb-marker-sel-tumbuhan" checked />
+              <span style="font-weight:800; font-size:13px; color:#1E293B;">Muka 5</span>
+            </label>
+            <span class="ar-marker-target-badge" style="background:#D1FAE5; color:#059669; border:1px solid #6EE7B7;">INDEX 4 • TUMBUHAN</span>
+          </div>
+          <div class="ar-marker-img-wrapper">
+            <img src="../kotak_arselnel/assets/markers/marker-sel-tumbuhan.png" alt="Marker Muka 5 - Model 3D Sel Tumbuhan" class="ar-marker-img" loading="lazy" />
+          </div>
+          <div class="ar-marker-info">
+            <h4 class="ar-marker-title">Model 3D Sel Tumbuhan (AR)</h4>
+            <p class="ar-marker-desc">Imbas untuk memunculkan model 3D hologram Sel Tumbuhan dengan kloroplas, dinding sel tegar, dan vakuol pusat.</p>
+            <button type="button" class="ar-marker-btn-single" id="btn-print-single-marker-sel-tumbuhan" title="Cetak kad ini sahaja">
+              <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+              <span>Cetak Kad Ini</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- Target 5: Jelajah 3D -->
+        <article class="ar-marker-card selected" id="card-marker-jelajah3d" data-marker-id="marker-jelajah3d">
+          <div class="ar-marker-card-top">
+            <label class="ar-marker-checkbox-label" for="cb-marker-jelajah3d">
+              <input type="checkbox" id="cb-marker-jelajah3d" checked />
+              <span style="font-weight:800; font-size:13px; color:#1E293B;">Muka 6</span>
+            </label>
+            <span class="ar-marker-target-badge" style="background:#E0F2FE; color:#0284C7; border:1px solid #7DD3FC;">INDEX 5 • MAKMAL 3D</span>
+          </div>
+          <div class="ar-marker-img-wrapper">
+            <img src="../kotak_arselnel/assets/markers/marker-jelajah3d.png" alt="Marker Muka 6 - Makmal Eksplorasi 3D Maya" class="ar-marker-img" loading="lazy" />
+          </div>
+          <div class="ar-marker-info">
+            <h4 class="ar-marker-title">Makmal Eksplorasi 3D Maya</h4>
+            <p class="ar-marker-desc">Imbas untuk meneroka stesen makmal 3D berinteraktif bagi mengenal pasti instrumen mikroskop dan preparasi slaid sains.</p>
+            <button type="button" class="ar-marker-btn-single" id="btn-print-single-marker-jelajah3d" title="Cetak kad ini sahaja">
+              <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+              <span>Cetak Kad Ini</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- Target 6: Orientasi Dunia -->
+        <article class="ar-marker-card selected" id="card-marker-orientasi-dunia" data-marker-id="marker-orientasi-dunia">
+          <div class="ar-marker-card-top">
+            <label class="ar-marker-checkbox-label" for="cb-marker-orientasi-dunia">
+              <input type="checkbox" id="cb-marker-orientasi-dunia" checked />
+              <span style="font-weight:800; font-size:13px; color:#1E293B;">Muka 7</span>
+            </label>
+            <span class="ar-marker-target-badge" style="background:#F3E8FF; color:#9333EA; border:1px solid #D8B4FE;">INDEX 6 • RADAR AR</span>
+          </div>
+          <div class="ar-marker-img-wrapper">
+            <img src="../kotak_arselnel/assets/markers/marker-orientasi-dunia.png" alt="Marker Muka 7 - AR Orientasi Dunia Misi Jelajah" class="ar-marker-img" loading="lazy" />
+          </div>
+          <div class="ar-marker-info">
+            <h4 class="ar-marker-title">AR Orientasi Dunia • Misi Jelajah</h4>
+            <p class="ar-marker-desc">Imbas untuk memulakan Misi Jelajah Dunia Sel 360° menggunakan sensor kompas dan radar untuk mencari 8 stesen organel fizikal.</p>
+            <button type="button" class="ar-marker-btn-single" id="btn-print-single-marker-orientasi-dunia" title="Cetak kad ini sahaja">
+              <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+              <span>Cetak Kad Ini</span>
+            </button>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Footer Modal -->
+    <footer class="ar-modal-footer">
+      <div class="ar-modal-footer-note">
+        <span class="material-symbols-outlined" style="font-size:18px; color:#10B981;">verified</span>
+        <span>Marker rasmi sepadan 100% dengan fail enjin pengesanan MindAR (7 sasaran aktif).</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button type="button" class="ar-btn-action ar-btn-action-secondary" id="btn-modal-cancel">Tutup</button>
+        <a href="../kotak_arselnel/code.html" class="ar-btn-action ar-btn-action-primary" style="text-decoration:none;">
+          <span class="material-symbols-outlined" style="font-size:18px;">center_focus_strong</span>
+          <span>Buka Pengimbas AR</span>
+        </a>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Container Khusus Cetakan A4 (Aktif semasa window.print()) -->
+<div id="ar-print-sheet" aria-hidden="true"></div>
 
 </body>
 </html>
