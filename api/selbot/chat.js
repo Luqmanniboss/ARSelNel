@@ -238,6 +238,70 @@ Perbezaan Utama:
 3. ORGAN: Gabungan pelbagai jenis tisu yang bekerjasama untuk fungsi khusus (Contoh: Jantung, perut, paru-paru).
 4. SISTEM: Gabungan beberapa organ yang menjalankan fungsi badan tertentu (Contoh: Sistem peredaran darah, sistem pencernaan).
 5. ORGANISMA: Keseluruhan sistem badan yang saling melengkapi (Contoh: Manusia, tumbuhan).`
+  },
+  {
+    keywords: ['contoh', 'kehidupan harian', 'praktikal', 'contoh-contoh praktikal'],
+    reply: `Berikut ialah contoh-contoh praktikal sel dalam kehidupan harian (Sains Tingkatan 1 Bab 2):
+
+1. **Sel Pipi Manusia (Sel Haiwan):** Contoh sel haiwan paling mudah diambil dan diperhatikan di bawah mikroskop menggunakan pewarna metilena biru di makmal sekolah.
+2. **Sel Bawang Epidermis (Sel Tumbuhan):** Mempunyai bentuk heksagon atau segi empat tepat dengan dinding sel yang jelas apabila diwarnakan dengan larutan iodin.
+3. **Sel Darah Merah (Eritrosit):** Berbentuk dwicekung tanpa nukleus untuk memuatkan lebih banyak hemoglobin bagi mengangkut oksigen ke seluruh tubuh anda semasa bersukan.
+4. **Sel Pengawal Daun:** Sepasang sel berbentuk ginjal yang mengawal bukaan liang stoma pada daun untuk proses fotosintesis dan transpirasi.
+5. **Sel Sperma & Sel Ovum:** Sel pembiakan manusia yang membawa maklumat genetik bagi memastikan kesinambungan zuriat manusia.`
+  },
+  {
+    keywords: ['analogi', 'buat analogi', 'kilang'],
+    reply: `Analogi Menarik & Mudah Diingat untuk Struktur Sel (KSSM Sains Tingkatan 1):
+
+Bayangkan setiap sel seperti **Sebuah Kilang Canggih atau Sekolah Moden**:
+
+• **Nukleus** = *Pengetua / Bilik Kawalan Utama*: Mengawal semua aktiviti sel dan menyimpan rekod penting (DNA).
+• **Membran Plasma** = *Pintu Pagar & Pengawal Keselamatan*: Mengawal apa yang boleh masuk dan keluar dari sel.
+• **Sitoplasma** = *Kawasan & Bilik Darjah*: Medium tempat semua aktiviti metabolisme berlaku.
+• **Mitokondria** = *Stesen Janakuasa Elektrik*: Membakar glukosa untuk membekalkan tenaga ATP kepada kilang.
+• **Kloroplas (Tumbuhan Sahaja)** = *Panel Solar & Dapur*: Menangkap cahaya matahari untuk memasak makanan secara fotosintesis.
+• **Dinding Sel (Tumbuhan Sahaja)** = *Tembok Batu Kukuh*: Memberikan bentuk tetap dan perlindungan ekstra.`
+  },
+  {
+    keywords: ['kbat', 'soalan kbat'],
+    reply: `Soalan Kemahiran Berfikir Aras Tinggi (KBAT) Sains Tingkatan 1:
+
+❓ **Soalan:** *"Mengapakah sel tumbuhan yang direndam di dalam air suling tidak pecah, manakala sel haiwan seperti sel darah merah akan mengembang dan akhirnya pecah?"*
+
+💡 **Jawapan & Penerangan KBAT:**
+1. **Sel Tumbuhan:** Mempunyai **Dinding Sel** yang tegar diperbuat daripada gentian selulosa. Apabila air meresap masuk secara osmosis, vakuol membesar dan menolak sitoplasma ke dinding sel, menghasilkan tekanan turgor. Dinding sel yang kuat ini menghalang sel daripada pecah.
+2. **Sel Haiwan:** **TIADA Dinding Sel**, sebaliknya hanya mempunyai membran plasma yang nipis dan separa telap. Apabila air suling terus meresap masuk, membran plasma tidak mampu menahan tekanan dalaman yang tinggi lalu pecah (proses lisis).`
+  },
+  {
+    keywords: ['kuiz', 'uji saya', 'kuiz saya'],
+    reply: `Mari uji kefahaman anda dengan soalan kuiz Sains Tingkatan 1! 🧠
+
+❓ **Soalan:**
+Antara struktur sel berikut, yang manakah hanya ditemui di dalam **sel tumbuhan** dan **TIADA** di dalam sel haiwan?
+
+A) Nukleus & Sitoplasma  
+B) Dinding Sel & Kloroplas  
+C) Mitokondria & Membran Plasma  
+D) Vakuol Kecil & Ribosom  
+
+👉 **Jawapan:** **B) Dinding Sel & Kloroplas!**  
+Dinding sel memberikan bentuk tetap kepada tumbuhan manakala kloroplas mengandungi pigmen klorofil untuk fotosintesis.`
+  },
+  {
+    keywords: ['terangkan lebih mudah', 'mudah dan santai'],
+    reply: `Penerangan Santai & Mudah Fahami tentang Sel (Sains Tingkatan 1):
+
+1. **Apa itu Sel?**  
+   Fikirkan sel seperti blok LEGO terkecil. Semua benda hidup (anda, kucing, pokok kelapa) dibina daripada cantuman jutaan blok sel ini!
+
+2. **4 Bahagian Wajib Ada:**  
+   • **Nukleus:** Otak sel yang beri arahan.  
+   • **Sitoplasma:** Jeli tempat organel duduk.  
+   • **Membran Sel:** Kulit nipis sel.  
+   • **Mitokondria:** Bateri penjana tenaga sel.  
+
+3. **Ciri Tambahan Tumbuhan:**  
+   Tumbuhan ada **Dinding Sel** (supaya pokok boleh berdiri tegak tanpa tulang) dan **Kloroplas** (dapur memasak makanan guna cahaya matahari).`
   }
 ];
 
@@ -570,54 +634,63 @@ module.exports = async (req, res) => {
 
         const candidateModels = [
           'gemini-3.5-flash-lite',
-          'gemini-3.5-flash',
-          'gemini-flash-latest',
-          'gemini-2.5-flash'
+          'gemini-flash-lite-latest',
+          'gemma-4-26b-a4b-it',
+          'gemini-3.1-flash-lite'
         ];
 
         let replyText = null;
         let successfulModel = '';
 
         for (const modelName of candidateModels) {
-          try {
-            const modelController = new AbortController();
-            const modelTimeoutId = setTimeout(() => modelController.abort(), 4500);
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              const modelController = new AbortController();
+              const modelTimeoutId = setTimeout(() => modelController.abort(), 4000);
 
-            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`;
-            const apiRes = await fetch(geminiUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: geminiContents,
-                systemInstruction: {
-                  parts: [{ text: SELBOT_SYSTEM_PROMPT }]
-                },
-                generationConfig: {
-                  temperature: 0.7,
-                  maxOutputTokens: 600,
-                  topP: 0.95
+              const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`;
+              const apiRes = await fetch(geminiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: geminiContents,
+                  systemInstruction: {
+                    parts: [{ text: SELBOT_SYSTEM_PROMPT }]
+                  },
+                  generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 600,
+                    topP: 0.95
+                  }
+                }),
+                signal: modelController.signal
+              });
+
+              clearTimeout(modelTimeoutId);
+
+              if (apiRes.ok) {
+                const data = await apiRes.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  replyText = text.trim();
+                  successfulModel = modelName;
+                  break;
                 }
-              }),
-              signal: modelController.signal
-            });
-
-            clearTimeout(modelTimeoutId);
-
-            if (apiRes.ok) {
-              const data = await apiRes.json();
-              const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (text) {
-                replyText = text.trim();
-                successfulModel = modelName;
+              } else if ((apiRes.status === 503 || apiRes.status === 429) && attempt === 0) {
+                // Temporary high demand spike: brief 250ms backoff and retry once
+                await new Promise(r => setTimeout(r, 250));
+                continue;
+              } else {
+                const errData = await apiRes.json().catch(() => ({}));
+                console.warn(`[SelBot] Model ${modelName} returned status ${apiRes.status}:`, errData?.error?.message);
                 break;
               }
-            } else {
-              const errData = await apiRes.json().catch(() => ({}));
-              console.warn(`[SelBot] Model ${modelName} returned status ${apiRes.status}:`, errData?.error?.message);
+            } catch (modelErr) {
+              console.warn(`[SelBot] Model ${modelName} attempt error:`, modelErr.message);
+              break;
             }
-          } catch (modelErr) {
-            console.warn(`[SelBot] Model ${modelName} attempt error:`, modelErr.message);
           }
+          if (replyText) break;
         }
 
         clearTimeout(timeoutId);
