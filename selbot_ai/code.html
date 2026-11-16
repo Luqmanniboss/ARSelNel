@@ -15,7 +15,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   
   <!-- Auth Guard & Guest Restrictions -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/supabase-client.js"></script><script src="../assets/js/auth-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/selbot-conversation-service.js"></script>
   
   <!-- Custom Styling -->
   <style>
@@ -94,19 +97,20 @@
 
     /* Stacking Context Hierarchy:
        Layer 1: SelBot Main Content (.main-container) -> z-index: 1
-       Layer 2: Drawer Backdrop (#history-backdrop) -> z-index: 70
-       Layer 3: Main Sidebar (.ars-sidebar) -> z-index: 80
-       Layer 4: History Drawer (#history-drawer-wrapper) -> z-index: 85
-       Layer 5: Dialogs / Alerts -> z-index: 100
+       Layer 2: Main Sidebar (.ars-sidebar) -> z-index: 80
+       Layer 3: Topbar (.ars-topbar) -> z-index: 60
+       Layer 4: Drawer Backdrop (#history-backdrop) -> z-index: 90
+       Layer 5: History Drawer (#history-drawer-wrapper) -> z-index: 95
+       Layer 6: Dialogs / Alerts -> z-index: 100
     */
 
     #history-backdrop {
       position: fixed;
-      top: 0;
+      top: 74px;
       bottom: 0;
       right: 0;
       left: var(--ars-sidebar-width, 264px);
-      z-index: 70;
+      z-index: 90;
       background: rgba(15, 23, 42, 0.45);
       backdrop-filter: blur(2px);
       -webkit-backdrop-filter: blur(2px);
@@ -122,12 +126,12 @@
 
     #history-drawer-wrapper {
       position: fixed;
-      top: 0;
+      top: 74px;
       bottom: 0;
       left: var(--ars-sidebar-width, 264px);
       width: var(--selbot-history-width, 320px);
       max-width: calc(100vw - var(--ars-sidebar-width, 264px));
-      z-index: 85;
+      z-index: 95;
       overflow: hidden;
       visibility: hidden;
       pointer-events: none;
@@ -150,6 +154,8 @@
       transform: translateX(-100%);
       transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
       will-change: transform;
+      box-sizing: border-box;
+      overflow-x: hidden;
     }
 
     #history-drawer-wrapper.is-open #history-drawer {
@@ -159,12 +165,18 @@
     /* Responsive: Mobile Only (<= 760px) where the main sidebar is offscreen */
     @media (max-width: 760px) {
       #history-backdrop {
+        top: 0 !important;
         left: 0 !important;
+        z-index: 90 !important;
       }
       #history-drawer-wrapper {
+        top: 0 !important;
         left: 0 !important;
+        height: 100vh !important;
+        height: 100dvh !important;
         width: min(340px, 86vw) !important;
         max-width: 86vw !important;
+        z-index: 95 !important;
       }
       #history-drawer {
         box-shadow: 12px 0 36px rgba(15, 23, 42, 0.2);
@@ -1270,7 +1282,10 @@
       if (!convId) return;
       activeConversationId = convId;
       if (currentUserId) {
-        sessionStorage.setItem(`arselnel_active_conv_${currentUserId}`, convId);
+        try {
+          sessionStorage.setItem(`arselnel_active_conv_${currentUserId}`, convId);
+          localStorage.setItem(`arselnel_active_conv_${currentUserId}`, convId);
+        } catch (_) {}
       }
 
       messageContainer.innerHTML = '';
@@ -1286,150 +1301,163 @@
       `;
       messageContainer.appendChild(loader);
 
-      if (supabaseClient && currentUserId) {
-        try {
-          const { data: msgs, error } = await supabaseClient
+      try {
+        let msgs = [];
+        if (window.SelBotConversationService && currentUserId && currentUserId !== 'guest') {
+          msgs = await window.SelBotConversationService.getConversationMessages(convId);
+        } else if (supabaseClient && currentUserId) {
+          const { data, error } = await supabaseClient
             .from('selbot_messages')
             .select('*')
             .eq('conversation_id', convId)
             .eq('user_id', currentUserId)
             .order('created_at', { ascending: true });
-
-          loader.remove();
-
-          if (!error && Array.isArray(msgs)) {
-            msgs.forEach((m, idx) => {
-              const isUser = m.role === 'user';
-              appendMessage(m.content, isUser, {
-                modelInfo: m.model_info,
-                timestamp: m.created_at
-              });
-              conversationHistory.push({
-                role: isUser ? 'user' : 'assistant',
-                content: m.content
-              });
-
-              // Fasa 4E-G.1.4: Jika soalan lama ini tiada jawapan AI yang direkodkan dalam sesi lalu
-              if (isUser) {
-                const nextMsg = msgs[idx + 1];
-                if (!nextMsg || nextMsg.role === 'user') {
-                  const notice = document.createElement('div');
-                  notice.className = 'flex items-center gap-2 p-2.5 my-1.5 bg-amber-50/80 border border-amber-200/70 rounded-xl text-[11px] text-amber-800 font-medium max-w-[85%]';
-                  notice.innerHTML = `
-                    <span class="material-symbols-outlined text-sm text-amber-600 shrink-0">info</span>
-                    <span>Jawapan bagi soalan ini tidak direkodkan dalam sesi terdahulu. Anda boleh klik <strong>Tindakan Pantas</strong> atau hantar semula soalan untuk berbual lanjut.</span>
-                  `;
-                  messageContainer.appendChild(notice);
-                }
-              }
-            });
-            scrollToBottom(true);
-          }
-        } catch (err) {
-          loader.remove();
-          console.warn('[SelBot] Load messages notice:', err.message);
+          if (!error && Array.isArray(data)) msgs = data;
         }
-      } else {
+
         loader.remove();
+
+        if (Array.isArray(msgs) && msgs.length > 0) {
+          msgs.forEach((m, idx) => {
+            const isUser = m.role === 'user';
+            appendMessage(m.content, isUser, {
+              modelInfo: m.model_info,
+              timestamp: m.created_at
+            });
+            conversationHistory.push({
+              role: isUser ? 'user' : 'assistant',
+              content: m.content
+            });
+
+            // Fasa 4E-G.1.4: Jika soalan lama ini tiada jawapan AI yang direkodkan dalam sesi lalu
+            if (isUser) {
+              const nextMsg = msgs[idx + 1];
+              if (!nextMsg || nextMsg.role === 'user') {
+                const notice = document.createElement('div');
+                notice.className = 'flex items-center gap-2 p-2.5 my-1.5 bg-amber-50/80 border border-amber-200/70 rounded-xl text-[11px] text-amber-800 font-medium max-w-[85%]';
+                notice.innerHTML = `
+                  <span class="material-symbols-outlined text-sm text-amber-600 shrink-0">info</span>
+                  <span>Jawapan bagi soalan ini tidak direkodkan dalam sesi terdahulu. Anda boleh klik <strong>Tindakan Pantas</strong> atau hantar semula soalan untuk berbual lanjut.</span>
+                `;
+                messageContainer.appendChild(notice);
+              }
+            }
+          });
+          scrollToBottom(true);
+        }
+      } catch (err) {
+        loader.remove();
+        console.warn('[SelBot] Load messages notice:', err.message);
       }
 
       renderConversationList(historySearchInput?.value || '');
     }
 
-    // Load all conversations for authenticated user
-    async function fetchUserConversations() {
-      if (!supabaseClient || !currentUserId) return;
-      if (historyLoading) historyLoading.classList.remove('hidden');
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('selbot_conversations')
-          .select('*')
-          .eq('user_id', currentUserId)
-          .order('updated_at', { ascending: false });
-
-        if (historyLoading) historyLoading.classList.add('hidden');
-
-        if (!error && Array.isArray(data)) {
-          conversations = data;
-          renderConversationList();
-
-          // Restore previously active conversation or latest
-          const savedActiveId = sessionStorage.getItem(`arselnel_active_conv_${currentUserId}`);
-          const targetId = savedActiveId && conversations.some(c => c.id === savedActiveId)
-            ? savedActiveId
-            : (conversations[0]?.id || null);
-
-          if (targetId) {
-            loadConversation(targetId);
-          }
-        } else {
-          conversations = [];
-          renderConversationList();
-        }
-      } catch (err) {
-        if (historyLoading) historyLoading.classList.add('hidden');
-        console.warn('[SelBot] fetchUserConversations notice:', err.message);
-      }
-    }
-
-    // Initialize Supabase Auth & Session
+    // Initialize Supabase Auth & Unified Conversation Service (FASA 4F.2)
     async function initAuthAndHistory() {
       try {
-        if (window.ARSupabase && typeof window.ARSupabase.getClient === 'function') {
-          supabaseClient = await window.ARSupabase.getClient();
-        } else if (window.supabase) {
-          supabaseClient = window.supabase;
-        }
+        if (historyLoading) historyLoading.classList.remove('hidden');
 
-        if (supabaseClient && supabaseClient.auth) {
-          const { data } = await supabaseClient.auth.getUser();
-          if (data && data.user) {
-            currentUser = data.user;
-            currentUserId = data.user.id;
-            if (historySyncIndicator) {
-              historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Disegerakkan ke Awan';
-            }
-            await fetchUserConversations();
-          } else if (window.AuthGuard && window.AuthGuard.isGuest()) {
-            // Guest mode
-            currentUserId = 'guest';
-            if (historySyncIndicator) {
-              historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Mod Tetamu (Sesi Semasa)';
-            }
-            if (historyLoading) historyLoading.classList.add('hidden');
-            renderConversationList();
-          }
+        if (window.SelBotConversationService) {
+          await window.SelBotConversationService.init();
+          supabaseClient = window.SelBotConversationService.supabaseClient;
+          currentUser = window.SelBotConversationService.currentUser;
+          currentUserId = window.SelBotConversationService.currentUserId;
 
-          // Listen for Auth State Changes (Login / Logout / Switch Account)
-          supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_OUT') {
-              currentUser = null;
+          // Subscribe to two-way state changes
+          window.SelBotConversationService.subscribe((event, data) => {
+            if (event === 'conversations:updated') {
+              conversations = window.SelBotConversationService.conversations;
+              renderConversationList(historySearchInput?.value || '');
+            } else if (event === 'auth:signed_in') {
+              currentUserId = data.user?.id;
+              currentUser = data.user;
+              updateSyncStatusUI();
+              fetchUserConversations();
+            } else if (event === 'auth:signed_out') {
               currentUserId = null;
+              currentUser = null;
               activeConversationId = null;
               conversations = [];
               conversationHistory = [];
               messageContainer.innerHTML = '';
               renderConversationList();
-              if (historySyncIndicator) {
-                historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Luar Talian';
-              }
-            } else if (event === 'SIGNED_IN' && session?.user) {
-              const newUserId = session.user.id;
-              if (newUserId !== currentUserId) {
-                currentUser = session.user;
-                currentUserId = newUserId;
-                activeConversationId = null;
-                conversations = [];
-                conversationHistory = [];
-                messageContainer.innerHTML = '';
-                await fetchUserConversations();
-              }
+              updateSyncStatusUI();
             }
           });
+
+          updateSyncStatusUI();
+          await fetchUserConversations();
+        } else {
+          // Fallback legacy init
+          if (window.ARSupabase && typeof window.ARSupabase.getClient === 'function') {
+            supabaseClient = await window.ARSupabase.getClient();
+          } else if (window.supabase) {
+            supabaseClient = window.supabase;
+          }
+          if (supabaseClient?.auth) {
+            const { data } = await supabaseClient.auth.getUser();
+            if (data?.user) {
+              currentUser = data.user;
+              currentUserId = data.user.id;
+              await fetchUserConversations();
+            }
+          }
         }
       } catch (e) {
         console.warn('[SelBot] initAuthAndHistory notice:', e);
+      } finally {
+        if (historyLoading) historyLoading.classList.add('hidden');
+      }
+    }
+
+    function updateSyncStatusUI() {
+      if (!historySyncIndicator) return;
+      if (currentUserId && currentUserId !== 'guest') {
+        historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Disegerakkan ke Awan';
+      } else if (currentUserId === 'guest') {
+        historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Mod Tetamu (Sesi Semasa)';
+      } else {
+        historySyncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Luar Talian';
+      }
+    }
+
+    // Load all conversations for authenticated user
+    async function fetchUserConversations() {
+      if (historyLoading) historyLoading.classList.remove('hidden');
+
+      try {
+        if (window.SelBotConversationService && currentUserId && currentUserId !== 'guest') {
+          conversations = await window.SelBotConversationService.listConversations();
+          renderConversationList(historySearchInput?.value || '');
+
+          const targetId = window.SelBotConversationService.activeConversationId ||
+                           (conversations[0]?.id || null);
+
+          if (targetId) {
+            await loadConversation(targetId);
+          }
+        } else if (supabaseClient && currentUserId && currentUserId !== 'guest') {
+          const { data, error } = await supabaseClient
+            .from('selbot_conversations')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .order('updated_at', { ascending: false });
+
+          if (!error && Array.isArray(data)) {
+            conversations = data;
+            renderConversationList(historySearchInput?.value || '');
+            const targetId = conversations[0]?.id || null;
+            if (targetId) await loadConversation(targetId);
+          }
+        } else {
+          conversations = [];
+          renderConversationList(historySearchInput?.value || '');
+        }
+      } catch (err) {
+        console.warn('[SelBot] fetchUserConversations error:', err.message);
+      } finally {
+        if (historyLoading) historyLoading.classList.add('hidden');
       }
     }
 
@@ -1437,11 +1465,24 @@
     // SUBMIT QUESTION HANDLER
     // =========================================================================
 
+    function setControlsDisabled(disabled) {
+      isRequestInProgress = disabled;
+      if (sendBtn) sendBtn.disabled = disabled;
+      if (input) input.disabled = disabled;
+      document.querySelectorAll('.quick-action-btn, .suggestion-chip').forEach(btn => {
+        btn.disabled = disabled;
+        btn.style.pointerEvents = disabled ? 'none' : '';
+        btn.style.opacity = disabled ? '0.6' : '';
+      });
+    }
+
     async function submitQuestion(val, isRetry = false) {
-      if (!val || isRequestInProgress) return;
+      if (isRequestInProgress) return;
+      if (!val) return;
       const cleanVal = val.trim();
       if (!cleanVal) return;
 
+      setControlsDisabled(true);
       lastSentMessage = cleanVal;
 
       // Guest mode restriction check
@@ -1451,6 +1492,7 @@
           if (!isRetry) appendMessage(cleanVal, true);
           input.value = '';
           updateInputState();
+          setControlsDisabled(false);
           
           setTimeout(() => {
             appendMessage("Anda telah mencapai had 2 soalan dalam Mod Tetamu. Sila log masuk atau daftar akaun percuma untuk meneruskan sesi pembelajaran tanpa had bersama SelBot AI!", false);
@@ -1474,15 +1516,48 @@
       // Clear input and lock UI
       input.value = '';
       updateInputState();
-      isRequestInProgress = true;
-      sendBtn.disabled = true;
 
       // 2. Show typing indicator
       typingIndicator.classList.remove('hidden');
       scrollToBottom(true);
       if (networkStatus) networkStatus.textContent = 'Status: Sedang memproses...';
 
-      // 3. Create conversation in Supabase if this is a fresh conversation
+      // FASA 4F.2: Use Unified SelBotConversationService if available
+      if (window.SelBotConversationService && requestUserId && requestUserId !== 'guest') {
+        try {
+          const res = await window.SelBotConversationService.sendMessage({
+            message: cleanVal,
+            history: conversationHistory
+          });
+
+          typingIndicator.classList.add('hidden');
+          setControlsDisabled(false);
+          updateInputState();
+
+          if (currentUserId !== requestUserId) return;
+
+          conversationHistory.push({ role: 'user', content: cleanVal });
+          conversationHistory.push({ role: 'assistant', content: res.reply });
+          if (conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
+
+          appendMessage(res.reply, false, { modelInfo: res.modelBadge });
+          if (networkStatus) networkStatus.textContent = 'Status: Sedia';
+          activeConversationId = res.conversationId;
+          conversations = window.SelBotConversationService.conversations;
+          renderConversationList(historySearchInput?.value || '');
+          return;
+        } catch (svcErr) {
+          console.warn('[SelBot] Service send notice:', svcErr.message);
+          typingIndicator.classList.add('hidden');
+          setControlsDisabled(false);
+          updateInputState();
+          appendMessage(svcErr.message || 'Ralat sambungan pelayan SelBot.', false, { isError: true });
+          if (networkStatus) networkStatus.textContent = 'Status: Ralat';
+          return;
+        }
+      }
+
+      // 3. Fallback: Create conversation in Supabase if this is a fresh conversation
       if (supabaseClient && requestUserId && requestUserId !== 'guest' && !targetConvId) {
         try {
           const autoTitle = cleanVal.length > 36 ? cleanVal.slice(0, 36) + '...' : cleanVal;
@@ -1554,7 +1629,7 @@
         const data = await response.json().catch(() => ({}));
 
         typingIndicator.classList.add('hidden');
-        isRequestInProgress = false;
+        setControlsDisabled(false);
         updateInputState();
 
         // Guard against asynchronous race condition (user logged out or switched while request was in-flight)
@@ -1621,7 +1696,7 @@
       } catch (err) {
         clearTimeout(timeoutId);
         typingIndicator.classList.add('hidden');
-        isRequestInProgress = false;
+        setControlsDisabled(false);
         updateInputState();
 
         let friendlyError = 'Tidak dapat menghubungi pelayan SelBot. Sila periksa sambungan internet anda dan cuba lagi.';

@@ -3984,6 +3984,41 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
     async initAuthAndHistory() {
       try {
+        // FASA 4F.2: Use Unified SelBotConversationService for single point of truth
+        if (window.SelBotConversationService) {
+          await window.SelBotConversationService.init();
+          this.supabaseClient = window.SelBotConversationService.supabaseClient;
+          const uid = window.SelBotConversationService.currentUserId;
+          
+          if (uid && uid !== 'guest') {
+            if (ARState.selbot.currentUserId && ARState.selbot.currentUserId !== uid) {
+              this.clearSensitiveSessionState();
+            }
+            ARState.selbot.currentUserId = uid;
+            this.updateSyncLabels('Tutor Sains Tingkatan 1 • Disegerakkan ke Awan');
+            await this.fetchUserConversations();
+          } else {
+            ARState.selbot.currentUserId = 'guest';
+            this.updateSyncLabels('Tutor Sains Tingkatan 1 • Sesi Semasa');
+          }
+
+          if (!this.authSubscription) {
+            this.authSubscription = window.SelBotConversationService.subscribe((event, data) => {
+              if (event === 'conversations:updated') {
+                ARState.selbot.conversations = window.SelBotConversationService.conversations;
+                this.renderConversationLists();
+              } else if (event === 'auth:signed_in') {
+                ARState.selbot.currentUserId = data.user?.id;
+                this.updateSyncLabels('Tutor Sains Tingkatan 1 • Disegerakkan ke Awan');
+                this.fetchUserConversations();
+              } else if (event === 'auth:signed_out') {
+                this.clearSensitiveSessionState();
+              }
+            });
+          }
+          return;
+        }
+
         if (!this.supabaseClient) {
           if (window.ARSupabase && typeof window.ARSupabase.getClient === 'function') {
             this.supabaseClient = await window.ARSupabase.getClient();
@@ -4096,7 +4131,25 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
     async fetchUserConversations() {
       const uid = ARState.selbot.currentUserId;
-      if (!this.supabaseClient || !uid || uid === 'guest') return;
+      if (!uid || uid === 'guest') return;
+
+      if (window.SelBotConversationService && uid !== 'guest') {
+        try {
+          const list = await window.SelBotConversationService.listConversations();
+          ARState.selbot.conversations = list || [];
+          this.renderConversationLists();
+
+          const targetId = window.SelBotConversationService.activeConversationId || (list[0]?.id || null);
+          if (targetId) {
+            await this.loadConversation(targetId);
+          }
+        } catch (svcErr) {
+          console.warn('[SelBotAR] fetchUserConversations service notice:', svcErr.message);
+        }
+        return;
+      }
+
+      if (!this.supabaseClient) return;
 
       try {
         const { data, error } = await this.supabaseClient
@@ -4125,7 +4178,39 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
     async loadConversation(convId) {
       const uid = ARState.selbot.currentUserId;
-      if (!this.supabaseClient || !uid || uid === 'guest' || !convId) return;
+      if (!uid || uid === 'guest' || !convId) return;
+
+      if (window.SelBotConversationService && uid !== 'guest') {
+        try {
+          const msgs = await window.SelBotConversationService.getConversationMessages(convId);
+          ARState.selbot.activeConversationId = convId;
+          this.renderConversationLists();
+
+          if (Array.isArray(msgs) && msgs.length > 0) {
+            ARState.selbot.messages = msgs.map(m => ({
+              id: m.id,
+              role: m.role === 'user' ? 'user' : 'assistant',
+              content: m.content,
+              modelInfo: m.model_info || (m.role === 'assistant' ? 'SelBot AI' : ''),
+              timeStr: m.created_at ? new Date(m.created_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' }) : ''
+            }));
+
+            ARState.selbot.conversationHistory = msgs.slice(-10).map(m => ({
+              role: m.role === 'user' ? 'user' : 'assistant',
+              content: m.content
+            }));
+
+            this.renderMessagesToFeeds();
+          } else {
+            this.resetToWelcomeUI();
+          }
+        } catch (svcErr) {
+          console.warn('[SelBotAR] loadConversation service notice:', svcErr.message);
+        }
+        return;
+      }
+
+      if (!this.supabaseClient) return;
 
       const targetConv = ARState.selbot.conversations.find(c => c.id === convId && c.user_id === uid);
       if (!targetConv) return;
@@ -4371,6 +4456,50 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
 
       this.setTypingState(true);
+
+      // FASA 4F.2: Use Unified SelBotConversationService if available
+      if (window.SelBotConversationService && requestUserId && requestUserId !== 'guest') {
+        try {
+          const res = await window.SelBotConversationService.sendMessage({
+            message: cleanVal,
+            history: ARState.selbot.conversationHistory
+          });
+
+          this.setTypingState(false);
+          if (ARState.selbot.currentUserId !== requestUserId) return;
+
+          ARState.selbot.conversationHistory.push({ role: 'user', content: cleanVal });
+          ARState.selbot.conversationHistory.push({ role: 'assistant', content: res.reply });
+          if (ARState.selbot.conversationHistory.length > 10) {
+            ARState.selbot.conversationHistory = ARState.selbot.conversationHistory.slice(-10);
+          }
+
+          ARState.selbot.messages.push({
+            id: res.messageId,
+            role: 'assistant',
+            content: res.reply,
+            modelInfo: res.modelBadge,
+            timeStr: this.getNowTimeStr()
+          });
+          this.renderMessagesToFeeds();
+          ARState.selbot.activeConversationId = res.conversationId;
+          ARState.selbot.conversations = window.SelBotConversationService.conversations;
+          this.renderConversationLists();
+          return;
+        } catch (svcErr) {
+          console.warn('[SelBotAR] Service send notice:', svcErr.message);
+          this.setTypingState(false);
+          ARState.selbot.messages.push({
+            id: 'err_' + Date.now(),
+            role: 'assistant',
+            content: svcErr.message || 'Ralat sambungan dengan pelayan SelBot.',
+            isError: true,
+            timeStr: this.getNowTimeStr()
+          });
+          this.renderMessagesToFeeds();
+          return;
+        }
+      }
 
       // 1. Create conversation in Supabase if authenticated and fresh conversation
       if (this.supabaseClient && requestUserId && requestUserId !== 'guest' && !targetConvId) {
@@ -4741,6 +4870,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (GameSessionManager.isGameActive()) {
       console.log(`[KotakAR] 🛡️ Permainan aktif, pengesanan Marker ${moduleName} diabaikan.`);
       return;
+    }
+
+    // 🛡️ FASA 4F.2 MODUL ISOLATION: Jika modul (terutamanya SelBot AI) sedang aktif / tersemat / POV_LOCKED,
+    // sekat sebarang marker lain daripada mencelah atau membuka modul Kuiz/Video/Nota secara tiba-tiba
+    // kecuali jika pengguna secara eksplisit menekan butang '+ Tambah Imbasan Baharu' (SCAN_STATES.ADD_PANEL)
+    if (ARState.activePanels.size > 0 && !ARState.activePanels.has(moduleName)) {
+      if (ARState.scanState !== SCAN_STATES.ADD_PANEL) {
+        console.log(`[KotakAR] 🛡️ Modul '${ARState.activeModule}' sedang aktif. Pengesanan latar belakang marker '${moduleName}' diabaikan demi kestabilan.`);
+        return;
+      }
     }
 
     // Tentukan jenis sel jika CellQuest dikesan melalui indeks

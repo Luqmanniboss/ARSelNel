@@ -8324,32 +8324,57 @@ body.cellquest-active #ar-container canvas {
   color: #0369A1 !important;
 }
 
-@media (max-width: 640px) {
-  #pov-panel-selbot .pov-telemetry-bar,
-  #pov-panel-selbot .pov-status-banner {
+/* FASA 4F.2: iPad & Mobile Optimization for SelBot WebAR Workspace */
+@media (max-width: 1024px) {
+  #pov-panel-selbot .pov-telemetry-hud-strip,
+  #pov-panel-selbot .pov-status-banner,
+  #pov-panel-selbot .pov-telemetry-bar {
     display: none !important;
   }
   #pov-panel-selbot #pov-selbot-scrollable-body {
     padding: 6px 8px !important;
     display: flex !important;
     flex-direction: column !important;
+    flex: 1 1 auto !important;
+    overflow-y: hidden !important;
+  }
+  #pov-panel-selbot .pov-selbot-inner {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
   }
   #pov-panel-selbot .selbot-ar-view,
   .module-selbot .selbot-ar-view {
-    min-height: 250px !important;
-    max-height: 330px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
   }
-  #pov-panel-selbot .selbot-ar-title {
-    font-size: 12px !important;
+  #pov-panel-selbot #pov-selbot-chat-feed {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    min-height: 140px !important;
+    max-height: calc(100vh - 220px) !important;
+    -webkit-overflow-scrolling: touch;
   }
-  #pov-panel-selbot .pov-sticky-footer {
-    padding: 8px 10px !important;
-    gap: 6px !important;
+  #pov-panel-selbot #pov-selbot-composer {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    background: #ffffff !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 10 !important;
   }
-  #pov-panel-selbot .pov-sticky-footer .ar-btn {
-    padding: 6px 10px !important;
-    font-size: 11.5px !important;
-    min-height: 34px !important;
+  #pov-panel-selbot .panel-sticky-footer {
+    padding: 6px 8px !important;
+    gap: 4px !important;
+  }
+  #pov-panel-selbot .panel-sticky-footer button {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    min-height: 32px !important;
   }
 }
 

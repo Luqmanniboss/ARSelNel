@@ -34,16 +34,22 @@ function fetchSupabase(endpoint, options = {}) {
     try {
       const fullUrl = `${SUPABASE_URL}${endpoint}`;
       const parsed = new URL(fullUrl);
+      const bodyPayload = options.body ? (typeof options.body === 'string' ? options.body : JSON.stringify(options.body)) : null;
+      const headers = {
+        'apikey': SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      };
+      if (bodyPayload) {
+        headers['Content-Length'] = Buffer.byteLength(bodyPayload);
+      }
+
       const reqOptions = {
         hostname: parsed.hostname,
         port: 443,
         path: parsed.pathname + parsed.search,
         method: options.method || 'GET',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Content-Type': 'application/json',
-          ...(options.headers || {})
-        }
+        headers
       };
 
       const req = https.request(reqOptions, (res) => {
@@ -57,13 +63,14 @@ function fetchSupabase(endpoint, options = {}) {
             resolve({ status: res.statusCode, data });
           }
         });
+        res.on('error', err => reject(err));
       });
 
-      req.setTimeout(4500, () => {
+      req.setTimeout(3500, () => {
         req.destroy(new Error('SUPABASE_TIMEOUT'));
       });
       req.on('error', reject);
-      if (options.body) req.write(typeof options.body === 'string' ? options.body : JSON.stringify(options.body));
+      if (bodyPayload) req.write(bodyPayload);
       req.end();
     } catch (err) {
       reject(err);
@@ -408,77 +415,84 @@ module.exports = async (req, res) => {
     // Helper: Persist assistant message securely on trusted server path (Fasa 4E-G.1.4 Hotfix)
     async function persistAssistantResponse(replyText, modelInfo) {
       if (!verifiedUser || !conversation_id) return { saved: false, message_id: null };
-      try {
-        // Attempt 1: If SUPABASE_SERVICE_ROLE_KEY is present, call trusted server RPC
-        if (SUPABASE_SERVICE_ROLE_KEY) {
-          const rpcRes = await fetchSupabase('/rest/v1/rpc/selbot_record_assistant_message', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-              apikey: SUPABASE_SERVICE_ROLE_KEY
-            },
-            body: {
-              p_conversation_id: conversation_id,
-              p_content: replyText,
-              p_model_info: modelInfo
+      
+      const persistTask = async () => {
+        try {
+          // Attempt 1: If SUPABASE_SERVICE_ROLE_KEY is present, call trusted server RPC
+          if (SUPABASE_SERVICE_ROLE_KEY) {
+            const rpcRes = await fetchSupabase('/rest/v1/rpc/selbot_record_assistant_message', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                apikey: SUPABASE_SERVICE_ROLE_KEY
+              },
+              body: {
+                p_conversation_id: conversation_id,
+                p_content: replyText,
+                p_model_info: modelInfo
+              }
+            });
+            if (rpcRes.status >= 200 && rpcRes.status < 300) {
+              return { saved: true, message_id: rpcRes.data?.message_id || null };
             }
-          });
-          if (rpcRes.status >= 200 && rpcRes.status < 300) {
-            return { saved: true, message_id: rpcRes.data?.message_id || null };
           }
+
+          // Attempt 2: Use userToken to execute selbot_record_assistant_message RPC as authenticated user
+          if (userToken) {
+            const rpcRes = await fetchSupabase('/rest/v1/rpc/selbot_record_assistant_message', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${userToken}`,
+                apikey: SUPABASE_KEY
+              },
+              body: {
+                p_conversation_id: conversation_id,
+                p_content: replyText,
+                p_model_info: modelInfo
+              }
+            });
+            if (rpcRes.status >= 200 && rpcRes.status < 300) {
+              return { saved: true, message_id: rpcRes.data?.message_id || null };
+            }
+
+            // Attempt 3: Direct insert into selbot_messages with verified userToken & RLS
+            const insertRes = await fetchSupabase('/rest/v1/selbot_messages', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${userToken}`,
+                apikey: SUPABASE_KEY,
+                Prefer: 'return=representation'
+              },
+              body: {
+                conversation_id: conversation_id,
+                user_id: verifiedUser.id,
+                role: 'assistant',
+                content: replyText,
+                model_info: modelInfo
+              }
+            });
+            if (insertRes.status >= 200 && insertRes.status < 300) {
+              const inserted = Array.isArray(insertRes.data) ? insertRes.data[0] : insertRes.data;
+              // Also update conversation timestamp
+              await fetchSupabase(`/rest/v1/selbot_conversations?id=eq.${conversation_id}&user_id=eq.${verifiedUser.id}`, {
+                method: 'PATCH',
+                headers: { Authorization: `Bearer ${userToken}`, apikey: SUPABASE_KEY },
+                body: { updated_at: new Date().toISOString() }
+              }).catch(() => {});
+              return { saved: true, message_id: inserted?.id || null };
+            }
+          }
+
+          return { saved: false, message_id: null };
+        } catch (saveErr) {
+          console.warn('[SelBot] Server assistant persistence notice:', saveErr.message);
+          return { saved: false, message_id: null, error: saveErr.message };
         }
+      };
 
-        // Attempt 2: Use userToken to execute selbot_record_assistant_message RPC as authenticated user
-        if (userToken) {
-          const rpcRes = await fetchSupabase('/rest/v1/rpc/selbot_record_assistant_message', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${userToken}`,
-              apikey: SUPABASE_KEY
-            },
-            body: {
-              p_conversation_id: conversation_id,
-              p_content: replyText,
-              p_model_info: modelInfo
-            }
-          });
-          if (rpcRes.status >= 200 && rpcRes.status < 300) {
-            return { saved: true, message_id: rpcRes.data?.message_id || null };
-          }
-
-          // Attempt 3: Direct insert into selbot_messages with verified userToken & RLS
-          const insertRes = await fetchSupabase('/rest/v1/selbot_messages', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${userToken}`,
-              apikey: SUPABASE_KEY,
-              Prefer: 'return=representation'
-            },
-            body: {
-              conversation_id: conversation_id,
-              user_id: verifiedUser.id,
-              role: 'assistant',
-              content: replyText,
-              model_info: modelInfo
-            }
-          });
-          if (insertRes.status >= 200 && insertRes.status < 300) {
-            const inserted = Array.isArray(insertRes.data) ? insertRes.data[0] : insertRes.data;
-            // Also update conversation timestamp
-            await fetchSupabase(`/rest/v1/selbot_conversations?id=eq.${conversation_id}&user_id=eq.${verifiedUser.id}`, {
-              method: 'PATCH',
-              headers: { Authorization: `Bearer ${userToken}`, apikey: SUPABASE_KEY },
-              body: { updated_at: new Date().toISOString() }
-            }).catch(() => {});
-            return { saved: true, message_id: inserted?.id || null };
-          }
-        }
-
-        return { saved: false, message_id: null };
-      } catch (saveErr) {
-        console.warn('[SelBot] Server assistant persistence notice:', saveErr.message);
-        return { saved: false, message_id: null, error: saveErr.message };
-      }
+      // Wrap with 2200ms timeout so persistence never delays serverless HTTP response
+      const timeoutPromise = new Promise(r => setTimeout(() => r({ saved: false, message_id: null, timedOut: true }), 2200));
+      return Promise.race([persistTask(), timeoutPromise]);
     }
 
     // Helper: Return success with automatic server persistence
@@ -558,7 +572,7 @@ module.exports = async (req, res) => {
           'gemini-3.5-flash-lite',
           'gemini-3.5-flash',
           'gemini-flash-latest',
-          'gemini-1.5-flash'
+          'gemini-2.5-flash'
         ];
 
         let replyText = null;
@@ -566,6 +580,9 @@ module.exports = async (req, res) => {
 
         for (const modelName of candidateModels) {
           try {
+            const modelController = new AbortController();
+            const modelTimeoutId = setTimeout(() => modelController.abort(), 4500);
+
             const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`;
             const apiRes = await fetch(geminiUrl, {
               method: 'POST',
@@ -581,8 +598,10 @@ module.exports = async (req, res) => {
                   topP: 0.95
                 }
               }),
-              signal: controller.signal
+              signal: modelController.signal
             });
+
+            clearTimeout(modelTimeoutId);
 
             if (apiRes.ok) {
               const data = await apiRes.json();
