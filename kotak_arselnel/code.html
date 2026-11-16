@@ -713,6 +713,83 @@
             <span id="cellquest-status-notice-text">Model 3D sedia diterokai. Kad AR 4 berjaya dikesan!</span>
           </div>
         </div>
+
+        <!-- VIEW 10: SelBot AI Floating Chat View (Fasa 4F - Target Index 7) -->
+        <div class="selbot-ar-view hidden" id="selbot-ar-view">
+          <!-- Sub-header: Avatar, Status & History/New Chat Controls -->
+          <div class="selbot-ar-topbar">
+            <div class="selbot-ar-identity">
+              <div class="selbot-ar-avatar-wrap">
+                <img src="../assets/selbot/selbot-avatar.svg" alt="SelBot AI" class="selbot-ar-avatar" />
+                <span class="selbot-ar-online-dot"></span>
+              </div>
+              <div class="selbot-ar-titles">
+                <div class="selbot-ar-title-row">
+                  <h4>SelBot AI</h4>
+                  <span class="selbot-ar-status-pill" id="selbot-ar-status-badge">AI Aktif (LLM)</span>
+                </div>
+                <span class="selbot-ar-subtitle" id="selbot-ar-sync-label">Tutor Sains Tingkatan 1 • Disimpan di Awan</span>
+              </div>
+            </div>
+            <div class="selbot-ar-actions">
+              <button type="button" class="btn-selbot-ar-top btn-selbot-new" id="btn-selbot-ar-new-chat" title="Mulakan Perbualan Baharu">
+                <span class="material-symbols-outlined">add_comment</span>
+                <span>Baharu</span>
+              </button>
+              <button type="button" class="btn-selbot-ar-top btn-selbot-hist" id="btn-selbot-ar-history-toggle" title="Buka Sejarah Perbualan">
+                <span class="material-symbols-outlined">history</span>
+                <span>Sejarah</span>
+                <span class="selbot-hist-count" id="selbot-ar-history-count">0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible History Drawer Inside Panel -->
+          <div class="selbot-ar-history-drawer hidden" id="selbot-ar-history-panel">
+            <div class="selbot-ar-history-header">
+              <span><span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">forum</span> Sejarah Perbualan Anda</span>
+              <button type="button" class="btn-selbot-hist-close" id="btn-selbot-ar-history-close" title="Tutup Sejarah">
+                <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+              </button>
+            </div>
+            <div class="selbot-ar-history-list" id="selbot-ar-conv-list">
+              <div class="selbot-ar-history-empty">Tiada sejarah perbualan lagi.</div>
+            </div>
+          </div>
+
+          <!-- Scrollable Chat Messages Feed -->
+          <div class="selbot-ar-chat-feed" id="selbot-ar-chat-feed" role="log" aria-live="polite">
+            <!-- Populated dynamically by SelBotARController -->
+          </div>
+
+          <!-- Typing Indicator -->
+          <div class="selbot-ar-typing hidden" id="selbot-ar-typing-indicator">
+            <img src="../assets/selbot/selbot-avatar.svg" alt="SelBot" class="selbot-ar-typing-avatar" />
+            <div class="selbot-ar-typing-bubble">
+              <span class="selbot-dot"></span>
+              <span class="selbot-dot"></span>
+              <span class="selbot-dot"></span>
+              <span class="selbot-typing-text">SelBot sedang menaip jawapan...</span>
+            </div>
+          </div>
+
+          <!-- Quick Suggestion Chips -->
+          <div class="selbot-ar-chips-bar" id="selbot-ar-suggestions">
+            <button type="button" class="selbot-ar-chip" data-prompt="Apakah fungsi utama nukleus dalam sel?">🧬 Fungsi Nukleus</button>
+            <button type="button" class="selbot-ar-chip" data-prompt="Apakah perbezaan utama antara sel haiwan dan sel tumbuhan?">🌿 Haiwan vs Tumbuhan</button>
+            <button type="button" class="selbot-ar-chip" data-prompt="Mengapa mitokondria digelar stesen janakuasa sel?">⚡ Fungsi Mitokondria</button>
+            <button type="button" class="selbot-ar-chip" data-prompt="Boleh bina analogi mudah diingat tentang struktur sel Sains Tingkatan 1?">💡 Analogi Mudah Sel</button>
+            <button type="button" class="selbot-ar-chip" data-prompt="Terangkan urutan organisasi sel daripada sel hingga organisma.">🔬 Organisasi Sel</button>
+          </div>
+
+          <!-- Input Composer Bar -->
+          <div class="selbot-ar-composer" id="selbot-ar-composer">
+            <input type="text" id="selbot-ar-input" class="selbot-ar-input" placeholder="Tanya soalan Sains Tingkatan 1..." maxlength="500" autocomplete="off" />
+            <button type="button" id="btn-selbot-ar-send" class="btn-selbot-ar-send" title="Hantar Soalan" aria-label="Hantar Soalan">
+              <span class="material-symbols-outlined">send</span>
+            </button>
+          </div>
+        </div>
       </main>
 
       <!-- C. STICKY FOOTER ACTIONS BAR (Always visible & interactive at bottom) -->
@@ -1378,6 +1455,190 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       FASA 4F: PANEL POV 4 - SELBOT AI (TEMA CYAN/TEAL/UNGU #06b6d4 / #ec4899)
+       ========================================================================= -->
+  <div class="floating-ar-anchor pov-ar-anchor pov-panel-container pov-panel-selbot hidden" id="pov-panel-selbot" data-panel-type="selbot">
+    <div class="floating-card-container size-medium pov-card-theme pov-card-selbot is-pinned" id="pov-selbot-card-container">
+      
+      <!-- A. FIXED HEADER SELBOT -->
+      <header class="panel-fixed-header pov-header-selbot" id="pov-selbot-fixed-header">
+        <div class="pov-header-bar">
+          <div class="category-tag pov-tag pov-tag-selbot">
+            <span class="material-symbols-outlined" style="font-size:16px;">smart_toy</span>
+            <span>8. SELBOT AI • PEMBANTU SAINS PINTAR</span>
+          </div>
+          <div class="pov-sensor-pill pov-selbot-sensor-pill" id="pov-selbot-sensor-pill">
+            <div class="ping" id="pov-selbot-sensor-ping"></div>
+            <span id="pov-selbot-sensor-text">Mengesan Sensor...</span>
+          </div>
+        </div>
+
+        <!-- POV SelBot Toolbar: Size presets & Battery Camera Toggle -->
+        <div class="pinned-toolbar" id="pov-selbot-toolbar">
+          <div class="size-controls-group">
+            <span class="tool-label">Saiz:</span>
+            <div class="size-segmented-control" role="group" aria-label="Ubah saiz panel SelBot">
+              <button type="button" class="btn-size" data-size="small" id="pov-selbot-size-s" title="Saiz Kecil (320px)">S</button>
+              <button type="button" class="btn-size is-active" data-size="medium" id="pov-selbot-size-m" title="Saiz Sederhana (480px)">M</button>
+              <button type="button" class="btn-size" data-size="large" id="pov-selbot-size-l" title="Saiz Besar (580px)">L</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-cam-toggle" id="pov-selbot-btn-toggle-cam" title="Tutup kamera untuk jimat bateri tanpa henti perbualan">
+            <span class="material-symbols-outlined" id="pov-selbot-cam-icon" style="font-size:15px;">videocam_off</span>
+            <span id="pov-selbot-cam-text">Tutup Kamera</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- B. SCROLLABLE SELBOT BODY -->
+      <main class="panel-scrollable-body" id="pov-selbot-scrollable-body">
+        <div class="pov-active-selbot-view" id="pov-active-selbot-view">
+          <!-- Compact Spatial Telemetry HUD Bar (SelBot POV) -->
+          <div class="pov-telemetry-hud-strip" id="pov-selbot-telemetry-hud-strip">
+            <div class="hud-chip">
+              <span class="material-symbols-outlined hud-chip-icon">explore</span>
+              <span class="hud-chip-label">Arah:</span>
+              <span class="hud-chip-val" id="pov-selbot-val-yaw">0.0°</span>
+            </div>
+            <div class="hud-chip">
+              <span class="material-symbols-outlined hud-chip-icon">swap_vert</span>
+              <span class="hud-chip-label">Dongak:</span>
+              <span class="hud-chip-val" id="pov-selbot-val-pitch">0.0°</span>
+            </div>
+            <div class="hud-chip status-chip">
+              <span class="material-symbols-outlined hud-chip-icon" style="color:#10b981;">lock_open</span>
+              <span class="hud-chip-val" id="pov-selbot-val-status">Mod Imbasan AR — Panel Mengikuti Kad</span>
+            </div>
+          </div>
+
+          <!-- Instructional Guidance Banner (SelBot POV) -->
+          <div class="pov-status-banner" id="pov-selbot-status-banner">
+            <span class="material-symbols-outlined banner-icon" id="pov-selbot-banner-icon">qr_code_scanner</span>
+            <span class="banner-text" id="pov-selbot-banner-text">Mod Imbasan AR — Panel sedang mengikuti pergerakan kad AR anda.</span>
+            <div class="banner-action-buttons hidden" id="pov-selbot-banner-actions">
+              <button type="button" class="btn-banner-retry" id="pov-selbot-btn-retry-sensor">Cuba Semula</button>
+              <button type="button" class="btn-banner-fallback" id="pov-selbot-btn-fallback-pinned">Semat Skrin</button>
+            </div>
+          </div>
+
+          <!-- SelBot Chat Interface in POV Mode -->
+          <div class="selbot-ar-view pov-selbot-inner" id="pov-selbot-ar-view">
+            <div class="selbot-ar-topbar">
+              <div class="selbot-ar-identity">
+                <div class="selbot-ar-avatar-wrap">
+                  <img src="../assets/selbot/selbot-avatar.svg" alt="SelBot AI" class="selbot-ar-avatar" />
+                  <span class="selbot-ar-online-dot"></span>
+                </div>
+                <div class="selbot-ar-titles">
+                  <div class="selbot-ar-title-row">
+                    <h4>SelBot AI (360°)</h4>
+                    <span class="selbot-ar-status-pill" id="pov-selbot-status-badge">AI Aktif (LLM)</span>
+                  </div>
+                  <span class="selbot-ar-subtitle" id="pov-selbot-sync-label">Tutor Sains Tingkatan 1 • Disimpan di Awan</span>
+                </div>
+              </div>
+              <div class="selbot-ar-actions">
+                <button type="button" class="btn-selbot-ar-top btn-selbot-new" id="btn-pov-selbot-new-chat" title="Mulakan Perbualan Baharu">
+                  <span class="material-symbols-outlined">add_comment</span>
+                  <span>Baharu</span>
+                </button>
+                <button type="button" class="btn-selbot-ar-top btn-selbot-hist" id="btn-pov-selbot-history-toggle" title="Buka Sejarah Perbualan">
+                  <span class="material-symbols-outlined">history</span>
+                  <span>Sejarah</span>
+                  <span class="selbot-hist-count" id="pov-selbot-history-count">0</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Collapsible History Drawer Inside POV Panel -->
+            <div class="selbot-ar-history-drawer hidden" id="pov-selbot-history-panel">
+              <div class="selbot-ar-history-header">
+                <span><span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">forum</span> Sejarah Perbualan Anda</span>
+                <button type="button" class="btn-selbot-hist-close" id="btn-pov-selbot-history-close" title="Tutup Sejarah">
+                  <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+                </button>
+              </div>
+              <div class="selbot-ar-history-list" id="pov-selbot-conv-list">
+                <div class="selbot-ar-history-empty">Tiada sejarah perbualan lagi.</div>
+              </div>
+            </div>
+
+            <!-- Scrollable Chat Messages Feed (POV) -->
+            <div class="selbot-ar-chat-feed" id="pov-selbot-chat-feed" role="log" aria-live="polite">
+              <!-- Synced dynamically by SelBotARController -->
+            </div>
+
+            <!-- Typing Indicator (POV) -->
+            <div class="selbot-ar-typing hidden" id="pov-selbot-typing-indicator">
+              <img src="../assets/selbot/selbot-avatar.svg" alt="SelBot" class="selbot-ar-typing-avatar" />
+              <div class="selbot-ar-typing-bubble">
+                <span class="selbot-dot"></span>
+                <span class="selbot-dot"></span>
+                <span class="selbot-dot"></span>
+                <span class="selbot-typing-text">SelBot sedang menaip jawapan...</span>
+              </div>
+            </div>
+
+            <!-- Quick Suggestion Chips (POV) -->
+            <div class="selbot-ar-chips-bar" id="pov-selbot-suggestions">
+              <button type="button" class="selbot-ar-chip" data-prompt="Apakah fungsi utama nukleus dalam sel?">🧬 Fungsi Nukleus</button>
+              <button type="button" class="selbot-ar-chip" data-prompt="Apakah perbezaan utama antara sel haiwan dan sel tumbuhan?">🌿 Haiwan vs Tumbuhan</button>
+              <button type="button" class="selbot-ar-chip" data-prompt="Mengapa mitokondria digelar stesen janakuasa sel?">⚡ Fungsi Mitokondria</button>
+              <button type="button" class="selbot-ar-chip" data-prompt="Boleh bina analogi mudah diingat tentang struktur sel Sains Tingkatan 1?">💡 Analogi Mudah Sel</button>
+              <button type="button" class="selbot-ar-chip" data-prompt="Terangkan urutan organisasi sel daripada sel hingga organisma.">🔬 Organisasi Sel</button>
+            </div>
+
+            <!-- Input Composer Bar (POV) -->
+            <div class="selbot-ar-composer" id="pov-selbot-composer">
+              <input type="text" id="pov-selbot-input" class="selbot-ar-input" placeholder="Tanya soalan Sains Tingkatan 1..." maxlength="500" autocomplete="off" />
+              <button type="button" id="btn-pov-selbot-send" class="btn-selbot-ar-send" title="Hantar Soalan" aria-label="Hantar Soalan">
+                <span class="material-symbols-outlined">send</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- C. STICKY FOOTER ACTIONS (SELBOT) -->
+      <footer class="panel-sticky-footer" id="pov-selbot-sticky-footer">
+        <div class="player-actions-bar">
+          <button type="button" class="btn-pov-mode" id="pov-selbot-btn-start-pov" title="Mulakan pemilihan arah Kunci Pandangan 360° secara manual">
+            <span class="material-symbols-outlined">explore</span>
+            <span>Kunci Pandangan</span>
+          </button>
+
+          <button type="button" class="btn-place-video btn-place-selbot hidden" id="pov-selbot-btn-anchor" title="Kunci arah orientasi peranti semasa">
+            <span class="material-symbols-outlined" id="pov-selbot-anchor-icon">my_location</span>
+            <span id="pov-selbot-anchor-text">Letak di Arah Ini</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action" id="pov-selbot-btn-change-content" title="Buka atau tutup sejarah perbualan">
+            <span class="material-symbols-outlined">history</span>
+            <span>Sejarah Chat</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action" id="pov-selbot-btn-back-pinned" title="Kembali ke Mod Semat pada Skrin">
+            <span class="material-symbols-outlined">push_pin</span>
+            <span>Semat Skrin</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-selbot-btn-close" title="Keluar dari mod Kunci Pandangan">
+            <span class="material-symbols-outlined">close</span>
+            <span>Tutup</span>
+          </button>
+        </div>
+      </footer>
+
+      <!-- Interactive Corner Resize Grip Handle for SelBot POV -->
+      <div class="corner-resize-handle" id="pov-selbot-corner-resize-handle" title="Tarik untuk ubah saiz panel secara bebas">
+        <span class="material-symbols-outlined">fit_screen</span>
+      </div>
+
+    </div>
+  </div>
+
   </div> <!-- /#spatial-panels-layer (Fasa 4E-B.2.4 Layer 3 Isolation) -->
 
   <!-- OFF-SCREEN TARGET POINTER (Pulsing Arrow when user turns away from anchored target) -->
@@ -1470,7 +1731,7 @@
         <div class="diag-row"><span class="k">Resolusi Video:</span><span class="v" id="diag-video-dim">0 x 0</span></div>
         <div class="diag-row"><span class="k">Keadaan Video:</span><span class="v" id="diag-video-ready">0 (TIADA DATA)</span></div>
         <div class="diag-row"><span class="k">Status Enjin MindAR:</span><span class="v" id="diag-mindar-status">MENUNGGU</span></div>
-        <div class="diag-row"><span class="k">Fail Kad AR .mind:</span><span class="v" id="diag-marker-mind-status">7 Sasaran (0-6)</span></div>
+        <div class="diag-row"><span class="k">Fail Kad AR .mind:</span><span class="v" id="diag-marker-mind-status">8 Sasaran (0-7)</span></div>
         <div class="diag-row"><span class="k">Konteks WebGL:</span><span class="v" id="diag-webgl-status">Normal</span></div>
         <div class="diag-row"><span class="k">Ralat Terkini:</span><span class="v" id="diag-last-error">Tiada</span></div>
       </div>

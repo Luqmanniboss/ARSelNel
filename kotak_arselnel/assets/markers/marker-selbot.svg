@@ -1,0 +1,257 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <radialGradient id="bgSelbot" cx="50%" cy="48%" r="72%">
+      <stop offset="0%" stop-color="#111c38"/>
+      <stop offset="55%" stop-color="#0a1124"/>
+      <stop offset="100%" stop-color="#040711"/>
+    </radialGradient>
+    <linearGradient id="aiCyanTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="aiPurpleCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="botBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="65%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Latar Belakang Kontras Tinggi -->
+  <rect x="0" y="0" width="1000" height="1000" fill="url(#bgSelbot)"/>
+
+  <!-- Bingkai Sempadan Luar & Dalam Berkontras Tinggi untuk MindAR -->
+  <rect x="28" y="28" width="944" height="944" rx="28" fill="none" stroke="url(#aiCyanTeal)" stroke-width="18"/>
+  <rect x="56" y="56" width="888" height="888" rx="18" fill="none" stroke="#f8fafc" stroke-width="8" stroke-dasharray="42 16 18 16 12 16"/>
+
+  <!-- 4 Fiducial Penjuru Tak Simetri (Asymmetric High-Texture Corners untuk Sasaran Index 7) -->
+  <!-- Penjuru Kiri Atas (TL): Cip Pemproses Neural AI + Pin Litar Tak Simetri -->
+  <g transform="translate(80, 80)">
+    <rect x="0" y="0" width="146" height="146" rx="16" fill="#050b16" stroke="#22d3ee" stroke-width="8"/>
+    <!-- Pin Litar -->
+    <rect x="34" y="8" width="12" height="20" fill="#2dd4bf"/>
+    <rect x="66" y="8" width="14" height="20" fill="#f8fafc"/>
+    <rect x="100" y="8" width="12" height="20" fill="#a855f7"/>
+    <rect x="34" y="118" width="12" height="20" fill="#a855f7"/>
+    <rect x="66" y="118" width="14" height="20" fill="#22d3ee"/>
+    <rect x="100" y="118" width="12" height="20" fill="#f8fafc"/>
+    <rect x="8" y="36" width="20" height="12" fill="#f8fafc"/>
+    <rect x="8" y="68" width="20" height="12" fill="#2dd4bf"/>
+    <rect x="8" y="100" width="20" height="12" fill="#22d3ee"/>
+    <rect x="118" y="36" width="20" height="12" fill="#a855f7"/>
+    <rect x="118" y="68" width="20" height="12" fill="#fde047"/>
+    <rect x="118" y="100" width="20" height="12" fill="#f8fafc"/>
+    <!-- Teras Cip -->
+    <rect x="32" y="32" width="82" height="82" rx="10" fill="#0f172a" stroke="#14b8a6" stroke-width="6"/>
+    <polygon points="73,44 98,73 73,102 48,73" fill="#a855f7" stroke="#f8fafc" stroke-width="4"/>
+    <circle cx="73" cy="73" r="11" fill="#fde047"/>
+    <rect x="40" y="40" width="16" height="16" fill="#22d3ee"/>
+  </g>
+
+  <!-- Penjuru Kanan Atas (TR): Gelembung Sembang AI + Bintang Kilauan Pintar -->
+  <g transform="translate(774, 80)">
+    <rect x="0" y="0" width="146" height="146" rx="16" fill="#050b16" stroke="#a855f7" stroke-width="8"/>
+    <path d="M 22 28 H 124 A 12 12 0 0 1 136 40 V 92 A 12 12 0 0 1 124 104 H 64 L 34 130 V 104 H 22 A 12 12 0 0 1 10 92 V 40 A 12 12 0 0 1 22 28 Z" fill="#1e1b4b" stroke="#22d3ee" stroke-width="6"/>
+    <!-- Bintang AI Empat Penjuru -->
+    <polygon points="52,42 60,58 76,66 60,74 52,90 44,74 28,66 44,58" fill="#fde047"/>
+    <!-- Bar Teks Sembang Kontras Tinggi -->
+    <rect x="82" y="48" width="38" height="10" rx="4" fill="#f8fafc"/>
+    <rect x="82" y="66" width="28" height="10" rx="4" fill="#2dd4bf"/>
+    <rect x="82" y="84" width="34" height="10" rx="4" fill="#c084fc"/>
+    <circle cx="116" cy="122" r="13" fill="#22d3ee" stroke="#f8fafc" stroke-width="4"/>
+  </g>
+
+  <!-- Penjuru Kiri Bawah (BL): Heksagon Biologi Sel + Rangkaian Sinaps -->
+  <g transform="translate(80, 774)">
+    <rect x="0" y="0" width="146" height="146" rx="16" fill="#050b16" stroke="#14b8a6" stroke-width="8"/>
+    <polygon points="73,16 124,45 124,101 73,130 22,101 22,45" fill="#042f2e" stroke="#2dd4bf" stroke-width="7"/>
+    <polygon points="73,38 104,56 104,90 73,108 42,90 42,56" fill="#a855f7" stroke="#f8fafc" stroke-width="5"/>
+    <circle cx="73" cy="73" r="14" fill="#050b16" stroke="#fde047" stroke-width="5"/>
+    <rect x="14" y="14" width="22" height="22" fill="#f8fafc"/>
+    <circle cx="122" cy="24" r="10" fill="#22d3ee"/>
+    <rect x="112" y="112" width="20" height="20" fill="#fde047"/>
+  </g>
+
+  <!-- Penjuru Kanan Bawah (BR): Gelombang Spektrum AI + Nod Kuantum Tak Simetri -->
+  <g transform="translate(774, 774)">
+    <rect x="0" y="0" width="146" height="146" rx="16" fill="#050b16" stroke="#22d3ee" stroke-width="8"/>
+    <!-- Bar Spektrum Suara AI -->
+    <rect x="20" y="64" width="14" height="44" rx="5" fill="#22d3ee"/>
+    <rect x="42" y="34" width="14" height="84" rx="5" fill="#f8fafc"/>
+    <rect x="64" y="18" width="16" height="110" rx="5" fill="#14b8a6"/>
+    <rect x="88" y="42" width="14" height="72" rx="5" fill="#a855f7"/>
+    <rect x="110" y="54" width="16" height="56" rx="5" fill="#fde047"/>
+    <circle cx="27" cy="34" r="12" fill="#a855f7" stroke="#f8fafc" stroke-width="4"/>
+    <polygon points="118,16 134,40 102,40" fill="#22d3ee"/>
+  </g>
+
+  <!-- Corak Kod Bar Sisi Unik (High-Frequency ORB/FAST Keypoints untuk MindAR) -->
+  <!-- Sisi Atas -->
+  <g>
+    <rect x="252" y="76" width="28" height="20" rx="4" fill="#22d3ee"/>
+    <rect x="294" y="76" width="48" height="20" rx="4" fill="#f8fafc"/>
+    <rect x="356" y="76" width="20" height="20" rx="4" fill="#a855f7"/>
+    <rect x="390" y="76" width="58" height="20" rx="4" fill="#14b8a6"/>
+    <rect x="462" y="76" width="24" height="20" rx="4" fill="#fde047"/>
+    <rect x="500" y="76" width="44" height="20" rx="4" fill="#f8fafc"/>
+    <rect x="558" y="76" width="32" height="20" rx="4" fill="#a855f7"/>
+    <rect x="604" y="76" width="54" height="20" rx="4" fill="#22d3ee"/>
+    <rect x="672" y="76" width="22" height="20" rx="4" fill="#14b8a6"/>
+    <rect x="708" y="76" width="38" height="20" rx="4" fill="#fde047"/>
+  </g>
+
+  <!-- Sisi Kiri -->
+  <g>
+    <rect x="76" y="254" width="20" height="52" rx="4" fill="#a855f7"/>
+    <rect x="76" y="320" width="20" height="24" rx="4" fill="#f8fafc"/>
+    <rect x="76" y="358" width="20" height="44" rx="4" fill="#22d3ee"/>
+    <rect x="76" y="416" width="20" height="62" rx="4" fill="#14b8a6"/>
+    <rect x="76" y="492" width="20" height="22" rx="4" fill="#fde047"/>
+    <rect x="76" y="528" width="20" height="50" rx="4" fill="#f8fafc"/>
+    <rect x="76" y="592" width="20" height="34" rx="4" fill="#a855f7"/>
+    <rect x="76" y="640" width="20" height="56" rx="4" fill="#22d3ee"/>
+    <rect x="76" y="710" width="20" height="28" rx="4" fill="#14b8a6"/>
+  </g>
+
+  <!-- Sisi Kanan -->
+  <g>
+    <rect x="904" y="252" width="20" height="32" rx="4" fill="#14b8a6"/>
+    <rect x="904" y="298" width="20" height="58" rx="4" fill="#22d3ee"/>
+    <rect x="904" y="370" width="20" height="26" rx="4" fill="#fde047"/>
+    <rect x="904" y="410" width="20" height="48" rx="4" fill="#a855f7"/>
+    <rect x="904" y="472" width="20" height="38" rx="4" fill="#f8fafc"/>
+    <rect x="904" y="524" width="20" height="60" rx="4" fill="#14b8a6"/>
+    <rect x="904" y="598" width="20" height="24" rx="4" fill="#22d3ee"/>
+    <rect x="904" y="636" width="20" height="50" rx="4" fill="#a855f7"/>
+    <rect x="904" y="700" width="20" height="36" rx="4" fill="#f8fafc"/>
+  </g>
+
+  <!-- Lencana Atas: Tag Rasmi ARSELNEL & Sasaran -->
+  <g transform="translate(500, 138)">
+    <rect x="-230" y="-26" width="460" height="52" rx="26" fill="#09152b" stroke="#22d3ee" stroke-width="5"/>
+    <circle cx="-196" cy="0" r="11" fill="#2dd4bf"/>
+    <polygon points="196,-11 207,0 196,11 185,0" fill="#a855f7"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="21" font-weight="900" fill="#f8fafc" letter-spacing="2">ARSELNEL • INDEX 7 • AI</text>
+  </g>
+
+  <!-- Medan Rangkaian Neural & Heksagon Sains di Tengah -->
+  <g transform="translate(500, 474)">
+    <!-- Cincin Luar Berputus & Heksagon Teknologi -->
+    <circle cx="0" cy="0" r="292" fill="#060f22" stroke="url(#aiCyanTeal)" stroke-width="14"/>
+    <polygon points="0,-264 228,-132 228,132 0,264 -228,132 -228,-132" fill="#091631" stroke="#a855f7" stroke-width="7" stroke-linejoin="round"/>
+    <circle cx="0" cy="0" r="206" fill="none" stroke="#22d3ee" stroke-width="5" stroke-dasharray="22 14 8 14"/>
+    <polygon points="0,-168 145,-84 145,84 0,168 -145,84 -145,-84" fill="#0c1e3e" stroke="#14b8a6" stroke-width="5"/>
+
+    <!-- Garisan Litar Rangkaian Neural ke 6 Nod Sains -->
+    <g stroke-width="7" stroke-linecap="round">
+      <line x1="0" y1="0" x2="-210" y2="-115" stroke="#22d3ee"/>
+      <line x1="0" y1="0" x2="210" y2="-115" stroke="#a855f7"/>
+      <line x1="0" y1="0" x2="-235" y2="15" stroke="#14b8a6"/>
+      <line x1="0" y1="0" x2="235" y2="15" stroke="#22d3ee"/>
+      <line x1="0" y1="0" x2="-185" y2="145" stroke="#a855f7"/>
+      <line x1="0" y1="0" x2="185" y2="145" stroke="#2dd4bf"/>
+    </g>
+
+    <!-- 6 Nod Satelit Pengetahuan Sains & AI (Asimetri Tinggi untuk Pengecaman MindAR) -->
+    <!-- Nod 1 (Kiri Atas): Nukleus / DNA -->
+    <g transform="translate(-210, -115)">
+      <circle cx="0" cy="0" r="38" fill="#0f172a" stroke="#22d3ee" stroke-width="7"/>
+      <circle cx="0" cy="0" r="18" fill="#ec4899" stroke="#f8fafc" stroke-width="4"/>
+      <circle cx="-5" cy="-5" r="6" fill="#fde047"/>
+    </g>
+
+    <!-- Nod 2 (Kanan Atas): Cip AI / Bintang Pintar -->
+    <g transform="translate(210, -115)">
+      <rect x="-36" y="-36" width="72" height="72" rx="16" fill="#1e1b4b" stroke="#a855f7" stroke-width="7"/>
+      <polygon points="0,-24 8,-8 24,0 8,8 0,24 -8,8 -24,0 -8,-8" fill="#fde047" stroke="#f8fafc" stroke-width="3"/>
+    </g>
+
+    <!-- Nod 3 (Kiri Tengah): Kloroplas / Sel Tumbuhan -->
+    <g transform="translate(-235, 15)">
+      <polygon points="0,-40 36,-12 22,32 -22,32 -36,-12" fill="#042f2e" stroke="#2dd4bf" stroke-width="7"/>
+      <ellipse cx="0" cy="2" rx="20" ry="12" fill="#22c55e" stroke="#f8fafc" stroke-width="4"/>
+    </g>
+
+    <!-- Nod 4 (Kanan Tengah): Mitokondria / Tenaga ATP -->
+    <g transform="translate(235, 15)">
+      <polygon points="0,-38 38,0 0,38 -38,0" fill="#0f172a" stroke="#22d3ee" stroke-width="7"/>
+      <polygon points="4,-20 -14,2 0,2 -6,20 16,-4 2,-4" fill="#fde047"/>
+    </g>
+
+    <!-- Nod 5 (Kiri Bawah): Sembang Soal Jawab Sains -->
+    <g transform="translate(-185, 145)">
+      <rect x="-38" y="-32" width="76" height="64" rx="14" fill="#1e1b4b" stroke="#c084fc" stroke-width="7"/>
+      <text x="0" y="12" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="34" font-weight="900" fill="#f8fafc">Q?</text>
+    </g>
+
+    <!-- Nod 6 (Kanan Bawah): Jawapan Tepat KSSM -->
+    <g transform="translate(185, 145)">
+      <circle cx="0" cy="0" r="38" fill="#042f2e" stroke="#14b8a6" stroke-width="7"/>
+      <path d="M -16 2 L -4 14 L 18 -12" fill="none" stroke="#fde047" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Watak Utama Tengah: Maskot Robot Pintar SELBOT AI -->
+    <!-- Antena Atas dengan Pancaran Sinyal -->
+    <path d="M -42 -184 A 56 56 0 0 1 42 -184" fill="none" stroke="#22d3ee" stroke-width="6" stroke-dasharray="10 8"/>
+    <line x1="0" y1="-118" x2="0" y2="-162" stroke="#f8fafc" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="0" cy="-172" r="22" fill="#a855f7" stroke="#f8fafc" stroke-width="6"/>
+    <circle cx="0" cy="-172" r="8" fill="#fde047"/>
+
+    <!-- Telinga / Fon Kepala Sisi Robot -->
+    <rect x="-136" y="-76" width="28" height="68" rx="12" fill="#14b8a6" stroke="#f8fafc" stroke-width="6"/>
+    <rect x="108" y="-76" width="28" height="68" rx="12" fill="#a855f7" stroke="#f8fafc" stroke-width="6"/>
+
+    <!-- Kepala Robot Futuristik -->
+    <rect x="-112" y="-118" width="224" height="156" rx="44" fill="url(#botBodyGrad)" stroke="#0f172a" stroke-width="10"/>
+    <rect x="-112" y="-118" width="224" height="156" rx="44" fill="none" stroke="#22d3ee" stroke-width="5"/>
+
+    <!-- Skrin Visor Muka Gelap Berkontras Tinggi -->
+    <rect x="-88" y="-92" width="176" height="104" rx="28" fill="#050b18" stroke="#14b8a6" stroke-width="5"/>
+
+    <!-- Mata Digital Bercahaya (Kiri: Cyan Bulat + Anak Mata, Kanan: Wink/Bahagia Tak Simetri untuk Ciri Unik) -->
+    <g transform="translate(-42, -46)">
+      <circle cx="0" cy="0" r="22" fill="#22d3ee"/>
+      <circle cx="-6" cy="-6" r="7" fill="#ffffff"/>
+      <circle cx="6" cy="6" r="4" fill="#050b18"/>
+    </g>
+    <g transform="translate(42, -46)">
+      <circle cx="0" cy="0" r="22" fill="#2dd4bf"/>
+      <polygon points="0,-14 4,-4 14,0 4,4 0,14 -4,4 -14,0 -4,-4" fill="#ffffff"/>
+    </g>
+
+    <!-- Senyuman LED Bercahaya -->
+    <path d="M -30 -12 Q 0 12 30 -12" fill="none" stroke="#fde047" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- Badan Robot & Teras Heksagon AI di Dada -->
+    <path d="M -86 46 H 86 A 28 28 0 0 1 114 74 V 142 A 24 24 0 0 1 90 166 H -90 A 24 24 0 0 1 -114 142 V 74 A 28 28 0 0 1 -86 46 Z" fill="url(#botBodyGrad)" stroke="#0f172a" stroke-width="9"/>
+    <path d="M -86 46 H 86 A 28 28 0 0 1 114 74 V 142 A 24 24 0 0 1 90 166 H -90 A 24 24 0 0 1 -114 142 V 74 A 28 28 0 0 1 -86 46 Z" fill="none" stroke="#a855f7" stroke-width="4"/>
+
+    <!-- Panel Dada: Lencana Heksagon Teal ARSELNEL + Bar Tenaga -->
+    <polygon points="-28,68 0,52 28,68 28,100 0,116 -28,100" fill="#050b18" stroke="#14b8a6" stroke-width="6"/>
+    <circle cx="0" cy="84" r="10" fill="#22d3ee"/>
+    <rect x="-76" y="74" width="32" height="12" rx="4" fill="#a855f7"/>
+    <rect x="-76" y="94" width="22" height="12" rx="4" fill="#0f172a"/>
+    <rect x="44" y="74" width="32" height="12" rx="4" fill="#22d3ee"/>
+    <rect x="54" y="94" width="22" height="12" rx="4" fill="#0f172a"/>
+
+    <!-- Jalur Kod Biner pada Bahagian Bawah Badan Robot -->
+    <rect x="-72" y="130" width="144" height="22" rx="8" fill="#050b18"/>
+    <circle cx="-50" cy="141" r="5" fill="#22d3ee"/>
+    <rect x="-34" y="136" width="20" height="10" rx="3" fill="#fde047"/>
+    <circle cx="0" cy="141" r="5" fill="#2dd4bf"/>
+    <rect x="14" y="136" width="24" height="10" rx="3" fill="#a855f7"/>
+    <circle cx="52" cy="141" r="5" fill="#f8fafc"/>
+  </g>
+
+  <!-- Pita Tajuk Bawah Berkontras Tinggi (Konsisten dengan 7 Marker Sedia Ada) -->
+  <rect x="130" y="838" width="740" height="92" rx="20" fill="#050b16" stroke="url(#aiCyanTeal)" stroke-width="8"/>
+  <rect x="148" y="854" width="64" height="60" rx="14" fill="url(#aiPurpleCyan)" stroke="#f8fafc" stroke-width="3"/>
+  <text x="180" y="896" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="34" font-weight="900" fill="#ffffff">08</text>
+  <text x="536" y="880" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="30" font-weight="900" fill="#f8fafc" letter-spacing="2">SELBOT AI</text>
+  <text x="536" y="912" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="800" fill="#22d3ee" letter-spacing="1.8">PEMBANTU SAINS PINTAR • WEBAR INTERAKTIF</text>
+</svg>

@@ -5873,7 +5873,7 @@ body.cellquest-active #ar-container canvas {
 /* Panel Video Outer Card Container */
 #pov-panel-video .floating-card-container,
 .pov-card-video,
-#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest) {
+#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest):not(.module-selbot) {
   background: #FFF0E3 !important;
   border: 2px solid #F97316 !important;
   border-radius: 24px !important;
@@ -5891,7 +5891,7 @@ body.cellquest-active #ar-container canvas {
 #pov-panel-video .category-tag,
 #pov-panel-video .pov-tag-video,
 .category-tag.tag-video,
-#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest) .category-tag {
+#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest):not(.module-selbot) .category-tag {
   background: #EA580C !important;
   color: #FFFFFF !important;
   border-radius: 9999px !important;
@@ -5903,7 +5903,7 @@ body.cellquest-active #ar-container canvas {
 /* Video Status Sensor (Jingga Pastel) */
 #pov-panel-video .pov-sensor-pill,
 #pov-sensor-pill,
-#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest) .pov-sensor-pill {
+#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest):not(.module-selbot) .pov-sensor-pill {
   background: #FFEDD5 !important;
   border: 1px solid #FED7AA !important;
   color: #9A3412 !important;
@@ -5912,14 +5912,14 @@ body.cellquest-active #ar-container canvas {
 }
 #pov-panel-video .pov-sensor-pill .ping,
 #pov-sensor-ping,
-#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest) .ping {
+#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest):not(.module-selbot) .ping {
   background: #EA580C !important;
   box-shadow: 0 0 6px #EA580C !important;
 }
 
 /* Video Size S/M/L Active Button (#EA580C) */
 #pov-panel-video .btn-size.is-active,
-#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest) .btn-size.is-active {
+#floating-card-container:not(.module-nota):not(.module-kuiz):not(.module-cellquest):not(.module-selbot) .btn-size.is-active {
   background: #EA580C !important;
   color: #FFFFFF !important;
   font-weight: 800 !important;
@@ -7711,6 +7711,650 @@ body.cellquest-active #ar-container canvas {
     transition: none !important;
   }
 }
+
+/* =============================================================================
+   FASA 4F: MODUL 8 — SELBOT AI FLOATING & SPATIAL AR PANEL (TARGET INDEX 7)
+   ============================================================================= */
+
+#pov-panel-selbot .floating-card-container,
+.pov-card-selbot,
+#floating-card-container.module-selbot {
+  background: #FDF2F8 !important;
+  border: 2px solid #06B6D4 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 14px 36px -4px rgba(6, 182, 212, 0.28), 0 4px 16px rgba(219, 39, 119, 0.14) !important;
+  color: #0F172A !important;
+}
+
+#pov-panel-selbot .panel-fixed-header,
+.pov-header-selbot,
+#floating-card-container.module-selbot .panel-fixed-header {
+  background: linear-gradient(135deg, #ECFEFF 0%, #FDF2F8 55%, #F3E8FF 100%) !important;
+  border-bottom: 1.5px solid #A5F3FC !important;
+}
+
+#pov-panel-selbot .category-tag,
+#pov-panel-selbot .pov-tag-selbot,
+.category-tag.tag-selbot,
+#floating-card-container.module-selbot .category-tag {
+  background: linear-gradient(135deg, #0891B2 0%, #0D9488 50%, #7C3AED 100%) !important;
+  color: #FFFFFF !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 10px rgba(8, 145, 178, 0.35) !important;
+}
+
+#pov-panel-selbot .pov-sensor-pill,
+.pov-selbot-sensor-pill,
+#floating-card-container.module-selbot .pov-sensor-pill {
+  background: #CFFAFE !important;
+  border: 1px solid #67E8F9 !important;
+  color: #155E75 !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+}
+
+#pov-panel-selbot .pov-sensor-pill .ping,
+#pov-selbot-sensor-ping,
+#floating-card-container.module-selbot .ping {
+  background: #0891B2 !important;
+  box-shadow: 0 0 6px #0891B2 !important;
+}
+
+#pov-panel-selbot .btn-size.is-active,
+#floating-card-container.module-selbot .btn-size.is-active {
+  background: linear-gradient(135deg, #DB2777 0%, #7C3AED 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(219, 39, 119, 0.35) !important;
+}
+
+#pov-panel-selbot .panel-sticky-footer,
+#floating-card-container.module-selbot .panel-sticky-footer {
+  background: #FDF2F8 !important;
+  border-top: 1.5px solid #FBCFE8 !important;
+}
+
+.btn-place-selbot,
+#floating-card-container.module-selbot #btn-place-video {
+  background: linear-gradient(135deg, #0891B2 0%, #0D9488 100%) !important;
+  border-color: #06B6D4 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.32) !important;
+}
+
+.multi-pill.pill-selbot {
+  background: rgba(6, 182, 212, 0.18);
+  border: 1px solid rgba(34, 211, 238, 0.55);
+  color: #A5F3FC;
+}
+.multi-pill.pill-selbot:hover,
+.multi-pill.pill-selbot.active-focus {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.48), rgba(139, 92, 246, 0.48));
+  border-color: #22D3EE;
+  color: #FFFFFF;
+}
+
+#pov-panel-selbot .pov-telemetry-hud-strip {
+  background: #ECFEFF !important;
+  border: 1.5px solid #A5F3FC !important;
+}
+#pov-panel-selbot .hud-chip-icon {
+  color: #0E7490 !important;
+}
+#pov-panel-selbot .status-chip {
+  background: #CFFAFE !important;
+  border: 1px solid #67E8F9 !important;
+  color: #155E75 !important;
+  border-radius: 9999px !important;
+  font-weight: 800 !important;
+}
+#pov-panel-selbot .pov-status-banner {
+  background: #ECFEFF !important;
+  border: 1.5px solid #67E8F9 !important;
+  border-radius: 14px !important;
+  color: #155E75 !important;
+  font-weight: 700 !important;
+}
+#pov-panel-selbot .pov-status-banner .banner-icon {
+  color: #0891B2 !important;
+}
+
+/* SelBot AR View Container */
+.selbot-ar-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1.5px solid #FBCFE8;
+  border-radius: 18px;
+  padding: 10px;
+  min-height: 290px;
+  max-height: 440px;
+  box-shadow: 0 4px 14px rgba(219, 39, 119, 0.06);
+  position: relative;
+}
+
+.floating-card-container.size-small .selbot-ar-view {
+  min-height: 230px;
+  max-height: 310px;
+  padding: 8px;
+}
+
+.floating-card-container.size-large .selbot-ar-view {
+  min-height: 350px;
+  max-height: 520px;
+  padding: 12px;
+}
+
+.selbot-ar-view.hidden {
+  display: none !important;
+}
+
+/* SelBot Top Subbar */
+.selbot-ar-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  background: linear-gradient(90deg, #FDF2F8 0%, #ECFEFF 100%);
+  border: 1px solid #FBCFE8;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.selbot-ar-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.selbot-ar-avatar-wrap {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.selbot-ar-avatar {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.selbot-ar-online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10B981;
+  border: 2px solid #FFFFFF;
+}
+
+.selbot-ar-titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.selbot-ar-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.selbot-ar-title-row h4 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.selbot-ar-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 800;
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #6EE7B7;
+}
+
+.selbot-ar-subtitle {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selbot-ar-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.btn-selbot-ar-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.btn-selbot-ar-top .material-symbols-outlined {
+  font-size: 14px !important;
+}
+
+.btn-selbot-new {
+  background: #DB2777;
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(219, 39, 119, 0.25);
+}
+.btn-selbot-new:hover {
+  background: #BE185D;
+}
+
+.btn-selbot-hist {
+  background: #FDF2F8;
+  color: #9D174D;
+  border-color: #FBCFE8;
+}
+.btn-selbot-hist:hover {
+  background: #FCE7F3;
+}
+
+.selbot-hist-count {
+  background: #DB2777;
+  color: #FFFFFF;
+  border-radius: 999px;
+  padding: 1px 5px;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+/* History Drawer Inside Panel */
+.selbot-ar-history-drawer {
+  background: #F8FAFC;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 8px;
+  max-height: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.selbot-ar-history-drawer.hidden {
+  display: none !important;
+}
+
+.selbot-ar-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #1E293B;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.btn-selbot-hist-close {
+  background: transparent;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.selbot-ar-history-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 125px;
+}
+
+.selbot-ar-conv-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1E293B;
+  transition: all 0.15s ease;
+}
+
+.selbot-ar-conv-item:hover,
+.selbot-ar-conv-item.is-active {
+  background: #FDF2F8;
+  border-color: #F472B6;
+  color: #9D174D;
+}
+
+.selbot-ar-conv-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.selbot-ar-conv-del {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.selbot-ar-conv-del:hover {
+  color: #EF4444;
+  background: #FEE2E2;
+}
+
+.selbot-ar-history-empty {
+  text-align: center;
+  font-size: 11px;
+  color: #64748B;
+  padding: 10px 4px;
+}
+
+/* Scrollable Chat Feed */
+.selbot-ar-chat-feed {
+  flex: 1 1 auto;
+  min-height: 135px;
+  max-height: 235px;
+  overflow-y: auto;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #FAFAFA;
+  border: 1px solid #F1F5F9;
+  border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.floating-card-container.size-large .selbot-ar-chat-feed {
+  max-height: 310px;
+}
+
+.selbot-msg-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  max-width: 92%;
+}
+
+.selbot-msg-row.is-user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.selbot-msg-avatar {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.selbot-msg-bubble {
+  padding: 8px 11px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.selbot-msg-row.is-bot .selbot-msg-bubble {
+  background: #FDF2F8;
+  border: 1px solid #FBCFE8;
+  color: #1E293B;
+  border-top-left-radius: 4px;
+}
+
+.selbot-msg-row.is-user .selbot-msg-bubble {
+  background: linear-gradient(135deg, #DB2777 0%, #BE185D 100%);
+  color: #FFFFFF;
+  border-top-right-radius: 4px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(219, 39, 119, 0.22);
+}
+
+.selbot-msg-row.is-error .selbot-msg-bubble {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+}
+
+.selbot-msg-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 9.5px;
+  opacity: 0.78;
+}
+
+.selbot-msg-badge {
+  background: rgba(219, 39, 119, 0.12);
+  color: #9D174D;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.btn-selbot-retry {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #FCA5A5;
+  color: #B91C1C;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Typing Indicator */
+.selbot-ar-typing {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  flex-shrink: 0;
+}
+.selbot-ar-typing.hidden {
+  display: none !important;
+}
+.selbot-ar-typing-avatar {
+  width: 22px;
+  height: 22px;
+}
+.selbot-ar-typing-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FDF2F8;
+  border: 1px solid #FBCFE8;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9D174D;
+}
+.selbot-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #EC4899;
+  animation: selbotBounce 1s infinite ease-in-out;
+}
+.selbot-dot:nth-child(2) { animation-delay: 0.2s; }
+.selbot-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes selbotBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Quick Suggestion Chips */
+.selbot-ar-chips-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.selbot-ar-chips-bar::-webkit-scrollbar {
+  display: none;
+}
+.selbot-ar-chip {
+  flex-shrink: 0;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.selbot-ar-chip:hover {
+  background: #FDF2F8;
+  border-color: #F472B6;
+  color: #BE185D;
+}
+
+/* Input Composer */
+.selbot-ar-composer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+.selbot-ar-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1.5px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-size: 16px !important; /* Prevents mobile Safari auto-zoom on focus */
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.selbot-ar-input:focus {
+  border-color: #DB2777;
+  box-shadow: 0 0 0 2px rgba(219, 39, 119, 0.15);
+}
+.btn-selbot-ar-send {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #DB2777 0%, #7C3AED 100%);
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(219, 39, 119, 0.3);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.btn-selbot-ar-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-selbot-ar-send:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+#pov-panel-selbot #pov-selbot-btn-change-content,
+#pov-panel-selbot #pov-selbot-btn-back-pinned {
+  background: #F1F5F9 !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+#pov-panel-selbot #pov-selbot-btn-change-content:hover,
+#pov-panel-selbot #pov-selbot-btn-back-pinned:hover {
+  background: #E0F2FE !important;
+  border-color: #38BDF8 !important;
+  color: #0369A1 !important;
+}
+
+@media (max-width: 640px) {
+  #pov-panel-selbot .pov-telemetry-bar,
+  #pov-panel-selbot .pov-status-banner {
+    display: none !important;
+  }
+  #pov-panel-selbot #pov-selbot-scrollable-body {
+    padding: 6px 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  #pov-panel-selbot .selbot-ar-view,
+  .module-selbot .selbot-ar-view {
+    min-height: 250px !important;
+    max-height: 330px !important;
+  }
+  #pov-panel-selbot .selbot-ar-title {
+    font-size: 12px !important;
+  }
+  #pov-panel-selbot .pov-sticky-footer {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+  #pov-panel-selbot .pov-sticky-footer .ar-btn {
+    padding: 6px 10px !important;
+    font-size: 11.5px !important;
+    min-height: 34px !important;
+  }
+}
+
+
+
 
 
 

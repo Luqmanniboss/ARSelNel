@@ -110,6 +110,11 @@
       color: #ffffff;
       box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
     }
+    .tab-btn.active.tab-selbot {
+      background: #0891b2;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(8, 145, 178, 0.4);
+    }
     .actions-bar {
       display: flex;
       flex-wrap: wrap;
@@ -182,6 +187,9 @@
     }
     .marker-frame.frame-tumbuhan {
       border: 3px solid #059669;
+    }
+    .marker-frame.frame-selbot {
+      border: 3px solid #0891b2;
     }
     .marker-frame img {
       width: 100%;
@@ -295,9 +303,13 @@
       <span class="material-symbols-outlined" style="font-size:18px;">public</span>
       <span>7. AR Orientasi Dunia</span>
     </button>
+    <button type="button" class="tab-btn tab-selbot" id="btn-show-selbot" onclick="showMarker('selbot')">
+      <span class="material-symbols-outlined" style="font-size:18px;">smart_toy</span>
+      <span>8. SelBot AI</span>
+    </button>
     <button type="button" class="tab-btn" id="btn-show-all" onclick="showMarker('all')">
       <span class="material-symbols-outlined" style="font-size:18px;">grid_view</span>
-      <span>Papar Semua (7 Marker)</span>
+      <span>Papar Semua (8 Marker)</span>
     </button>
   </div>
 
@@ -376,6 +388,15 @@
         <span>INDEX 6 • 20 × 20 CM</span>
       </div>
     </div>
+
+    <!-- MARKER 7: SELBOT AI -->
+    <div class="marker-frame frame-selbot" id="card-selbot" style="display:none;">
+      <img src="assets/markers/marker-selbot.png" alt="Kotak ARSELNEL - Marker 8 SelBot AI — Pembantu Sains Pintar" />
+      <div class="marker-specs">
+        <span style="color:#0891b2;">★ MUKA 8: SELBOT AI — PEMBANTU SAINS PINTAR</span>
+        <span>INDEX 7 • 20 × 20 CM</span>
+      </div>
+    </div>
   </div>
 
   <!-- HOW TO TEST INSTRUCTIONS -->
@@ -404,6 +425,7 @@
       const t = document.getElementById('card-tumbuhan');
       const j = document.getElementById('card-jelajah3d');
       const o = document.getElementById('card-orientasi');
+      const s = document.getElementById('card-selbot');
       const btnV = document.getElementById('btn-show-video');
       const btnN = document.getElementById('btn-show-nota');
       const btnK = document.getElementById('btn-show-kuiz');
@@ -411,6 +433,7 @@
       const btnT = document.getElementById('btn-show-tumbuhan');
       const btnJ = document.getElementById('btn-show-jelajah3d');
       const btnO = document.getElementById('btn-show-orientasi');
+      const btnS = document.getElementById('btn-show-selbot');
       const btnA = document.getElementById('btn-show-all');
 
       btnV.className = 'tab-btn tab-video';
@@ -420,9 +443,10 @@
       btnT.className = 'tab-btn tab-tumbuhan';
       if (btnJ) btnJ.className = 'tab-btn tab-nota';
       if (btnO) btnO.className = 'tab-btn tab-haiwan';
+      if (btnS) btnS.className = 'tab-btn tab-selbot';
       btnA.className = 'tab-btn';
 
-      const cards = { video: v, nota: n, kuiz: k, haiwan: h, tumbuhan: t, jelajah3d: j, orientasi: o };
+      const cards = { video: v, nota: n, kuiz: k, haiwan: h, tumbuhan: t, jelajah3d: j, orientasi: o, selbot: s };
       const btns = {
         video: [btnV, 'tab-btn active tab-video'],
         nota: [btnN, 'tab-btn active tab-nota'],
@@ -430,7 +454,8 @@
         haiwan: [btnH, 'tab-btn active tab-haiwan'],
         tumbuhan: [btnT, 'tab-btn active tab-tumbuhan'],
         jelajah3d: [btnJ, 'tab-btn active tab-nota'],
-        orientasi: [btnO, 'tab-btn active tab-haiwan']
+        orientasi: [btnO, 'tab-btn active tab-haiwan'],
+        selbot: [btnS, 'tab-btn active tab-selbot']
       };
 
       if (type !== 'all' && cards[type]) {

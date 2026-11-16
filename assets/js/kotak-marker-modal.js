@@ -6,7 +6,7 @@
 (function () {
   'use strict';
 
-  // Senarai Lengkap 7 Marker Aktif MindAR (Target Index 0 - 6)
+  // Senarai Lengkap 8 Marker Aktif MindAR (Target Index 0 - 7)
   const KOTAK_MARKERS = [
     {
       id: 'marker-video',
@@ -105,6 +105,20 @@
       image: '../kotak_arselnel/assets/markers/marker-orientasi-dunia.png',
       size: '20 × 20 CM',
       description: 'Imbas untuk memulakan Misi Jelajah Dunia Sel 360° menggunakan sensor kompas dan radar untuk mencari 8 stesen organel fizikal.'
+    },
+    {
+      id: 'marker-selbot',
+      targetIndex: 7,
+      muka: 'Muka 8',
+      title: 'SelBot AI — Pembantu Sains Pintar',
+      category: 'SELBOT AI',
+      categoryColor: '#0891B2',
+      categoryBg: '#CFFAFE',
+      categoryBorder: '#67E8F9',
+      icon: 'smart_toy',
+      image: '../kotak_arselnel/assets/markers/marker-selbot.png',
+      size: '20 × 20 CM',
+      description: 'Imbas untuk berinteraksi dengan SelBot AI, pembantu pembelajaran sains pintar yang membantu murid memahami konsep sel, fungsi organel dan menjawab soalan secara interaktif.'
     }
   ];
 

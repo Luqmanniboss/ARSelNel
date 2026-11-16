@@ -129,7 +129,7 @@ async function main() {
   await sendCDP(ws, 'Page.navigate', { url: `http://127.0.0.1:${PORT}/compiler-test` }, msgId++);
   await new Promise(r => setTimeout(r, 2500));
 
-  console.log('Compiling 5 multi-marker targets (0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan) with MindAR Compiler...');
+  console.log('Compiling 8 multi-marker targets (0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan, 5: Jelajah 3D, 6: Orientasi Dunia, 7: SelBot AI) with MindAR Compiler...');
 
   const compileScript = `
     (async () => {
@@ -174,9 +174,26 @@ async function main() {
         const img6 = await loadImage('/kotak_arselnel/assets/markers/marker-orientasi-dunia.png');
         console.log('Target 6 loaded:', img6.width, 'x', img6.height);
 
-        console.log('Compiling 7-target array [0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan, 5: Jelajah 3D, 6: AR Orientasi Dunia]...');
-        await compiler.compileImageTargets([img0, img1, img2, img3, img4, img5, img6], (progress) => {
+        console.log('Loading marker-selbot.png (Target 7 - SelBot AI)...');
+        const img7 = await loadImage('/kotak_arselnel/assets/markers/marker-selbot.png');
+        console.log('Target 7 loaded:', img7.width, 'x', img7.height);
+
+        console.log('Compiling 8-target array [0: Video, 1: Nota, 2: Kuiz, 3: Sel Haiwan, 4: Sel Tumbuhan, 5: Jelajah 3D, 6: AR Orientasi Dunia, 7: SelBot AI]...');
+        const dataList = await compiler.compileImageTargets([img0, img1, img2, img3, img4, img5, img6, img7], (progress) => {
           console.log('Compilation progress: ' + Math.round(progress) + '%');
+        });
+
+        if (!Array.isArray(dataList) || dataList.length !== 8) {
+          throw new Error('Expected 8 compiled targets, got: ' + (dataList ? dataList.length : 0));
+        }
+
+        dataList.forEach((t, idx) => {
+          const trackingPts = t.trackingData ? t.trackingData.reduce((acc, s) => acc + (s.points ? s.points.length : 0), 0) : 0;
+          const matchingPts = t.matchingData ? t.matchingData.reduce((acc, k) => acc + (k.maximaPoints ? k.maximaPoints.length : 0) + (k.minimaPoints ? k.minimaPoints.length : 0), 0) : 0;
+          console.log('Target ' + idx + ' verified -> trackingPoints: ' + trackingPts + ', matchingKeypoints: ' + matchingPts);
+          if (trackingPts < 20 || matchingPts < 500) {
+            throw new Error('Target ' + idx + ' has insufficient visual features for reliable tracking!');
+          }
         });
 
         const buffer = compiler.exportData();

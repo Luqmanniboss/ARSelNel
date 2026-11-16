@@ -118,26 +118,34 @@ async function main() {
     mobile: false
   }, msgIdRef.id++);
 
-  // Render Sel Haiwan
-  const outHaiwan = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-sel-haiwan.png');
-  await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-sel-haiwan.svg', outHaiwan);
+  const forceAll = process.argv.includes('--all');
 
-  // Render Sel Tumbuhan
-  const outTumbuhan = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-sel-tumbuhan.png');
-  await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-sel-tumbuhan.svg', outTumbuhan);
+  if (forceAll) {
+    // Render Sel Haiwan
+    const outHaiwan = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-sel-haiwan.png');
+    await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-sel-haiwan.svg', outHaiwan);
 
-  // Copy Sel Haiwan to marker-cellquest.png for backwards compatibility
-  const outCellQuest = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-cellquest.png');
-  fs.copyFileSync(outHaiwan, outCellQuest);
-  console.log(`✅ Synced backwards-compatible marker-cellquest.png`);
+    // Render Sel Tumbuhan
+    const outTumbuhan = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-sel-tumbuhan.png');
+    await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-sel-tumbuhan.svg', outTumbuhan);
 
-  // Render Jelajah 3D (Target Index 5 - Fasa 4E-E.2)
-  const outJelajah3D = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-jelajah3d.png');
-  await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-jelajah3d.svg', outJelajah3D);
+    // Copy Sel Haiwan to marker-cellquest.png for backwards compatibility
+    const outCellQuest = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-cellquest.png');
+    fs.copyFileSync(outHaiwan, outCellQuest);
+    console.log(`✅ Synced backwards-compatible marker-cellquest.png`);
 
-  // Render AR Orientasi Dunia (Target Index 6 - Fasa 4E-E.3)
-  const outOrientasiDunia = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-orientasi-dunia.png');
-  await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-orientasi-dunia.svg', outOrientasiDunia);
+    // Render Jelajah 3D (Target Index 5 - Fasa 4E-E.2)
+    const outJelajah3D = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-jelajah3d.png');
+    await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-jelajah3d.svg', outJelajah3D);
+
+    // Render AR Orientasi Dunia (Target Index 6 - Fasa 4E-E.3)
+    const outOrientasiDunia = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-orientasi-dunia.png');
+    await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-orientasi-dunia.svg', outOrientasiDunia);
+  }
+
+  // Render SelBot AI (Target Index 7 - Fasa 4F)
+  const outSelbot = path.join(ROOT_DIR, 'kotak_arselnel/assets/markers/marker-selbot.png');
+  await renderSvgToPng(ws, msgIdRef, '/kotak_arselnel/assets/markers/marker-selbot.svg', outSelbot);
 
   ws.close();
   chromeProc.kill();
