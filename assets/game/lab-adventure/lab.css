@@ -188,27 +188,58 @@
 /* Responsif Mobile & Skrin Kecil */
 @media (max-width: 640px) {
   .lab-viewport-container {
-    aspect-ratio: 4 / 3;
-    max-height: 480px;
+    height: clamp(380px, 62dvh, 520px);
+    aspect-ratio: auto;
+    max-height: 540px;
     border-radius: 1rem;
   }
   .lab-hud-bar {
-    top: 0.6rem;
-    left: 0.6rem;
-    right: 0.6rem;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    gap: 0.35rem;
   }
   .lab-hud-pill {
-    padding: 0.25rem 0.6rem;
-    font-size: 0.75rem;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.72rem;
+    gap: 0.25rem;
   }
   .lab-hud-btn {
-    width: 2rem;
-    height: 2rem;
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+  .lab-hud-btn .material-symbols-outlined {
+    font-size: 1.1rem;
   }
   .lab-mobile-dpad {
-    bottom: 0.75rem;
-    left: 0.75rem;
-    grid-template-columns: repeat(3, 2.4rem);
-    grid-template-rows: repeat(3, 2.4rem);
+    bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+    left: max(0.85rem, env(safe-area-inset-left, 0px));
+    grid-template-columns: repeat(3, 2.5rem);
+    grid-template-rows: repeat(3, 2.5rem);
+    gap: 0.25rem;
   }
+}
+
+/* Responsif Mobile Landskap (iPhone / Telefon Horizontal) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .lab-viewport-container {
+    height: clamp(260px, 82dvh, 360px);
+    aspect-ratio: auto;
+  }
+  .lab-hud-bar {
+    top: 0.35rem;
+    left: 0.5rem;
+    right: 0.5rem;
+  }
+  .lab-mobile-dpad {
+    bottom: 0.5rem;
+    left: 0.5rem;
+    grid-template-columns: repeat(3, 2.2rem);
+    grid-template-rows: repeat(3, 2.2rem);
+  }
+}
+
+/* Notifikasi Terapung Sentiasa Bebas Interaksi Sentuhan */
+#lab-toast-notice {
+  pointer-events: none !important;
 }

@@ -76,31 +76,31 @@
   </header>
 
   <!-- Kandungan Utama Permainan -->
-  <main class="main-container mt-24 space-y-4">
+  <main class="main-container mt-16 sm:mt-24 space-y-2 sm:space-y-4">
     
-    <!-- Bar Tajuk & Misi Makmal -->
-    <section class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+    <!-- Bar Tajuk & Misi Makmal (Kemas & Responsif pada iPhone) -->
+    <section class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 pt-1 sm:pt-2">
       <div>
-        <div class="flex items-center gap-2">
-          <span class="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-900 text-xs font-headline font-bold uppercase tracking-wider border border-teal-300">
+        <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <span class="px-2 sm:px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-900 text-[10px] sm:text-xs font-headline font-bold uppercase tracking-wider border border-teal-300">
             Pengembaraan Makmal 2D
           </span>
-          <span class="text-xs text-slate-500 font-medium">Sains Tingkatan 1: Bab 2 — Sel sebagai Unit Asas Hidupan</span>
+          <span class="text-[11px] sm:text-xs text-slate-500 font-medium">Sains T1: Bab 2 — Sel Unit Asas Hidupan</span>
         </div>
-        <h1 class="font-headline text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+        <h1 class="font-headline text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5 sm:mt-1">
           Misi Makmal Sains: Operasi Kemas Makmal
         </h1>
       </div>
 
       <!-- Lencana Info Tambahan -->
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-headline text-xs font-bold">
-          <span class="material-symbols-outlined text-sm text-amber-600 fill-current">stars</span>
-          Maksimum: 1000 pts
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        <span class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-headline text-[11px] sm:text-xs font-bold">
+          <span class="material-symbols-outlined text-xs sm:text-sm text-amber-600 fill-current">stars</span>
+          1000 pts
         </span>
-        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 font-headline text-xs font-bold">
-          <span class="material-symbols-outlined text-sm text-teal-600">biotech</span>
-          10 Peralatan Makmal
+        <span class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 font-headline text-[11px] sm:text-xs font-bold">
+          <span class="material-symbols-outlined text-xs sm:text-sm text-teal-600">biotech</span>
+          10 Radas
         </span>
       </div>
     </section>
@@ -112,49 +112,48 @@
       <div class="lab-hud-bar">
         <!-- Kiri: Profil Pelajar -->
         <div class="lab-hud-pill">
-          <span class="material-symbols-outlined text-teal-600 text-base">face</span>
-          <span id="lab-hud-player-name" class="truncate max-w-[120px] sm:max-w-[170px]">Pelajar Saintis</span>
+          <span class="material-symbols-outlined text-teal-600 text-sm sm:text-base">face</span>
+          <span id="lab-hud-player-name" class="truncate max-w-[65px] sm:max-w-[170px]">Pelajar</span>
         </div>
 
         <!-- Tengah: Metrik Pemarkahan & Peralatan -->
-        <div class="flex items-center gap-2">
-          <div class="lab-hud-pill bg-amber-50 border-amber-200 text-amber-950">
-            <span class="material-symbols-outlined text-amber-500 text-base fill-current">star</span>
+        <div class="flex items-center gap-1 sm:gap-2 flex-nowrap overflow-x-auto no-scrollbar">
+          <div class="lab-hud-pill bg-amber-50 border-amber-200 text-amber-950 whitespace-nowrap">
+            <span class="material-symbols-outlined text-amber-500 text-xs sm:text-base fill-current">star</span>
             <span id="lab-hud-score">0 pts</span>
           </div>
 
-          <div class="lab-hud-pill bg-teal-50 border-teal-200 text-teal-950">
-            <span class="text-base leading-none">🧪</span>
+          <div class="lab-hud-pill bg-teal-50 border-teal-200 text-teal-950 whitespace-nowrap">
+            <span class="text-xs sm:text-base leading-none">🧪</span>
             <span id="lab-hud-equipment">0/10</span>
           </div>
 
-          <div id="lab-hud-lives-pill" class="lab-hud-pill bg-rose-50 border-rose-200 text-rose-700 font-bold" title="Nyawa Keselamatan Makmal">
-            <span class="text-xs leading-none">❤️</span>
-            <span id="lab-hud-lives">❤️❤️❤️</span>
+          <div id="lab-hud-lives-pill" class="lab-hud-pill bg-rose-50 border-rose-200 text-rose-700 font-bold whitespace-nowrap" title="Nyawa Keselamatan Makmal">
+            <span id="lab-hud-lives" class="whitespace-nowrap leading-none text-xs sm:text-sm">❤️❤️❤️</span>
           </div>
 
-          <div class="lab-hud-pill hidden md:inline-flex bg-slate-50 border-slate-200 text-slate-700">
+          <div class="lab-hud-pill hidden md:inline-flex bg-slate-50 border-slate-200 text-slate-700 whitespace-nowrap">
             <span class="material-symbols-outlined text-slate-500 text-base">timer</span>
             <span id="lab-hud-timer">00:00</span>
           </div>
         </div>
 
         <!-- Kanan: Butang Kawalan HUD -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 sm:gap-2">
           <button id="lab-hud-inventory-btn" class="lab-hud-btn hover:text-teal-600" title="Senarai Peralatan (Inventori)" aria-label="Inventori Peralatan">
-            <span class="material-symbols-outlined text-lg">inventory_2</span>
+            <span class="material-symbols-outlined text-base sm:text-lg">inventory_2</span>
           </button>
           <button id="lab-hud-pause-btn" class="lab-hud-btn hover:text-teal-600" title="Jeda Permainan (Esc / P)" aria-label="Jeda Permainan">
-            <span class="material-symbols-outlined text-lg">pause</span>
+            <span class="material-symbols-outlined text-base sm:text-lg">pause</span>
           </button>
           <button id="lab-hud-mute-btn" class="lab-hud-btn" title="Kawalan Bunyi" aria-label="Kawalan Bunyi">
-            <span class="material-symbols-outlined text-lg">volume_up</span>
+            <span class="material-symbols-outlined text-base sm:text-lg">volume_up</span>
           </button>
-          <button id="lab-hud-help-btn" class="lab-hud-btn" title="Panduan Misi" aria-label="Panduan Misi">
-            <span class="material-symbols-outlined text-lg">help</span>
+          <button id="lab-hud-help-btn" class="lab-hud-btn hidden sm:inline-flex" title="Panduan Misi" aria-label="Panduan Misi">
+            <span class="material-symbols-outlined text-base sm:text-lg">help</span>
           </button>
           <button id="lab-hud-exit-btn" class="lab-hud-btn hover:text-rose-600" title="Keluar Permainan" aria-label="Keluar">
-            <span class="material-symbols-outlined text-lg">close</span>
+            <span class="material-symbols-outlined text-base sm:text-lg">close</span>
           </button>
         </div>
       </div>
@@ -187,8 +186,8 @@
         <div></div>
       </div>
 
-      <!-- D. Floating Toast Notis (cth: Notis Pintu Makmal) -->
-      <div id="lab-toast-notice" class="absolute bottom-6 left-1/2 -translate-x-1/2 p-4 rounded-2xl shadow-xl border flex items-center gap-3 z-40 max-w-md w-[92%] transition-all duration-300 transform translate-y-24 opacity-0 pointer-events-none">
+      <!-- D. Floating Toast Notis (Dipindahkan ke Bahagian Atas & pointer-events-none) -->
+      <div id="lab-toast-notice" class="fixed top-14 sm:top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full shadow-lg border flex items-center gap-2 z-50 max-w-sm w-[90%] transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none">
         <!-- Disuntik secara dinamik oleh lab_ui.js -->
       </div>
 

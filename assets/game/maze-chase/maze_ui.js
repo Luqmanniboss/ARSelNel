@@ -409,19 +409,27 @@
       }
 
       if (this.hudQuestion) {
-        this.hudQuestion.textContent = `Soalan ${this.currentQuestionIndex + 1}/${this.questions.length}`;
+        const isMobile = window.innerWidth <= 640;
+        this.hudQuestion.textContent = isMobile 
+          ? `S${this.currentQuestionIndex + 1}/${this.questions.length}` 
+          : `Soalan ${this.currentQuestionIndex + 1}/${this.questions.length}`;
       }
 
       if (this.hudLives) {
-        let hearts = '';
-        for (let i = 0; i < 5; i++) {
-          if (i < this.lives) {
-            hearts += '❤️';
-          } else if (i < 3) {
-            hearts += '🖤';
+        const isMobile = window.innerWidth <= 640;
+        if (isMobile) {
+          this.hudLives.textContent = `❤️ ${this.lives}/5`;
+        } else {
+          let hearts = '';
+          for (let i = 0; i < 5; i++) {
+            if (i < this.lives) {
+              hearts += '❤️';
+            } else if (i < 3) {
+              hearts += '🖤';
+            }
           }
+          this.hudLives.textContent = `${this.lives}/5 ${hearts}`;
         }
-        this.hudLives.textContent = `${this.lives}/5 ${hearts}`;
       }
 
       // Lencana Power-Up Aktif dalam HUD
@@ -883,11 +891,11 @@
     showToast(message) {
       if (!this.toastNotice) return;
       this.toastNotice.textContent = message;
-      this.toastNotice.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-slate-900/90 text-white font-headline text-xs font-bold border border-slate-700 shadow-xl z-50 transition-all duration-300 transform translate-y-0 opacity-100';
+      this.toastNotice.className = 'fixed top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-slate-900/95 text-white font-headline text-xs font-bold border border-cyan-500/40 shadow-xl z-50 transition-all duration-300 transform translate-y-0 opacity-100 pointer-events-none';
 
       clearTimeout(this.toastTimeout);
       this.toastTimeout = setTimeout(() => {
-        this.toastNotice.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-slate-900/90 text-white font-headline text-xs font-bold border border-slate-700 shadow-xl z-50 transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none';
+        this.toastNotice.className = 'fixed top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-slate-900/95 text-white font-headline text-xs font-bold border border-cyan-500/40 shadow-xl z-50 transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none';
       }, 2600);
     }
   }

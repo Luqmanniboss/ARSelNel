@@ -85,11 +85,11 @@
         
         <!-- Baris Metadata Soalan -->
         <div class="maze-question-meta-row">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span id="maze-question-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-headline font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+          <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span id="maze-question-badge" class="px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-headline font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
               Aras Rendah • +50 pts
             </span>
-            <span id="maze-question-layout-title" class="text-xs font-bold text-indigo-800 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-200/60 hidden sm:inline-block">
+            <span id="maze-question-layout-title" class="text-[11px] sm:text-xs font-bold text-indigo-800 bg-indigo-50 px-2 sm:px-2.5 py-0.5 rounded-md border border-indigo-200/60 hidden sm:inline-block">
               Maze 1: Koridor Asas Sel
             </span>
             <span class="text-[11px] text-slate-500 font-semibold hidden md:inline-flex items-center gap-1">
@@ -98,46 +98,39 @@
             </span>
           </div>
 
-          <!-- Rajah Mini Ilustrasi Sel (40px padat) -->
-          <div id="maze-question-illustration" class="w-10 h-10 shrink-0 rounded-xl bg-white border border-slate-200 shadow-inner flex items-center justify-center p-0.5 overflow-hidden">
+          <!-- Rajah Mini Ilustrasi Sel (Padat pada Skrin Kecil) -->
+          <div id="maze-question-illustration" class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-white border border-slate-200 shadow-inner flex items-center justify-center p-0.5 overflow-hidden">
             <!-- Disuntik oleh cell_illustrations.js -->
           </div>
         </div>
 
         <!-- Teks Soalan Sains -->
-        <h2 id="maze-question-text" class="maze-question-text">
+        <h2 id="maze-question-text" class="maze-question-text text-xs sm:text-base leading-snug">
           Memuatkan soalan sains...
         </h2>
-
-        <!-- Arahan Pintar untuk Telefon / Skrin Kecil -->
-        <p class="text-[11px] text-indigo-700 font-semibold md:hidden mt-0.5 flex items-center gap-1">
-          <span class="material-symbols-outlined text-xs">my_location</span>
-          <span>Pergi ke zon yang mengandungi jawapan betul.</span>
-        </p>
       </div>
 
-      <!-- B. Floating HUD Bar (Di Atas Kanvas) -->
+      <!-- B. Floating HUD Bar (Di Atas Kanvas - Satu Baris Kemas) -->
       <div class="maze-hud-bar">
         <!-- Kiri: Profil Pelajar -->
         <div class="maze-hud-pill">
-          <span class="material-symbols-outlined text-indigo-400 text-sm">face</span>
-          <span id="maze-hud-player-name" class="truncate max-w-[110px] sm:max-w-[150px]">Pelajar Saintis</span>
+          <span class="material-symbols-outlined text-indigo-400 text-xs sm:text-sm">face</span>
+          <span id="maze-hud-player-name" class="truncate max-w-[65px] sm:max-w-[150px]">Pelajar</span>
         </div>
 
-        <!-- Tengah: Metrik Skor, Nyawa, Soalan & Pemasa -->
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <div class="maze-hud-pill bg-amber-950/40 border-amber-500/40 text-amber-300">
-            <span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+        <!-- Tengah: Metrik Skor, Nyawa, Soalan & Pemasa (Satu Baris Kemas Bebas Limpahan) -->
+        <div class="flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar">
+          <div class="maze-hud-pill bg-amber-950/40 border-amber-500/40 text-amber-300 whitespace-nowrap">
+            <span class="material-symbols-outlined text-amber-400 text-xs sm:text-sm fill-current">star</span>
             <span id="maze-hud-score">0 pts</span>
           </div>
 
-          <div class="maze-hud-pill bg-rose-950/40 border-rose-500/40 text-rose-300">
-            <span class="text-xs">❤️</span>
-            <span id="maze-hud-lives">❤️❤️❤️</span>
+          <div class="maze-hud-pill bg-rose-950/40 border-rose-500/40 text-rose-300 whitespace-nowrap">
+            <span id="maze-hud-lives" class="whitespace-nowrap text-xs">❤️❤️❤️</span>
           </div>
 
-          <div class="maze-hud-pill bg-indigo-950/40 border-indigo-500/40 text-indigo-200">
-            <span class="material-symbols-outlined text-indigo-400 text-sm">psychology</span>
+          <div class="maze-hud-pill bg-indigo-950/40 border-indigo-500/40 text-indigo-200 whitespace-nowrap">
+            <span class="material-symbols-outlined text-indigo-400 text-xs sm:text-sm hidden sm:inline">psychology</span>
             <span id="maze-hud-question">Soalan 1/10</span>
           </div>
 
@@ -145,61 +138,69 @@
           <div id="maze-hud-powerups" class="hidden items-center gap-1">
           </div>
 
-          <div class="maze-hud-pill bg-slate-900/60 border-slate-700 text-slate-300">
-            <span class="material-symbols-outlined text-slate-400 text-sm">timer</span>
+          <div class="maze-hud-pill bg-slate-900/60 border-slate-700 text-slate-300 whitespace-nowrap">
+            <span class="material-symbols-outlined text-slate-400 text-xs sm:text-sm">timer</span>
             <span id="maze-hud-timer">00:00</span>
           </div>
         </div>
 
         <!-- Kanan: Butang Kawalan HUD -->
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-1">
           <button id="maze-hud-pause-btn" class="maze-hud-btn" title="Jeda Permainan (Esc / P)" aria-label="Jeda Permainan">
-            <span class="material-symbols-outlined text-base">pause</span>
+            <span class="material-symbols-outlined text-sm sm:text-base">pause</span>
           </button>
           <button id="maze-hud-mute-btn" class="maze-hud-btn" title="Kawalan Bunyi" aria-label="Kawalan Bunyi">
-            <span class="material-symbols-outlined text-base">volume_up</span>
+            <span class="material-symbols-outlined text-sm sm:text-base">volume_up</span>
           </button>
-          <button id="maze-hud-help-btn" class="maze-hud-btn" title="Panduan Misi" aria-label="Panduan Misi">
-            <span class="material-symbols-outlined text-base">help</span>
+          <button id="maze-hud-help-btn" class="maze-hud-btn hidden sm:inline-flex" title="Panduan Misi" aria-label="Panduan Misi">
+            <span class="material-symbols-outlined text-sm sm:text-base">help</span>
           </button>
           <a href="../hab_permainan/code.html" class="maze-hud-btn hover:text-rose-400" title="Keluar ke Hab Permainan" aria-label="Keluar">
-            <span class="material-symbols-outlined text-base">close</span>
+            <span class="material-symbols-outlined text-sm sm:text-base">close</span>
           </a>
         </div>
       </div>
 
-      <!-- C. Elemen Canvas 2D Maze -->
+      <!-- C. Elemen Canvas 2D Maze (Bebas 100% daripada Halangan D-Pad) -->
       <div class="maze-canvas-container">
         <canvas id="maze-canvas"></canvas>
+      </div>
 
-        <!-- D. D-Pad Maya Skrin Sentuh (Mobile & Tablet) -->
+      <!-- D. Kontena Khusus Kawalan Sentuh Mobile (Di Bawah Kanvas untuk Kemudahan Ibu Jari) -->
+      <div class="maze-mobile-controls-zone" id="maze-mobile-controls-zone">
         <div class="maze-mobile-dpad" id="maze-mobile-dpad" aria-label="Kawalan Arah Skrin Sentuh">
           <div></div>
           <button id="maze-dpad-up" class="maze-dpad-key" aria-label="Atas">
-            <span class="material-symbols-outlined text-lg">arrow_upward</span>
+            <span class="material-symbols-outlined text-base sm:text-lg">arrow_upward</span>
           </button>
           <div></div>
           
           <button id="maze-dpad-left" class="maze-dpad-key" aria-label="Kiri">
-            <span class="material-symbols-outlined text-lg">arrow_back</span>
+            <span class="material-symbols-outlined text-base sm:text-lg">arrow_back</span>
           </button>
           <div class="flex items-center justify-center opacity-30 pointer-events-none">
-            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
           </div>
           <button id="maze-dpad-right" class="maze-dpad-key" aria-label="Kanan">
-            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+            <span class="material-symbols-outlined text-base sm:text-lg">arrow_forward</span>
           </button>
 
           <div></div>
           <button id="maze-dpad-down" class="maze-dpad-key" aria-label="Bawah">
-            <span class="material-symbols-outlined text-lg">arrow_downward</span>
+            <span class="material-symbols-outlined text-base sm:text-lg">arrow_downward</span>
           </button>
           <div></div>
         </div>
+
+        <!-- Panduan Arah Zon & Maklumat Pantas -->
+        <div class="maze-mobile-tips-pill">
+          <span class="material-symbols-outlined text-cyan-400 text-sm">touch_app</span>
+          <span>D-pad di bawah kanvas memastikan semua zon (A, B, C, D) jelas kelihatan!</span>
+        </div>
       </div>
 
-      <!-- E. Floating Toast Notis -->
-      <div id="maze-toast-notice" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-slate-900/90 text-white font-headline text-xs font-bold border border-slate-700 shadow-xl z-50 transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none">
+      <!-- E. Floating Toast Notis (Di Bahagian Atas & Sentiasa pointer-events-none) -->
+      <div id="maze-toast-notice" class="fixed top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-slate-900/95 text-white font-headline text-xs font-bold border border-cyan-500/40 shadow-xl z-50 transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none">
       </div>
 
     </div>

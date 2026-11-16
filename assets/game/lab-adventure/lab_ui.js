@@ -159,8 +159,13 @@
       }
       if (this.hudLives) {
         const lives = (this.engine && this.engine.player) ? this.engine.player.lives : 3;
-        const hearts = '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
-        this.hudLives.textContent = hearts;
+        const isMobile = window.innerWidth <= 640;
+        if (isMobile) {
+          this.hudLives.textContent = `❤️ ${lives}/3`;
+        } else {
+          const hearts = '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
+          this.hudLives.textContent = hearts;
+        }
       }
       if (this.hudTimer) {
         this.hudTimer.textContent = this.formatTime(this.elapsedSeconds);
@@ -181,8 +186,8 @@
       }
     }
 
-    // 4. Paparan Notifikasi Ringkas (Floating Toast)
-    showToast(message, type = 'info', duration = 3500) {
+    // 4. Paparan Notifikasi Ringkas (Floating Toast - Di Bahagian Atas & Sentiasa pointer-events-none)
+    showToast(message, type = 'info', duration = 3000) {
       if (!this.toastNotice) return;
       
       const iconMap = {
@@ -199,15 +204,15 @@
         lock: 'bg-rose-50 border-rose-300 text-rose-900'
       };
 
-      this.toastNotice.className = `absolute bottom-6 left-1/2 -translate-x-1/2 p-4 rounded-2xl shadow-xl border flex items-center gap-3 z-40 max-w-md w-[92%] transition-all duration-300 transform translate-y-0 opacity-100 ${colorMap[type] || colorMap.info}`;
+      this.toastNotice.className = `fixed top-14 sm:top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full shadow-lg border flex items-center gap-2 z-50 max-w-sm w-[90%] transition-all duration-300 transform translate-y-0 opacity-100 pointer-events-none ${colorMap[type] || colorMap.info}`;
       this.toastNotice.innerHTML = `
-        <span class="material-symbols-outlined text-2xl shrink-0">${iconMap[type] || 'info'}</span>
-        <span class="font-headline text-xs sm:text-sm font-bold leading-tight">${message}</span>
+        <span class="material-symbols-outlined text-lg sm:text-xl shrink-0">${iconMap[type] || 'info'}</span>
+        <span class="font-headline text-xs sm:text-sm font-bold leading-tight truncate">${message}</span>
       `;
 
       if (this.toastTimeout) clearTimeout(this.toastTimeout);
       this.toastTimeout = setTimeout(() => {
-        this.toastNotice.className = 'absolute bottom-6 left-1/2 -translate-x-1/2 p-4 rounded-2xl shadow-xl border flex items-center gap-3 z-40 max-w-md w-[92%] transition-all duration-300 transform translate-y-24 opacity-0 pointer-events-none';
+        this.toastNotice.className = 'fixed top-14 sm:top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full shadow-lg border flex items-center gap-2 z-50 max-w-sm w-[90%] transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none';
       }, duration);
     }
 

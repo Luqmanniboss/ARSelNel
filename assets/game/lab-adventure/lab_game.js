@@ -1045,8 +1045,10 @@
 
       const rect = container.getBoundingClientRect();
       const width = Math.floor(rect.width);
-      // Hadkan tinggi kanvas mengikut perkadaran makmal yang selesa
-      const height = Math.min(Math.floor(width * 0.68), 580);
+      const isMobile = window.innerWidth <= 640;
+      const containerH = Math.floor(rect.height);
+      // Pada peranti telefon mudah alih, gunakan ketinggian penuh kontena yang dioptimumkan
+      const height = (isMobile && containerH > 200) ? containerH : Math.min(Math.floor(width * 0.68), 580);
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
       this.dpr = dpr;
