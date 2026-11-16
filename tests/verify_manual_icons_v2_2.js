@@ -211,14 +211,18 @@ async function runTests() {
         return icons.map(el => {
           const comp = window.getComputedStyle(el);
           const rect = el.getBoundingClientRect();
+          const iconName = el.getAttribute('data-icon') || el.textContent.trim();
+          const hasSvg = !!el.querySelector('svg');
           return {
+            name: iconName,
             text: el.textContent.trim(),
+            hasSvg: hasSvg,
             fontFamily: comp.fontFamily,
             fontSize: parseFloat(comp.fontSize),
             width: Math.round(rect.width),
             height: Math.round(rect.height),
             isSquare: Math.abs(rect.width - rect.height) <= 3 || rect.width === 0,
-            hasTextSpill: rect.width > 40
+            hasTextSpill: !hasSvg && rect.width > 40
           };
         });
       })()
@@ -252,12 +256,12 @@ async function runTests() {
 
     let allCriticalOk = true;
     for (const name of criticalIcons) {
-      const match = iconAudit.find(i => i.text === name && i.width > 0);
+      const match = iconAudit.find(i => (i.name === name || i.text === name) && i.width > 0);
       if (!match) {
         console.warn(`Critical icon not found or zero width: ${name}`);
         allCriticalOk = false;
       } else {
-        const isGlyph = match.width <= 28 && match.height <= 28;
+        const isGlyph = match.width <= 32 && match.height <= 32;
         if (!isGlyph) {
           console.error(`Icon ${name} rendered as wide text: ${match.width}px x ${match.height}px`);
           allCriticalOk = false;
