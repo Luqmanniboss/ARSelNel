@@ -1247,6 +1247,7 @@
       initThreeHelpers();
       initPOVVirtualCamera();
       ARState.pov.active = true;
+      ARState.systemMode = SYSTEM_MODES.POV_SETUP;
       p.placementMode = 'POV_SETUP';
       p.isLocked = false;
       p.referenceQuaternion = null;
@@ -1288,6 +1289,12 @@
       p.isLocked = false;
       p.referenceQuaternion = null;
       p.anchorWorldVector = null;
+
+      // Fasa 4F.1: Sync global state so hysteresis & lost detection know this panel is screen-pinned
+      if (id === 'selbot' || ARState.activeModule === id) {
+        ARState.isPinned = true;
+        ARState.systemMode = SYSTEM_MODES.SCREEN_PINNED;
+      }
 
       const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
       if (el) {
@@ -1331,6 +1338,12 @@
       p.isLocked = false;
       p.referenceQuaternion = null;
       p.anchorWorldVector = null;
+
+      // Fasa 4F.1: Reset global pinned state
+      if (id === 'selbot' || ARState.activeModule === id) {
+        ARState.isPinned = false;
+        ARState.systemMode = SYSTEM_MODES.MARKER;
+      }
 
       const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
       if (el) {
@@ -3848,7 +3861,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     async init() {
       this.attachListenersOnce();
 
-      if (ARState.selbot.initialized && ARState.selbot.messages.length > 0) {
+      // Fasa 4F.1: If already initialized for an authenticated user and conversations exist, just re-render
+      if (ARState.selbot.initialized && ARState.selbot.conversations.length > 0 && ARState.selbot.currentUserId && ARState.selbot.currentUserId !== 'guest') {
         this.renderMessagesToFeeds();
         this.renderConversationLists();
         return;
@@ -3970,44 +3984,68 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
     async initAuthAndHistory() {
       try {
-        if (window.ARSupabase && typeof window.ARSupabase.getClient === 'function') {
-          this.supabaseClient = await window.ARSupabase.getClient();
+        if (!this.supabaseClient) {
+          if (window.ARSupabase && typeof window.ARSupabase.getClient === 'function') {
+            this.supabaseClient = await window.ARSupabase.getClient();
+          } else if (window.supabase) {
+            this.supabaseClient = window.supabase;
+          }
         }
+
+        let authUser = null;
         if (this.supabaseClient && this.supabaseClient.auth) {
-          const { data: userData } = await this.supabaseClient.auth.getUser();
-          const authUser = userData?.user || null;
-
-          if (authUser && authUser.id) {
-            // If user changed, clear previous user's state first
-            if (ARState.selbot.currentUserId && ARState.selbot.currentUserId !== authUser.id) {
-              this.clearSensitiveSessionState();
+          try {
+            const { data: userData } = await this.supabaseClient.auth.getUser();
+            authUser = userData?.user || null;
+            if (!authUser) {
+              const { data: sessData } = await this.supabaseClient.auth.getSession();
+              authUser = sessData?.session?.user || null;
             }
-            ARState.selbot.currentUserId = authUser.id;
-            this.updateSyncLabels('Tutor Sains Tingkatan 1 • Disegerakkan ke Awan');
-            await this.fetchUserConversations();
-          } else {
-            ARState.selbot.currentUserId = 'guest';
-            this.updateSyncLabels('Tutor Sains Tingkatan 1 • Sesi Semasa');
-          }
+          } catch (_) {}
+        }
 
-          if (!this.authSubscription) {
-            const { data: sub } = this.supabaseClient.auth.onAuthStateChange(async (event, session) => {
-              if (event === 'SIGNED_OUT') {
-                this.clearSensitiveSessionState();
-              } else if (event === 'SIGNED_IN' && session?.user?.id) {
-                if (ARState.selbot.currentUserId !== session.user.id) {
-                  this.clearSensitiveSessionState();
-                  ARState.selbot.currentUserId = session.user.id;
-                  this.updateSyncLabels('Tutor Sains Tingkatan 1 • Disegerakkan ke Awan');
-                  await this.fetchUserConversations();
-                }
+        // Fasa 4F.1: Secondary fallback to AuthGuard / localStorage if Supabase network call is pending
+        if (!authUser) {
+          const localUser = (window.AuthGuard && window.AuthGuard.getUser) ? window.AuthGuard.getUser() : null;
+          if (localUser && localUser.id && !window.AuthGuard?.isGuest()) {
+            authUser = localUser;
+          } else {
+            try {
+              const stored = JSON.parse(localStorage.getItem('arselnel_current_user') || 'null');
+              if (stored && stored.id && stored.id !== 'guest') {
+                authUser = stored;
               }
-            });
-            this.authSubscription = sub;
+            } catch (_) {}
           }
+        }
+
+        if (authUser && authUser.id) {
+          // If user changed, clear previous user's state first
+          if (ARState.selbot.currentUserId && ARState.selbot.currentUserId !== authUser.id) {
+            this.clearSensitiveSessionState();
+          }
+          ARState.selbot.currentUserId = authUser.id;
+          this.updateSyncLabels('Tutor Sains Tingkatan 1 • Disegerakkan ke Awan');
+          await this.fetchUserConversations();
         } else {
           ARState.selbot.currentUserId = 'guest';
           this.updateSyncLabels('Tutor Sains Tingkatan 1 • Sesi Semasa');
+        }
+
+        if (this.supabaseClient && this.supabaseClient.auth && !this.authSubscription) {
+          const { data: sub } = this.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_OUT') {
+              this.clearSensitiveSessionState();
+            } else if (event === 'SIGNED_IN' && session?.user?.id) {
+              if (ARState.selbot.currentUserId !== session.user.id) {
+                this.clearSensitiveSessionState();
+                ARState.selbot.currentUserId = session.user.id;
+                this.updateSyncLabels('Tutor Sains Tingkatan 1 • Disegerakkan ke Awan');
+                await this.fetchUserConversations();
+              }
+            }
+          });
+          this.authSubscription = sub;
         }
       } catch (err) {
         console.warn('[SelBotAR] initAuthAndHistory notice:', err.message);
@@ -4457,7 +4495,21 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
             const cur = ARState.selbot.conversations.find(c => c.id === targetConvId);
             if (cur) {
               cur.updated_at = new Date().toISOString();
+              // Re-sort so current active conversation is at the top
+              ARState.selbot.conversations = [
+                cur,
+                ...ARState.selbot.conversations.filter(c => c.id !== targetConvId)
+              ];
               this.renderConversationLists();
+            }
+            if (this.supabaseClient && requestUserId && requestUserId !== 'guest') {
+              this.supabaseClient
+                .from('selbot_conversations')
+                .update({ updated_at: new Date().toISOString() })
+                .eq('id', targetConvId)
+                .eq('user_id', requestUserId)
+                .then(() => {})
+                .catch(() => {});
             }
           }
         } else {
@@ -7362,11 +7414,55 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         DOM.scannerOverlay.classList.add('hidden');
       }
 
-      // 2. Reveal appropriate POV panel (Video or Nota) via SpatialPanelManager
+      // 2. Reveal appropriate POV panel (Video, Nota, Kuiz, or SelBot) via SpatialPanelManager
       if (typeof SpatialPanelManager !== 'undefined') {
         const hasVideo = ARState.activePanels && ARState.activePanels.has('video');
         const hasNota = ARState.activePanels && ARState.activePanels.has('nota');
+        const hasKuiz = ARState.activePanels && ARState.activePanels.has('kuiz');
+        const hasSelbot = ARState.activePanels && ARState.activePanels.has('selbot');
 
+        // Manage SelBot POV Panel (Fasa 4F.1)
+        if (hasSelbot || ARState.activeModule === 'selbot') {
+          SpatialPanelManager.setPanelVisibility('selbot', true);
+          if (DOM.povPanelSelbot) {
+            const pSel = SpatialPanelManager.getPanel('selbot');
+            if (!pSel || pSel.placementMode !== 'POV_LOCKED') {
+              DOM.povPanelSelbot.classList.add('is-centered');
+              DOM.povPanelSelbot.style.left = '50%';
+              DOM.povPanelSelbot.style.top = '50%';
+              DOM.povPanelSelbot.style.transform = 'translate(-50%, -50%)';
+            }
+            DOM.povPanelSelbot.style.opacity = '1';
+            DOM.povPanelSelbot.style.visibility = 'visible';
+            DOM.povPanelSelbot.style.pointerEvents = 'auto';
+          }
+          if (typeof SelBotARController !== 'undefined') {
+            SelBotARController.init();
+          }
+        } else {
+          SpatialPanelManager.setPanelVisibility('selbot', false);
+        }
+
+        // Manage Kuiz POV Panel
+        if (hasKuiz || ARState.activeModule === 'kuiz') {
+          SpatialPanelManager.setPanelVisibility('kuiz', true);
+          if (DOM.povPanelKuiz) {
+            const pKuiz = SpatialPanelManager.getPanel('kuiz');
+            if (!pKuiz || pKuiz.placementMode !== 'POV_LOCKED') {
+              DOM.povPanelKuiz.classList.add('is-centered');
+              DOM.povPanelKuiz.style.left = '50%';
+              DOM.povPanelKuiz.style.top = '50%';
+              DOM.povPanelKuiz.style.transform = 'translate(-50%, -50%)';
+            }
+            DOM.povPanelKuiz.style.opacity = '1';
+            DOM.povPanelKuiz.style.visibility = 'visible';
+            DOM.povPanelKuiz.style.pointerEvents = 'auto';
+          }
+        } else {
+          SpatialPanelManager.setPanelVisibility('kuiz', false);
+        }
+
+        // Manage Nota POV Panel
         if (hasNota || ARState.activeModule === 'nota') {
           SpatialPanelManager.setPanelVisibility('nota', true);
           if (DOM.povPanelNota) {
@@ -7383,7 +7479,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           SpatialPanelManager.setPanelVisibility('nota', false);
         }
 
-        if (hasVideo || ARState.activeModule !== 'nota') {
+        // Manage Video POV Panel
+        if (hasVideo || (!hasNota && !hasKuiz && !hasSelbot && ARState.activeModule === 'video')) {
           SpatialPanelManager.setPanelVisibility('video', true);
           if (DOM.povPanelVideo) {
             const pVid = SpatialPanelManager.getPanel('video');
@@ -7395,7 +7492,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
             }
             DOM.povPanelVideo.style.opacity = '1';
           }
-        } else {
+        } else if (ARState.activeModule !== 'video' && !hasVideo) {
           SpatialPanelManager.setPanelVisibility('video', false);
         }
       } else {
@@ -7436,6 +7533,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (DOM.povKuizAnchorIcon) DOM.povKuizAnchorIcon.textContent = 'my_location';
         if (DOM.povKuizAnchorText) DOM.povKuizAnchorText.textContent = 'Letak di Arah Ini';
       }
+      if (DOM.povSelbotBtnAnchor) {
+        DOM.povSelbotBtnAnchor.classList.remove('is-locked', 'hidden');
+        if (DOM.povSelbotAnchorIcon) DOM.povSelbotAnchorIcon.textContent = 'my_location';
+        if (DOM.povSelbotAnchorText) DOM.povSelbotAnchorText.textContent = 'Letak di Arah Ini';
+      }
       if (DOM.povValStatus) {
         DOM.povValStatus.textContent = 'Halakan peranti ke arah pilihan';
         DOM.povValStatus.style.color = '#38bdf8';
@@ -7447,6 +7549,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povKuizValStatus) {
         DOM.povKuizValStatus.textContent = 'Halakan peranti ke arah pilihan';
         DOM.povKuizValStatus.style.color = '#c084fc';
+      }
+      if (DOM.povSelbotValStatus) {
+        DOM.povSelbotValStatus.textContent = 'Halakan peranti ke arah pilihan';
+        DOM.povSelbotValStatus.style.color = '#06b6d4';
       }
       if (DOM.povStatusBanner) {
         if (DOM.povBannerIcon) DOM.povBannerIcon.textContent = 'sensors';
@@ -7460,12 +7566,17 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (DOM.povKuizBannerIcon) DOM.povKuizBannerIcon.textContent = 'sensors';
         if (DOM.povKuizBannerText) DOM.povKuizBannerText.textContent = 'Halakan peranti ke arah pilihan, kemudian tekan "Letak di Arah Ini".';
       }
+      if (DOM.povSelbotStatusBanner) {
+        if (DOM.povSelbotBannerIcon) DOM.povSelbotBannerIcon.textContent = 'sensors';
+        if (DOM.povSelbotBannerText) DOM.povSelbotBannerText.textContent = 'Halakan peranti ke arah pilihan, kemudian tekan "Letak di Arah Ini".';
+      }
       if (DOM.floatingPovStatusText) {
         DOM.floatingPovStatusText.textContent = 'Halakan peranti ke arah pilihan';
       }
       if (DOM.povBannerActions) DOM.povBannerActions.classList.add('hidden');
       if (DOM.povNotaBannerActions) DOM.povNotaBannerActions.classList.add('hidden');
       if (DOM.povKuizBannerActions) DOM.povKuizBannerActions.classList.add('hidden');
+      if (DOM.povSelbotBannerActions) DOM.povSelbotBannerActions.classList.add('hidden');
 
       // 6. Update stepwise back button HUD
       if (DOM.backHudText) DOM.backHudText.textContent = 'Semat Skrin';
@@ -7478,6 +7589,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
       if (DOM.povPanelNota) {
         DOM.povPanelNota.classList.remove('is-centered');
+      }
+      if (DOM.povPanelKuiz) {
+        DOM.povPanelKuiz.classList.remove('is-centered');
+      }
+      if (DOM.povPanelSelbot) {
+        DOM.povPanelSelbot.classList.remove('is-centered');
       }
       if (DOM.povFixedRecoveryBar) {
         DOM.povFixedRecoveryBar.classList.add('hidden');
@@ -7492,10 +7609,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         ARState.pov.rafId = null;
       }
 
-      // Hide POV components (Video & Nota)
+      // Hide POV components (Video, Nota, Kuiz, SelBot)
       if (typeof SpatialPanelManager !== 'undefined') {
         SpatialPanelManager.setPanelVisibility('video', false);
         SpatialPanelManager.setPanelVisibility('nota', false);
+        SpatialPanelManager.setPanelVisibility('kuiz', false);
+        SpatialPanelManager.setPanelVisibility('selbot', false);
       }
       if (DOM.povAnchor) {
         DOM.povAnchor.classList.add('hidden');
@@ -7504,6 +7623,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povPanelNota) {
         DOM.povPanelNota.classList.add('hidden');
         DOM.povPanelNota.classList.remove('is-visible', 'is-centered');
+      }
+      if (DOM.povPanelKuiz) {
+        DOM.povPanelKuiz.classList.add('hidden');
+        DOM.povPanelKuiz.classList.remove('is-visible', 'is-centered');
+      }
+      if (DOM.povPanelSelbot) {
+        DOM.povPanelSelbot.classList.add('hidden');
+        DOM.povPanelSelbot.classList.remove('is-visible', 'is-centered');
       }
       if (DOM.povFixedRecoveryBar) {
         DOM.povFixedRecoveryBar.classList.add('hidden');
@@ -8014,6 +8141,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
             const pSel = (typeof SpatialPanelManager !== 'undefined') ? SpatialPanelManager.getPanel('selbot') : null;
             const modeSel = pSel ? pSel.placementMode : (ARState.isPinned ? 'SCREEN_PINNED' : 'MARKER_FOLLOW');
+            const isPinnedOrLocked = ARState.isPinned || modeSel === 'SCREEN_PINNED' || modeSel === 'POV_LOCKED' || modeSel === 'POV_SETUP';
+
+            if (isPinnedOrLocked) {
+              console.log('[KotakAR] 📌 SelBot AI disematkan pada skrin / Kunci POV. Paparan dikekalkan semasa kad hilang.');
+              return;
+            }
 
             if (modeSel === 'MARKER_FOLLOW' || modeSel === 'MARKER_MODE' || modeSel === 'MARKER') {
               if (DOM.povPanelSelbot) {
@@ -8489,6 +8622,17 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.isLocked = false;
     if (!force) maybeShowPOVInteractiveGuide();
 
+    // Fasa 4F.1: Sync with SpatialPanelManager so active panel is registered as SCREEN_PINNED
+    if (typeof SpatialPanelManager !== 'undefined') {
+      const activeMod = ARState.activeModule || 'video';
+      const p = SpatialPanelManager.getPanel(activeMod);
+      if (p) {
+        p.placementMode = 'SCREEN_PINNED';
+        p.isLocked = false;
+      }
+      SpatialPanelManager.syncPanelControlUI(activeMod);
+    }
+
     // Reveal pinned toolbar, drag bar, and lock button
     if (DOM.floatingCard) {
       DOM.floatingCard.classList.add('is-pinned');
@@ -8951,8 +9095,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.povSelbotSizeL) DOM.povSelbotSizeL.addEventListener('click', () => setPOVPanelSize('large', 'selbot'));
     if (DOM.povSelbotBtnToggleCam) DOM.povSelbotBtnToggleCam.addEventListener('click', toggleCameraPower);
     if (DOM.povSelbotBtnStartPOV) {
-      DOM.povSelbotBtnStartPOV.addEventListener('click', (e) => {
-        e.stopPropagation();
+      DOM.povSelbotBtnStartPOV.addEventListener('click', async (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          try {
+            const perm = await DeviceOrientationEvent.requestPermission();
+            if (perm === 'granted') {
+              ARState.pov.permissionGranted = true;
+            }
+          } catch (err) {
+            console.warn('[KotakAR-POV] Izin sensor ditolak atau ralat:', err);
+          }
+        }
         if (typeof SpatialPanelManager !== 'undefined') {
           SpatialPanelManager.enterPanelPOVSetup('selbot');
         } else {
@@ -9854,6 +10008,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     ARState.pov.anchorBeta = ARState.pov.rawBeta;
     ARState.pov.deltaYaw = 0;
     ARState.pov.deltaPitch = 0;
+
+    // Fasa 4F.1: Also recalibrate active panel in SpatialPanelManager
+    if (typeof SpatialPanelManager !== 'undefined') {
+      const activeMod = ARState.activeModule || 'video';
+      const p = SpatialPanelManager.getPanel(activeMod);
+      if (p && p.placementMode === 'POV_LOCKED') {
+        p.referenceQuaternion = ARState.pov.anchorQuaternion.clone();
+        p.anchorWorldVector = ARState.pov.anchorWorldVector.clone();
+        p.anchorYaw = ARState.pov.anchorYaw;
+        p.anchorPitch = ARState.pov.anchorPitch;
+      }
+    }
 
     if (DOM.povValStatus) {
       DOM.povValStatus.textContent = `Terkunci (${Math.round(ARState.pov.anchorYaw)}°)`;
@@ -12171,6 +12337,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   global.selectVideo = selectVideo;
   global.selectNote = selectNote;
   global.applySimAngles = applySimAngles;
+  global.recalibratePOV = recalibratePOV;
   global.renderSinglePOVFrame = renderSinglePOVFrame;
   global.startPOVMode = startPOVMode;
   global.exitPOVMode = exitPOVMode;

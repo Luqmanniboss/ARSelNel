@@ -59,6 +59,9 @@ function fetchSupabase(endpoint, options = {}) {
         });
       });
 
+      req.setTimeout(4500, () => {
+        req.destroy(new Error('SUPABASE_TIMEOUT'));
+      });
       req.on('error', reject);
       if (options.body) req.write(typeof options.body === 'string' ? options.body : JSON.stringify(options.body));
       req.end();
@@ -512,7 +515,7 @@ module.exports = async (req, res) => {
     if (geminiKey) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 8500);
 
         // Build contents for Gemini format with strict user-first and alternating turns
         const rawHistory = [];
@@ -612,7 +615,7 @@ module.exports = async (req, res) => {
     if (openaiKey) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 8500);
 
         const openAiMessages = [
           { role: 'system', content: SELBOT_SYSTEM_PROMPT },
@@ -656,7 +659,7 @@ module.exports = async (req, res) => {
     if (groqKey) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 8500);
 
         const groqMessages = [
           { role: 'system', content: SELBOT_SYSTEM_PROMPT },

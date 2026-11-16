@@ -1,6 +1,11 @@
 {
   "version": 2,
   "cleanUrls": false,
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
