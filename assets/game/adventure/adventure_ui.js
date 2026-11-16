@@ -968,13 +968,20 @@
           el.classList.add('bg-teal-500/30', 'scale-95');
         };
         const end = (e) => {
-          e.preventDefault();
+          if (e && e.preventDefault) e.preventDefault();
           this.engine.setTouchVector(0, 0, false);
           el.classList.remove('bg-teal-500/30', 'scale-95');
         };
 
+        el.addEventListener('pointerdown', (e) => {
+          try { el.setPointerCapture(e.pointerId); } catch (_) {}
+          start(e);
+        });
+        el.addEventListener('pointerup', end);
+        el.addEventListener('pointercancel', end);
         el.addEventListener('touchstart', start, { passive: false });
         el.addEventListener('touchend', end, { passive: false });
+        el.addEventListener('touchcancel', end, { passive: false });
         el.addEventListener('mousedown', start);
         el.addEventListener('mouseup', end);
         el.addEventListener('mouseleave', end);
@@ -984,6 +991,17 @@
       bindBtn(dpadDown, 0, 1);
       bindBtn(dpadLeft, -1, 0);
       bindBtn(dpadRight, 1, 0);
+
+      const resetAdvDpad = () => {
+        if (this.engine && this.engine.setTouchVector) {
+          this.engine.setTouchVector(0, 0, false);
+        }
+        [dpadUp, dpadDown, dpadLeft, dpadRight].forEach(el => {
+          if (el) el.classList.remove('bg-teal-500/30', 'scale-95');
+        });
+      };
+      window.addEventListener('blur', resetAdvDpad);
+      window.addEventListener('orientationchange', resetAdvDpad);
     }
   }
 

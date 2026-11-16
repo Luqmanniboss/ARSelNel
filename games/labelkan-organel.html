@@ -157,7 +157,7 @@
 
       <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500">
         <span class="material-symbols-outlined text-emerald-600 text-sm">touch_app</span>
-        <span>Ketik label, kemudian ketik sasaran pada rajah untuk meletakkannya!</span>
+        <span>Tarik label atau ketik label, kemudian padankan pada sasaran rajah!</span>
       </div>
     </div>
 
@@ -222,25 +222,25 @@
             <circle cx="330" cy="360" r="4" fill="#b91c1c" />
           </svg>
 
-          <!-- 4 Drop Slots untuk Sel Haiwan -->
-          <!-- Slot 1: Nukleus (atas-kiri) -->
-          <div class="drop-slot absolute top-2 left-10 w-36 sm:w-40 py-2 px-3 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="nukleus">
-            <span class="placeholder-text">🎯 Jatuhkan Nukleus</span>
+          <!-- 4 Drop Slots untuk Sel Haiwan (Sasaran Neutral A, B, C, D) -->
+          <!-- Slot 1: Atas-kiri -->
+          <div class="drop-slot absolute top-2 left-6 sm:left-10 w-32 sm:w-40 py-1.5 sm:py-2 px-2 sm:px-3 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="nukleus" data-label="Sasaran A">
+            <span class="placeholder-text">🎯 Sasaran A</span>
           </div>
 
-          <!-- Slot 2: Membran Sel (atas-kanan) -->
-          <div class="drop-slot absolute top-2 right-6 w-36 sm:w-40 py-2 px-3 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="membran_sel">
-            <span class="placeholder-text">🎯 Jatuhkan Membran</span>
+          <!-- Slot 2: Atas-kanan -->
+          <div class="drop-slot absolute top-2 right-4 sm:right-6 w-32 sm:w-40 py-1.5 sm:py-2 px-2 sm:px-3 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="membran_sel" data-label="Sasaran B">
+            <span class="placeholder-text">🎯 Sasaran B</span>
           </div>
 
-          <!-- Slot 3: Sitoplasma (bawah-kiri) -->
-          <div class="drop-slot absolute bottom-2 left-4 w-36 sm:w-40 py-2 px-3 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="sitoplasma">
-            <span class="placeholder-text">🎯 Jatuhkan Sitoplasma</span>
+          <!-- Slot 3: Bawah-kiri -->
+          <div class="drop-slot absolute bottom-2 left-2 sm:left-4 w-32 sm:w-40 py-1.5 sm:py-2 px-2 sm:px-3 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="sitoplasma" data-label="Sasaran C">
+            <span class="placeholder-text">🎯 Sasaran C</span>
           </div>
 
-          <!-- Slot 4: Mitokondria (bawah-kanan) -->
-          <div class="drop-slot absolute bottom-2 right-4 w-36 sm:w-40 py-2 px-3 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="mitokondria">
-            <span class="placeholder-text">🎯 Jatuhkan Mitokondria</span>
+          <!-- Slot 4: Bawah-kanan -->
+          <div class="drop-slot absolute bottom-2 right-2 sm:right-4 w-32 sm:w-40 py-1.5 sm:py-2 px-2 sm:px-3 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="mitokondria" data-label="Sasaran D">
+            <span class="placeholder-text">🎯 Sasaran D</span>
           </div>
         </div>
 
@@ -291,29 +291,29 @@
             <circle cx="420" cy="380" r="4" fill="#16a34a" />
           </svg>
 
-          <!-- 6 Drop Slots untuk Sel Tumbuhan -->
-          <div class="drop-slot absolute top-1 left-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="dinding_sel">
-            <span class="placeholder-text">🎯 Dinding Sel</span>
+          <!-- 6 Drop Slots untuk Sel Tumbuhan (Sasaran Neutral A, B, C, D, E, F) -->
+          <div class="drop-slot absolute top-1 left-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="dinding_sel" data-label="Sasaran A">
+            <span class="placeholder-text">🎯 Sasaran A</span>
           </div>
 
-          <div class="drop-slot absolute top-1 right-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="kloroplas">
-            <span class="placeholder-text">🎯 Kloroplas</span>
+          <div class="drop-slot absolute top-1 right-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="kloroplas" data-label="Sasaran B">
+            <span class="placeholder-text">🎯 Sasaran B</span>
           </div>
 
-          <div class="drop-slot absolute top-[38%] left-1 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="nukleus">
-            <span class="placeholder-text">🎯 Nukleus</span>
+          <div class="drop-slot absolute top-[38%] left-1 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="nukleus" data-label="Sasaran C">
+            <span class="placeholder-text">🎯 Sasaran C</span>
           </div>
 
-          <div class="drop-slot absolute top-[45%] right-1 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="vakuol">
-            <span class="placeholder-text">🎯 Vakuol Besar</span>
+          <div class="drop-slot absolute top-[45%] right-1 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="vakuol" data-label="Sasaran D">
+            <span class="placeholder-text">🎯 Sasaran D</span>
           </div>
 
-          <div class="drop-slot absolute bottom-2 left-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="sitoplasma">
-            <span class="placeholder-text">🎯 Sitoplasma</span>
+          <div class="drop-slot absolute bottom-2 left-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="sitoplasma" data-label="Sasaran E">
+            <span class="placeholder-text">🎯 Sasaran E</span>
           </div>
 
-          <div class="drop-slot absolute bottom-2 right-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-500 shadow-sm" data-target="membran_sel">
-            <span class="placeholder-text">🎯 Membran Sel</span>
+          <div class="drop-slot absolute bottom-2 right-2 w-32 sm:w-36 py-1.5 px-2 rounded-xl text-center text-xs font-bold text-slate-600 shadow-sm" data-target="membran_sel" data-label="Sasaran F">
+            <span class="placeholder-text">🎯 Sasaran F</span>
           </div>
         </div>
 
@@ -494,12 +494,123 @@
         document.getElementById('btn-stage-animal').className = 'stage-tab px-4 py-2 rounded-xl text-xs font-headline font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 transition-all';
       }
 
+      // State Drag & Drop Sentuh
+      let dragClone = null;
+      let activeDragOrg = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let isDragging = false;
+
+      // Fungsi Pengendali Padanan Organel (Dikongsi antara Drag-and-Drop & Tap-to-Select)
+      function handleMatch(slot, org) {
+        if (!org || !slot || slot.classList.contains('filled-correct')) return false;
+        const targetId = slot.dataset.target;
+
+        if (org.id === targetId) {
+          // Padanan Tepat!
+          slot.classList.add('filled-correct');
+          slot.classList.remove('hovered', 'selected-target');
+          slot.innerHTML = `
+            <div class="flex items-center justify-center gap-1.5 font-headline font-bold text-emerald-900">
+              <span class="material-symbols-outlined text-emerald-600 text-sm font-bold">check_circle</span>
+              <span>${org.name}</span>
+            </div>
+          `;
+          
+          // Tandakan label pill selesai
+          const matchedPill = poolContainer.querySelector(`.organelle-pill[data-id="${org.id}"]`);
+          if (matchedPill) matchedPill.classList.add('placed');
+
+          placedCount[stageKey]++;
+          score += 15;
+          scoreCounter.textContent = `${score} / 150 pts`;
+          stageBadge.textContent = `${placedCount[stageKey]} / ${data.total} Selesai`;
+
+          feedbackMsg.innerHTML = `<span class="text-emerald-700 font-bold">✓ Tepat sekali!</span> <strong>${org.name}</strong> diletakkan dengan betul.`;
+          playTone(659.25, 'sine', 0.15);
+          setTimeout(() => playTone(880, 'sine', 0.2), 80);
+
+          selectedPill = null;
+          document.querySelectorAll('.organelle-pill').forEach(p => p.classList.remove('selected'));
+
+          // Semak jika stage selesai
+          if (placedCount[stageKey] === data.total) {
+            if (stageKey === 'animal' && placedCount.plant < STAGES.plant.total) {
+              feedbackMsg.innerHTML = `<span class="text-emerald-700 font-bold">🎉 Syabas! Peringkat 1 Sel Haiwan Selesai!</span> Teruskan ke Peringkat 2 Sel Tumbuhan.`;
+              setTimeout(() => renderStage('plant'), 1200);
+            } else if (placedCount.animal === STAGES.animal.total && placedCount.plant === STAGES.plant.total) {
+              // Selesai semua!
+              completeGame();
+            }
+          }
+          return true;
+        } else {
+          // Salah Padanan
+          feedbackMsg.innerHTML = `<span class="text-rose-600 font-bold">Cuba lagi!</span> Label <strong>${org.name}</strong> tidak sepadan dengan sasaran ini.`;
+          playTone(240, 'sawtooth', 0.15);
+          return false;
+        }
+      }
+
+      // Pointer drag move & up listeners
+      function onPointerMove(e) {
+        if (!activeDragOrg) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        if (!isDragging && Math.hypot(dx, dy) > 8) {
+          isDragging = true;
+          dragClone = document.createElement('div');
+          dragClone.className = 'fixed pointer-events-none z-[9999] px-4 py-2 rounded-2xl bg-emerald-600 text-white font-headline font-bold text-xs shadow-2xl border-2 border-white scale-105';
+          dragClone.textContent = activeDragOrg.name;
+          document.body.appendChild(dragClone);
+        }
+        if (isDragging && dragClone) {
+          dragClone.style.left = `${e.clientX - 50}px`;
+          dragClone.style.top = `${e.clientY - 25}px`;
+
+          // Hit test drop slots
+          const activeContainer = stageKey === 'animal' ? animalContainer : plantContainer;
+          const slots = activeContainer.querySelectorAll('.drop-slot:not(.filled-correct)');
+          slots.forEach(s => s.classList.remove('hovered'));
+          const elUnder = document.elementFromPoint(e.clientX, e.clientY);
+          const targetSlot = elUnder ? elUnder.closest('.drop-slot:not(.filled-correct)') : null;
+          if (targetSlot && activeContainer.contains(targetSlot)) {
+            targetSlot.classList.add('hovered');
+          }
+        }
+      }
+
+      function onPointerUp(e) {
+        if (!activeDragOrg) return;
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+
+        const activeContainer = stageKey === 'animal' ? animalContainer : plantContainer;
+        const slots = activeContainer.querySelectorAll('.drop-slot');
+        slots.forEach(s => s.classList.remove('hovered'));
+
+        if (isDragging) {
+          if (dragClone) {
+            dragClone.remove();
+            dragClone = null;
+          }
+          const elUnder = document.elementFromPoint(e.clientX, e.clientY);
+          const targetSlot = elUnder ? elUnder.closest('.drop-slot:not(.filled-correct)') : null;
+          if (targetSlot && activeContainer.contains(targetSlot)) {
+            handleMatch(targetSlot, activeDragOrg);
+          }
+        }
+        activeDragOrg = null;
+        isDragging = false;
+      }
+
       // Bina Palet Label Organel
       poolContainer.innerHTML = '';
       data.organelles.forEach(org => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'organelle-pill p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:border-emerald-400 hover:bg-emerald-50/50 flex items-center justify-between text-left group';
+        btn.className = 'organelle-pill p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:border-emerald-400 hover:bg-emerald-50/50 flex items-center justify-between text-left group touch-none select-none';
         btn.dataset.id = org.id;
         btn.dataset.name = org.name;
         btn.innerHTML = `
@@ -510,7 +621,21 @@
           <span class="material-symbols-outlined text-slate-400 group-hover:text-emerald-600 ml-2">drag_indicator</span>
         `;
 
+        // 1. Drag & Drop via Pointer Events
+        btn.addEventListener('pointerdown', (e) => {
+          if (btn.classList.contains('placed')) return;
+          activeDragOrg = org;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          isDragging = false;
+          window.addEventListener('pointermove', onPointerMove);
+          window.addEventListener('pointerup', onPointerUp);
+          window.addEventListener('pointercancel', onPointerUp);
+        });
+
+        // 2. Tap-to-select fallback (untuk kemudahan sentuhan pada telefon)
         btn.addEventListener('click', () => {
+          if (btn.classList.contains('placed')) return;
           document.querySelectorAll('.organelle-pill').forEach(p => p.classList.remove('selected'));
           btn.classList.add('selected');
           selectedPill = org;
@@ -521,65 +646,23 @@
         poolContainer.appendChild(btn);
       });
 
-      // Bind Drop Slots untuk Stage ini
+      // Bind Drop Slots untuk Stage ini dengan Label Neutral (Tanpa Membocorkan Jawapan!)
       const activeContainer = stageKey === 'animal' ? animalContainer : plantContainer;
       const slots = activeContainer.querySelectorAll('.drop-slot');
 
-      slots.forEach(slot => {
+      slots.forEach((slot, index) => {
         slot.classList.remove('filled-correct', 'hovered', 'selected-target');
-        const targetId = slot.dataset.target;
-        const matchingOrg = data.organelles.find(o => o.id === targetId);
-        slot.innerHTML = `<span class="placeholder-text">🎯 Jatuhkan ${matchingOrg ? matchingOrg.name : 'Label'}</span>`;
+        const neutralLabel = slot.dataset.label || `Sasaran ${String.fromCharCode(65 + index)}`;
+        slot.innerHTML = `<span class="placeholder-text">🎯 ${neutralLabel}</span>`;
 
         slot.onclick = () => {
           if (!selectedPill) {
-            feedbackMsg.innerHTML = `<span class="text-amber-700 font-bold">Pilih satu label organel dahulu</span> di panel kanan, kemudian ketik sasaran ini.`;
+            feedbackMsg.innerHTML = `<span class="text-amber-700 font-bold">Pilih satu label organel dahulu</span> di panel kanan (atau tarik ke sini), kemudian ketik sasaran ini.`;
             playTone(220, 'sawtooth', 0.1);
             return;
           }
 
-          if (selectedPill.id === targetId) {
-            // Betul!
-            slot.classList.add('filled-correct');
-            slot.classList.remove('drop-slot');
-            slot.innerHTML = `
-              <div class="flex items-center justify-center gap-1.5 font-headline font-bold text-emerald-900">
-                <span class="material-symbols-outlined text-emerald-600 text-sm font-bold">check_circle</span>
-                <span>${selectedPill.name}</span>
-              </div>
-            `;
-            
-            // Tandakan label pill selesai
-            const matchedPill = poolContainer.querySelector(`.organelle-pill[data-id="${selectedPill.id}"]`);
-            if (matchedPill) matchedPill.classList.add('placed');
-
-            placedCount[stageKey]++;
-            score += 15;
-            scoreCounter.textContent = `${score} / 150 pts`;
-            stageBadge.textContent = `${placedCount[stageKey]} / ${data.total} Selesai`;
-
-            feedbackMsg.innerHTML = `<span class="text-emerald-700 font-bold">✓ Tepat sekali!</span> <strong>${selectedPill.name}</strong> diletakkan dengan betul.`;
-            playTone(659.25, 'sine', 0.15);
-            setTimeout(() => playTone(880, 'sine', 0.2), 80);
-
-            selectedPill = null;
-            document.querySelectorAll('.organelle-pill').forEach(p => p.classList.remove('selected'));
-
-            // Semak jika stage selesai
-            if (placedCount[stageKey] === data.total) {
-              if (stageKey === 'animal' && placedCount.plant < STAGES.plant.total) {
-                feedbackMsg.innerHTML = `<span class="text-emerald-700 font-bold">🎉 Syabas! Peringkat 1 Sel Haiwan Selesai!</span> Teruskan ke Peringkat 2 Sel Tumbuhan.`;
-                setTimeout(() => renderStage('plant'), 1200);
-              } else if (placedCount.animal === STAGES.animal.total && placedCount.plant === STAGES.plant.total) {
-                // Selesai semua!
-                completeGame();
-              }
-            }
-          } else {
-            // Salah
-            feedbackMsg.innerHTML = `<span class="text-rose-600 font-bold">Cuba lagi!</span> Label <strong>${selectedPill.name}</strong> tidak sepadan dengan kedudukan ini.`;
-            playTone(240, 'sawtooth', 0.15);
-          }
+          handleMatch(slot, selectedPill);
         };
       });
     }

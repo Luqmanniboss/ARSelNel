@@ -161,25 +161,34 @@
   image-rendering: crisp-edges;
 }
 
-/* Kawalan Skrin Sentuh (D-Pad Maya Telefon) */
+/* Kawalan Skrin Sentuh (D-Pad Maya Telefon & Tablet) */
 .maze-mobile-dpad {
   position: absolute;
-  bottom: 0.6rem;
-  right: 0.6rem;
-  width: 115px;
-  height: 115px;
+  bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+  left: max(0.85rem, env(safe-area-inset-left, 0px));
+  width: 124px;
+  height: 124px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  gap: 3px;
-  background: rgba(15, 23, 42, 0.75);
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(8px);
-  padding: 5px;
-  border-radius: 1.1rem;
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  z-index: 25;
+  -webkit-backdrop-filter: blur(8px);
+  padding: 6px;
+  border-radius: 1.25rem;
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  z-index: 35;
   user-select: none;
+  -webkit-user-select: none;
   touch-action: none;
+}
+
+@media (min-width: 1280px) and (pointer: fine) {
+  .maze-mobile-dpad {
+    display: none !important;
+  }
 }
 
 .maze-dpad-key {

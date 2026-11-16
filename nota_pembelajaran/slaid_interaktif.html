@@ -57,6 +57,8 @@
       -webkit-user-select: none;
       touch-action: none;
       background-color: #0f172a;
+      min-height: 100dvh;
+      height: 100dvh;
     }
     .font-headline {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -71,6 +73,11 @@
     #slide-viewport {
       touch-action: none;
       transition: transform 0.15s ease-out;
+      width: 100%;
+      max-width: min(1040px, calc((100dvh - 136px) * 16 / 10));
+      max-height: calc(100dvh - 136px);
+      aspect-ratio: 16 / 10;
+      height: auto;
     }
 
     .tool-btn.active {
@@ -85,6 +92,15 @@
     .tool-btn:not(.active):hover {
       background-color: rgba(255, 255, 255, 0.12);
       color: #ffffff;
+    }
+
+    /* Hide scrollbars for toolbar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     /* Annotation layer styles */
@@ -154,74 +170,74 @@
   <script src="../assets/js/auth-guard.js"></script>
   <script src="../assets/js/smart-notes.js"></script>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col text-slate-100 bg-[#0b1322]">
+<body class="min-h-[100dvh] h-[100dvh] w-full overflow-hidden flex flex-col text-slate-100 bg-[#0b1322]">
 
   <!-- ======================================================================= -->
   <!-- TOP APPLICATION BAR & TOOLBAR (COLLANOTE / GOODNOTES STYLE)             -->
   <!-- ======================================================================= -->
-  <header class="h-16 shrink-0 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-3 sm:px-5 flex items-center justify-between z-40 gap-2">
+  <header class="h-14 sm:h-16 shrink-0 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-2 sm:px-5 flex items-center justify-between z-40 gap-1 sm:gap-2">
     
     <!-- Left: Back button & Note Info -->
-    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-      <a href="../nota_pembelajaran/code.html" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center justify-center shrink-0" title="Kembali ke Nota Pembelajaran">
-        <span class="material-symbols-outlined text-xl">arrow_back</span>
+    <div class="flex items-center gap-1.5 sm:gap-3 min-w-0 shrink">
+      <a href="../nota_pembelajaran/code.html" class="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center justify-center shrink-0" title="Kembali ke Nota Pembelajaran">
+        <span class="material-symbols-outlined text-lg sm:text-xl">arrow_back</span>
       </a>
 
       <div class="min-w-0">
-        <div class="flex items-center gap-2">
-          <h1 id="viewer-note-title" class="font-headline font-bold text-sm sm:text-base text-white truncate max-w-[180px] sm:max-w-xs md:max-w-md">
+        <div class="flex items-center gap-1.5">
+          <h1 id="viewer-note-title" class="font-headline font-bold text-xs sm:text-base text-white truncate max-w-[110px] xs:max-w-[150px] sm:max-w-xs md:max-w-md">
             Slaid Interaktif
           </h1>
-          <span id="viewer-chapter-badge" class="hidden md:inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 truncate">
+          <span id="viewer-chapter-badge" class="hidden md:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 truncate">
             Bab 2
           </span>
         </div>
-        <div class="flex items-center gap-2 text-[11px] text-slate-400">
-          <span id="save-status-badge" class="inline-flex items-center gap-1 font-semibold text-emerald-400">
+        <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-400">
+          <span id="save-status-badge" class="inline-flex items-center gap-1 font-semibold text-emerald-400 truncate">
             <span class="material-symbols-outlined text-xs">check_circle</span>
-            <span>Disimpan</span>
+            <span class="hidden xs:inline">Disimpan</span>
           </span>
           <span class="hidden sm:inline">• Mod Anotasi Digital</span>
         </div>
       </div>
     </div>
 
-    <!-- Center: Interactive Drawing Tools -->
-    <div class="flex items-center gap-1 sm:gap-1.5 bg-slate-800/90 p-1 rounded-2xl border border-slate-700/60 shadow-inner overflow-x-auto max-w-full">
-      <!-- 1. Selection / Pointer Tool -->
-      <button type="button" id="tool-select" onclick="setTool('select')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Pilih / Gerakkan Anotasi (V)">
-        <span class="material-symbols-outlined text-xl">near_me</span>
+    <!-- Center: Interactive Drawing Tools (Scrollable on narrow viewports) -->
+    <div class="flex items-center gap-1 bg-slate-800/90 p-1 rounded-2xl border border-slate-700/60 shadow-inner overflow-x-auto no-scrollbar max-w-[50vw] sm:max-w-none">
+      <!-- 1. Selection / Pointer Tool (Desktop/Tablet) -->
+      <button type="button" id="tool-select" onclick="setTool('select')" class="tool-btn hidden md:flex p-1.5 sm:p-2 rounded-xl text-slate-300 transition items-center justify-center shrink-0" title="Pilih / Gerakkan Anotasi (V)">
+        <span class="material-symbols-outlined text-lg sm:text-xl">near_me</span>
       </button>
 
-      <!-- 2. Pan / Hand Tool -->
-      <button type="button" id="tool-pan" onclick="setTool('pan')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Gerak Kanvas / Pan (H / Tahan Spacebar)">
-        <span class="material-symbols-outlined text-xl">pan_tool</span>
+      <!-- 2. Pan / Hand Tool (Desktop/Tablet) -->
+      <button type="button" id="tool-pan" onclick="setTool('pan')" class="tool-btn hidden md:flex p-1.5 sm:p-2 rounded-xl text-slate-300 transition items-center justify-center shrink-0" title="Gerak Kanvas / Pan (H / Tahan Spacebar)">
+        <span class="material-symbols-outlined text-lg sm:text-xl">pan_tool</span>
       </button>
 
-      <!-- 3. Pen Tool -->
-      <button type="button" id="tool-pen" onclick="setTool('pen')" class="tool-btn active p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Pen Digital (P)">
-        <span class="material-symbols-outlined text-xl">stylus_note</span>
+      <!-- 3. Pen Tool (Always Primary) -->
+      <button type="button" id="tool-pen" onclick="setTool('pen')" class="tool-btn active p-1.5 sm:p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Pen Digital (P)">
+        <span class="material-symbols-outlined text-lg sm:text-xl">stylus_note</span>
       </button>
 
-      <!-- 3. Highlighter Tool -->
-      <button type="button" id="tool-highlighter" onclick="setTool('highlighter')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Penyerlah Semi-Telus (H)">
-        <span class="material-symbols-outlined text-xl">format_ink_highlighter</span>
+      <!-- 4. Highlighter Tool -->
+      <button type="button" id="tool-highlighter" onclick="setTool('highlighter')" class="tool-btn hidden sm:flex p-1.5 sm:p-2 rounded-xl text-slate-300 transition items-center justify-center shrink-0" title="Penyerlah Semi-Telus (H)">
+        <span class="material-symbols-outlined text-lg sm:text-xl">format_ink_highlighter</span>
       </button>
 
-      <!-- 4. Eraser Tool -->
-      <button type="button" id="tool-eraser" onclick="setTool('eraser')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Pemadam Anotasi (E)">
-        <span class="material-symbols-outlined text-xl">ink_eraser</span>
+      <!-- 5. Eraser Tool (Always Primary) -->
+      <button type="button" id="tool-eraser" onclick="setTool('eraser')" class="tool-btn p-1.5 sm:p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Pemadam Anotasi (E)">
+        <span class="material-symbols-outlined text-lg sm:text-xl">ink_eraser</span>
       </button>
 
-      <!-- 5. Text Tool -->
-      <button type="button" id="tool-text" onclick="setTool('text')" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Kotak Teks (T)">
-        <span class="material-symbols-outlined text-xl">title</span>
+      <!-- 6. Text Tool -->
+      <button type="button" id="tool-text" onclick="setTool('text')" class="tool-btn hidden lg:flex p-1.5 sm:p-2 rounded-xl text-slate-300 transition items-center justify-center shrink-0" title="Kotak Teks (T)">
+        <span class="material-symbols-outlined text-lg sm:text-xl">title</span>
       </button>
 
-      <!-- 6. Shape Tool -->
-      <div class="relative">
-        <button type="button" id="tool-shape" onclick="toggleShapeMenu()" class="tool-btn p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Bentuk Geometri (S)">
-          <span class="material-symbols-outlined text-xl" id="current-shape-icon">shapes</span>
+      <!-- 7. Shape Tool -->
+      <div class="relative hidden sm:block">
+        <button type="button" id="tool-shape" onclick="toggleShapeMenu()" class="tool-btn p-1.5 sm:p-2 rounded-xl text-slate-300 transition flex items-center justify-center shrink-0" title="Bentuk Geometri (S)">
+          <span class="material-symbols-outlined text-lg sm:text-xl" id="current-shape-icon">shapes</span>
         </button>
 
         <!-- Shape dropdown -->
@@ -245,16 +261,16 @@
         </div>
       </div>
 
-      <span class="w-[1px] h-6 bg-slate-700 hidden sm:inline-block mx-0.5"></span>
+      <span class="w-[1px] h-5 bg-slate-700 inline-block mx-0.5"></span>
 
       <!-- Color Palette Picker Button -->
       <div class="relative">
-        <button type="button" id="btn-color-picker" onclick="toggleColorMenu()" class="p-2 rounded-xl text-slate-300 hover:text-white transition flex items-center justify-center shrink-0" title="Warna Pen / Penyerlah">
-          <span id="active-color-dot" class="w-5 h-5 rounded-full border-2 border-white shadow-sm inline-block" style="background-color: #2563eb;"></span>
+        <button type="button" id="btn-color-picker" onclick="toggleColorMenu()" class="p-1.5 sm:p-2 rounded-xl text-slate-300 hover:text-white transition flex items-center justify-center shrink-0" title="Warna Pen / Penyerlah">
+          <span id="active-color-dot" class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-white shadow-sm inline-block" style="background-color: #2563eb;"></span>
         </button>
 
         <!-- Color Palette Dropdown -->
-        <div id="color-menu" class="hidden absolute -left-12 sm:left-0 top-12 bg-slate-800 border border-slate-700 rounded-2xl p-3 shadow-2xl z-50 w-56 space-y-3">
+        <div id="color-menu" class="hidden absolute -left-16 sm:left-0 top-12 bg-slate-800 border border-slate-700 rounded-2xl p-3 shadow-2xl z-50 w-56 space-y-3">
           <div>
             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Warna Pen Digital</span>
             <div class="grid grid-cols-5 gap-2" id="pen-colors-grid">
@@ -284,9 +300,9 @@
       </div>
     </div>
 
-    <!-- Right Actions: Zoom Pill, Undo, Redo, Clear, Export, Fullscreen -->
+    <!-- Right Actions: Zoom Pill, Undo, Redo, Overflow, Clear, Export, Fullscreen -->
     <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
-      <!-- Top Quick Zoom Pill -->
+      <!-- Top Quick Zoom Pill (Desktop) -->
       <div class="hidden md:flex items-center gap-0.5 bg-slate-800/80 px-2 py-1 rounded-xl border border-slate-700/60 text-xs mr-1">
         <button type="button" onclick="zoomOut()" class="p-1 rounded-lg text-slate-400 hover:text-white transition" title="Zum Keluar (Ctrl + -)">
           <span class="material-symbols-outlined text-base">zoom_out</span>
@@ -299,26 +315,73 @@
         </button>
       </div>
 
-      <button type="button" onclick="undo()" id="btn-undo" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Buat Semula / Undo (Ctrl+Z)">
-        <span class="material-symbols-outlined text-xl">undo</span>
+      <button type="button" onclick="undo()" id="btn-undo" class="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Buat Semula / Undo (Ctrl+Z)">
+        <span class="material-symbols-outlined text-lg sm:text-xl">undo</span>
       </button>
 
-      <button type="button" onclick="redo()" id="btn-redo" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Maju Semula / Redo (Ctrl+Y)">
-        <span class="material-symbols-outlined text-xl">redo</span>
+      <button type="button" onclick="redo()" id="btn-redo" class="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Maju Semula / Redo (Ctrl+Y)">
+        <span class="material-symbols-outlined text-lg sm:text-xl">redo</span>
       </button>
 
-      <button type="button" onclick="confirmClearPage()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 transition" title="Padam Anotasi Halaman Ini">
-        <span class="material-symbols-outlined text-xl">delete_sweep</span>
+      <!-- Clear Page (Hidden on small mobile, accessible via overflow) -->
+      <button type="button" onclick="confirmClearPage()" class="hidden sm:flex p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 transition" title="Padam Anotasi Halaman Ini">
+        <span class="material-symbols-outlined text-lg sm:text-xl">delete_sweep</span>
       </button>
 
+      <!-- Export PDF (Hidden on mobile) -->
       <button type="button" onclick="exportNotePDF()" id="btn-export" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold text-xs transition shadow-md" title="Eksport Slaid & Anotasi ke PDF">
         <span class="material-symbols-outlined text-base">picture_as_pdf</span>
         <span>Eksport</span>
       </button>
 
-      <button type="button" onclick="toggleFullscreen()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Skrin Penuh (F11)">
-        <span class="material-symbols-outlined text-xl" id="fs-icon">fullscreen</span>
+      <!-- Fullscreen (Hidden on small mobile) -->
+      <button type="button" onclick="toggleFullscreen()" class="hidden md:flex p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Skrin Penuh (F11)">
+        <span class="material-symbols-outlined text-lg sm:text-xl" id="fs-icon">fullscreen</span>
       </button>
+
+      <!-- Mobile Overflow Menu Button (Visible on mobile / small screen) -->
+      <div class="relative md:hidden">
+        <button type="button" id="btn-more-tools" onclick="toggleMoreToolsMenu()" class="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center justify-center" title="Fungsi Tambahan">
+          <span class="material-symbols-outlined text-lg sm:text-xl">more_vert</span>
+        </button>
+
+        <!-- Mobile Overflow Dropdown Menu -->
+        <div id="more-tools-menu" class="hidden absolute right-0 top-12 bg-slate-800/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-2 shadow-2xl z-50 flex flex-col gap-1 w-48 text-xs">
+          <button type="button" onclick="setTool('select'); toggleMoreToolsMenu();" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-700 text-slate-200">
+            <span class="material-symbols-outlined text-base text-teal-400">near_me</span>
+            <span>Pilih Anotasi</span>
+          </button>
+          <button type="button" onclick="setTool('pan'); toggleMoreToolsMenu();" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-700 text-slate-200">
+            <span class="material-symbols-outlined text-base text-sky-400">pan_tool</span>
+            <span>Gerak Kanvas (Pan)</span>
+          </button>
+          <button type="button" onclick="setTool('highlighter'); toggleMoreToolsMenu();" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-700 text-slate-200">
+            <span class="material-symbols-outlined text-base text-yellow-400">format_ink_highlighter</span>
+            <span>Penyerlah</span>
+          </button>
+          <button type="button" onclick="setTool('text'); toggleMoreToolsMenu();" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-700 text-slate-200">
+            <span class="material-symbols-outlined text-base text-emerald-400">title</span>
+            <span>Kotak Teks</span>
+          </button>
+          <button type="button" onclick="toggleShapeMenu(); toggleMoreToolsMenu();" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-700 text-slate-200">
+            <span class="material-symbols-outlined text-base text-purple-400">shapes</span>
+            <span>Bentuk Geometri</span>
+          </button>
+          <div class="h-[1px] bg-slate-700 my-1"></div>
+          <button type="button" onclick="confirmClearPage(); toggleMoreToolsMenu();" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-rose-500/20 text-rose-300">
+            <span class="material-symbols-outlined text-base text-rose-400">delete_sweep</span>
+            <span>Padam Halaman Ini</span>
+          </button>
+          <button type="button" onclick="exportNotePDF(); toggleMoreToolsMenu();" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-amber-400/20 text-amber-300 font-semibold">
+            <span class="material-symbols-outlined text-base text-amber-400">picture_as_pdf</span>
+            <span>Eksport ke PDF</span>
+          </button>
+          <button type="button" onclick="toggleFullscreen(); toggleMoreToolsMenu();" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-700 text-slate-200">
+            <span class="material-symbols-outlined text-base text-slate-300">fullscreen</span>
+            <span>Skrin Penuh</span>
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -328,7 +391,7 @@
   <main id="workspace-container" class="flex-1 relative overflow-hidden flex items-center justify-center p-2 sm:p-6 bg-[#080d19] select-none">
 
     <!-- Zoomable Viewport Frame -->
-    <div id="slide-viewport" class="relative shadow-2xl rounded-3xl overflow-hidden border border-slate-800 bg-white" style="width: 100%; max-width: 1040px; aspect-ratio: 16 / 10; transform-origin: center center;">
+    <div id="slide-viewport" class="relative shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-800 bg-white" style="transform-origin: center center;">
       
       <!-- LAYER 1: ORIGINAL SLIDE CONTENT (TEACHER READ-ONLY) -->
       <div id="slide-content-layer" class="w-full h-full relative overflow-hidden select-none">
@@ -347,27 +410,27 @@
     </div>
 
     <!-- Floating Canvas Zoom & Pan Controller (Direct on Canvas) -->
-    <div id="floating-zoom-bar" class="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-2xl shadow-2xl transition-all">
-      <button type="button" onclick="zoomOut()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition active:scale-95" title="Zum Keluar (-)">
-        <span class="material-symbols-outlined text-lg">zoom_out</span>
+    <div id="floating-zoom-bar" class="absolute bottom-3 right-3 sm:bottom-6 sm:right-6 z-30 flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-1 sm:p-1.5 rounded-2xl shadow-2xl transition-all">
+      <button type="button" onclick="zoomOut()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition active:scale-95" title="Zum Keluar (-)">
+        <span class="material-symbols-outlined text-base sm:text-lg">zoom_out</span>
       </button>
 
-      <button type="button" onclick="resetZoom()" class="px-2.5 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs flex items-center justify-center transition active:scale-95" title="Klik untuk Reset Zoom (100% / Muat Skrin)">
+      <button type="button" onclick="resetZoom()" class="px-2 sm:px-2.5 h-7 sm:h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-[11px] sm:text-xs flex items-center justify-center transition active:scale-95" title="Klik untuk Reset Zoom (100% / Muat Skrin)">
         <span id="floating-zoom-label">100%</span>
       </button>
 
-      <button type="button" onclick="zoomIn()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition active:scale-95" title="Zum Masuk (+)">
-        <span class="material-symbols-outlined text-lg">zoom_in</span>
+      <button type="button" onclick="zoomIn()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition active:scale-95" title="Zum Masuk (+)">
+        <span class="material-symbols-outlined text-base sm:text-lg">zoom_in</span>
       </button>
 
-      <span class="w-[1px] h-5 bg-slate-700 mx-0.5"></span>
+      <span class="w-[1px] h-4 sm:h-5 bg-slate-700 mx-0.5"></span>
 
-      <button type="button" onclick="resetZoom()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition active:scale-95" title="Muat Semula Skrin (Fit)">
-        <span class="material-symbols-outlined text-base">fit_screen</span>
+      <button type="button" onclick="resetZoom()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition active:scale-95" title="Muat Semula Skrin (Fit)">
+        <span class="material-symbols-outlined text-sm sm:text-base">fit_screen</span>
       </button>
 
-      <button type="button" id="floating-pan-btn" onclick="togglePanTool()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-teal-400 flex items-center justify-center transition active:scale-95" title="Alat Gerak Kanvas / Pan (H / Spacebar)">
-        <span class="material-symbols-outlined text-base">pan_tool</span>
+      <button type="button" id="floating-pan-btn" onclick="togglePanTool()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-teal-400 flex items-center justify-center transition active:scale-95" title="Alat Gerak Kanvas / Pan (H / Spacebar)">
+        <span class="material-symbols-outlined text-sm sm:text-base">pan_tool</span>
       </button>
     </div>
 
@@ -381,47 +444,47 @@
   <!-- ======================================================================= -->
   <!-- BOTTOM NAVIGATION & ZOOM CONTROLS                                       -->
   <!-- ======================================================================= -->
-  <footer class="h-16 shrink-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-4 sm:px-8 flex items-center justify-between z-40">
+  <footer class="h-14 sm:h-16 shrink-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-2 sm:px-8 flex items-center justify-between z-40 pb-[env(safe-area-inset-bottom,0px)]">
     
     <!-- Left: Slide Thumbnails Drawer Button -->
-    <button type="button" onclick="toggleThumbnailsDrawer()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-semibold">
-      <span class="material-symbols-outlined text-lg">view_carousel</span>
-      <span class="hidden sm:inline">Pilihan Slaid</span>
+    <button type="button" onclick="toggleThumbnailsDrawer()" class="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-semibold shrink-0" title="Pilihan Slaid">
+      <span class="material-symbols-outlined text-base sm:text-lg">view_carousel</span>
+      <span class="hidden md:inline">Pilihan Slaid</span>
     </button>
 
-    <!-- Center: Page Navigation (Prev, Page 1 / 6, Next) -->
-    <div class="flex items-center gap-2 sm:gap-4">
-      <button type="button" id="btn-prev-slide" onclick="prevSlide()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-slate-200 hover:text-white transition flex items-center gap-1 font-bold text-xs" title="Slaid Sebelumnya (Alt+Left)">
-        <span class="material-symbols-outlined text-lg">chevron_left</span>
-        <span class="hidden sm:inline">Sebelumnya</span>
+    <!-- Center: Page Navigation (Prev, Page X / Y, Next) - ALWAYS CLEAR & REACHABLE -->
+    <div class="flex items-center gap-1.5 sm:gap-4 shrink-0">
+      <button type="button" id="btn-prev-slide" onclick="prevSlide()" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-slate-200 hover:text-white transition flex items-center gap-1 font-bold text-xs shadow-sm active:scale-95" title="Slaid Sebelumnya (Alt+Left)">
+        <span class="material-symbols-outlined text-base sm:text-lg">chevron_left</span>
+        <span class="inline text-[11px] sm:text-xs">Sebelum</span>
       </button>
 
-      <span id="page-indicator" class="font-headline font-extrabold text-xs sm:text-sm text-amber-300 px-3 py-1.5 rounded-xl bg-slate-800/60 border border-amber-500/30">
+      <span id="page-indicator" class="font-headline font-extrabold text-xs sm:text-sm text-amber-300 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-800/60 border border-amber-500/30 whitespace-nowrap">
         Slaid 1 / 6
       </span>
 
-      <button type="button" id="btn-next-slide" onclick="nextSlide()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-amber-400 hover:bg-amber-500 disabled:opacity-40 disabled:pointer-events-none text-slate-900 transition flex items-center gap-1 font-extrabold text-xs shadow" title="Slaid Seterusnya (Alt+Right)">
-        <span class="hidden sm:inline">Seterusnya</span>
-        <span class="material-symbols-outlined text-lg">chevron_right</span>
+      <button type="button" id="btn-next-slide" onclick="nextSlide()" class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-amber-400 hover:bg-amber-500 disabled:opacity-40 disabled:pointer-events-none text-slate-900 transition flex items-center gap-1 font-extrabold text-xs shadow active:scale-95" title="Slaid Seterusnya (Alt+Right)">
+        <span class="inline text-[11px] sm:text-xs">Seterusnya</span>
+        <span class="material-symbols-outlined text-base sm:text-lg">chevron_right</span>
       </button>
     </div>
 
     <!-- Right: Zoom Controls -->
-    <div class="flex items-center gap-1 sm:gap-2">
-      <button type="button" onclick="zoomOut()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Zum Keluar (-)">
-        <span class="material-symbols-outlined text-lg">zoom_out</span>
+    <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+      <button type="button" onclick="zoomOut()" class="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Zum Keluar (-)">
+        <span class="material-symbols-outlined text-base sm:text-lg">zoom_out</span>
       </button>
 
-      <span id="zoom-level-label" class="text-xs font-bold text-slate-300 min-w-[40px] text-center hidden sm:inline-block">
+      <span id="zoom-level-label" class="text-xs font-bold text-slate-300 min-w-[36px] text-center hidden sm:inline-block">
         100%
       </span>
 
-      <button type="button" onclick="zoomIn()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Zum Masuk (+)">
-        <span class="material-symbols-outlined text-lg">zoom_in</span>
+      <button type="button" onclick="zoomIn()" class="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Zum Masuk (+)">
+        <span class="material-symbols-outlined text-base sm:text-lg">zoom_in</span>
       </button>
 
-      <button type="button" onclick="resetZoom()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Muat Skrin (Fit)">
-        <span class="material-symbols-outlined text-lg">fit_screen</span>
+      <button type="button" onclick="resetZoom()" class="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Muat Skrin (Fit)">
+        <span class="material-symbols-outlined text-base sm:text-lg">fit_screen</span>
       </button>
     </div>
   </footer>
@@ -563,7 +626,7 @@
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
 
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     // Convert screen coordinates to normalized (0.0 to 1.0)
@@ -1175,9 +1238,18 @@
       document.getElementById('label-stroke-size').textContent = `${val}px`;
     }
 
+    function toggleMoreToolsMenu() {
+      const menu = document.getElementById('more-tools-menu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
     function closeMenus() {
-      document.getElementById('shape-menu').classList.add('hidden');
-      document.getElementById('color-menu').classList.add('hidden');
+      const shapeMenu = document.getElementById('shape-menu');
+      if (shapeMenu) shapeMenu.classList.add('hidden');
+      const colorMenu = document.getElementById('color-menu');
+      if (colorMenu) colorMenu.classList.add('hidden');
+      const moreMenu = document.getElementById('more-tools-menu');
+      if (moreMenu) moreMenu.classList.add('hidden');
     }
 
     document.addEventListener('click', (e) => {
@@ -1185,12 +1257,17 @@
       const colorMenu = document.getElementById('color-menu');
       const shapeBtn = document.getElementById('tool-shape');
       const shapeMenu = document.getElementById('shape-menu');
+      const moreBtn = document.getElementById('btn-more-tools');
+      const moreMenu = document.getElementById('more-tools-menu');
 
       if (colorBtn && colorMenu && !colorBtn.contains(e.target) && !colorMenu.contains(e.target)) {
         colorMenu.classList.add('hidden');
       }
       if (shapeBtn && shapeMenu && !shapeBtn.contains(e.target) && !shapeMenu.contains(e.target)) {
         shapeMenu.classList.add('hidden');
+      }
+      if (moreBtn && moreMenu && !moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
+        moreMenu.classList.add('hidden');
       }
     });
 

@@ -197,11 +197,35 @@
 
         const trigger = (e) => {
           e.preventDefault();
+          btn.classList.add('active');
           this.engine.setDirection(dir);
         };
 
+        const release = (e) => {
+          if (e && e.preventDefault) e.preventDefault();
+          btn.classList.remove('active');
+        };
+
+        btn.addEventListener('pointerdown', (e) => {
+          try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+          trigger(e);
+        });
+        btn.addEventListener('pointerup', release);
+        btn.addEventListener('pointercancel', release);
         btn.addEventListener('touchstart', trigger, { passive: false });
+        btn.addEventListener('touchend', release);
+        btn.addEventListener('touchcancel', release);
         btn.addEventListener('mousedown', trigger);
+        btn.addEventListener('mouseup', release);
+        btn.addEventListener('mouseleave', release);
+      });
+
+      // Reset to neutral on blur, pause, or orientation change
+      window.addEventListener('blur', () => {
+        document.querySelectorAll('.maze-dpad-key').forEach(b => b.classList.remove('active'));
+      });
+      window.addEventListener('orientationchange', () => {
+        document.querySelectorAll('.maze-dpad-key').forEach(b => b.classList.remove('active'));
       });
     }
 

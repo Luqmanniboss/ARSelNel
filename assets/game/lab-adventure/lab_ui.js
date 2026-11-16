@@ -901,11 +901,17 @@
           this.engine.setTouchDirection(dir, true);
         };
         const release = (e) => {
-          e.preventDefault();
+          if (e && e.preventDefault) e.preventDefault();
           btn.classList.remove('active');
           this.engine.setTouchDirection(dir, false);
         };
 
+        btn.addEventListener('pointerdown', (e) => {
+          try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+          press(e);
+        });
+        btn.addEventListener('pointerup', release);
+        btn.addEventListener('pointercancel', release);
         btn.addEventListener('touchstart', press, { passive: false });
         btn.addEventListener('touchend', release, { passive: false });
         btn.addEventListener('touchcancel', release, { passive: false });
@@ -918,6 +924,17 @@
       setupDpadKey('lab-dpad-down', 'down');
       setupDpadKey('lab-dpad-left', 'left');
       setupDpadKey('lab-dpad-right', 'right');
+
+      const resetLabDpad = () => {
+        ['up', 'down', 'left', 'right'].forEach(dir => {
+          if (this.engine && this.engine.setTouchDirection) {
+            this.engine.setTouchDirection(dir, false);
+          }
+        });
+        document.querySelectorAll('.lab-dpad-key').forEach(k => k.classList.remove('active'));
+      };
+      window.addEventListener('blur', resetLabDpad);
+      window.addEventListener('orientationchange', resetLabDpad);
     }
   }
 
