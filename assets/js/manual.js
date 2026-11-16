@@ -16,6 +16,39 @@
   'use strict';
 
   // =========================================================================
+  // 0. BULLETPROOF SVG ICONS DICTIONARY (OFFLINE & NETWORK RESILIENCE)
+  // =========================================================================
+  const SVG_ICONS = {
+    home: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+    auto_stories: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M19 1l-5 5v11l5-4.5V1zM4 6v11.5L9 22V6.5L4 6zm17-2.5V16c0 .55-.45 1-1 1h-5l-4 3.5V3.5c0-.55.45-1 1-1h6.5c.38 0 .73.22.89.56l1.61 3.44z"/></svg>',
+    play_circle: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>',
+    smart_toy: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zM7.5 11.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67-1.5-1.5zM16 17H8v-2h8v2zm-1-4c-.83 0-1.5-.67-1.5-1.5S14.17 10 15 10s1.5.67 1.5 1.5S15.83 13 15 13z"/></svg>',
+    sports_esports: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M21.58 16.09l-1.09-7.66C20.21 6.46 18.52 5 16.53 5H7.47C5.48 5 3.79 6.46 3.51 8.43l-1.09 7.66C2.2 17.63 3.39 19 4.94 19c.68 0 1.32-.27 1.8-.75L9 16h6l2.25 2.25c.48.48 1.13.75 1.8.75 1.56 0 2.75-1.37 2.53-2.91zM11 11H9v2H8v-2H6v-1h2V8h1v2h2v1zm4-1.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm2 3c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>',
+    view_in_ar: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M19 7h-2V5c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-7-2h2v2h-2V5zm6 14H6V9h12v10zm-6-8l4 2.5v5l-4 2.5-4-2.5v-5l4-2.5z"/></svg>',
+    qr_code_scanner: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm9.5-6.5v3h-3v-3h3M20 5h-6v6h6V5zm-2 10h-2v2h2v-2zm-2-2h-2v2h2v-2zm-2 2h-2v2h2v-2zm2 2h-2v2h2v-2zm2 2h-2v2h2v-2zM2 2h5v2H4v3H2V2zm20 0v5h-2V4h-3V2h5zM4 20v-3H2v5h5v-2H4zm18-3v5h-5v-2h3v-3h2z"/></svg>',
+    settings: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>',
+    arrow_back: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>',
+    arrow_forward: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>',
+    explore: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm2.4-12.4l-4.8 2.4-2.4 4.8 4.8-2.4 2.4-4.8z"/></svg>',
+    school: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>',
+    flag: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>',
+    restart_alt: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>',
+    zoom_in: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zm.5-7H9v2H7v1h2v2h1v-2h2V9h-2z"/></svg>',
+    lightbulb: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-1.3l-.85-.6A4.997 4.997 0 0 1 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
+    task_alt: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M22 5.18L10.59 16.6l-4.24-4.24 1.41-1.41 2.83 2.83 10-10L22 5.18zM19.79 10.22C19.92 10.79 20 11.39 20 12c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8c1.58 0 3.04.46 4.28 1.25l1.44-1.44A9.9 9.9 0 0 0 12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10c0-1.19-.22-2.33-.6-3.39l-1.61 1.61z"/></svg>',
+    link: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>',
+    refresh: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>',
+    notifications: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>',
+    menu: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>',
+    logout: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>'
+  };
+
+  function renderIcon(iconName, extraClass = '') {
+    return `<span class="material-symbols-outlined ${extraClass}" data-icon="${iconName}" aria-hidden="true">${iconName}</span>`;
+  }
+
+  // =========================================================================
   // 1. DATA 8 MISI UTAMA ARSELNEL SCIENCE ADVENTURE
   // =========================================================================
   const MISSIONS = [
@@ -432,7 +465,7 @@
 
       btn.innerHTML = `
         <div class="manual-tab-icon-wrap" style="${idx === activeIndex ? `background:${m.color};color:#ffffff;` : ''}">
-          <span class="material-symbols-outlined">${m.icon}</span>
+          <span class="material-symbols-outlined" data-icon="${m.icon}">${m.icon}</span>
         </div>
         <span class="manual-tab-number">Misi ${m.num}</span>
         <span class="manual-tab-title">${m.shortTitle}</span>
@@ -481,7 +514,7 @@
         <header class="manual-panel-header">
           <div class="manual-panel-header-left">
             <div class="manual-panel-icon-circle" style="background:${m.bgLight};color:${m.color};">
-              <span class="material-symbols-outlined">${m.icon}</span>
+              <span class="material-symbols-outlined" data-icon="${m.icon}">${m.icon}</span>
             </div>
             <div>
               <div class="manual-panel-badge-group">
@@ -489,7 +522,7 @@
                   ${m.badge}
                 </span>
                 <span class="manual-panel-route-tag">
-                  <span class="material-symbols-outlined" style="font-size:14px;">link</span>
+                  <span class="material-symbols-outlined" data-icon="link" style="font-size:14px;">link</span>
                   <span>${m.routeLabel}</span>
                 </span>
               </div>
@@ -499,7 +532,7 @@
           <div class="manual-panel-quick-action">
             <a href="${m.actionUrl}" class="manual-btn-cuba-sekarang" title="Buka ${m.shortTitle} sekarang">
               <span>🚀 ${m.actionText}</span>
-              <span class="material-symbols-outlined">arrow_forward</span>
+              <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
             </a>
           </div>
         </header>
@@ -518,7 +551,7 @@
 
             <!-- Tip Callout Box -->
             <div class="manual-tip-box">
-              <span class="material-symbols-outlined manual-tip-icon">lightbulb</span>
+              <span class="material-symbols-outlined manual-tip-icon" data-icon="lightbulb">lightbulb</span>
               <div class="manual-tip-content">
                 <h4>Tip Saintis Pintar</h4>
                 <p>${m.tip}</p>
@@ -540,10 +573,10 @@
 
               <!-- Fallback Error Card -->
               <div class="manual-screenshot-fallback" id="screenshot-fallback-${m.num}" style="display:none;">
-                <span class="material-symbols-outlined manual-fallback-icon">broken_image</span>
+                <span class="material-symbols-outlined manual-fallback-icon" data-icon="broken_image">broken_image</span>
                 <p class="manual-fallback-text">Gambar screenshot mengambil sedikit masa untuk dimuatkan.</p>
                 <button type="button" class="manual-fallback-retry-btn" id="screenshot-retry-${m.num}">
-                  <span class="material-symbols-outlined">refresh</span>
+                  <span class="material-symbols-outlined" data-icon="refresh">refresh</span>
                   <span>Cuba Muat Semula Gambar</span>
                 </button>
               </div>
@@ -551,7 +584,7 @@
               <!-- Zoom Badge Overlay -->
               <div class="manual-screenshot-overlay" id="screenshot-overlay-${m.num}">
                 <span class="manual-screenshot-zoom-badge">
-                  <span class="material-symbols-outlined" style="font-size:16px;">zoom_in</span>
+                  <span class="material-symbols-outlined" data-icon="zoom_in" style="font-size:16px;">zoom_in</span>
                   <span>Klik untuk Besarkan</span>
                 </span>
               </div>
@@ -563,18 +596,18 @@
         <!-- Footer Navigation Inside Panel -->
         <footer class="manual-footer-nav">
           <button type="button" class="manual-nav-btn manual-btn-prev" id="inner-btn-prev" ${activeIndex === 0 ? 'disabled' : ''}>
-            <span class="material-symbols-outlined">arrow_back</span>
+            <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
             <span>Misi Sebelum</span>
           </button>
 
           <a href="../halaman_utama/code.html" class="manual-nav-btn manual-btn-dashboard" title="Kembali ke Dashboard Utama">
-            <span class="material-symbols-outlined">home</span>
+            <span class="material-symbols-outlined" data-icon="home">home</span>
             <span>Kembali ke Dashboard</span>
           </a>
 
           <button type="button" class="manual-nav-btn manual-btn-next" id="inner-btn-next">
             <span>${activeIndex === MISSIONS.length - 1 ? '🎉 Selesai Baca Panduan' : 'Misi Seterusnya'}</span>
-            <span class="material-symbols-outlined">${activeIndex === MISSIONS.length - 1 ? 'task_alt' : 'arrow_forward'}</span>
+            <span class="material-symbols-outlined" data-icon="${activeIndex === MISSIONS.length - 1 ? 'task_alt' : 'arrow_forward'}">${activeIndex === MISSIONS.length - 1 ? 'task_alt' : 'arrow_forward'}</span>
           </button>
         </footer>
       </article>
@@ -750,11 +783,52 @@
   }
 
   // =========================================================================
+  // 6.5 ICON SAFETY & FALLBACK CONTROLLER
+  // =========================================================================
+  function checkAndApplyIconFallbacks() {
+    const testSpan = document.createElement('span');
+    testSpan.className = 'material-symbols-outlined';
+    testSpan.textContent = 'sports_esports';
+    testSpan.style.cssText = 'position:absolute;left:-9999px;top:-9999px;font-size:24px;visibility:hidden;';
+    document.body.appendChild(testSpan);
+
+    const evaluateIcons = () => {
+      // If font ligature collapses, width is <= 32px. If text string rendered, width is > 100px.
+      const isLigatureWorking = testSpan.getBoundingClientRect().width <= 32;
+      if (!isLigatureWorking) {
+        document.querySelectorAll('.material-symbols-outlined').forEach(el => {
+          const iconKey = el.getAttribute('data-icon') || el.textContent.trim();
+          if (SVG_ICONS[iconKey] && !el.querySelector('svg')) {
+            el.innerHTML = SVG_ICONS[iconKey];
+          }
+        });
+      }
+      if (testSpan.parentNode) testSpan.parentNode.removeChild(testSpan);
+    };
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(evaluateIcons).catch(evaluateIcons);
+    } else {
+      setTimeout(evaluateIcons, 400);
+    }
+  }
+
+  function forceSvgIcons() {
+    document.querySelectorAll('.material-symbols-outlined').forEach(el => {
+      const iconKey = el.getAttribute('data-icon') || el.textContent.trim();
+      if (SVG_ICONS[iconKey]) {
+        el.innerHTML = SVG_ICONS[iconKey];
+      }
+    });
+  }
+
+  // =========================================================================
   // 7. INITIAL BOOTSTRAP
   // =========================================================================
   function init() {
     renderMissionTabs();
     renderMissionPanel();
+    checkAndApplyIconFallbacks();
   }
 
   if (document.readyState === 'loading') {
@@ -766,9 +840,14 @@
   // Expose for QA test automation
   window.__ARSELNEL_MANUAL__ = {
     MISSIONS,
+    SVG_ICONS,
     getActiveIndex: () => activeIndex,
-    setMission,
+    setMission: (idx) => {
+      setMission(idx);
+      checkAndApplyIconFallbacks();
+    },
     openLightbox,
-    closeLightbox
+    closeLightbox,
+    forceSvgIcons
   };
 })();
