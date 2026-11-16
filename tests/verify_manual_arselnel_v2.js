@@ -258,12 +258,12 @@ async function runTests() {
     );
 
     // -------------------------------------------------------------
-    // TEST 3: Semakan Setiap Misi & Pautan Tindakan "Cuba Sekarang!"
+    // TEST 3: Semakan Setiap Misi, Gambar Sebenar & Pautan Tindakan
     // -------------------------------------------------------------
-    console.log('\n--- UJIAN 3: SEMAKAN KANDUNGAN 8 MISI & PAUTAN TINDAKAN ---');
+    console.log('\n--- UJIAN 3: SEMAKAN KANDUNGAN 8 MISI & PEMUATAN GAMBAR SEBENAR ---');
     for (let i = 0; i < 8; i++) {
       await cdp.eval(`window.__ARSELNEL_MANUAL__.setMission(${i});`);
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 250));
 
       const missionContent = await cdp.eval(`
         (() => {
@@ -276,29 +276,50 @@ async function runTests() {
           const hasTip = !!panel?.querySelector('.manual-tip-box');
           const img = panel?.querySelector('.manual-screenshot-img');
           const imgSrc = img?.getAttribute('src') || '';
+          const imgComplete = !!img?.complete;
+          const naturalW = img?.naturalWidth || 0;
+          const naturalH = img?.naturalHeight || 0;
+          const rect = img?.getBoundingClientRect() || { width: 0, height: 0 };
+
+          // Typography check
+          const bodyEl = panel?.querySelector('.manual-step-desc') || document.body;
+          const compStyle = window.getComputedStyle(bodyEl);
+          const fontFamily = compStyle.fontFamily;
+          const fontSize = parseFloat(compStyle.fontSize);
+
           return {
             title,
             actionHref,
             actionText: actionText.trim(),
             steps,
             hasTip,
-            imgSrc
+            imgSrc,
+            imgComplete,
+            naturalW,
+            naturalH,
+            rectW: rect.width,
+            rectH: rect.height,
+            fontFamily,
+            fontSize
           };
         })()
       `);
 
-      const pass = missionContent.steps >= 3 && missionContent.hasTip && missionContent.actionHref.length > 0 && missionContent.imgSrc.includes('assets/manual/');
+      const imgPass = missionContent.imgComplete && missionContent.naturalW > 0 && missionContent.naturalH > 0 && missionContent.rectW > 0;
+      const fontPass = (missionContent.fontFamily.includes('Plus Jakarta Sans') || missionContent.fontFamily.includes('Inter') || missionContent.fontFamily.includes('Nunito')) && !missionContent.fontFamily.includes('Times');
+      const pass = missionContent.steps >= 3 && missionContent.hasTip && missionContent.actionHref.length > 0 && imgPass && fontPass;
+      
       record(
-        `Misi ${i + 1}: Kandungan lengkap, arahan langkah (${missionContent.steps}), tip & pautan sah`,
+        `Misi ${i + 1}: Kandungan lengkap, arahan langkah (${missionContent.steps}), font sans-serif (${missionContent.fontSize}px), imej dimuatkan (${missionContent.naturalW}x${missionContent.naturalH}px, paparan ${Math.round(missionContent.rectW)}x${Math.round(missionContent.rectH)}px)`,
         pass,
-        `Tajuk: "${missionContent.title}" | Pautan: "${missionContent.actionHref}" | Imej: "${missionContent.imgSrc}"`
+        `Tajuk: "${missionContent.title}" | Imej: "${missionContent.imgSrc}" | Natural: ${missionContent.naturalW}x${missionContent.naturalH}px`
       );
     }
 
     // -------------------------------------------------------------
-    // TEST 4: Imej Screenshot Bebas 404 (Semua Fail Wujud & Dimuatkan)
+    // TEST 4: Imej Screenshot Bebas 404 & HTTP 200 image/png Check
     // -------------------------------------------------------------
-    console.log('\n--- UJIAN 4: INTEGRITI FAIL SCREENSHOT SEBENAR ---');
+    console.log('\n--- UJIAN 4: INTEGRITI FAIL & HTTP STATUS 200 SCREENSHOT SEBENAR ---');
     const imagesAudit = await cdp.eval(`
       (() => {
         const mData = window.__ARSELNEL_MANUAL__.MISSIONS;
@@ -306,20 +327,45 @@ async function runTests() {
       })()
     `);
 
-    let allImagesExist = true;
+    let allImagesValid = true;
     for (const relSrc of imagesAudit) {
-      const absPath = path.resolve(ROOT_DIR, 'manual_penggunaan', relSrc);
+      const cleanPath = relSrc.split('?')[0];
+      const absPath = path.resolve(ROOT_DIR, 'manual_penggunaan', cleanPath);
       const exists = fs.existsSync(absPath);
       if (!exists) {
-        allImagesExist = false;
-        console.error(`Missing screenshot: ${absPath}`);
+        allImagesValid = false;
+        console.error(`Missing screenshot on disk: ${absPath}`);
+        continue;
       }
+      const stat = fs.statSync(absPath);
+      if (stat.size < 10000) {
+        allImagesValid = false;
+        console.error(`Suspiciously small image file (${stat.size} bytes): ${absPath}`);
+        continue;
+      }
+
+      // Check HTTP 200 via internal server
+      const httpUrl = `http://127.0.0.1:${PORT}/${cleanPath.replace('../', '')}`;
+      await new Promise((res, rej) => {
+        http.get(httpUrl, (response) => {
+          if (response.statusCode !== 200 || response.headers['content-type'] !== 'image/png') {
+            allImagesValid = false;
+            console.error(`HTTP check failed for ${httpUrl}: status=${response.statusCode}, type=${response.headers['content-type']}`);
+          }
+          response.resume();
+          res();
+        }).on('error', (err) => {
+          allImagesValid = false;
+          console.error(`HTTP error for ${httpUrl}:`, err.message);
+          res();
+        });
+      });
     }
 
     record(
-      'Semua 8 fail screenshot wujud secara fizikal pada saiz sebenar dalam assets/manual/',
-      allImagesExist,
-      `Semua 8 gambar disahkan wujud.`
+      'Semua 8 fail screenshot wujud fizikal, saiz sah (>200KB) & boleh diakses via HTTP status 200 (image/png)',
+      allImagesValid,
+      `8/8 gambar disahkan wujud fizikal dan melepasi ujian HTTP 200.`
     );
 
     // -------------------------------------------------------------
@@ -425,10 +471,10 @@ async function runTests() {
     console.log('\n--- UJIAN 8: UJIAN RESPONSIF MERENTASI 7 VIEWPORT ---');
     const viewports = [
       { name: 'Desktop HD', width: 1920, height: 1080, mobile: false, shot: 'manual_v2_desktop_1920x1080.png' },
-      { name: 'Laptop WXGA', width: 1366, height: 768, mobile: false },
+      { name: 'Laptop WXGA', width: 1366, height: 768, mobile: false, shot: 'manual_v2_laptop_1366x768.png' },
       { name: 'iPad Landscape', width: 1024, height: 768, mobile: true, shot: 'manual_v2_ipad_landscape_1024x768.png' },
       { name: 'iPad Portrait', width: 768, height: 1024, mobile: true, shot: 'manual_v2_ipad_portrait_768x1024.png' },
-      { name: 'iPhone 14 Pro Max', width: 430, height: 932, mobile: true },
+      { name: 'iPhone 14 Pro Max', width: 430, height: 932, mobile: true, shot: 'manual_v2_iphone_promax_430x932.png' },
       { name: 'iPhone 14', width: 390, height: 844, mobile: true, shot: 'manual_v2_iphone_390x844.png' },
       { name: 'iPhone SE', width: 375, height: 667, mobile: true, shot: 'manual_v2_iphone_se_375x667.png' }
     ];

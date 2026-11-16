@@ -32,7 +32,7 @@
       routeLabel: 'halaman_utama/code.html',
       actionUrl: '../halaman_utama/code.html',
       actionText: 'Buka Dashboard',
-      screenshot: '../assets/manual/misi1_dashboard.png',
+      screenshot: '../assets/manual/misi1_dashboard.png?v=2.1.0',
       caption: 'Paparan Dashboard ARSELNEL yang mesra murid dengan bar sisi navigasi dan kad pembelajaran pantas.',
       steps: [
         {
@@ -67,7 +67,7 @@
       routeLabel: 'nota_pembelajaran/slaid_interaktif.html',
       actionUrl: '../nota_pembelajaran/code.html',
       actionText: 'Buka Modul Nota',
-      screenshot: '../assets/manual/misi2_nota_interaktif.png',
+      screenshot: '../assets/manual/misi2_nota_interaktif.png?v=2.1.0',
       caption: 'Penonton slaid pintar ARSELNEL dengan sokongan pen conteng digital, pemadam, zum, dan muat turun PDF.',
       steps: [
         {
@@ -110,7 +110,7 @@
       routeLabel: 'perpustakaan_video/code.html',
       actionUrl: '../perpustakaan_video/code.html',
       actionText: 'Tonton Video Sains',
-      screenshot: '../assets/manual/misi3_video_pembelajaran.png',
+      screenshot: '../assets/manual/misi3_video_pembelajaran.png?v=2.1.0',
       caption: 'Perpustakaan video pembelajaran ARSELNEL dengan pemain video interaktif dan ringkasan konsep KSSM.',
       steps: [
         {
@@ -149,7 +149,7 @@
       routeLabel: 'selbot_ai/code.html',
       actionUrl: '../selbot_ai/code.html',
       actionText: 'Buka Tanya AI',
-      screenshot: '../assets/manual/misi4_selbot_ai.png',
+      screenshot: '../assets/manual/misi4_selbot_ai.png?v=2.1.0',
       caption: 'Antaramuka sembang pintar SelBot AI dengan cadangan soalan pantas dan sejarah perbualan awan.',
       steps: [
         {
@@ -192,7 +192,7 @@
       routeLabel: 'hab_permainan/code.html',
       actionUrl: '../hab_permainan/code.html',
       actionText: 'Masuk Hab Permainan',
-      screenshot: '../assets/manual/misi5_permainan_sains.png',
+      screenshot: '../assets/manual/misi5_permainan_sains.png?v=2.1.0',
       caption: 'Hab Permainan Sains ARSELNEL dengan 5 pilihan arked interaktif dan paparan skor pencapaian.',
       steps: [
         {
@@ -239,7 +239,7 @@
       routeLabel: 'cellquest/code.html',
       actionUrl: '../cellquest/code.html',
       actionText: 'Terokai CellQuest 3D',
-      screenshot: '../assets/manual/misi6_cellquest_3d.png',
+      screenshot: '../assets/manual/misi6_cellquest_3d.png?v=2.1.0',
       caption: 'Penerokaan model 3D interaktif CellQuest dengan kad penerangan organel dan kawalan putaran 360 darjah.',
       steps: [
         {
@@ -286,7 +286,7 @@
       routeLabel: 'kotak_arselnel/code.html',
       actionUrl: '../kotak_arselnel/code.html',
       actionText: 'Buka Pengimbas AR',
-      screenshot: '../assets/manual/misi7_cetak_kad_ar.png',
+      screenshot: '../assets/manual/misi7_cetak_kad_ar.png?v=2.1.0',
       caption: 'Modal galeri Cetak Kad AR memaparkan 6 marker rasmi MindAR sedia dicetak pada kertas A4.',
       steps: [
         {
@@ -341,7 +341,7 @@
       routeLabel: 'profil/code.html',
       actionUrl: '../profil/code.html',
       actionText: 'Buka Profil Saya',
-      screenshot: '../assets/manual/misi8_profil_tetapan.png',
+      screenshot: '../assets/manual/misi8_profil_tetapan.png?v=2.1.0',
       caption: 'Halaman Profil dan Tetapan membolehkan murid memilih avatar, mod paparan gelap/cerah, dan saiz teks.',
       steps: [
         {
@@ -529,8 +529,27 @@
           <!-- Right Column: Interactive Real Screenshot Card -->
           <div class="manual-panel-right">
             <div class="manual-screenshot-card" id="screenshot-trigger-${m.num}" title="Klik untuk besarkan gambar screenshot" tabindex="0" role="button" aria-label="Besarkan screenshot ${m.shortTitle}">
-              <img src="${m.screenshot}" alt="${m.title} Screenshot Sebenar" class="manual-screenshot-img" loading="lazy" />
-              <div class="manual-screenshot-overlay">
+              <!-- Skeleton Loading Shimmer -->
+              <div class="manual-screenshot-skeleton" id="screenshot-skeleton-${m.num}" aria-hidden="true">
+                <span class="manual-skeleton-shimmer"></span>
+                <span class="manual-skeleton-text">📸 Memuatkan screenshot ${m.shortTitle}...</span>
+              </div>
+
+              <!-- Real Screenshot Image -->
+              <img src="${m.screenshot}" alt="${m.title} Screenshot Sebenar" class="manual-screenshot-img" id="screenshot-img-${m.num}" loading="eager" />
+
+              <!-- Fallback Error Card -->
+              <div class="manual-screenshot-fallback" id="screenshot-fallback-${m.num}" style="display:none;">
+                <span class="material-symbols-outlined manual-fallback-icon">broken_image</span>
+                <p class="manual-fallback-text">Gambar screenshot mengambil sedikit masa untuk dimuatkan.</p>
+                <button type="button" class="manual-fallback-retry-btn" id="screenshot-retry-${m.num}">
+                  <span class="material-symbols-outlined">refresh</span>
+                  <span>Cuba Muat Semula Gambar</span>
+                </button>
+              </div>
+
+              <!-- Zoom Badge Overlay -->
+              <div class="manual-screenshot-overlay" id="screenshot-overlay-${m.num}">
                 <span class="manual-screenshot-zoom-badge">
                   <span class="material-symbols-outlined" style="font-size:16px;">zoom_in</span>
                   <span>Klik untuk Besarkan</span>
@@ -560,6 +579,39 @@
         </footer>
       </article>
     `;
+
+    // Hook screenshot load & error handling
+    const imgEl = document.getElementById(`screenshot-img-${m.num}`);
+    const skeletonEl = document.getElementById(`screenshot-skeleton-${m.num}`);
+    const fallbackEl = document.getElementById(`screenshot-fallback-${m.num}`);
+    const retryBtn = document.getElementById(`screenshot-retry-${m.num}`);
+
+    if (imgEl) {
+      if (imgEl.complete && imgEl.naturalWidth > 0) {
+        if (skeletonEl) skeletonEl.style.display = 'none';
+      } else {
+        imgEl.addEventListener('load', () => {
+          if (skeletonEl) skeletonEl.style.display = 'none';
+          if (fallbackEl) fallbackEl.style.display = 'none';
+        });
+        imgEl.addEventListener('error', () => {
+          if (skeletonEl) skeletonEl.style.display = 'none';
+          if (fallbackEl) fallbackEl.style.display = 'flex';
+        });
+      }
+    }
+
+    if (retryBtn) {
+      retryBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (fallbackEl) fallbackEl.style.display = 'none';
+        if (skeletonEl) skeletonEl.style.display = 'flex';
+        if (imgEl) {
+          const sep = m.screenshot.includes('?') ? '&' : '?';
+          imgEl.src = m.screenshot + sep + 'retry=' + Date.now();
+        }
+      });
+    }
 
     // Hook inner nav buttons
     const innerPrev = document.getElementById('inner-btn-prev');

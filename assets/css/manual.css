@@ -49,6 +49,20 @@
   --misi-8-bg: #f8fafc;
 }
 
+/* Universal Typography Enforcement: Strictly Sans-Serif */
+html, body, button, input, select, textarea, p, span, h1, h2, h3, h4, h5, h6, li, a, div, article, section, header, footer {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* ==========================================================================
    2. PAGE WRAPPER & HEADER HERO
    ========================================================================== */
@@ -588,19 +602,19 @@
 }
 
 .manual-step-title {
-  margin: 0 0 4px;
-  font-size: 17px;
+  margin: 0 0 6px;
+  font-size: 18px;
   font-weight: 800;
   color: #0f172a;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .manual-step-desc {
   margin: 0;
-  font-size: 15.5px;
+  font-size: 16px;
   font-weight: 500;
-  line-height: 1.65;
-  color: #475569;
+  line-height: 1.7;
+  color: #334155;
 }
 
 /* CALLOUT TIPS BOX */
@@ -657,6 +671,11 @@
   box-shadow: var(--shadow-lg);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  aspect-ratio: 16 / 10;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .manual-screenshot-card:hover {
@@ -668,13 +687,98 @@
 .manual-screenshot-img {
   display: block;
   width: 100%;
-  height: auto;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+  height: 100%;
+  max-height: 520px;
+  object-fit: contain;
+  background: #0f172a;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .manual-screenshot-card:hover .manual-screenshot-img {
   transform: scale(1.015);
+}
+
+/* Skeleton Loading State */
+.manual-screenshot-skeleton {
+  position: absolute;
+  inset: 0;
+  background: #1e293b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 2;
+  transition: opacity 0.3s ease;
+}
+
+.manual-skeleton-shimmer {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #6366f1;
+  animation: manual-spin 1s linear infinite;
+}
+
+@keyframes manual-spin {
+  to { transform: rotate(360deg); }
+}
+
+.manual-skeleton-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* Fallback Error State */
+.manual-screenshot-fallback {
+  position: absolute;
+  inset: 0;
+  background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  gap: 12px;
+  z-index: 3;
+}
+
+.manual-fallback-icon {
+  font-size: 44px;
+  color: #f59e0b;
+}
+
+.manual-fallback-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #cbd5e1;
+  max-width: 320px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.manual-fallback-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.manual-fallback-retry-btn:hover {
+  background: #4338ca;
+  transform: translateY(-2px);
 }
 
 .manual-screenshot-overlay {
@@ -686,6 +790,7 @@
   justify-content: space-between;
   padding: 18px 20px;
   color: #ffffff;
+  pointer-events: none;
 }
 
 .manual-screenshot-zoom-badge {
