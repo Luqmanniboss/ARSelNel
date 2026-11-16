@@ -6,7 +6,7 @@
 (function () {
   'use strict';
 
-  // Senarai Lengkap 8 Marker Aktif MindAR (Target Index 0 - 7)
+  // Senarai Lengkap 6 Marker Aktif MindAR (Target Index 0, 1, 3, 4, 5, 6)
   const KOTAK_MARKERS = [
     {
       id: 'marker-video',
@@ -35,20 +35,6 @@
       image: '../kotak_arselnel/assets/markers/marker-nota.png',
       size: '20 × 20 CM',
       description: 'Imbas untuk membaca nota sains KSSM Bab 2, ringkasan perbandingan sel, serta slaid maya beranimasi.'
-    },
-    {
-      id: 'marker-kuiz',
-      targetIndex: 2,
-      muka: 'Muka 3',
-      title: 'Kuiz & Cabaran Minda Sains',
-      category: 'Kuiz Arked',
-      categoryColor: '#7C3AED',
-      categoryBg: '#EDE9FE',
-      categoryBorder: '#C4B5FD',
-      icon: 'sports_esports',
-      image: '../kotak_arselnel/assets/markers/marker-kuiz.png',
-      size: '20 × 20 CM',
-      description: 'Imbas untuk mengaktifkan arked 5 permainan sel: Padanan Sel, Memori Sel, Labirin Organel, Penembak Sel & Cabaran.'
     },
     {
       id: 'marker-sel-haiwan',
@@ -105,20 +91,6 @@
       image: '../kotak_arselnel/assets/markers/marker-orientasi-dunia.png',
       size: '20 × 20 CM',
       description: 'Imbas untuk memulakan Misi Jelajah Dunia Sel 360° menggunakan sensor kompas dan radar untuk mencari 8 stesen organel fizikal.'
-    },
-    {
-      id: 'marker-selbot',
-      targetIndex: 7,
-      muka: 'Muka 8',
-      title: 'SelBot AI — Pembantu Sains Pintar',
-      category: 'SELBOT AI',
-      categoryColor: '#0891B2',
-      categoryBg: '#CFFAFE',
-      categoryBorder: '#67E8F9',
-      icon: 'smart_toy',
-      image: '../kotak_arselnel/assets/markers/marker-selbot.png',
-      size: '20 × 20 CM',
-      description: 'Imbas untuk berinteraksi dengan SelBot AI, pembantu pembelajaran sains pintar yang membantu murid memahami konsep sel, fungsi organel dan menjawab soalan secara interaktif.'
     }
   ];
 

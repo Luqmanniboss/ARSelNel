@@ -970,61 +970,7 @@
         lastInteractionTime: Date.now()
       });
 
-      // 3. Mendaftar Panel Kuiz & Permainan (Tema Ungu #a855f7) - FASA 4E-C.2
-      this.register('kuiz', {
-        elementId: 'pov-panel-kuiz',
-        theme: 'purple',
-        themeColor: '#a855f7',
-        title: 'Kuiz & Permainan',
-        icon: 'sports_esports',
-        markerIndex: 2,
-        size: 'medium',
-        dragOffset: { x: 0, y: 0 },
-        placementMode: 'MARKER_FOLLOW',
-        referenceQuaternion: null,
-        anchorWorldVector: null,
-        isRegistered: true,
-        isLoaded: false,
-        isActive: false,
-        isVisible: false,
-        isLocked: false,
-        isClosed: false,
-        isDestroyed: false,
-        playbackState: 'idle',
-        savedScrollTop: 0,
-        page: 1,
-        isInteractive: true,
-        lastInteractionTime: Date.now()
-      });
-
-      // 4. Mendaftar Panel SelBot AI (Tema Cyan/Teal/Ungu #06b6d4) - FASA 4F
-      this.register('selbot', {
-        elementId: 'pov-panel-selbot',
-        theme: 'cyan',
-        themeColor: '#06b6d4',
-        title: 'SelBot AI — Pembantu Sains Pintar',
-        icon: 'smart_toy',
-        markerIndex: 7,
-        size: 'medium',
-        dragOffset: { x: 0, y: 0 },
-        placementMode: 'MARKER_FOLLOW',
-        referenceQuaternion: null,
-        anchorWorldVector: null,
-        isRegistered: true,
-        isLoaded: false,
-        isActive: false,
-        isVisible: false,
-        isLocked: false,
-        isClosed: false,
-        isDestroyed: false,
-        playbackState: 'idle',
-        savedScrollTop: 0,
-        page: 1,
-        isInteractive: true,
-        lastInteractionTime: Date.now()
-      });
-
-      console.log('✅ [SpatialPanelManager] Inisialisasi siap: Video (#pov-panel-video), Nota (#pov-panel-nota), Kuiz (#pov-panel-kuiz) & SelBot AI (#pov-panel-selbot) mod lalai: MARKER_FOLLOW.');
+      console.log('✅ [SpatialPanelManager] Inisialisasi siap: Video (#pov-panel-video) & Nota (#pov-panel-nota) mod lalai: MARKER_FOLLOW (Fasa Pembersihan Kotak ARSELNEL - 6 Sasaran Aktif).');
     },
 
     register(id, config) {
@@ -4740,15 +4686,6 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
     }
 
-    // Jika pengguna belum mempunyai kuiz dan marker kuiz kelihatan (Fasa 4E-C.2)
-    if (!ARState.activePanels.has('kuiz')) {
-      if (ARState.anchorKuiz && ARState.anchorKuiz.group && ARState.anchorKuiz.group.visible) {
-        console.log('[MultiPanel] 🎯 Marker Kuiz dikesan sedang dalam pandangan kamera!');
-        addPanelToSpatialWorkspace('kuiz');
-        return;
-      }
-    }
-
     // Jika pengguna belum mempunyai CellQuest 3D dan marker CellQuest kelihatan (Fasa 4E-C.3A & 4E-D.1)
     if (!ARState.activePanels.has('cellquest')) {
       if (ARState.anchorCellQuestAnimal && ARState.anchorCellQuestAnimal.group && ARState.anchorCellQuestAnimal.group.visible) {
@@ -4767,27 +4704,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         return;
       }
     }
-
-    // Jika pengguna belum mempunyai SelBot AI dan marker SelBot kelihatan (Fasa 4F)
-    if (!ARState.activePanels.has('selbot')) {
-      if (ARState.anchorSelbot && ARState.anchorSelbot.group && ARState.anchorSelbot.group.visible) {
-        console.log('[MultiPanel] 🎯 Marker SelBot AI dikesan sedang dalam pandangan kamera!');
-        addPanelToSpatialWorkspace('selbot');
-        return;
-      }
-    }
   }
 
   /**
    * Permulaan mod imbas panel baharu
    */
   function startAddPanelScan() {
-    const domCount = ['video', 'nota', 'kuiz', 'selbot'].filter(m => ARState.activePanels.has(m)).length;
+    const domCount = ['video', 'nota'].filter(m => ARState.activePanels.has(m)).length;
     const hasCQ = ARState.activePanels.has('cellquest');
     const totalCount = ARState.activePanels.size;
 
-    if (totalCount >= 5 || (domCount >= 4 && hasCQ)) {
-      showToast('Maksimum 5 modul aktif serentak (Video, Nota, Kuiz, SelBot AI & CellQuest 3D).');
+    if (totalCount >= 3 || (domCount >= 2 && hasCQ)) {
+      showToast('Maksimum 3 modul aktif serentak (Video, Nota & CellQuest 3D).');
       return;
     }
     // Jika pengguna belum mengunci atau menyemat panel/model, berikan panduan jelas untuk meletakkannya terlebih dahulu
@@ -4813,6 +4741,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
    * Fasa 4E-D.1: Menyokong parameter pilihan cellType ('animal' | 'plant')
    */
   function handleTargetFound(targetIndex, moduleName, cellType) {
+    // FASA PEMBERSIHAN KOTAK ARSELNEL: Kuiz (2) & SelBot AI (7) dinyahaktifkan sepenuhnya dari Kotak ARSELNEL
+    if (targetIndex === 2 || moduleName === 'kuiz' || targetIndex === 7 || moduleName === 'selbot') {
+      return;
+    }
+
     // Fasa 4E-E.2: Target 5 = Marker Jelajah 3D (Lightweight Intro Panel)
     if (targetIndex === 5 || moduleName === 'jelajah3d') {
       if (typeof GameSessionManager !== 'undefined' && GameSessionManager.isGameActive()) {
@@ -8230,7 +8163,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     // Target 7 = SELBOT AI (PANEL PERBUALAN SELBOT AI TERAPUNG - FASA 4F)
     ARState.anchorSelbot = ARState.mindarThree.addAnchor(7);
     if (DOM.diagMarkerMindStatus) {
-      DOM.diagMarkerMindStatus.textContent = '8 Sasaran (0-7 Sedia)';
+      DOM.diagMarkerMindStatus.textContent = '6 Sasaran Aktif';
       DOM.diagMarkerMindStatus.className = 'v ok';
     }
     if (ARState.anchorJelajah3D) {
@@ -8257,49 +8190,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         console.info('[KotakAR] MindAR Target 6 (AR Orientasi Dunia) LOST');
       };
     }
+    // FASA PEMBERSIHAN KOTAK ARSELNEL: Target 7 (SelBot AI) dinyahaktifkan sepenuhnya
     if (ARState.anchorSelbot) {
-      ARState.anchorSelbot.onTargetFound = () => {
-        if (GameSessionManager.isGameActive()) return;
-        console.info('[KotakAR] MindAR Target 7 (SelBot AI) FOUND');
-        handleTargetFound(7, 'selbot');
-      };
-      ARState.anchorSelbot.onTargetLost = () => {
-        if (GameSessionManager.isGameActive()) return;
-        console.info('[KotakAR] ⏳ MindAR Target 7 (SelBot AI) hilang dari pandangan...');
-        clearTimeout(ARState.lostTimeout);
-        if (ARState.markerCooldown) ARState.markerCooldown['selbot'] = 0;
-
-        ARState.lostTimeout = setTimeout(() => {
-          if (ARState.activeModule === 'selbot' || ARState.activePanels.has('selbot')) {
-            ARState.isTracking = false;
-            console.log('[KotakAR] Marker SelBot AI disahkan hilang (Sejarah perbualan kekal utuh).');
-
-            if (ARSessionRecoveryManager && typeof ARSessionRecoveryManager.setState === 'function') {
-              ARSessionRecoveryManager.setState(ARSessionRecoveryManager.State.SCANNING);
-            }
-
-            const pSel = (typeof SpatialPanelManager !== 'undefined') ? SpatialPanelManager.getPanel('selbot') : null;
-            const modeSel = pSel ? pSel.placementMode : (ARState.isPinned ? 'SCREEN_PINNED' : 'MARKER_FOLLOW');
-            const isPinnedOrLocked = ARState.isPinned || modeSel === 'SCREEN_PINNED' || modeSel === 'POV_LOCKED' || modeSel === 'POV_SETUP';
-
-            if (isPinnedOrLocked) {
-              console.log('[KotakAR] 📌 SelBot AI disematkan pada skrin / Kunci POV. Paparan dikekalkan semasa kad hilang.');
-              return;
-            }
-
-            if (modeSel === 'MARKER_FOLLOW' || modeSel === 'MARKER_MODE' || modeSel === 'MARKER') {
-              if (DOM.povPanelSelbot) {
-                DOM.povPanelSelbot.style.opacity = '0';
-                DOM.povPanelSelbot.style.visibility = 'hidden';
-                DOM.povPanelSelbot.style.pointerEvents = 'none';
-              }
-              if (DOM.floatingAnchor && ARState.activePanels.size <= 1) DOM.floatingAnchor.classList.remove('is-visible');
-              if (DOM.scannerOverlay && ARState.activePanels.size <= 1) DOM.scannerOverlay.classList.remove('hidden');
-              showToast('Kad AR SelBot tidak dikesan. Sejarah chat disimpan; imbas semula atau guna Semat Skrin.', 3000);
-            }
-          }
-        }, ARState.HYSTERESIS_DELAY);
-      };
+      ARState.anchorSelbot.onTargetFound = () => {};
+      ARState.anchorSelbot.onTargetLost = () => {};
     }
     // Rujukan anchor CellQuest aktif semasa (lalai: Sel Haiwan)
     ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
@@ -8310,7 +8204,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
 
     // Default primary anchor pointer
-    ARState.anchor = ARState.activeModule === 'nota' ? ARState.anchorNota : (ARState.activeModule === 'kuiz' ? ARState.anchorKuiz : (ARState.activeModule === 'cellquest' ? ARState.anchorCellQuest : ARState.anchorVideo));
+    ARState.anchor = ARState.activeModule === 'nota' ? ARState.anchorNota : (ARState.activeModule === 'cellquest' ? ARState.anchorCellQuest : ARState.anchorVideo);
 
     ARState.hologramGroup = create3DHologramBase();
     if (ARState.hologramGroup && ARState.hologramGroup.group) {
@@ -8401,55 +8295,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }, ARState.HYSTERESIS_DELAY);
     };
 
-    // Target 2 (Kuiz & Permainan) Found Event
-    ARState.anchorKuiz.onTargetFound = () => {
-      // 🛡️ ISOLATION: If an interactive game is currently LOADING or ACTIVE, KEEP THE GAME RUNNING!
-      if (GameSessionManager.isGameActive()) {
-        console.log('[KotakAR] 🛡️ Sesi permainan sedang aktif (' + GameSessionManager.activeGameId + '). Pengesanan semula marker tidak merender semula katalog.');
-        if (DOM.scannerOverlay) DOM.scannerOverlay.classList.add('hidden');
-        if (DOM.floatingAnchor) DOM.floatingAnchor.classList.add('is-visible');
-        return;
-      }
-      handleTargetFound(2, 'kuiz');
-    };
-
-    // Target 2 (Kuiz & Permainan) Lost Event with Debounce Hysteresis
-    ARState.anchorKuiz.onTargetLost = () => {
-      console.log('[KotakAR] ⏳ Marker Kuiz hilang dari pandangan...');
-      clearTimeout(ARState.lostTimeout);
-      if (ARState.markerCooldown) ARState.markerCooldown['kuiz'] = 0;
-
-      ARState.lostTimeout = setTimeout(() => {
-        if (ARState.activeModule === 'kuiz' || ARState.activePanels.has('kuiz')) {
-          ARState.isTracking = false;
-          console.log('[KotakAR] Marker Kuiz disahkan hilang.');
-
-          // 🛡️ ISOLATION: If an interactive game is LOADING or ACTIVE, DO NOT HIDE PANEL OR KILL GAME!
-          if (GameSessionManager.isGameActive()) {
-            console.log('[KotakAR] 🛡️ Permainan aktif, panel AR kekal dipaparkan walaupun marker hilang sementara.');
-            return;
-          }
-
-          if (ARSessionRecoveryManager && typeof ARSessionRecoveryManager.setState === 'function') {
-            ARSessionRecoveryManager.setState(ARSessionRecoveryManager.State.SCANNING);
-          }
-
-          const pKuz = (typeof SpatialPanelManager !== 'undefined') ? SpatialPanelManager.getPanel('kuiz') : null;
-          const modeKuz = pKuz ? pKuz.placementMode : (ARState.isPinned ? 'SCREEN_PINNED' : 'MARKER_FOLLOW');
-
-          if (modeKuz === 'MARKER_FOLLOW' || modeKuz === 'MARKER_MODE' || modeKuz === 'MARKER') {
-            if (DOM.povPanelKuiz) {
-              DOM.povPanelKuiz.style.opacity = '0';
-              DOM.povPanelKuiz.style.visibility = 'hidden';
-              DOM.povPanelKuiz.style.pointerEvents = 'none';
-            }
-            if (DOM.floatingAnchor && ARState.activePanels.size <= 1) DOM.floatingAnchor.classList.remove('is-visible');
-            if (DOM.scannerOverlay && ARState.activePanels.size <= 1) DOM.scannerOverlay.classList.remove('hidden');
-            showToast('Kad AR tidak dikesan. Imbas semula untuk memaparkan panel.', 3000);
-          }
-        }
-      }, ARState.HYSTERESIS_DELAY);
-    };
+    // FASA PEMBERSIHAN KOTAK ARSELNEL: Target 2 (Kuiz & Permainan) dinyahaktifkan sepenuhnya
+    if (ARState.anchorKuiz) {
+      ARState.anchorKuiz.onTargetFound = () => {};
+      ARState.anchorKuiz.onTargetLost = () => {};
+    }
 
     // Target 3 (Sel Haiwan 3D) Found Event
     ARState.anchorCellQuestAnimal.onTargetFound = () => {
@@ -10741,7 +10591,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
     }
     if (DOM.diagMarkerMindStatus) {
-      DOM.diagMarkerMindStatus.textContent = '8 Sasaran (0-7 Sedia)';
+      DOM.diagMarkerMindStatus.textContent = '6 Sasaran Aktif';
     }
     if (DOM.diagWebglStatus) {
       const gl = ARState.renderer ? ARState.renderer.getContext() : null;
@@ -11831,9 +11681,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     },
     {
       icon: 'dashboard_customize',
-      title: '8 Kad Pembelajaran Interaktif',
-      desc: 'Anda boleh mengimbas kad Video Pembelajaran, Nota Interaktif, Kuiz & Permainan, CellQuest 3D (Sel Haiwan & Sel Tumbuhan), Jelajah 3D, AR Orientasi Dunia atau SelBot AI.',
-      tip: 'Gunakan butang "Papar Kad AR" di bar atas untuk melihat atau mencetak kesemua 8 kad AR.'
+      title: '6 Kad Pembelajaran Interaktif',
+      desc: 'Anda boleh mengimbas kad Video Pembelajaran, Nota Interaktif, Model 3D Sel Haiwan, Model 3D Sel Tumbuhan, Makmal Eksplorasi 3D atau AR Orientasi Dunia.',
+      tip: 'Gunakan butang "Papar Kad AR" di bar atas untuk melihat atau mencetak kesemua 6 kad AR.'
     },
     {
       icon: 'push_pin',

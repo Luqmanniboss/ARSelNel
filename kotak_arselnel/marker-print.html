@@ -283,33 +283,25 @@
       <span class="material-symbols-outlined" style="font-size:18px;">auto_stories</span>
       <span>2. Nota</span>
     </button>
-    <button type="button" class="tab-btn tab-kuiz" id="btn-show-kuiz" onclick="showMarker('kuiz')">
-      <span class="material-symbols-outlined" style="font-size:18px;">sports_esports</span>
-      <span>3. Kuiz</span>
-    </button>
     <button type="button" class="tab-btn tab-haiwan" id="btn-show-haiwan" onclick="showMarker('haiwan')">
       <span class="material-symbols-outlined" style="font-size:18px;">biotech</span>
-      <span>4. Sel Haiwan</span>
+      <span>3. Sel Haiwan</span>
     </button>
     <button type="button" class="tab-btn tab-tumbuhan" id="btn-show-tumbuhan" onclick="showMarker('tumbuhan')">
       <span class="material-symbols-outlined" style="font-size:18px;">potted_plant</span>
-      <span>5. Sel Tumbuhan</span>
+      <span>4. Sel Tumbuhan</span>
     </button>
     <button type="button" class="tab-btn tab-nota" id="btn-show-jelajah3d" onclick="showMarker('jelajah3d')">
       <span class="material-symbols-outlined" style="font-size:18px;">explore</span>
-      <span>6. Jelajah 3D</span>
+      <span>5. Makmal 3D</span>
     </button>
     <button type="button" class="tab-btn tab-haiwan" id="btn-show-orientasi" onclick="showMarker('orientasi')">
       <span class="material-symbols-outlined" style="font-size:18px;">public</span>
-      <span>7. AR Orientasi Dunia</span>
-    </button>
-    <button type="button" class="tab-btn tab-selbot" id="btn-show-selbot" onclick="showMarker('selbot')">
-      <span class="material-symbols-outlined" style="font-size:18px;">smart_toy</span>
-      <span>8. SelBot AI</span>
+      <span>6. AR Orientasi Dunia</span>
     </button>
     <button type="button" class="tab-btn" id="btn-show-all" onclick="showMarker('all')">
       <span class="material-symbols-outlined" style="font-size:18px;">grid_view</span>
-      <span>Papar Semua (8 Marker)</span>
+      <span>Papar Semua (6 Marker)</span>
     </button>
   </div>
 
@@ -325,7 +317,7 @@
     </a>
   </div>
 
-  <!-- THE MARKERS TO BE SCANNED OR PRINTED -->
+  <!-- THE MARKERS TO BE SCANNED OR PRINTED (6 ENJIN AKTIF) -->
   <div class="markers-container" id="markers-container">
     <!-- MARKER 0: VIDEO -->
     <div class="marker-frame frame-video" id="card-video">
@@ -342,15 +334,6 @@
       <div class="marker-specs">
         <span style="color:#0d9488;">★ MUKA 2: NOTA INTERAKTIF</span>
         <span>INDEX 1 • 20 × 20 CM</span>
-      </div>
-    </div>
-
-    <!-- MARKER 2: KUIZ & PERMAINAN -->
-    <div class="marker-frame frame-kuiz" id="card-kuiz">
-      <img src="assets/markers/marker-kuiz.png" alt="Kotak ARSELNEL - Marker 3 Kuiz & Permainan" />
-      <div class="marker-specs">
-        <span style="color:#8b5cf6;">★ MUKA 3: KUIZ &amp; PERMAINAN</span>
-        <span>INDEX 2 • 20 × 20 CM</span>
       </div>
     </div>
 
@@ -381,20 +364,12 @@
       </div>
     </div>
 
+    <!-- MARKER 6: AR ORIENTASI DUNIA -->
     <div class="marker-frame frame-haiwan" id="card-orientasi" style="display:none;">
       <img src="assets/markers/marker-orientasi-dunia.png" alt="Kotak ARSELNEL - Marker 7 AR Orientasi Dunia (Misi Jelajah Dunia Sel)" />
       <div class="marker-specs">
         <span style="color:#0284c7;">★ MUKA 7: AR ORIENTASI DUNIA • MISI JELAJAH DUNIA SEL</span>
         <span>INDEX 6 • 20 × 20 CM</span>
-      </div>
-    </div>
-
-    <!-- MARKER 7: SELBOT AI -->
-    <div class="marker-frame frame-selbot" id="card-selbot" style="display:none;">
-      <img src="assets/markers/marker-selbot.png" alt="Kotak ARSELNEL - Marker 8 SelBot AI — Pembantu Sains Pintar" />
-      <div class="marker-specs">
-        <span style="color:#0891b2;">★ MUKA 8: SELBOT AI — PEMBANTU SAINS PINTAR</span>
-        <span>INDEX 7 • 20 × 20 CM</span>
       </div>
     </div>
   </div>
@@ -409,9 +384,10 @@
       <li><strong>Imbas Terus dari Skrin:</strong> Biarkan halaman ini terbuka pada laptop atau monitor. Buka pautan HTTPS di iPad/telefon anda (`https://[IP]:3443/kotak_arselnel/`), benarkan kamera dan halakan kamera ke arah mana-mana marker di atas.</li>
       <li><strong>Muka 1 (Video - Jingga):</strong> Memaparkan Pemain Video interaktif dan senarai video CMS sains sel.</li>
       <li><strong>Muka 2 (Nota - Teal):</strong> Memaparkan Panel Nota Interaktif Sains KSSM dengan semakan slaid, kawalan saiz S/M/L, Zoom in/out, Screen-Pinned dan Gyroscope POV Lock!</li>
-      <li><strong>Muka 3 (Kuiz &amp; Permainan - Ungu):</strong> Memaparkan katalog 5 permainan asal ARSELNEL, mod fokus penuh, dan pengasingan sesi permainan bebas.</li>
       <li><strong>Muka 4 (Sel Haiwan 3D - Biru/Sian):</strong> Memaparkan model 3D Sel Haiwan secara automatik (Target Index 3).</li>
       <li><strong>Muka 5 (Sel Tumbuhan 3D - Zamrud/Hijau):</strong> Memaparkan model 3D Sel Tumbuhan secara automatik (Target Index 4).</li>
+      <li><strong>Muka 6 (Makmal Eksplorasi 3D):</strong> Memaparkan stesen makmal 3D interaktif sains sel (Target Index 5).</li>
+      <li><strong>Muka 7 (AR Orientasi Dunia):</strong> Memaparkan Misi Jelajah Dunia Sel berorientasi radar 360° (Target Index 6).</li>
       <li><strong>Pertukaran Modul &amp; Multi-Panel:</strong> Kamera boleh menambah modul secara bertahap melalui butang `+ Tambah Imbasan Baharu` tanpa meruntuhkan panel lain yang telah dikunci POV.</li>
     </ol>
   </div>
@@ -420,42 +396,34 @@
     function showMarker(type) {
       const v = document.getElementById('card-video');
       const n = document.getElementById('card-nota');
-      const k = document.getElementById('card-kuiz');
       const h = document.getElementById('card-haiwan');
       const t = document.getElementById('card-tumbuhan');
       const j = document.getElementById('card-jelajah3d');
       const o = document.getElementById('card-orientasi');
-      const s = document.getElementById('card-selbot');
       const btnV = document.getElementById('btn-show-video');
       const btnN = document.getElementById('btn-show-nota');
-      const btnK = document.getElementById('btn-show-kuiz');
       const btnH = document.getElementById('btn-show-haiwan');
       const btnT = document.getElementById('btn-show-tumbuhan');
       const btnJ = document.getElementById('btn-show-jelajah3d');
       const btnO = document.getElementById('btn-show-orientasi');
-      const btnS = document.getElementById('btn-show-selbot');
       const btnA = document.getElementById('btn-show-all');
 
       btnV.className = 'tab-btn tab-video';
       btnN.className = 'tab-btn tab-nota';
-      btnK.className = 'tab-btn tab-kuiz';
       btnH.className = 'tab-btn tab-haiwan';
       btnT.className = 'tab-btn tab-tumbuhan';
       if (btnJ) btnJ.className = 'tab-btn tab-nota';
       if (btnO) btnO.className = 'tab-btn tab-haiwan';
-      if (btnS) btnS.className = 'tab-btn tab-selbot';
       btnA.className = 'tab-btn';
 
-      const cards = { video: v, nota: n, kuiz: k, haiwan: h, tumbuhan: t, jelajah3d: j, orientasi: o, selbot: s };
+      const cards = { video: v, nota: n, haiwan: h, tumbuhan: t, jelajah3d: j, orientasi: o };
       const btns = {
         video: [btnV, 'tab-btn active tab-video'],
         nota: [btnN, 'tab-btn active tab-nota'],
-        kuiz: [btnK, 'tab-btn active tab-kuiz'],
         haiwan: [btnH, 'tab-btn active tab-haiwan'],
         tumbuhan: [btnT, 'tab-btn active tab-tumbuhan'],
         jelajah3d: [btnJ, 'tab-btn active tab-nota'],
-        orientasi: [btnO, 'tab-btn active tab-haiwan'],
-        selbot: [btnS, 'tab-btn active tab-selbot']
+        orientasi: [btnO, 'tab-btn active tab-haiwan']
       };
 
       if (type !== 'all' && cards[type]) {
