@@ -56,7 +56,7 @@ function sendCDP(ws, method, params = {}, id = 1) {
           if (msg.error) reject(msg.error);
           else resolve(msg.result);
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     ws.addEventListener('message', handler);
     ws.send(JSON.stringify({ id, method, params }));
@@ -150,7 +150,7 @@ async function main() {
   ws.close();
   chromeProc.kill();
   server.close();
-  try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) {}
+  try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) { }
 }
 
 main().catch(err => {
