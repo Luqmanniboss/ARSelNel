@@ -1,39 +1,128 @@
 <!doctype html>
 <html lang="ms" data-page-theme="help">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#4f46e5">
-  <title>Panduan Penggunaan Kit ARSelNel | ARSelNel</title>
+  <title>Panduan Saintis Muda — Manual Penggunaan 2.0 | ARSELNEL</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans, Inter, Nunito & Material Symbols Outlined -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+  <!-- Core Student Shell CSS & Manual Redesign CSS -->
   <link rel="stylesheet" href="../assets/css/student-shell.css">
   <link rel="stylesheet" href="../assets/css/manual.css">
+
+  <!-- Supabase & Auth Guard -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-client.js"></script>
   <script src="../assets/js/cms-content-adapter.js"></script>
   <script src="../assets/js/auth-guard.js"></script>
+
+  <!-- Student Shell Framework & Interactive Manual Script -->
   <script defer src="../assets/js/student-shell.js"></script>
   <script defer src="../assets/js/manual.js"></script>
 </head>
 <body>
   <main class="ars-page-wrap manual-page" id="manual-main">
-    <a class="manual-back" href="../halaman_utama/code.html"><span aria-hidden="true">←</span> Kembali ke Dashboard</a>
-    <header class="manual-hero">
-      <div class="manual-hero-copy"><span class="manual-kicker">PANDUAN SAINTIS MUDA • 7 BAHAGIAN</span><h1>Panduan Penggunaan Kit ARSelNel</h1><p>Jom terokai setiap modul pembelajaran sains interaktif, model 3D, AR, nota, video, AI dan permainan!</p><span class="manual-hero-tag">✨ Ikut langkah satu demi satu atau pilih modul yang ingin anda pelajari.</span></div>
-      <div class="manual-hero-art" aria-hidden="true"><img src="../assets/home/cell_model.svg" alt=""><span>🔬</span></div>
+    <!-- Top Nav Action Bar -->
+    <div class="manual-top-nav-bar">
+      <a class="manual-back-btn" href="../halaman_utama/code.html" title="Kembali ke Dashboard Utama ARSELNEL">
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+        <span>Kembali ke Dashboard</span>
+      </a>
+      <span class="manual-brand-pill">
+        <span class="material-symbols-outlined" style="font-size:16px;">explore</span>
+        <span>Sains Tingkatan 1 KSSM</span>
+      </span>
+    </div>
+
+    <!-- Hero Banner: ARSELNEL Science Adventure -->
+    <header class="manual-hero-banner" role="banner">
+      <div class="manual-hero-content">
+        <div class="manual-hero-badge">
+          <span class="material-symbols-outlined" style="font-size:15px;">school</span>
+          <span>ARSELNEL SCIENCE ADVENTURE • PANDUAN SAINTIS MUDA</span>
+        </div>
+        <h1 class="manual-hero-title">Manual Penggunaan ARSELNEL 2.0</h1>
+        <p class="manual-hero-desc">
+          Selamat datang, Saintis Muda! Ikuti 8 misi pembelajaran interaktif ini untuk menguasai model sel 3D, Realiti Terimbuh (AR), nota pintar, video animasi, pembantu pintar SelBot AI, serta cabaran arked permainan sains!
+        </p>
+        <div class="manual-hero-chips">
+          <span class="manual-hero-chip">🧭 8 Misi Lengkap</span>
+          <span class="manual-hero-chip">📸 Screenshot Sebenar</span>
+          <span class="manual-hero-chip">✨ Mesra Murid Tingkatan 1</span>
+          <span class="manual-hero-chip">📱 Semua Peranti</span>
+        </div>
+      </div>
+      <div class="manual-hero-illustration" aria-hidden="true" title="Ikon Eksplorasi Sains ARSELNEL">
+        🔬
+      </div>
     </header>
 
-    <section class="manual-progress-card" aria-label="Kemajuan panduan">
-      <div class="manual-progress-top"><div><span class="manual-eyebrow">KEMAJUAN PENEROKAAN</span><strong id="manual-step-label" aria-live="polite">Langkah 1 daripada 7</strong></div><button type="button" class="manual-restart" id="manual-restart">↺ Mula semula</button></div>
-      <div class="manual-progress-track" role="progressbar" id="manual-progress" aria-label="Kemajuan panduan" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1"><span id="manual-progress-bar"></span></div>
-      <nav class="manual-step-nav" id="manual-step-nav" aria-label="Pilih langkah panduan"></nav>
+    <!-- Progress Tracker & 8-Mission Tab Grid -->
+    <section class="manual-selector-card" aria-label="Pemilih Misi Pembelajaran">
+      <div class="manual-progress-header">
+        <div class="manual-progress-title-wrap">
+          <span class="material-symbols-outlined" style="color:#4f46e5;font-size:22px;">flag</span>
+          <span class="manual-progress-label">Kemajuan Membaca Panduan:</span>
+          <span class="manual-progress-current-badge" id="manual-progress-badge">Misi 1 daripada 8</span>
+        </div>
+        <div class="manual-progress-actions">
+          <button type="button" class="manual-progress-reset-btn" id="manual-btn-reset" title="Mula semula dari Misi 1">
+            <span class="material-symbols-outlined" style="font-size:16px;">restart_alt</span>
+            <span>Mula Semula</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Accessible Progress Bar -->
+      <div class="manual-progress-bar-track" role="progressbar" aria-valuemin="1" aria-valuemax="8" aria-valuenow="1" id="manual-progress-track" aria-label="Peratusan misi panduan yang telah dibaca">
+        <div class="manual-progress-bar-fill" id="manual-progress-fill" style="width: 12.5%;"></div>
+      </div>
+
+      <!-- 8-Mission Navigation Tabs -->
+      <nav class="manual-missions-grid" id="manual-missions-tabs" role="tablist" aria-label="Senarai 8 Misi Panduan"></nav>
     </section>
 
-    <section class="manual-panel" aria-live="polite" aria-atomic="true">
-      <div id="manual-step-content"></div>
-      <div class="manual-actions"><button type="button" class="manual-button manual-button-quiet" id="manual-prev">← Langkah Sebelum</button><span class="manual-tip">💡 Teruskan ikut rentak anda sendiri</span><button type="button" class="manual-button manual-button-primary" id="manual-next">Langkah Seterusnya →</button><a class="manual-button manual-button-finish" id="manual-finish" href="../cellquest/code.html">🔬 Mula Teroka ARSelNel</a></div>
+    <!-- Active Mission Content Container (Dynamic Rendering) -->
+    <section id="manual-mission-display" aria-live="polite" aria-atomic="true">
+      <!-- Injected dynamically by manual.js -->
     </section>
-    <p class="manual-footnote">Panduan ini menerangkan fungsi yang tersedia dalam ARSelNel. Sokongan AR bergantung pada pelayar dan peranti anda.</p>
+
+    <!-- Bottom External Controls -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding:0 4px;flex-wrap:wrap;gap:12px;">
+      <button type="button" class="manual-nav-btn manual-btn-prev" id="manual-btn-prev" disabled>
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>Misi Sebelum</span>
+      </button>
+
+      <span class="manual-step-counter-text" id="manual-step-counter-text">Misi 1 / 8</span>
+
+      <button type="button" class="manual-nav-btn manual-btn-next" id="manual-btn-next">
+        <span>Misi Seterusnya</span>
+        <span class="material-symbols-outlined">arrow_forward</span>
+      </button>
+    </div>
+
   </main>
+
+  <!-- Interactive Lightbox Modal (Click-to-Zoom Screenshot) -->
+  <div class="manual-lightbox-backdrop" id="manual-lightbox" role="dialog" aria-modal="true" aria-labelledby="manual-lightbox-title">
+    <div class="manual-lightbox-modal">
+      <div class="manual-lightbox-header">
+        <h3 class="manual-lightbox-title" id="manual-lightbox-title">Paparan Screenshot Sebenar</h3>
+        <button type="button" class="manual-lightbox-close-btn" id="manual-lightbox-close" aria-label="Tutup Paparan Gambar">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="manual-lightbox-body">
+        <img src="" alt="" class="manual-lightbox-img" id="manual-lightbox-img" />
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
