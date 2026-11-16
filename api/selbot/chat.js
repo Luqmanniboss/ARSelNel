@@ -514,20 +514,42 @@ module.exports = async (req, res) => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-        // Build contents for Gemini format
-        const geminiContents = [];
-        
+        // Build contents for Gemini format with strict user-first and alternating turns
+        const rawHistory = [];
         for (const h of cleanHistory) {
-          geminiContents.push({
+          rawHistory.push({
             role: h.role === 'model' ? 'model' : 'user',
             parts: [{ text: h.content }]
           });
         }
-        
-        geminiContents.push({
+        rawHistory.push({
           role: 'user',
           parts: [{ text: cleanMessage }]
         });
+
+        const geminiContents = [];
+        let expectedRole = 'user';
+        for (const msg of rawHistory) {
+          if (geminiContents.length === 0) {
+            if (msg.role === 'user') {
+              geminiContents.push(msg);
+              expectedRole = 'model';
+            }
+          } else {
+            if (msg.role === expectedRole) {
+              geminiContents.push(msg);
+              expectedRole = expectedRole === 'user' ? 'model' : 'user';
+            } else if (msg.role === 'user' && geminiContents[geminiContents.length - 1].role === 'user') {
+              geminiContents[geminiContents.length - 1].parts[0].text += '\n' + msg.parts[0].text;
+            }
+          }
+        }
+        if (geminiContents.length === 0 || geminiContents[geminiContents.length - 1].role !== 'user') {
+          geminiContents.push({
+            role: 'user',
+            parts: [{ text: cleanMessage }]
+          });
+        }
 
         const candidateModels = [
           'gemini-3.5-flash-lite',

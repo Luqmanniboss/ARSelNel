@@ -307,10 +307,38 @@ body.ars-student-shell {
 .ars-sidebar::-webkit-scrollbar-track { background: transparent; }
 .ars-sidebar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 999px; }
 
-.ars-brand { display: flex; align-items: center; gap: 11px; min-height: 50px; padding: 0 9px 20px; color: var(--ars-ink); text-decoration: none; }
-.ars-brand img { width: 40px; height: 40px; object-fit: contain; }
-.ars-brand strong { font: 800 21px/1.1 'Plus Jakarta Sans', sans-serif; letter-spacing: -.04em; color: #2563eb; }
-.ars-brand small { display: block; margin-top: 4px; font: 600 10px/1 'Inter', sans-serif; color: #64748b; letter-spacing: .08em; text-transform: uppercase; }
+.ars-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  padding: 6px 4px 14px;
+  color: var(--ars-ink);
+  text-decoration: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: opacity 0.2s ease;
+}
+.ars-brand-logo-full {
+  display: block;
+  width: 100%;
+  max-width: 224px;
+  height: auto;
+  max-height: 76px;
+  object-fit: contain;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ars-brand-logo-compact {
+  display: none;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ars-brand:hover .ars-brand-logo-full,
+.ars-brand:hover .ars-brand-logo-compact {
+  transform: scale(1.02);
+}
 .ars-nav-label { padding: 15px 11px 8px; color: #64748b; font: 700 10px/1 'Inter', sans-serif; letter-spacing: .12em; text-transform: uppercase; }
 .ars-nav { display: grid; gap: 5px; }
 
@@ -644,11 +672,13 @@ body.ars-student-shell {
    -------------------------------------------------------------------------- */
 .ars-collapsed { --ars-sidebar-width: 84px; }
 .ars-collapsed .ars-sidebar { padding-inline: 12px; }
-.ars-collapsed .ars-brand { justify-content: center; padding-inline: 0; }
+.ars-collapsed .ars-brand { justify-content: center; padding: 10px 0 14px; min-height: 60px; }
+.ars-collapsed .ars-brand-logo-full { display: none !important; }
+.ars-collapsed .ars-brand-logo-compact { display: block !important; width: 44px; height: 44px; }
 .ars-collapsed .ars-brand-copy, .ars-collapsed .ars-nav-label, .ars-collapsed .ars-nav a span:not(.material-symbols-outlined), .ars-collapsed .ars-side-profile span, .ars-collapsed .ars-side-logout span:not(.material-symbols-outlined) { display: none; }
 .ars-collapsed .ars-nav a, .ars-collapsed .ars-side-profile, .ars-collapsed .ars-side-logout { justify-content: center; padding: 0; }
 .ars-collapsed .ars-side-profile img { width: 38px; height: 38px; }
-.ars-collapsed .ars-brand img { width: 42px; height: 42px; }
+.ars-collapsed .ars-brand img { width: 44px; height: 44px; }
 .ars-collapsed .ars-side-settings { justify-content: center; padding: 0; }
 .ars-collapsed .ars-side-settings span:not(.material-symbols-outlined) { display: none; }
 .ars-collapsed .ars-topbar, .ars-collapsed .ars-student-shell footer { left: var(--ars-sidebar-width); }
@@ -658,6 +688,9 @@ body.ars-student-shell {
 @media (max-width: 760px) {
   .ars-sidebar { width: min(300px, 86vw); transform: translateX(-105%); }
   .ars-mobile-open .ars-sidebar { transform: translateX(0); }
+  .ars-sidebar .ars-brand { justify-content: center; padding: 8px 8px 14px; min-height: 72px; }
+  .ars-sidebar .ars-brand-logo-full { display: block !important; width: 100%; max-width: 224px; max-height: 76px; }
+  .ars-sidebar .ars-brand-logo-compact { display: none !important; }
   .ars-drawer-backdrop { display: block; position: fixed; z-index: 70; inset: 0; background: rgba(15, 23, 42, .38); opacity: 0; pointer-events: none; transition: opacity .2s; }
   .ars-mobile-open .ars-drawer-backdrop { opacity: 1; pointer-events: auto; }
   .ars-topbar, .ars-collapsed .ars-topbar { left: 0; height: 64px; padding: 0 16px; }
@@ -677,7 +710,9 @@ body.ars-student-shell {
 @media (min-width: 761px) and (max-width: 1024px) {
   .ars-student-shell { --ars-sidebar-width: 84px; }
   .ars-sidebar { width: 84px; padding-inline: 12px; }
-  .ars-brand { justify-content: center; padding-inline: 0; }
+  .ars-brand { justify-content: center; padding: 10px 0 14px; min-height: 60px; }
+  .ars-brand-logo-full { display: none !important; }
+  .ars-brand-logo-compact { display: block !important; width: 44px; height: 44px; }
   .ars-brand-copy, .ars-nav-label, .ars-nav a span:not(.material-symbols-outlined), .ars-side-profile span, .ars-side-logout span:not(.material-symbols-outlined) { display: none; }
   .ars-nav a, .ars-side-profile, .ars-side-logout { justify-content: center; padding: 0; }
   .ars-side-settings { justify-content: center; padding: 0; }

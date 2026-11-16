@@ -129,11 +129,13 @@
       max-width: calc(100vw - var(--ars-sidebar-width, 264px));
       z-index: 85;
       overflow: hidden;
+      visibility: hidden;
       pointer-events: none;
-      transition: left 0.25s ease;
+      transition: left 0.25s ease, visibility 0.28s ease;
     }
 
     #history-drawer-wrapper.is-open {
+      visibility: visible;
       pointer-events: auto;
     }
 
@@ -154,8 +156,8 @@
       transform: translateX(0);
     }
 
-    /* Responsive: iPad & Mobile (<= 1024px) */
-    @media (max-width: 1024px) {
+    /* Responsive: Mobile Only (<= 760px) where the main sidebar is offscreen */
+    @media (max-width: 760px) {
       #history-backdrop {
         left: 0 !important;
       }
@@ -1062,7 +1064,7 @@
           retryBtn.addEventListener('click', () => {
             if (lastSentMessage) {
               wrapper.remove();
-              submitQuestion(lastSentMessage);
+              submitQuestion(lastSentMessage, true);
             }
           });
         }
@@ -1435,7 +1437,7 @@
     // SUBMIT QUESTION HANDLER
     // =========================================================================
 
-    async function submitQuestion(val) {
+    async function submitQuestion(val, isRetry = false) {
       if (!val || isRequestInProgress) return;
       const cleanVal = val.trim();
       if (!cleanVal) return;
@@ -1446,7 +1448,7 @@
       if (window.AuthGuard && window.AuthGuard.isGuest()) {
         const guestPromptCount = window.AuthGuard.incrementGuestAiPrompts();
         if (guestPromptCount > 2) {
-          appendMessage(cleanVal, true);
+          if (!isRetry) appendMessage(cleanVal, true);
           input.value = '';
           updateInputState();
           
@@ -1464,8 +1466,10 @@
       const requestUserId = currentUserId;
       let targetConvId = activeConversationId;
 
-      // 1. Add student message to UI immediately
-      appendMessage(cleanVal, true);
+      // 1. Add student message to UI immediately (skip if retry to prevent duplicate bubble)
+      if (!isRetry) {
+        appendMessage(cleanVal, true);
+      }
       
       // Clear input and lock UI
       input.value = '';

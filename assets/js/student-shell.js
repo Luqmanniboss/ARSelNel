@@ -63,7 +63,8 @@
     <div class="ars-drawer-backdrop" data-ars-close></div>
     <aside class="ars-sidebar" id="ars-sidebar" aria-label="Navigasi utama">
       <a class="ars-brand" href="${relative}halaman_utama/code.html" aria-label="ARSelNel Utama">
-        <img src="${relative}assets/home/logo.svg" alt=""/><span class="ars-brand-copy"><strong>ARSelNel</strong><small>Science adventure</small></span>
+        <img class="ars-brand-logo-full" src="${relative}assets/branding/arselnel-logo-horizontal.png" alt="ARSelNel Science Adventure" />
+        <img class="ars-brand-logo-compact" src="${relative}assets/branding/arselnel-icon-compact.png" alt="ARSelNel" />
       </a>
       <div class="ars-nav-label">Jom belajar</div>
       <nav class="ars-nav">${destinations}</nav>
@@ -84,6 +85,24 @@
       <a class="ars-side-profile ars-top-profile" href="${relative}profil/code.html" style="padding:4px 8px;min-height:42px" aria-label="Profil ${safeName}"><img src="${avatar}" alt=""/><span class="ars-user-name">${safeNickname}</span></a>
     </div>`);
   applyPreferences();
+  try {
+    let fav = document.querySelector('link[rel="icon"]');
+    if (!fav) {
+      fav = document.createElement('link');
+      fav.rel = 'icon';
+      document.head.appendChild(fav);
+    }
+    fav.type = 'image/png';
+    fav.href = `${relative}assets/branding/favicon-32.png`;
+
+    let appleFav = document.querySelector('link[rel="apple-touch-icon"]');
+    if (!appleFav) {
+      appleFav = document.createElement('link');
+      appleFav.rel = 'apple-touch-icon';
+      document.head.appendChild(appleFav);
+    }
+    appleFav.href = `${relative}assets/branding/apple-touch-icon.png`;
+  } catch (_) {}
   if (path.includes('hab_permainan')) applyGameProgress();
   if (path.includes('modul_pembelajaran')) appendPublishedModules();
   const menuButton = document.querySelector('[data-ars-menu]');
