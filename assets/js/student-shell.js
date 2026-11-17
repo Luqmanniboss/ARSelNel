@@ -60,7 +60,8 @@
     logout: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>',
     menu: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>',
     left_panel_close: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M18 4H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14h-7V6h7v12zm-9 0H6V6h3v12z"/></svg>',
-    notifications: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>'
+    notifications: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>',
+    help: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>'
   };
 
   function getShellIcon(iconName) {
@@ -102,10 +103,32 @@
       <button class="ars-icon-button ars-desktop-collapse" type="button" aria-label="Kecilkan menu" aria-pressed="false" data-ars-collapse>${getShellIcon('left_panel_close')}</button>
       <div class="ars-page-title">${title}</div>
       <div class="ars-topbar-greeting">Hai, ${safeName}!</div>
+      <button class="ars-icon-button ars-tour-btn-replay" type="button" aria-label="Panduan Halaman" title="Buka Panduan Halaman" data-ars-tour>${getShellIcon('help')}</button>
       <button class="ars-icon-button" type="button" aria-label="Notifikasi">${getShellIcon('notifications')}</button>
       <a class="ars-side-profile ars-top-profile" href="${relative}profil/code.html" style="padding:4px 8px;min-height:42px" aria-label="Profil ${safeName}"><img src="${avatar}" alt=""/><span class="ars-user-name">${safeNickname}</span></a>
     </div>`);
   applyPreferences();
+  try {
+    // Dynamic Guided Tour Loader
+    if (!document.querySelector('link[href*="guided-tour.css"]')) {
+      const tourCss = document.createElement('link');
+      tourCss.rel = 'stylesheet';
+      tourCss.href = `${relative}assets/css/guided-tour.css`;
+      document.head.appendChild(tourCss);
+    }
+    if (!document.querySelector('script[src*="guided-tour-config.js"]')) {
+      const tourCfg = document.createElement('script');
+      tourCfg.src = `${relative}assets/js/guided-tour-config.js`;
+      document.head.appendChild(tourCfg);
+      tourCfg.onload = () => {
+        if (!document.querySelector('script[src*="guided-tour.js"]')) {
+          const tourJs = document.createElement('script');
+          tourJs.src = `${relative}assets/js/guided-tour.js`;
+          document.head.appendChild(tourJs);
+        }
+      };
+    }
+  } catch (_) {}
   try {
     let fav = document.querySelector('link[rel="icon"]');
     if (!fav) {

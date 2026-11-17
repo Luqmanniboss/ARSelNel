@@ -59,6 +59,7 @@
 
   <!-- Module CSS -->
   <link rel="stylesheet" href="/kotak_arselnel/kotak-arselnel.css" />
+  <link rel="stylesheet" href="../assets/css/guided-tour.css" />
 </head>
 <body>
 
@@ -85,7 +86,7 @@
         <span>AR Orientasi Dunia</span>
       </button>
 
-      <button type="button" class="ar-hud-btn ar-hud-user-guide-btn" id="btn-open-user-guide" title="Buka Panduan Pengguna Kotak ARSELNEL" aria-label="Panduan Pengguna">
+      <button type="button" class="ar-hud-btn ar-hud-user-guide-btn" id="btn-open-user-guide" title="Buka Panduan Pengguna Kotak ARSELNEL" aria-label="Panduan Pengguna" data-ars-tour="kotak_arselnel">
         <span class="material-symbols-outlined">menu_book</span>
         <span>Panduan Pengguna</span>
       </button>
@@ -1346,6 +1347,8 @@
 
   <!-- MODULE SCRIPT -->
   <script src="/kotak_arselnel/kotak-arselnel.js"></script>
+  <script src="../assets/js/guided-tour-config.js"></script>
+  <script src="../assets/js/guided-tour.js"></script>
 </body>
 </html>
 

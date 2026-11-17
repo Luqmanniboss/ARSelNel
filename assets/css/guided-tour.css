@@ -1,0 +1,600 @@
+/* ==========================================================================
+   ARSelNel Interactive Guided Tour 1.0 (guided-tour.css)
+   Interactive Onboarding, Spotlight Walkthrough & Contextual Help System
+   Theme-aware, accessible, responsive across 375px to 1920px viewports
+   ========================================================================== */
+
+:root {
+  --tour-theme: #2563eb;
+  --tour-theme-rgb: 37, 99, 235;
+  --tour-theme-contrast: #ffffff;
+  --tour-theme-soft: #eff6ff;
+  --tour-theme-border: #bfdbfe;
+  --tour-backdrop-bg: rgba(15, 23, 42, 0.72);
+  --tour-z-backdrop: 99990;
+  --tour-z-spotlight: 99995;
+  --tour-z-tooltip: 99999;
+}
+
+/* Page-specific theme adaptation matching ARSELNEL's student-shell */
+[data-page-theme="dashboard"],
+[data-page-theme="home"] {
+  --tour-theme: #2563eb;
+  --tour-theme-rgb: 37, 99, 235;
+  --tour-theme-soft: #eff6ff;
+  --tour-theme-border: #bfdbfe;
+}
+
+[data-page-theme="notes"],
+[data-page-theme="nota"] {
+  --tour-theme: #d97706;
+  --tour-theme-rgb: 217, 119, 6;
+  --tour-theme-soft: #fef3c7;
+  --tour-theme-border: #fde68a;
+}
+
+[data-page-theme="videos"],
+[data-page-theme="video"] {
+  --tour-theme: #ea580c;
+  --tour-theme-rgb: 234, 88, 12;
+  --tour-theme-soft: #ffedd5;
+  --tour-theme-border: #fed7aa;
+}
+
+[data-page-theme="cellquest"] {
+  --tour-theme: #7c3aed;
+  --tour-theme-rgb: 124, 58, 237;
+  --tour-theme-soft: #ede9fe;
+  --tour-theme-border: #ddd6fe;
+}
+
+[data-page-theme="ai"] {
+  --tour-theme: #db2777;
+  --tour-theme-rgb: 219, 39, 119;
+  --tour-theme-soft: #fce7f3;
+  --tour-theme-border: #fbcfe8;
+}
+
+[data-page-theme="games"] {
+  --tour-theme: #059669;
+  --tour-theme-rgb: 5, 150, 105;
+  --tour-theme-soft: #d1fae5;
+  --tour-theme-border: #a7f3d0;
+}
+
+[data-page-theme="ar"] {
+  --tour-theme: #0891b2;
+  --tour-theme-rgb: 8, 145, 178;
+  --tour-theme-soft: #cffafe;
+  --tour-theme-border: #a5f3fc;
+}
+
+[data-page-theme="profile"] {
+  --tour-theme: #4f46e5;
+  --tour-theme-rgb: 79, 70, 229;
+  --tour-theme-soft: #e0e7ff;
+  --tour-theme-border: #c7d2fe;
+}
+
+[data-page-theme="settings"] {
+  --tour-theme: #475569;
+  --tour-theme-rgb: 71, 85, 105;
+  --tour-theme-soft: #f1f5f9;
+  --tour-theme-border: #cbd5e1;
+}
+
+/* --------------------------------------------------------------------------
+   Tour Backdrop & Overlay Container
+   -------------------------------------------------------------------------- */
+.ars-tour-portal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: var(--tour-z-backdrop);
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s;
+}
+
+.ars-tour-portal.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Backdrop Dimmer Canvas / Div */
+.ars-tour-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--tour-backdrop-bg);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Spotlight Highlight Cutout
+   Uses 9999px box-shadow to carve an illuminated hole over target element
+   -------------------------------------------------------------------------- */
+.ars-tour-spotlight {
+  position: fixed;
+  z-index: var(--tour-z-spotlight);
+  border-radius: 16px;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 9999px var(--tour-backdrop-bg),
+    0 0 0 3px rgba(var(--tour-theme-rgb), 0.95),
+    0 0 24px rgba(var(--tour-theme-rgb), 0.65),
+    inset 0 0 12px rgba(var(--tour-theme-rgb), 0.25);
+  transition:
+    top 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.32s ease,
+    opacity 0.25s ease;
+  will-change: top, left, width, height;
+}
+
+/* Optional glowing halo pulse around the spotlight */
+.ars-tour-spotlight::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px dashed rgba(var(--tour-theme-rgb), 0.7);
+  animation: arsTourPulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes arsTourPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.025);
+    opacity: 0.3;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Tooltip Card
+   -------------------------------------------------------------------------- */
+.ars-tour-tooltip {
+  position: fixed;
+  z-index: var(--tour-z-tooltip);
+  width: min(390px, calc(100vw - 28px));
+  max-width: 420px;
+  background: #ffffff;
+  color: #1e293b;
+  border-radius: 20px;
+  border: 1px solid rgba(var(--tour-theme-rgb), 0.25);
+  box-shadow:
+    0 20px 45px -8px rgba(15, 23, 42, 0.38),
+    0 8px 16px -4px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  padding: 18px 20px;
+  box-sizing: border-box;
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  transition:
+    top 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.ars-tour-tooltip.is-positioned {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Tooltip Arrow Indicator */
+.ars-tour-arrow {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(var(--tour-theme-rgb), 0.25);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.ars-tour-tooltip[data-placement="bottom"] .ars-tour-arrow {
+  top: -8px;
+  left: 28px;
+  border-bottom: none;
+  border-right: none;
+}
+
+.ars-tour-tooltip[data-placement="top"] .ars-tour-arrow {
+  bottom: -8px;
+  left: 28px;
+  border-top: none;
+  border-left: none;
+}
+
+.ars-tour-tooltip[data-placement="left"] .ars-tour-arrow {
+  right: -8px;
+  top: 24px;
+  border-bottom: none;
+  border-left: none;
+}
+
+.ars-tour-tooltip[data-placement="right"] .ars-tour-arrow {
+  left: -8px;
+  top: 24px;
+  border-top: none;
+  border-right: none;
+}
+
+/* --------------------------------------------------------------------------
+   Tooltip Content Sections
+   -------------------------------------------------------------------------- */
+.ars-tour-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ars-tour-badge-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ars-tour-mascot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--tour-theme-soft);
+  color: var(--tour-theme);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--tour-theme-border);
+}
+
+.ars-tour-mascot-pill .ars-tour-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.ars-tour-step-counter {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 9999px;
+}
+
+.ars-tour-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 10px;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  padding: 0;
+}
+
+.ars-tour-close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  transform: scale(1.05);
+}
+
+/* Progress Bar */
+.ars-tour-progress-track {
+  width: 100%;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.ars-tour-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--tour-theme) 0%, rgba(var(--tour-theme-rgb), 0.8) 100%);
+  border-radius: 9999px;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Title & Body */
+.ars-tour-title {
+  margin: 0 0 6px 0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #0f172a;
+}
+
+.ars-tour-desc {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.ars-tour-tip-box {
+  margin: 0 0 16px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border-left: 3px solid var(--tour-theme);
+  font-size: 12px;
+  line-height: 1.45;
+  color: #475569;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ars-tour-tip-box strong {
+  color: #0f172a;
+}
+
+/* Footer & Actions */
+.ars-tour-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.ars-tour-optout-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ars-tour-optout-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--tour-theme);
+  cursor: pointer;
+}
+
+.ars-tour-nav-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.ars-tour-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  min-height: 38px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: none;
+  box-sizing: border-box;
+}
+
+.ars-tour-btn:active {
+  transform: scale(0.97);
+}
+
+.ars-tour-btn-prev {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.ars-tour-btn-prev:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.ars-tour-btn-prev[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.ars-tour-btn-next,
+.ars-tour-btn-finish {
+  background: var(--tour-theme);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(var(--tour-theme-rgb), 0.35);
+}
+
+.ars-tour-btn-next:hover,
+.ars-tour-btn-finish:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 16px rgba(var(--tour-theme-rgb), 0.45);
+}
+
+.ars-tour-btn-skip {
+  background: transparent;
+  color: #64748b;
+  padding: 8px 10px;
+}
+
+.ars-tour-btn-skip:hover {
+  color: #1e293b;
+  background: #f8fafc;
+}
+
+/* --------------------------------------------------------------------------
+   Top Bar Tour Replay Button (Integrated with Student Shell)
+   -------------------------------------------------------------------------- */
+.ars-topbar .ars-tour-btn-replay {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  color: var(--tour-theme);
+  border: 1px solid var(--tour-theme-border, #e2eaf4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.ars-topbar .ars-tour-btn-replay:hover {
+  background: var(--tour-theme-soft, #eff6ff);
+  color: var(--tour-theme);
+  border-color: var(--tour-theme);
+  box-shadow: 0 4px 12px rgba(var(--tour-theme-rgb), 0.2);
+  transform: translateY(-1px);
+}
+
+.ars-topbar .ars-tour-btn-replay svg,
+.ars-tour-replay-trigger svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* Floating Tour Replay Pill for pages without student-shell (Canvas / WebAR) */
+.ars-tour-floating-replay {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 85;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: var(--tour-theme);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  border: 1.5px solid rgba(var(--tour-theme-rgb), 0.3);
+  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.22);
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ars-tour-floating-replay:hover {
+  background: var(--tour-theme);
+  color: #ffffff;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 30px -4px rgba(var(--tour-theme-rgb), 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile & Responsive Adaptations (iPhone SE 375px up to iPad)
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .ars-tour-tooltip {
+    width: calc(100vw - 24px) !important;
+    left: 12px !important;
+    max-width: none;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .ars-tour-arrow {
+    display: none !important; /* Cleaner on narrow screens */
+  }
+
+  .ars-tour-title {
+    font-size: 16px;
+  }
+
+  .ars-tour-desc {
+    font-size: 13.5px;
+    margin-bottom: 12px;
+  }
+
+  .ars-tour-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .ars-tour-nav-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .ars-tour-btn {
+    flex: 1;
+    min-height: 42px;
+  }
+
+  .ars-tour-btn-skip {
+    flex: 0 0 auto;
+  }
+
+  .ars-tour-optout-label {
+    justify-content: center;
+    padding-top: 4px;
+  }
+
+  .ars-tour-floating-replay {
+    bottom: 16px;
+    right: 16px;
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
+
+/* Safe area inset support (iPhone notch & home bar) */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .ars-tour-tooltip {
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .ars-tour-floating-replay {
+    bottom: max(16px, env(safe-area-inset-bottom));
+    right: max(16px, env(safe-area-inset-right));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Accessibility: Prefers-Reduced-Motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ars-tour-portal,
+  .ars-tour-spotlight,
+  .ars-tour-tooltip,
+  .ars-tour-progress-fill,
+  .ars-tour-close-btn,
+  .ars-tour-btn,
+  .ars-tour-spotlight::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
