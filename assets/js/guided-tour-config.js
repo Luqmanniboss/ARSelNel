@@ -342,14 +342,14 @@
           placement: 'top'
         },
         {
-          target: '.suggestion-chip',
+          target: '.suggestion-chip-container, .suggestion-chip:first-of-type, .suggestion-chip',
           title: 'Soalan Cadangan Lazim',
           desc: 'Ketik cip soalan cadangan ini untuk bertanyakan soalan popular seperti fungsi nukleus atau beza sel haiwan dan tumbuhan.',
           tip: 'Sangat sesuai jika anda tidak pasti soalan apa yang hendak ditanya.',
           placement: 'top'
         },
         {
-          target: '#chat-input',
+          target: '.composer-container, #chat-input',
           title: 'Ruang Menaip Soalan',
           desc: 'Taipkan apa-apa soalan sains anda di sini dan tekan butang Hantar (ikon pesawat kertas) atau tekan kekunci Enter.',
           tip: 'Tulis soalan yang jelas dan ringkas untuk mendapatkan jawapan paling tepat.',
@@ -389,35 +389,35 @@
           placement: 'bottom'
         },
         {
-          target: 'a[href*="labelkan-organel.html"]',
+          target: '#card-game-labelkan, a[href*="labelkan-organel.html"]',
           title: 'Permainan: Labelkan Organel',
           desc: 'Uji daya ingatan anda dengan menarik dan melepaskan label organel pada rajah sel haiwan dan sel tumbuhan yang betul.',
           tip: 'Ganjaran +150 mata dengan had masa 3 minit.',
           placement: 'top'
         },
         {
-          target: 'a[href*="klasifikasi-sel.html"]',
+          target: '#card-game-maze, a[href*="klasifikasi-sel.html"]',
           title: 'Permainan: Maze Chase 2D',
           desc: 'Kawal avatar anda merentasi laluan maze, elakkan virus yang mengejar dan capai zon jawapan sains yang betul!',
           tip: 'Ganjaran lumayan sehingga +1000 mata untuk cabaran penuh aksi.',
           placement: 'top'
         },
         {
-          target: 'a[href*="organisasi-kehidupan.html"]',
+          target: '#card-game-organisasi, a[href*="organisasi-kehidupan.html"]',
           title: 'Permainan: Susun Organisasi',
           desc: 'Susun urutan hierarki kehidupan daripada peringkat sel, tisu, organ, sistem sehinggalah organisma lengkap.',
           tip: 'Cabaran menarik untuk menguasai konsep pembahagian kerja sel.',
           placement: 'top'
         },
         {
-          target: 'a[href*="kuiz_interaktif"]',
+          target: '#card-game-kuiz, a[href*="kuiz_interaktif"]',
           title: 'Kuiz Saintis Muda',
           desc: 'Jawab soalan aneka pilihan secara pantas dan tepat untuk menguji kefahaman keseluruhan bab sel.',
           tip: 'Ulang kaji nota sebelum memulakan kuiz untuk markah maksimum.',
           placement: 'top'
         },
         {
-          target: 'a[href*="misi-makmal-sains.html"]',
+          target: '#card-game-makmal, a[href*="misi-makmal-sains.html"]',
           title: 'Pengembaraan: Misi Makmal Sains',
           desc: 'Bantu cikgu sains mengemas makmal 2D! Kumpulkan 10 radas makmal dan selesaikan soalan biologi sel sebelum masa tamat.',
           tip: 'Gunakan joystick atau kekunci anak panah untuk bergerak dalam makmal.',

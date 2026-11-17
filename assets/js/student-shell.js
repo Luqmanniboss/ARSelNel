@@ -103,7 +103,12 @@
       <button class="ars-icon-button ars-desktop-collapse" type="button" aria-label="Kecilkan menu" aria-pressed="false" data-ars-collapse>${getShellIcon('left_panel_close')}</button>
       <div class="ars-page-title">${title}</div>
       <div class="ars-topbar-greeting">Hai, ${safeName}!</div>
-      <button class="ars-icon-button ars-tour-btn-replay" type="button" aria-label="Panduan Halaman" title="Buka Panduan Halaman" data-ars-tour>${getShellIcon('help')}</button>
+      <button class="ars-tour-help-btn ars-tour-btn-replay" type="button" aria-label="Buka Panduan Halaman" title="Buka Panduan Halaman" data-ars-tour>
+        <span class="ars-tour-help-icon" aria-hidden="true">${getShellIcon('help')}</span>
+        <span class="ars-tour-help-label-desktop">Panduan Halaman</span>
+        <span class="ars-tour-help-label-tablet">Bantuan</span>
+        <span class="ars-tour-help-label-mobile">Bantuan</span>
+      </button>
       <button class="ars-icon-button" type="button" aria-label="Notifikasi">${getShellIcon('notifications')}</button>
       <a class="ars-side-profile ars-top-profile" href="${relative}profil/code.html" style="padding:4px 8px;min-height:42px" aria-label="Profil ${safeName}"><img src="${avatar}" alt=""/><span class="ars-user-name">${safeNickname}</span></a>
     </div>`);

@@ -1,7 +1,8 @@
 /**
  * ARSelNel Interactive Guided Tour Engine (guided-tour.js)
- * High-reliability, theme-aware, accessible onboarding and contextual help system.
- * Built with Vanilla JavaScript (ES6+), resilient against missing DOM elements.
+ * HOTFIX 1.1: True SVG Cutout Mask (100% transparent target hole),
+ * Anti-Collision Smart Tooltip Positioning, Non-stretching Content Box,
+ * and Universal Accessible Help Button.
  */
 
 (function (global) {
@@ -14,8 +15,7 @@
     arrow_forward: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>',
     arrow_back: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>',
     check: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>',
-    explore: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>',
-    lightbulb: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-1.3l-.85-.6C7.8 13.16 7 11.18 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 2.18-.8 4.16-2.15 5.1z"/></svg>'
+    explore: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>'
   };
 
   class GuidedTourManager {
@@ -23,12 +23,12 @@
       this.currentTour = null;
       this.currentStepIndex = 0;
       this.portalEl = null;
-      this.spotlightEl = null;
+      this.svgCanvasEl = null;
+      this.maskHoleEl = null;
+      this.spotlightFrameEl = null;
       this.tooltipEl = null;
-      this.backdropEl = null;
       this.activeTarget = null;
       this.animFrameId = null;
-      this.resizeObserver = null;
       this.handleKeyDown = this.handleKeyDown.bind(this);
       this.handleViewportUpdate = this.handleViewportUpdate.bind(this);
       this.init();
@@ -47,20 +47,16 @@
       this.createPortal();
       this.wireReplayButtons();
 
-      // Check current page key
       const pageKey = this.detectCurrentPageKey();
       if (!pageKey) return;
 
-      // Auto-launch on first visit if not dismissed
       const configs = global.ARSELNEL_TOUR_CONFIGS || {};
       const config = configs[pageKey];
       if (config) {
         const state = this.getTourState(pageKey);
-        // Do not auto-launch if completed, dismissed, or actively in game/camera
         if (!state.completed && !state.dontShowAgain) {
-          // Slight delay to allow DOM & mock/real data to render cleanly
           setTimeout(() => {
-            if (!this.isPageBusy()) {
+            if (!this.isPageBusy() && !this.currentTour) {
               this.startTour(pageKey, false);
             }
           }, 850);
@@ -68,9 +64,6 @@
       }
     }
 
-    // ------------------------------------------------------------------------
-    // Page Key Detection
-    // ------------------------------------------------------------------------
     detectCurrentPageKey() {
       const path = location.pathname.toLowerCase();
       if (path.includes('halaman_utama')) return 'dashboard';
@@ -90,10 +83,8 @@
     }
 
     isPageBusy() {
-      // Don't auto-start tour if a modal is open, or camera is active, or game is active
-      const modalOpen = document.querySelector('.modal.open, [role="dialog"]:not(.hidden):not(.ars-tour-tooltip)');
-      if (modalOpen && !modalOpen.classList.contains('ars-tour-portal')) return true;
-      return false;
+      const modalOpen = document.querySelector('.modal.open, [role="dialog"]:not(.hidden):not(.ars-tour-portal):not(.ars-tour-tooltip)');
+      return Boolean(modalOpen);
     }
 
     // ------------------------------------------------------------------------
@@ -147,7 +138,7 @@
     }
 
     // ------------------------------------------------------------------------
-    // Portal & DOM Setup
+    // Portal & DOM Setup with True SVG Cutout Mask
     // ------------------------------------------------------------------------
     createPortal() {
       if (this.portalEl) return;
@@ -159,8 +150,21 @@
       portal.setAttribute('aria-label', 'Panduan Interaktif ARSELNEL');
 
       portal.innerHTML = `
-        <div class="ars-tour-backdrop" data-tour-action="backdrop"></div>
-        <div class="ars-tour-spotlight" aria-hidden="true"></div>
+        <!-- True SVG Cutout Mask (100% transparent hole over target) -->
+        <svg class="ars-tour-svg-canvas" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <mask id="ars-tour-mask">
+              <rect x="0" y="0" width="100%" height="100%" fill="white" />
+              <rect id="ars-tour-hole" x="0" y="0" width="0" height="0" rx="14" ry="14" fill="black" />
+            </mask>
+          </defs>
+          <rect x="0" y="0" width="100%" height="100%" fill="rgba(15, 23, 42, 0.72)" mask="url(#ars-tour-mask)" data-tour-action="backdrop" />
+        </svg>
+
+        <!-- Glowing theme-accented border frame around the transparent hole -->
+        <div class="ars-tour-spotlight-frame" id="ars-tour-spotlight-frame" aria-hidden="true"></div>
+
+        <!-- Smart Tooltip Card (Content-sized, strictly non-stretching) -->
         <div class="ars-tour-tooltip" data-placement="bottom" tabindex="-1">
           <div class="ars-tour-arrow"></div>
           <div class="ars-tour-header">
@@ -207,11 +211,11 @@
       document.body.appendChild(portal);
 
       this.portalEl = portal;
-      this.backdropEl = portal.querySelector('.ars-tour-backdrop');
-      this.spotlightEl = portal.querySelector('.ars-tour-spotlight');
+      this.svgCanvasEl = portal.querySelector('.ars-tour-svg-canvas');
+      this.maskHoleEl = portal.querySelector('#ars-tour-hole');
+      this.spotlightFrameEl = portal.querySelector('#ars-tour-spotlight-frame');
       this.tooltipEl = portal.querySelector('.ars-tour-tooltip');
 
-      // Bind actions
       portal.addEventListener('click', (e) => {
         const actionBtn = e.target.closest('[data-tour-action]');
         if (!actionBtn) return;
@@ -232,13 +236,9 @@
       }
     }
 
-    // ------------------------------------------------------------------------
-    // Wire Replay Buttons
-    // ------------------------------------------------------------------------
     wireReplayButtons() {
-      // Connect existing or injected replay buttons
       document.addEventListener('click', (e) => {
-        const replayTrigger = e.target.closest('[data-ars-tour], .ars-tour-replay-trigger, .btn-tour-replay');
+        const replayTrigger = e.target.closest('[data-ars-tour], .ars-tour-help-btn, .ars-tour-replay-trigger, .ars-tour-btn-replay');
         if (replayTrigger) {
           e.preventDefault();
           const specificId = replayTrigger.getAttribute('data-ars-tour') || this.detectCurrentPageKey();
@@ -263,21 +263,18 @@
       this.currentTour = config;
       this.currentStepIndex = 0;
 
-      // Update opt-out checkbox state from storage
       const state = this.getTourState(tourId);
       const dontShowCb = this.portalEl ? this.portalEl.querySelector('#ars-tour-dont-show') : null;
       if (dontShowCb) {
         dontShowCb.checked = forceReplay ? false : Boolean(state.dontShowAgain);
       }
 
-      // Activate portal
       this.createPortal();
       this.portalEl.classList.add('is-active');
       document.addEventListener('keydown', this.handleKeyDown);
       window.addEventListener('resize', this.handleViewportUpdate, { passive: true });
       window.addEventListener('scroll', this.handleViewportUpdate, { passive: true, capture: true });
 
-      // Render first visible step
       this.renderCurrentStep();
       return true;
     }
@@ -294,7 +291,6 @@
       const step = steps[this.currentStepIndex];
       const targetEl = this.findTargetElement(step.target);
 
-      // If target element is missing or invisible, skip to next step safely
       if (!targetEl) {
         console.info(`[ARSelNel Tour] Sasaran "${step.target}" tidak kelihatan. Melangkau langkah.`);
         this.currentStepIndex++;
@@ -308,7 +304,7 @@
 
       this.activeTarget = targetEl;
 
-      // Scroll target into view gently
+      // Scroll target into view
       try {
         targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
       } catch (_) {}
@@ -368,24 +364,30 @@
         }
       }
 
-      // Allow a brief moment for scroll, then update spotlight & tooltip geometry
+      // Reset height explicitly before measuring
+      if (this.tooltipEl) {
+        this.tooltipEl.style.height = 'auto';
+      }
+
       setTimeout(() => {
         this.updateGeometry();
         if (this.tooltipEl) {
           this.tooltipEl.classList.add('is-positioned');
           this.tooltipEl.focus();
         }
-      }, 120);
+      }, 140);
     }
 
     findTargetElement(selector) {
       if (!selector) return null;
       const parts = selector.split(',').map(s => s.trim());
       for (const sel of parts) {
-        const candidate = document.querySelector(sel);
-        if (candidate && this.isElementVisible(candidate)) {
-          return candidate;
-        }
+        try {
+          const candidate = document.querySelector(sel);
+          if (candidate && this.isElementVisible(candidate)) {
+            return candidate;
+          }
+        } catch (_) {}
       }
       return null;
     }
@@ -399,120 +401,129 @@
     }
 
     // ------------------------------------------------------------------------
-    // Geometry & Positioning (Spotlight + Tooltip)
+    // Geometry & Positioning: True Cutout & Non-Overlapping Tooltip
     // ------------------------------------------------------------------------
     updateGeometry() {
-      if (!this.activeTarget || !this.spotlightEl || !this.tooltipEl) return;
+      if (!this.activeTarget || !this.tooltipEl) return;
 
       const rect = this.activeTarget.getBoundingClientRect();
-      const padding = 8;
+      const padding = 10;
       const top = Math.max(0, rect.top - padding);
       const left = Math.max(0, rect.left - padding);
       const width = Math.min(window.innerWidth - left, rect.width + padding * 2);
       const height = Math.min(window.innerHeight - top, rect.height + padding * 2);
+      const radius = 14;
 
-      // 1. Position Spotlight Cutout
-      this.spotlightEl.style.top = `${Math.round(top)}px`;
-      this.spotlightEl.style.left = `${Math.round(left)}px`;
-      this.spotlightEl.style.width = `${Math.round(width)}px`;
-      this.spotlightEl.style.height = `${Math.round(height)}px`;
-
-      // Match border radius if available
-      try {
-        const targetRadius = window.getComputedStyle(this.activeTarget).borderRadius;
-        if (targetRadius && parseFloat(targetRadius) > 0) {
-          this.spotlightEl.style.borderRadius = `${Math.min(24, parseFloat(targetRadius) + 4)}px`;
-        } else {
-          this.spotlightEl.style.borderRadius = '16px';
-        }
-      } catch (_) {
-        this.spotlightEl.style.borderRadius = '16px';
+      // 1. Cut the 100% transparent hole in SVG mask
+      if (this.maskHoleEl) {
+        this.maskHoleEl.setAttribute('x', String(Math.round(left)));
+        this.maskHoleEl.setAttribute('y', String(Math.round(top)));
+        this.maskHoleEl.setAttribute('width', String(Math.round(width)));
+        this.maskHoleEl.setAttribute('height', String(Math.round(height)));
+        this.maskHoleEl.setAttribute('rx', String(radius));
+        this.maskHoleEl.setAttribute('ry', String(radius));
       }
 
-      // 2. Position Tooltip Card
-      const step = this.currentTour.steps[this.currentStepIndex];
-      const preferredPlacement = step.placement || 'bottom';
+      // 2. Position glowing border frame around the hole
+      if (this.spotlightFrameEl) {
+        this.spotlightFrameEl.style.top = `${Math.round(top)}px`;
+        this.spotlightFrameEl.style.left = `${Math.round(left)}px`;
+        this.spotlightFrameEl.style.width = `${Math.round(width)}px`;
+        this.spotlightFrameEl.style.height = `${Math.round(height)}px`;
+        this.spotlightFrameEl.style.borderRadius = `${radius}px`;
+      }
+
+      // 3. Measure content-sized tooltip
+      this.tooltipEl.style.height = 'auto';
       const tooltipRect = this.tooltipEl.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const margin = 14;
+      const vWidth = window.innerWidth;
+      const vHeight = window.innerHeight;
+      const gap = 14;
+      const pad = 12;
+
+      const spaceAbove = top;
+      const spaceBelow = vHeight - (top + height);
+      const spaceLeft = left;
+      const spaceRight = vWidth - (left + width);
+
+      const step = this.currentTour ? this.currentTour.steps[this.currentStepIndex] : {};
+      const preferredPlacement = step.placement || 'bottom';
+      let placement = preferredPlacement;
+
+      // Anti-Overlap Smart Placement Selection
+      if (vWidth <= 640) {
+        // Mobile: Vertical only
+        if (spaceBelow >= tooltipRect.height + gap) {
+          placement = 'bottom';
+        } else if (spaceAbove >= tooltipRect.height + gap) {
+          placement = 'top';
+        } else {
+          placement = spaceBelow >= spaceAbove ? 'bottom' : 'top';
+        }
+      } else {
+        // Desktop / Tablet
+        if (preferredPlacement === 'bottom' && spaceBelow < tooltipRect.height + gap) {
+          if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
+          else if (spaceRight >= tooltipRect.width + gap) placement = 'right';
+          else if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
+        } else if (preferredPlacement === 'top' && spaceAbove < tooltipRect.height + gap) {
+          if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
+          else if (spaceRight >= tooltipRect.width + gap) placement = 'right';
+          else if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
+        } else if (preferredPlacement === 'right' && spaceRight < tooltipRect.width + gap) {
+          if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
+          else if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
+          else if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
+        } else if (preferredPlacement === 'left' && spaceLeft < tooltipRect.width + gap) {
+          if (spaceRight >= tooltipRect.width + gap) placement = 'right';
+          else if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
+          else if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
+        }
+      }
 
       let toolTop = 0;
       let toolLeft = 0;
-      let actualPlacement = preferredPlacement;
 
-      // Narrow Mobile Screens (<= 640px)
-      if (viewportWidth <= 640) {
-        toolLeft = 12;
-        // Place below if target is in top half, else place above target
-        if (rect.bottom + tooltipRect.height + margin <= viewportHeight) {
-          toolTop = rect.bottom + margin;
-          actualPlacement = 'bottom';
-        } else if (rect.top - tooltipRect.height - margin >= 0) {
-          toolTop = rect.top - tooltipRect.height - margin;
-          actualPlacement = 'top';
-        } else {
-          toolTop = viewportHeight - tooltipRect.height - 16;
-          actualPlacement = 'bottom';
-        }
-      } else {
-        // Desktop / Tablet Smart Placement
-        if (preferredPlacement === 'bottom') {
-          if (rect.bottom + tooltipRect.height + margin <= viewportHeight) {
-            toolTop = rect.bottom + margin;
-            toolLeft = rect.left;
-          } else {
-            toolTop = Math.max(margin, rect.top - tooltipRect.height - margin);
-            toolLeft = rect.left;
-            actualPlacement = 'top';
-          }
-        } else if (preferredPlacement === 'top') {
-          if (rect.top - tooltipRect.height - margin >= 0) {
-            toolTop = rect.top - tooltipRect.height - margin;
-            toolLeft = rect.left;
-          } else {
-            toolTop = rect.bottom + margin;
-            toolLeft = rect.left;
-            actualPlacement = 'bottom';
-          }
-        } else if (preferredPlacement === 'right') {
-          if (rect.right + tooltipRect.width + margin <= viewportWidth) {
-            toolLeft = rect.right + margin;
-            toolTop = rect.top;
-          } else {
-            toolTop = rect.bottom + margin;
-            toolLeft = Math.max(margin, rect.left);
-            actualPlacement = 'bottom';
-          }
-        } else if (preferredPlacement === 'left') {
-          if (rect.left - tooltipRect.width - margin >= 0) {
-            toolLeft = rect.left - tooltipRect.width - margin;
-            toolTop = rect.top;
-          } else {
-            toolTop = rect.bottom + margin;
-            toolLeft = Math.max(margin, rect.left);
-            actualPlacement = 'bottom';
-          }
-        }
+      if (placement === 'bottom') {
+        toolTop = top + height + gap;
+        toolLeft = left;
+      } else if (placement === 'top') {
+        toolTop = top - tooltipRect.height - gap;
+        toolLeft = left;
+      } else if (placement === 'right') {
+        toolLeft = left + width + gap;
+        toolTop = top;
+      } else if (placement === 'left') {
+        toolLeft = left - tooltipRect.width - gap;
+        toolTop = top;
+      }
 
-        // Clamp boundaries within screen
-        if (toolLeft + tooltipRect.width > viewportWidth - margin) {
-          toolLeft = viewportWidth - tooltipRect.width - margin;
-        }
-        if (toolLeft < margin) {
-          toolLeft = margin;
-        }
-        if (toolTop + tooltipRect.height > viewportHeight - margin) {
-          toolTop = viewportHeight - tooltipRect.height - margin;
-        }
-        if (toolTop < margin) {
-          toolTop = margin;
-        }
+      // Viewport Clamping
+      if (toolLeft + tooltipRect.width > vWidth - pad) {
+        toolLeft = vWidth - tooltipRect.width - pad;
+      }
+      if (toolLeft < pad) {
+        toolLeft = pad;
+      }
+      if (toolTop + tooltipRect.height > vHeight - pad) {
+        toolTop = vHeight - tooltipRect.height - pad;
+      }
+      if (toolTop < pad) {
+        toolTop = pad;
+      }
+
+      // STRICT COLLISION AVOIDANCE
+      // Ensure tooltip coordinates do not intersect with spotlight bounds
+      if (placement === 'bottom' && toolTop < top + height + 6) {
+        toolTop = top + height + 6;
+      }
+      if (placement === 'top' && toolTop + tooltipRect.height > top - 6) {
+        toolTop = Math.max(pad, top - tooltipRect.height - 6);
       }
 
       this.tooltipEl.style.top = `${Math.round(toolTop)}px`;
       this.tooltipEl.style.left = `${Math.round(toolLeft)}px`;
-      this.tooltipEl.setAttribute('data-placement', actualPlacement);
+      this.tooltipEl.setAttribute('data-placement', placement);
     }
 
     handleViewportUpdate() {
@@ -527,7 +538,6 @@
         e.preventDefault();
         this.skipTour();
       } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
-        // Prevent enter on buttons from double triggering
         if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
           e.preventDefault();
           this.nextStep();
@@ -540,9 +550,14 @@
       }
     }
 
-    // ------------------------------------------------------------------------
-    // Step Navigation Actions
-    // ------------------------------------------------------------------------
+    goToStep(stepIndex) {
+      if (!this.currentTour) return;
+      if (stepIndex >= 0 && stepIndex < this.currentTour.steps.length) {
+        this.currentStepIndex = stepIndex;
+        this.renderCurrentStep();
+      }
+    }
+
     nextStep() {
       if (!this.currentTour) return;
       const totalSteps = this.currentTour.steps.length;
@@ -564,7 +579,6 @@
 
     skipTour() {
       if (!this.currentTour) return;
-      // Mark as dismissed for session, preserve dontShowAgain if checked
       const dontShowCb = this.portalEl ? this.portalEl.querySelector('#ars-tour-dont-show') : null;
       const isDontShow = dontShowCb ? dontShowCb.checked : false;
       this.saveTourState(this.currentTour.id, {
@@ -597,7 +611,6 @@
     }
   }
 
-  // Instantiate singleton
   const tourInstance = new GuidedTourManager();
   global.ArselnelTour = tourInstance;
   global.__ARSELNEL_TOUR__ = tourInstance;

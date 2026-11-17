@@ -1,7 +1,7 @@
 /* ==========================================================================
-   ARSelNel Interactive Guided Tour 1.0 (guided-tour.css)
-   Interactive Onboarding, Spotlight Walkthrough & Contextual Help System
-   Theme-aware, accessible, responsive across 375px to 1920px viewports
+   ARSelNel Interactive Guided Tour 1.1 (guided-tour.css)
+   HOTFIX 1.1: True SVG Cutout Mask, Non-Stretching Tooltip, Smart Positioning,
+   and Accessible Redesigned Help Button.
    ========================================================================== */
 
 :root {
@@ -84,7 +84,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Tour Backdrop & Overlay Container
+   Tour Backdrop & Overlay Container (Portal)
    -------------------------------------------------------------------------- */
 .ars-tour-portal {
   position: fixed;
@@ -96,7 +96,7 @@
   pointer-events: auto;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
 }
 
 .ars-tour-portal.is-active {
@@ -104,42 +104,42 @@
   visibility: visible;
 }
 
-/* Backdrop Dimmer Canvas / Div */
-.ars-tour-backdrop {
+/* --------------------------------------------------------------------------
+   TRUE SPOTLIGHT SYSTEM (SVG Cutout Canvas)
+   A single SVG overlay with an inverted mask that cuts a 100% physically
+   transparent window over the target. No dark overlay sits on top of target!
+   -------------------------------------------------------------------------- */
+.ars-tour-svg-canvas {
   position: absolute;
   inset: 0;
-  background-color: var(--tour-backdrop-bg);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
   cursor: pointer;
 }
 
-/* --------------------------------------------------------------------------
-   Spotlight Highlight Cutout
-   Uses 9999px box-shadow to carve an illuminated hole over target element
-   -------------------------------------------------------------------------- */
-.ars-tour-spotlight {
+/* Glowing Border Frame around the transparent cutout hole */
+.ars-tour-spotlight-frame {
   position: fixed;
   z-index: var(--tour-z-spotlight);
   border-radius: 16px;
   pointer-events: none;
+  box-sizing: border-box;
+  border: 3px solid var(--tour-theme);
   box-shadow:
-    0 0 0 9999px var(--tour-backdrop-bg),
-    0 0 0 3px rgba(var(--tour-theme-rgb), 0.95),
-    0 0 24px rgba(var(--tour-theme-rgb), 0.65),
-    inset 0 0 12px rgba(var(--tour-theme-rgb), 0.25);
+    0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 0 26px rgba(var(--tour-theme-rgb), 0.75),
+    inset 0 0 14px rgba(var(--tour-theme-rgb), 0.25);
   transition:
-    top 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-    left 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-    width 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-    height 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-    border-radius 0.32s ease,
-    opacity 0.25s ease;
+    top 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.28s ease;
   will-change: top, left, width, height;
 }
 
-/* Optional glowing halo pulse around the spotlight */
-.ars-tour-spotlight::after {
+.ars-tour-spotlight-frame::after {
   content: '';
   position: absolute;
   inset: -6px;
@@ -152,41 +152,48 @@
 @keyframes arsTourPulse {
   0%, 100% {
     transform: scale(1);
-    opacity: 0.75;
+    opacity: 0.85;
   }
   50% {
     transform: scale(1.025);
-    opacity: 0.3;
+    opacity: 0.35;
   }
 }
 
 /* --------------------------------------------------------------------------
-   Tooltip Card
+   SMART TOOLTIP CARD (Content-Sized, Non-Stretching)
    -------------------------------------------------------------------------- */
 .ars-tour-tooltip {
   position: fixed;
   z-index: var(--tour-z-tooltip);
-  width: min(390px, calc(100vw - 28px));
+  width: min(400px, calc(100vw - 28px));
   max-width: 420px;
+  /* CRITICAL HOTFIX: Never stretch full height! */
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
   background: #ffffff;
   color: #1e293b;
   border-radius: 20px;
-  border: 1px solid rgba(var(--tour-theme-rgb), 0.25);
+  border: 1px solid rgba(var(--tour-theme-rgb), 0.28);
   box-shadow:
-    0 20px 45px -8px rgba(15, 23, 42, 0.38),
-    0 8px 16px -4px rgba(15, 23, 42, 0.18),
-    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+    0 24px 50px -8px rgba(15, 23, 42, 0.42),
+    0 8px 18px -4px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset;
   padding: 18px 20px;
   box-sizing: border-box;
   opacity: 0;
   transform: translateY(8px) scale(0.97);
   transition:
-    top 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-    left 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    top 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: auto;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  scrollbar-width: thin;
 }
 
 .ars-tour-tooltip.is-positioned {
@@ -200,7 +207,7 @@
   width: 14px;
   height: 14px;
   background: #ffffff;
-  border: 1px solid rgba(var(--tour-theme-rgb), 0.25);
+  border: 1px solid rgba(var(--tour-theme-rgb), 0.28);
   transform: rotate(45deg);
   pointer-events: none;
 }
@@ -268,6 +275,8 @@
 .ars-tour-mascot-pill .ars-tour-icon {
   width: 14px;
   height: 14px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .ars-tour-step-counter {
@@ -316,7 +325,7 @@
   height: 100%;
   background: linear-gradient(90deg, var(--tour-theme) 0%, rgba(var(--tour-theme-rgb), 0.8) 100%);
   border-radius: 9999px;
-  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Title & Body */
@@ -330,19 +339,19 @@
 }
 
 .ars-tour-desc {
-  margin: 0 0 16px 0;
+  margin: 0 0 14px 0;
   font-size: 14px;
   line-height: 1.55;
   color: #334155;
 }
 
 .ars-tour-tip-box {
-  margin: 0 0 16px 0;
+  margin: 0 0 14px 0;
   padding: 10px 12px;
   border-radius: 12px;
   background: #f8fafc;
   border-left: 3px solid var(--tour-theme);
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: #475569;
   display: flex;
@@ -451,38 +460,98 @@
 }
 
 /* --------------------------------------------------------------------------
-   Top Bar Tour Replay Button (Integrated with Student Shell)
+   RE-DESIGNED HELP & REPLAY BUTTON ("Panduan Halaman" / "Bantuan")
+   Clearly visible, theme-accented, high contrast, >= 44x44px touch target
    -------------------------------------------------------------------------- */
-.ars-topbar .ars-tour-btn-replay {
-  width: 42px;
-  height: 42px;
+.ars-tour-help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   min-height: 42px;
-  padding: 0;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
+  padding: 6px 14px;
+  border-radius: 9999px;
   background: #ffffff;
-  color: var(--tour-theme);
-  border: 1px solid var(--tour-theme-border, #e2eaf4);
+  color: var(--tour-theme, #2563eb);
+  border: 1.5px solid var(--tour-theme, #2563eb);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-left: 2px;
-  margin-right: 2px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: 0 4px;
+  box-sizing: border-box;
 }
 
-.ars-topbar .ars-tour-btn-replay:hover {
-  background: var(--tour-theme-soft, #eff6ff);
-  color: var(--tour-theme);
-  border-color: var(--tour-theme);
-  box-shadow: 0 4px 12px rgba(var(--tour-theme-rgb), 0.2);
+.ars-tour-help-btn:hover {
+  background: var(--tour-theme, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(var(--tour-theme-rgb, 37, 99, 235), 0.35);
   transform: translateY(-1px);
 }
 
-.ars-topbar .ars-tour-btn-replay svg,
-.ars-tour-replay-trigger svg {
-  width: 16px;
-  height: 16px;
+.ars-tour-help-btn:active {
+  transform: scale(0.97);
+}
+
+.ars-tour-help-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 18px;
+}
+
+.ars-tour-help-icon svg {
+  width: 18px;
+  height: 18px;
   fill: currentColor;
+}
+
+/* Responsive labels for Desktop, iPad, Mobile */
+.ars-tour-help-label-desktop { display: inline; }
+.ars-tour-help-label-tablet { display: none; }
+.ars-tour-help-label-mobile { display: none; }
+
+@media (max-width: 1024px) {
+  .ars-tour-help-label-desktop { display: none; }
+  .ars-tour-help-label-tablet { display: inline; }
+  .ars-tour-help-label-mobile { display: none; }
+}
+
+@media (max-width: 640px) {
+  .ars-tour-help-btn {
+    padding: 6px 11px;
+    font-size: 12px;
+    min-height: 40px;
+  }
+  .ars-tour-help-label-desktop { display: none; }
+  .ars-tour-help-label-tablet { display: none; }
+  .ars-tour-help-label-mobile { display: inline; }
+}
+
+/* Backward-compatibility class alias */
+.ars-topbar .ars-tour-btn-replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: var(--tour-theme, #2563eb);
+  border: 1.5px solid var(--tour-theme, #2563eb);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 4px;
+}
+
+.ars-topbar .ars-tour-btn-replay:hover {
+  background: var(--tour-theme, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(var(--tour-theme-rgb, 37, 99, 235), 0.35);
+  transform: translateY(-1px);
 }
 
 /* Floating Tour Replay Pill for pages without student-shell (Canvas / WebAR) */
@@ -497,21 +566,21 @@
   padding: 10px 18px;
   border-radius: 9999px;
   background: #ffffff;
-  color: var(--tour-theme);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--tour-theme, #2563eb);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 13px;
   font-weight: 800;
-  border: 1.5px solid rgba(var(--tour-theme-rgb), 0.3);
+  border: 1.5px solid var(--tour-theme, #2563eb);
   box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.22);
   cursor: pointer;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ars-tour-floating-replay:hover {
-  background: var(--tour-theme);
+  background: var(--tour-theme, #2563eb);
   color: #ffffff;
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 14px 30px -4px rgba(var(--tour-theme-rgb), 0.4);
+  box-shadow: 0 14px 30px -4px rgba(var(--tour-theme-rgb, 37, 99, 235), 0.4);
 }
 
 /* --------------------------------------------------------------------------
@@ -524,10 +593,13 @@
     max-width: none;
     padding: 16px;
     border-radius: 18px;
+    /* Height is strictly natural, never full screen */
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   .ars-tour-arrow {
-    display: none !important; /* Cleaner on narrow screens */
+    display: none !important;
   }
 
   .ars-tour-title {
@@ -572,28 +644,18 @@
   }
 }
 
-/* Safe area inset support (iPhone notch & home bar) */
-@supports (padding: env(safe-area-inset-bottom)) {
-  .ars-tour-tooltip {
-    bottom: max(16px, env(safe-area-inset-bottom));
-  }
-  .ars-tour-floating-replay {
-    bottom: max(16px, env(safe-area-inset-bottom));
-    right: max(16px, env(safe-area-inset-right));
-  }
-}
-
 /* --------------------------------------------------------------------------
    Accessibility: Prefers-Reduced-Motion
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   .ars-tour-portal,
-  .ars-tour-spotlight,
+  .ars-tour-spotlight-frame,
   .ars-tour-tooltip,
   .ars-tour-progress-fill,
   .ars-tour-close-btn,
   .ars-tour-btn,
-  .ars-tour-spotlight::after {
+  .ars-tour-help-btn,
+  .ars-tour-spotlight-frame::after {
     animation: none !important;
     transition: none !important;
   }
