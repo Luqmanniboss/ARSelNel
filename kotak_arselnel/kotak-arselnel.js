@@ -11556,8 +11556,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.btnOpenUserGuide) {
       DOM.btnOpenUserGuide.addEventListener('click', (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        openOnboardingModal(0);
+        if (window.ArselnelTour && typeof window.ArselnelTour.startTour === 'function') {
+          window.ArselnelTour.startTour('kotak_arselnel', true);
+        } else {
+          openOnboardingModal(0);
+        }
       });
     }
     if (DOM.btnOnboardingNext) {
@@ -11974,13 +11977,6 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       lastMod = sessionStorage.getItem('arselnel_last_module');
     } catch (_) {}
 
-    const needsFirstOnboarding = !hasCompletedOnboarding() && !returnedFromJelajah && !isReturning;
-    if (needsFirstOnboarding) {
-      // Hentikan pengaktifan kamera serta-merta dan papar panduan pengguna baharu dahulu
-      ARState.cameraActive = false;
-      openOnboardingModal(0);
-    }
-
     try {
       await Promise.allSettled([
         loadVideosFromCMS(),
@@ -11992,10 +11988,6 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       renderNoteSelectionList();
       render5GamesCatalog();
       renderPOV5GamesCatalog();
-
-      if (needsFirstOnboarding) {
-        return;
-      }
 
       await initMindAR();
 
@@ -12024,6 +12016,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       // Hide loading screen smoothly
       if (DOM.loadingScreen) {
         DOM.loadingScreen.classList.add('hidden');
+      }
+
+      // Guided Tour auto-launch for first-time or uncompleted students
+      if (window.ArselnelTour && typeof window.ArselnelTour.startTour === 'function') {
+        const tourState = window.ArselnelTour.getTourState('kotak_arselnel');
+        if (!tourState.completed && !tourState.dontShowAgain) {
+          setTimeout(() => {
+            window.ArselnelTour.startTour('kotak_arselnel', false);
+          }, 450);
+        }
       }
     } catch (err) {
       console.error('[KotakAR] Ralat inisialisasi:', err);

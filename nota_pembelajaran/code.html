@@ -154,9 +154,11 @@
 </head>
 <body class="bg-[#f8fafc] text-navy antialiased pb-0" data-page-theme="notes">
 
-  <!-- Faint scientific backgrounds & translucent circles near the page edges -->
-  <div class="absolute left-0 top-0 w-[500px] h-[500px] bg-teal-500/5 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2"></div>
-  <div class="absolute right-0 top-[200px] w-[400px] h-[400px] bg-sky-500/5 rounded-full blur-[100px] pointer-events-none translate-x-1/3"></div>
+  <!-- Faint scientific backgrounds & translucent circles near the page edges (strictly clipped) -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+    <div class="absolute left-0 top-0 w-[500px] h-[500px] bg-teal-500/5 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute right-0 top-[200px] w-[400px] h-[400px] bg-sky-500/5 rounded-full blur-[100px] translate-x-1/3"></div>
+  </div>
 
   <!-- Top Application Bar / Sticky Desktop Header -->
   <header class="site-header fixed top-0 left-0 right-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
@@ -661,7 +663,7 @@
         const isDraft = note.publicationStatus === 'draft';
 
         return `
-          <div class="bg-white rounded-2xl border ${isDraft ? 'border-dashed border-amber-300 bg-amber-50/20' : 'border-amber-100/80 hover:border-amber-300'} p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group">
+          <div class="note-card bg-white rounded-2xl border ${isDraft ? 'border-dashed border-amber-300 bg-amber-50/20' : 'border-amber-100/80 hover:border-amber-300'} p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group">
             <div>
               <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${badge.color}">
@@ -689,7 +691,7 @@
             </div>
 
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-              <a href="../nota_pembelajaran/slaid_interaktif.html?id=${encodeURIComponent(note.id)}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-amber-500 text-slate-900 font-headline font-bold text-xs transition shadow-sm">
+              <a href="../nota_pembelajaran/slaid_interaktif.html?id=${encodeURIComponent(note.id)}" class="btn-read-note inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-amber-500 text-slate-900 font-headline font-bold text-xs transition shadow-sm">
                 <span class="material-symbols-outlined text-base">edit_note</span>
                 <span>Buka Nota Interaktif</span>
               </a>
@@ -987,5 +989,7 @@
     } catch (_) {}
   </script>
   <script src="../assets/js/student-shell.js"></script>
+  <script src="../assets/js/guided-tour-config.js"></script>
+  <script src="../assets/js/guided-tour.js"></script>
 </body>
 </html>

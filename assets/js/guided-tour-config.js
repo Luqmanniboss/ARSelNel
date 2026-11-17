@@ -13,72 +13,51 @@
     // ------------------------------------------------------------------------
     dashboard: {
       id: 'dashboard',
-      version: 1,
+      version: 2,
       title: 'Panduan Dashboard Utama',
       theme: 'dashboard',
       steps: [
         {
-          target: '.hero h1#hero-title, .hero',
-          title: 'Selamat Datang ke ARSELNEL!',
-          desc: 'Hai Saintis Muda! Ini adalah pusat pengembaraan Sains Tingkatan 1 anda. Terokai dunia sel, eksperimen, video dan aktiviti 3D di sini.',
-          tip: 'Anda boleh memulakan penerokaan dengan menekan butang Mula Teroka Sel.',
+          target: '.ars-mobile-menu, [data-ars-menu], #hamburger-btn, #ars-sidebar',
+          title: 'Menu Navigasi Utama',
+          desc: 'Akses pantas ke CellQuest, Nota Pintar, Teater Video, Tanya AI, dan Kuiz & Permainan Sains Tingkatan 1.',
+          tip: 'Di telefon pintar, ketik ikon menu ini untuk membuka senarai modul pembelajaran.',
           placement: 'bottom'
         },
         {
-          target: '#ars-sidebar, .site-header nav',
-          title: 'Bar Navigasi Utama',
-          desc: 'Gunakan bar navigasi ini untuk melompat pantas ke CellQuest, Nota, Video, Tanya AI, atau Kuiz & Permainan pada bila-bila masa.',
-          tip: 'Di telefon pintar, anda boleh menekan ikon menu untuk membuka senarai ini.',
-          placement: 'right'
+          target: '.ars-tour-help-btn, .ars-tour-btn-replay',
+          title: 'Butang Bantuan Panduan',
+          desc: 'Perlukan bimbingan semula? Ketik butang Bantuan ini pada bila-bila masa untuk memainkan semula panduan interaktif.',
+          tip: 'Setiap halaman modul ARSELNEL mempunyai panduan khas yang boleh dibuka semula.',
+          placement: 'bottom'
         },
         {
-          target: '.hero a[href*="cellquest"], .module-card:nth-of-type(1)',
-          title: 'CellQuest 3D & AR',
-          desc: 'Terokai model hologram sel haiwan dan sel tumbuhan secara interaktif dalam mod 3D dan Realiti Terimbuh (AR).',
-          tip: 'Anda boleh memutar, mengezum dan memilih setiap organel sel.',
+          target: '#hero-title, .hero h1',
+          title: 'Struktur & Organisasi Sel',
+          desc: 'Selamat datang, Saintis Muda! Terokai keajaiban dunia sains sel, eksperimen makmal, dan visualisasi hologram 3D.',
+          tip: 'Mulakan sesi pembelajaran anda dengan memilih salah satu butang di bawah.',
+          placement: 'bottom'
+        },
+        {
+          target: '.hero a[href*="cellquest"], #btn-hero-explore',
+          title: 'Mula Teroka Sel (CellQuest 3D)',
+          desc: 'Ketik butang ini untuk memasuki pengembaraan 3D dan Realiti Terimbuh (AR) bagi organel sel haiwan dan sel tumbuhan.',
+          tip: 'Anda boleh memutar, mengezum dan memilih setiap organel secara interaktif.',
+          placement: 'bottom'
+        },
+        {
+          target: '.hero a[href*="hab_permainan"], #btn-hero-games',
+          title: 'Mulakan Cabaran Sains',
+          desc: 'Uji kehebatan minda sains anda melalui permainan arked Misi Makmal 2D, Maze Chase, dan Kuiz Saintis Muda!',
+          tip: 'Kumpul mata skor dan cipta rekod baharu di Papan Skor tertinggi.',
           placement: 'top'
         },
         {
-          target: 'a[data-nav-id="notes"], .module-grid .module-card:nth-of-type(2)',
-          title: 'Nota Pintar Interaktif',
-          desc: 'Ulang kaji topik Sains Bab 1, 2 dan 3 dengan slaid nota visual yang padat, jelas dan mudah difahami.',
-          tip: 'Dilengkapi pen digital dan penyerlah untuk mencatat nota terus pada skrin.',
+          target: '.manual-dashboard-card, .module-grid',
+          title: 'Manual Penggunaan & Modul Lengkap',
+          desc: 'Akses Manual Penggunaan 2.0 berserta 8 misi panduan lengkap atau pilih modul nota dan video untuk belajar.',
+          tip: 'Gunakan panduan manual untuk melihat cara penggunaan setiap ciri ARSELNEL.',
           placement: 'top'
-        },
-        {
-          target: 'a[data-nav-id="videos"], .module-grid .module-card:nth-of-type(3)',
-          title: 'Video Pembelajaran Sains',
-          desc: 'Tonton animasi sains menarik tentang fungsi mitokondria, nukleus, kloroplas dan proses fotosintesis.',
-          tip: 'Sesuai untuk mengulang kaji konsep yang sukar divisualkan.',
-          placement: 'top'
-        },
-        {
-          target: 'a[data-nav-id="ai"], .module-card[onclick*="selbot_ai"]',
-          title: 'Tanya AI — SelBot',
-          desc: 'Ada soalan sains yang tidak faham? Tanya SelBot, tutor pintar AI yang sedia menjawab soalan anda 24 jam sehari.',
-          tip: 'Gunakan cadangan pantas atau taip sendiri soalan anda.',
-          placement: 'top'
-        },
-        {
-          target: 'a[data-nav-id="games"], .hero a[href*="hab_permainan"]',
-          title: 'Kuiz & Permainan Sains',
-          desc: 'Uji kehebatan anda melalui permainan interaktif seperti Misi Makmal Sains, Maze Chase dan Kuiz Saintis Muda!',
-          tip: 'Kumpul mata ganjaran dan cipta rekod baharu di Papan Skor!',
-          placement: 'top'
-        },
-        {
-          target: '.manual-dashboard-card',
-          title: 'Manual Penggunaan Interaktif',
-          desc: 'Perlukan panduan terperinci? Buka Manual Penggunaan untuk melihat 8 misi lengkap berserta tangkap layar panduan.',
-          tip: 'Manual ini boleh diakses bila-bila masa dari dashboard.',
-          placement: 'top'
-        },
-        {
-          target: '#profile-dropdown-btn, a[data-nav-id="profile"]',
-          title: 'Profil & Tetapan Anda',
-          desc: 'Pantau kemajuan pembelajaran anda, lihat lencana pencapaian, dan sesuaikan tema atau saiz tulisan mengikut keselesaan anda.',
-          tip: 'Klik gambar profil untuk menyunting nama dan avatar anda.',
-          placement: 'left'
         }
       ]
     },
@@ -88,7 +67,7 @@
     // ------------------------------------------------------------------------
     notes: {
       id: 'notes',
-      version: 1,
+      version: 2,
       title: 'Panduan Nota Interaktif',
       theme: 'notes',
       steps: [
@@ -107,10 +86,17 @@
           placement: 'bottom'
         },
         {
-          target: '#interactive-slides-grid',
-          title: 'Katalog Slaid Pembelajaran',
-          desc: 'Setiap kad memaparkan tajuk nota, tahap kesukaran dan bilangan slaid. Tekan butang pada kad untuk membuka pembaca slaid interaktif.',
-          tip: 'Anda boleh membaca nota dan mencatat anotasi digital serentak.',
+          target: '#interactive-slides-grid > div:first-child, .note-card:first-of-type, #interactive-slides-grid',
+          title: 'Kad Slaid Pembelajaran',
+          desc: 'Setiap kad memaparkan bab, tajuk, jenis bahan (PDF, PPTX, Web), dan bilangan slaid sains yang padat dan jelas.',
+          tip: 'Pilih slaid mengikut topik yang ingin anda pelajari atau ulang kaji.',
+          placement: 'top'
+        },
+        {
+          target: '#interactive-slides-grid > div:first-child a[href*="slaid_interaktif"], #interactive-slides-grid a[href*="slaid_interaktif"]',
+          title: 'Buka Pembaca Slaid & Anotasi',
+          desc: 'Ketik butang kuning ini untuk melancarkan pembaca slaid interaktif lengkap dengan pen digital, penyerlah dan pemadam.',
+          tip: 'Anda boleh membaca nota sambil mencatat anotasi peribadi terus pada skrin.',
           placement: 'top'
         }
       ]
@@ -579,37 +565,66 @@
     // ------------------------------------------------------------------------
     kotak_arselnel: {
       id: 'kotak_arselnel',
-      version: 1,
+      version: 2,
       title: 'Panduan Pengimbas Kotak ARSELNEL',
       theme: 'ar',
       steps: [
         {
-          target: '.ar-top-hud, .ar-title-badge',
-          title: 'Pengimbas Realiti Terimbuh (WebAR)',
-          desc: 'Halakan kamera peranti anda ke arah kad penanda fizikal pada Kotak ARSELNEL untuk memunculkan kandungan sains 3D.',
-          tip: 'Pastikan pencahayaan bilik mencukupi dan pegang peranti dengan stabil.',
+          target: '.ar-title-badge, .ar-top-hud, #btn-back-dashboard',
+          title: 'Selamat Datang ke Kotak ARSELNEL!',
+          desc: 'Pusat Realiti Terimbuh (WebAR) Sains Tingkatan 1. Halakan kamera peranti anda ke arah kad AR fizikal untuk memunculkan model organel 3D secara langsung.',
+          tip: 'Pastikan pencahayaan bilik terang dan benarkan akses kamera pelayar (*Allow Camera*).',
           placement: 'bottom'
         },
         {
-          target: '.btn-jelajah-3d',
-          title: 'Mod Makmal Jelajah 3D',
-          desc: 'Ketik butang ini untuk meneroka stesen makmal 3D maya bagi mengenal pasti instrumen sains secara bebas.',
-          tip: 'Boleh diakses bila-bila masa tanpa memerlukan penanda fizikal.',
+          target: '.scanner-frame, #scanner-overlay',
+          title: 'Bingkai Pengimbas AR',
+          desc: 'Posisikan mana-mana satu daripada Kad AR Kotak ARSELNEL di dalam bingkai sasaran oren ini untuk memulakan pengesanan pantas.',
+          tip: 'Pegang peranti dengan stabil pada jarak kira-kira 15cm hingga 30cm dari kad AR.',
+          placement: 'top'
+        },
+        {
+          target: '#btn-open-marker, a[href*="marker-print"]',
+          title: 'Papar & Cetak Kad AR',
+          desc: 'Belum mempunyai kad bercetak? Ketik butang ini untuk membuka 6 lembaran Kad AR bagi dicetak atau dipaparkan pada skrin peranti lain.',
+          tip: 'Anda boleh mengimbas kad terus dari skrin komputer riba atau iPad rakan.',
           placement: 'bottom'
         },
         {
-          target: '.btn-orientasi-dunia',
-          title: 'AR Orientasi Dunia (Radar 360°)',
-          desc: 'Aktifkan kompas dan radar AR untuk memulakan Misi Jelajah Dunia Sel 360° di persekitaran fizikal anda.',
-          tip: 'Pusingkan badan anda mengikut arah radar untuk mengesan stesen organel.',
+          target: '#btn-launch-jelajah3d, .btn-jelajah-3d',
+          title: 'Mod Jelajah Makmal 3D',
+          desc: 'Ingin belajar tanpa kad penanda? Masuki Makmal Maya 3D untuk meneroka 8 stesen organel dan instrumen secara bebas.',
+          tip: 'Gunakan joystick maya atau seretan skrin untuk bersiar-siar dalam makmal 3D.',
           placement: 'bottom'
         },
         {
-          target: '.ar-hud-user-guide-btn',
-          title: 'Panduan Kad Penanda',
-          desc: 'Ketik ikon bantuan ini untuk melihat panduan langkah demi langkah 6 kad penanda aktif yang disokong oleh sistem.',
-          tip: 'Marker Kuiz dan SelBot telah dikeluarkan dari WebAR dan kekal di modul biasa.',
+          target: '#btn-launch-orientasi-dunia, .btn-orientasi-dunia',
+          title: 'AR Orientasi Dunia (360°)',
+          desc: 'Aktifkan kompas sensor dan Smart Radar untuk mencari organel yang terapung di sekeliling bilik anda secara 360 darjah!',
+          tip: 'Pusingkan badan anda mengikut petunjuk radar untuk menemui stesen sel tersembunyi.',
           placement: 'bottom'
+        },
+        {
+          target: '#btn-toggle-diagnostics, .btn-diagnostics-toggle',
+          title: 'Diagnostik Sensor & Sistem',
+          desc: 'Ketik butang ini untuk menyemak kelajuan bingkai (FPS), status sensor giroskop, dan kestabilan enjin pengesanan MindAR.',
+          tip: 'Sangat berguna jika imbasan kad terasa perlahan atau tidak stabil.',
+          placement: 'bottom'
+        },
+        {
+          target: '#btn-open-user-guide, .ar-hud-user-guide-btn',
+          title: 'Panduan Pengguna & Bantuan',
+          desc: 'Ketik butang ini pada bila-bila masa untuk membuka semula panduan langkah demi langkah Kotak ARSELNEL ini.',
+          tip: 'Anda juga boleh menekan kekunci Esc atau butang Langkau untuk mula mengimbas.',
+          placement: 'bottom'
+        },
+        {
+          target: '.scanner-frame, #ar-instruction-pill',
+          title: 'Sedia untuk Mengimbas!',
+          desc: 'Semua peralatan dan sensor telah sedia! Sekarang halakan kamera ke arah Kad AR Kotak ARSELNEL anda dan nikmati keajaiban sains!',
+          tip: 'Tekan butang di bawah untuk memulakan pengembaraan sains anda.',
+          placement: 'top',
+          finishText: 'Selesai, Jom Imbas!'
         }
       ]
     },

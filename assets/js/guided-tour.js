@@ -55,11 +55,29 @@
       if (config) {
         const state = this.getTourState(pageKey);
         if (!state.completed && !state.dontShowAgain) {
-          setTimeout(() => {
-            if (!this.isPageBusy() && !this.currentTour) {
-              this.startTour(pageKey, false);
-            }
-          }, 850);
+          if (pageKey === 'kotak_arselnel') {
+            // Kotak ARSELNEL camera / MindAR takes time to mount
+            let attempts = 0;
+            const checkKotakReady = () => {
+              attempts++;
+              const loading = document.getElementById('loading-screen');
+              const isCameraLoading = loading && !loading.classList.contains('hidden');
+              if (isCameraLoading && attempts < 25) {
+                setTimeout(checkKotakReady, 350);
+                return;
+              }
+              if (!this.isPageBusy() && !this.currentTour) {
+                this.startTour('kotak_arselnel', false);
+              }
+            };
+            setTimeout(checkKotakReady, 650);
+          } else {
+            setTimeout(() => {
+              if (!this.isPageBusy() && !this.currentTour) {
+                this.startTour(pageKey, false);
+              }
+            }, 850);
+          }
         }
       }
     }
@@ -84,7 +102,7 @@
     }
 
     isPageBusy() {
-      const modalOpen = document.querySelector('.modal.open, [role="dialog"]:not(.hidden):not(.ars-tour-portal):not(.ars-tour-tooltip)');
+      const modalOpen = document.querySelector('.modal.open, [role="dialog"]:not(.hidden):not(.ars-tour-portal):not(.ars-tour-tooltip):not(#kotak-onboarding-backdrop)');
       const loader = document.querySelector('.cq-loading-screen:not(.done)');
       if (loader) return true;
       return Boolean(modalOpen);
@@ -145,6 +163,16 @@
     // ------------------------------------------------------------------------
     createPortal() {
       if (this.portalEl) return;
+
+      const existing = document.querySelector('.ars-tour-portal');
+      if (existing) {
+        this.portalEl = existing;
+        this.svgCanvasEl = existing.querySelector('.ars-tour-svg-canvas');
+        this.maskHoleEl = existing.querySelector('#ars-tour-hole');
+        this.spotlightFrameEl = existing.querySelector('#ars-tour-spotlight-frame');
+        this.tooltipEl = existing.querySelector('.ars-tour-tooltip');
+        return;
+      }
 
       const portal = document.createElement('div');
       portal.className = 'ars-tour-portal';
@@ -307,6 +335,16 @@
 
       this.activeTarget = targetEl;
 
+      // Handle mobile drawer if target is part of the sidebar
+      const isInSidebar = Boolean(targetEl.closest && (targetEl.closest('#ars-sidebar') || targetEl.id === 'ars-sidebar'));
+      if (isInSidebar && window.innerWidth <= 1024) {
+        document.body.classList.add('ars-mobile-open');
+        this._drawerOpenedByTour = true;
+      } else if (this._drawerOpenedByTour) {
+        document.body.classList.remove('ars-mobile-open');
+        this._drawerOpenedByTour = false;
+      }
+
       // Scroll target into view
       try {
         targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
@@ -355,7 +393,8 @@
 
       if (nextBtn) {
         if (this.currentStepIndex === totalSteps - 1) {
-          nextBtn.innerHTML = `<span>Selesai</span>${TOUR_SVGS.check}`;
+          const finishLabel = step.finishText || 'Selesai';
+          nextBtn.innerHTML = `<span>${finishLabel}</span>${TOUR_SVGS.check}`;
           nextBtn.setAttribute('data-tour-action', 'finish');
           nextBtn.classList.add('ars-tour-btn-finish');
           nextBtn.classList.remove('ars-tour-btn-next');
@@ -372,13 +411,18 @@
         this.tooltipEl.style.height = 'auto';
       }
 
-      setTimeout(() => {
-        this.updateGeometry();
-        if (this.tooltipEl) {
-          this.tooltipEl.classList.add('is-positioned');
-          this.tooltipEl.focus();
-        }
-      }, 140);
+      // Multi-stage geometry recalculation to settle smoothly after scrolling on mobile
+      [120, 320, 520].forEach((delay) => {
+        setTimeout(() => {
+          if (this.currentTour && this.activeTarget === targetEl) {
+            this.updateGeometry();
+            if (this.tooltipEl && !this.tooltipEl.classList.contains('is-positioned')) {
+              this.tooltipEl.classList.add('is-positioned');
+              this.tooltipEl.focus();
+            }
+          }
+        }, delay);
+      });
     }
 
     findTargetElement(selector) {
@@ -400,7 +444,12 @@
       const rect = el.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return false;
       const style = window.getComputedStyle(el);
-      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+      if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+      // Critical check for off-screen transformed elements (like closed mobile sidebars)
+      if (rect.right <= 0 || rect.bottom <= 0 || rect.left >= window.innerWidth || rect.top >= window.innerHeight) {
+        return false;
+      }
+      return true;
     }
 
     // ------------------------------------------------------------------------
@@ -410,12 +459,13 @@
       if (!this.activeTarget || !this.tooltipEl) return;
 
       const rect = this.activeTarget.getBoundingClientRect();
-      const padding = 10;
+      const isSmallTarget = (rect.height <= 54 && rect.width <= 140) || (rect.height <= 44);
+      const padding = isSmallTarget ? 6 : (window.innerWidth <= 640 ? 8 : 10);
+      const radius = isSmallTarget ? 10 : 14;
       const top = Math.max(0, rect.top - padding);
       const left = Math.max(0, rect.left - padding);
       const width = Math.min(window.innerWidth - left, rect.width + padding * 2);
       const height = Math.min(window.innerHeight - top, rect.height + padding * 2);
-      const radius = 14;
 
       // 1. Cut the 100% transparent hole in SVG mask
       if (this.maskHoleEl) {
@@ -637,6 +687,10 @@
     }
 
     closeTour() {
+      if (this._drawerOpenedByTour) {
+        document.body.classList.remove('ars-mobile-open');
+        this._drawerOpenedByTour = false;
+      }
       if (this.portalEl) {
         this.portalEl.classList.remove('is-active');
         if (this.tooltipEl) this.tooltipEl.classList.remove('is-positioned');
@@ -649,8 +703,10 @@
     }
   }
 
-  const tourInstance = new GuidedTourManager();
-  global.ArselnelTour = tourInstance;
-  global.__ARSELNEL_TOUR__ = tourInstance;
+  if (!global.ArselnelTour) {
+    const tourInstance = new GuidedTourManager();
+    global.ArselnelTour = tourInstance;
+    global.__ARSELNEL_TOUR__ = tourInstance;
+  }
 
 })(typeof window !== 'undefined' ? window : this);
