@@ -13,6 +13,7 @@
 
   <!-- Stylesheet -->
   <link rel="stylesheet" href="../assets/css/cellquest-adventure.css">
+  <link rel="stylesheet" href="../assets/css/guided-tour.css">
 
   <!-- Core Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -70,9 +71,10 @@
             </button>
           </div>
 
-          <!-- Kanan: Status Profil Murid -->
+          <!-- Kanan: Status Profil Murid & Butang Bantuan Tour -->
           <div class="cq-nav-right">
-            <div class="cq-lobby-user-pill" id="lobby-user-pill">
+            <!-- Disembunyikan daripada paparan Terokai Dunia AR, mengekalkan elemen DOM untuk keserasian JS -->
+            <div class="cq-lobby-user-pill" id="lobby-user-pill" style="display: none !important;">
               <span class="material-symbols-outlined user-avatar-icon">account_circle</span>
               <strong id="lobby-user-name">Saintis Muda</strong>
               <div class="lobby-stat-chip" title="Lencana Terkumpul">
@@ -80,6 +82,13 @@
                 <strong id="lobby-stat-badges">0/8</strong>
               </div>
             </div>
+            <!-- Butang Bantuan Guided Tour Responsif -->
+            <button class="ars-tour-help-btn ars-tour-replay-trigger" type="button" aria-label="Buka Panduan Halaman" title="Buka Panduan Halaman" data-ars-tour="ar_adventure">
+              <span class="ars-tour-help-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg></span>
+              <span class="ars-tour-help-label-desktop">Panduan Halaman</span>
+              <span class="ars-tour-help-label-tablet">Bantuan</span>
+              <span class="ars-tour-help-label-mobile">Bantuan</span>
+            </button>
           </div>
         </div>
 
@@ -1383,5 +1392,8 @@
 
   <!-- Game Engine Script -->
   <script src="../assets/js/cellquest-adventure.js"></script>
+  <!-- Guided Tour Scripts -->
+  <script src="../assets/js/guided-tour-config.js"></script>
+  <script src="../assets/js/guided-tour.js"></script>
 </body>
 </html>

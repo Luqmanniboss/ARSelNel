@@ -229,9 +229,9 @@
         {
           target: '#player-container',
           title: 'Pemain Video Interaktif',
-          desc: 'Tonton video animasi sains dalam resolusi tinggi. Gunakan kawalan main/jeda, peluncur masa dan skrin penuh.',
-          tip: 'Ketik dua kali pada pemain untuk memainkan atau menjeda video.',
-          placement: 'bottom'
+          desc: 'Tonton video animasi sains dalam resolusi tinggi. Gunakan kawalan main/jeda (Play/Pause), peluncur garis masa, kawalan audio dan mod skrin penuh pada pemain.',
+          tip: 'Ketik dua kali atau gunakan bar kawalan di bahagian bawah pemain untuk mengawal video.',
+          placement: 'inner-top-right'
         },
         {
           target: '#video-title, #video-category',
@@ -266,6 +266,27 @@
       title: 'Panduan CellQuest 3D & AR',
       theme: 'cellquest',
       steps: [
+        {
+          target: '.cq-adventure-banner',
+          title: 'Kenali Misi Jelajah Dunia Sel',
+          desc: 'Selamat datang ke Misi Jelajah Dunia Sel! Di sini, anda boleh meneroka dunia sel secara interaktif dan menyelesaikan cabaran sains.',
+          tip: 'Penuh dengan aktiviti makmal 3D, sensor orientasi dan cabaran organel.',
+          placement: 'bottom'
+        },
+        {
+          target: '#btn-cq-start-adventure, a[href="adventure.html"]',
+          title: 'Mula Pengembaraan',
+          desc: 'Tekan butang Mula Pengembaraan untuk memilih cara anda mahu meneroka dunia sel.',
+          tip: 'Pilih mod yang paling serasi dengan peranti anda.',
+          placement: 'bottom'
+        },
+        {
+          target: '.cq-adventure-banner',
+          title: 'Pilih Mod Pengembaraan',
+          desc: 'Anda boleh memilih mod pengembaraan yang sesuai dengan peranti anda. Ada mod tanpa kamera, mod AR orientasi dunia dan mod kad penanda.',
+          tip: 'Pengembaraan ini menghubungkan anda ke makmal eksplorasi AR yang menakjubkan.',
+          placement: 'bottom'
+        },
         {
           target: '#animal-tab, #plant-tab',
           title: 'Pilih Jenis Sel',
@@ -313,6 +334,53 @@
           title: 'Pengimbas Kotak ARSELNEL',
           desc: 'Ketik butang ini apabila anda bersedia untuk mengimbas kad penanda AR menggunakan kamera telefon atau komputer riba.',
           tip: 'Pastikan kawasan anda cukup terang sebelum memulakan imbasan AR.',
+          placement: 'top'
+        }
+      ]
+    },
+
+    // ------------------------------------------------------------------------
+    // D2. CELLQUEST ADVENTURE — TEROKAI DUNIA AR (cellquest/adventure.html)
+    // ------------------------------------------------------------------------
+    ar_adventure: {
+      id: 'ar_adventure',
+      version: 1,
+      title: 'Panduan Terokai Dunia AR',
+      theme: 'cellquest',
+      steps: [
+        {
+          target: '.cq-lobby-hero-content, .cq-lobby-title',
+          title: 'Selamat Datang ke Pengembaraan Sel',
+          desc: 'Di sini anda boleh memilih cara untuk meneroka dunia sel. Jom kenali tiga mod pengembaraan yang tersedia!',
+          tip: 'Pengalaman interaktif yang menggabungkan visual 3D dan Realiti Terimbuh.',
+          placement: 'bottom'
+        },
+        {
+          target: '#lobby-card-mod-a',
+          title: 'Mod A: Jelajah Makmal 3D',
+          desc: 'Terokai makmal maya tanpa menggunakan kamera. Gunakan papan kekunci atau joystick untuk bergerak, lawati 8 stesen dan jawab cabaran sains.',
+          tip: 'Pilihan terbaik jika anda menggunakan komputer tanpa kamera atau mahu bermain santai.',
+          placement: 'top'
+        },
+        {
+          target: '#lobby-card-mod-b',
+          title: 'Mod B: AR Orientasi Dunia',
+          desc: 'Gunakan kamera dan sensor peranti untuk mencari stesen organel di sekeliling anda dengan bantuan radar pintar.',
+          tip: 'Fungsi sensor orientasi bergantung pada sokongan peranti dan kebenaran akses kamera.',
+          placement: 'top'
+        },
+        {
+          target: '#lobby-card-mod-c',
+          title: 'Mod C: AR Kad Penanda',
+          desc: 'Imbas kad penanda menggunakan kamera untuk memunculkan model organel 3D dan menyelesaikan kuiz interaktif.',
+          tip: 'Sediakan kad penanda bercetak untuk mengimbas organel di atas meja.',
+          placement: 'top'
+        },
+        {
+          target: '#lobby-btn-mod-a',
+          title: 'Mulakan Pengembaraan',
+          desc: 'Pilih mod yang anda suka dan tekan butang Mula untuk memulakan pengembaraan sains anda!',
+          tip: 'Ketik butang Mula pada mana-mana mod pilihan anda untuk terus masuk ke pengembaraan.',
           placement: 'top'
         }
       ]

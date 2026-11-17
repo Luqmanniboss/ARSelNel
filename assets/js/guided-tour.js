@@ -71,6 +71,7 @@
       if (path.includes('nota_pembelajaran') || path.includes('butiran_nota')) return 'notes';
       if (path.includes('pemain_video')) return 'player';
       if (path.includes('perpustakaan_video')) return 'videos';
+      if (path.includes('adventure')) return 'ar_adventure';
       if (path.includes('cellquest')) return 'cellquest';
       if (path.includes('selbot_ai')) return 'ai';
       if (path.includes('misi-makmal-sains')) return 'lab';
@@ -84,6 +85,8 @@
 
     isPageBusy() {
       const modalOpen = document.querySelector('.modal.open, [role="dialog"]:not(.hidden):not(.ars-tour-portal):not(.ars-tour-tooltip)');
+      const loader = document.querySelector('.cq-loading-screen:not(.done)');
+      if (loader) return true;
       return Boolean(modalOpen);
     }
 
@@ -450,55 +453,99 @@
       const preferredPlacement = step.placement || 'bottom';
       let placement = preferredPlacement;
 
-      // Anti-Overlap Smart Placement Selection
-      if (vWidth <= 640) {
-        // Mobile: Vertical only
-        if (spaceBelow >= tooltipRect.height + gap) {
-          placement = 'bottom';
-        } else if (spaceAbove >= tooltipRect.height + gap) {
-          placement = 'top';
-        } else {
-          placement = spaceBelow >= spaceAbove ? 'bottom' : 'top';
-        }
-      } else {
-        // Desktop / Tablet
-        if (preferredPlacement === 'bottom' && spaceBelow < tooltipRect.height + gap) {
-          if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
-          else if (spaceRight >= tooltipRect.width + gap) placement = 'right';
-          else if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
-        } else if (preferredPlacement === 'top' && spaceAbove < tooltipRect.height + gap) {
-          if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
-          else if (spaceRight >= tooltipRect.width + gap) placement = 'right';
-          else if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
-        } else if (preferredPlacement === 'right' && spaceRight < tooltipRect.width + gap) {
-          if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
-          else if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
-          else if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
-        } else if (preferredPlacement === 'left' && spaceLeft < tooltipRect.width + gap) {
-          if (spaceRight >= tooltipRect.width + gap) placement = 'right';
-          else if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
-          else if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
-        }
-      }
+      // Check for large target condition (e.g. video player, large 3D canvas, massive card)
+      const isLargeTarget = (
+        height > vHeight * 0.48 ||
+        (height > vHeight * 0.35 && width > vWidth * 0.60) ||
+        (spaceBelow < tooltipRect.height + gap && spaceAbove < tooltipRect.height + gap)
+      );
 
       let toolTop = 0;
       let toolLeft = 0;
 
-      if (placement === 'bottom') {
-        toolTop = top + height + gap;
-        toolLeft = left;
-      } else if (placement === 'top') {
-        toolTop = top - tooltipRect.height - gap;
-        toolLeft = left;
-      } else if (placement === 'right') {
-        toolLeft = left + width + gap;
-        toolTop = top;
-      } else if (placement === 'left') {
-        toolLeft = left - tooltipRect.width - gap;
-        toolTop = top;
+      if (isLargeTarget) {
+        // Large Target Strategy (Video player, wide canvas):
+        // Position compact floating tooltip within the viewport without pushing below screen
+        if (vWidth > 768) {
+          // Desktop / Laptop / iPad Landscape:
+          // Place floating in upper-right corner inside target (or top-left if target is pinned right)
+          // Leaving center stage and bottom media controls (play/pause, progress bar) completely exposed!
+          toolTop = Math.max(pad + 74, top + 16);
+          toolLeft = Math.min(vWidth - tooltipRect.width - pad - 16, left + width - tooltipRect.width - 24);
+          placement = 'inner-top-right';
+        } else {
+          // Mobile / Portrait:
+          if (spaceBelow >= tooltipRect.height + 8) {
+            toolTop = top + height + 8;
+            toolLeft = (vWidth - tooltipRect.width) / 2;
+            placement = 'bottom';
+          } else if (spaceAbove >= tooltipRect.height + 8) {
+            toolTop = top - tooltipRect.height - 8;
+            toolLeft = (vWidth - tooltipRect.width) / 2;
+            placement = 'top';
+          } else {
+            toolTop = Math.max(pad + 54, top + 10);
+            toolLeft = (vWidth - tooltipRect.width) / 2;
+            placement = 'inner-top';
+          }
+        }
+      } else {
+        // Normal Target: Anti-Overlap Smart Placement Selection
+        if (vWidth <= 640) {
+          // Mobile: Vertical only
+          if (spaceBelow >= tooltipRect.height + gap) {
+            placement = 'bottom';
+          } else if (spaceAbove >= tooltipRect.height + gap) {
+            placement = 'top';
+          } else {
+            placement = spaceBelow >= spaceAbove ? 'bottom' : 'top';
+          }
+        } else {
+          // Desktop / Tablet
+          if (preferredPlacement === 'bottom' && spaceBelow < tooltipRect.height + gap) {
+            if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
+            else if (spaceRight >= tooltipRect.width + gap) placement = 'right';
+            else if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
+          } else if (preferredPlacement === 'top' && spaceAbove < tooltipRect.height + gap) {
+            if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
+            else if (spaceRight >= tooltipRect.width + gap) placement = 'right';
+            else if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
+          } else if (preferredPlacement === 'right' && spaceRight < tooltipRect.width + gap) {
+            if (spaceLeft >= tooltipRect.width + gap) placement = 'left';
+            else if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
+            else if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
+          } else if (preferredPlacement === 'left' && spaceLeft < tooltipRect.width + gap) {
+            if (spaceRight >= tooltipRect.width + gap) placement = 'right';
+            else if (spaceBelow >= tooltipRect.height + gap) placement = 'bottom';
+            else if (spaceAbove >= tooltipRect.height + gap) placement = 'top';
+          }
+        }
+
+        if (placement === 'bottom') {
+          toolTop = top + height + gap;
+          toolLeft = left;
+        } else if (placement === 'top') {
+          toolTop = top - tooltipRect.height - gap;
+          toolLeft = left;
+        } else if (placement === 'right') {
+          toolLeft = left + width + gap;
+          toolTop = top;
+        } else if (placement === 'left') {
+          toolLeft = left - tooltipRect.width - gap;
+          toolTop = top;
+        }
+
+        // Strict Collision Avoidance for normal targets
+        if (placement === 'bottom' && toolTop < top + height + 6) {
+          toolTop = Math.min(vHeight - tooltipRect.height - pad, top + height + 6);
+        }
+        if (placement === 'top' && toolTop + tooltipRect.height > top - 6) {
+          toolTop = Math.max(pad, top - tooltipRect.height - 6);
+        }
       }
 
-      // Viewport Clamping
+      // FINAL STRICT VIEWPORT CLAMPING (ABSOLUTE AUTHORITY)
+      // Guarantees tooltip and its navigation buttons ALWAYS stay 100% inside visual viewport
       if (toolLeft + tooltipRect.width > vWidth - pad) {
         toolLeft = vWidth - tooltipRect.width - pad;
       }
@@ -510,15 +557,6 @@
       }
       if (toolTop < pad) {
         toolTop = pad;
-      }
-
-      // STRICT COLLISION AVOIDANCE
-      // Ensure tooltip coordinates do not intersect with spotlight bounds
-      if (placement === 'bottom' && toolTop < top + height + 6) {
-        toolTop = top + height + 6;
-      }
-      if (placement === 'top' && toolTop + tooltipRect.height > top - 6) {
-        toolTop = Math.max(pad, top - tooltipRect.height - 6);
       }
 
       this.tooltipEl.style.top = `${Math.round(toolTop)}px`;
