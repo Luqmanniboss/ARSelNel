@@ -289,12 +289,13 @@
       <span id="cq-hint-text">Sentuh mana-mana organel untuk melihat fungsinya</span>
     </div>
 
-    <!-- POV SETUP GUIDANCE BANNER (Fasa 4D-D.2) -->
+    <!-- POV SETUP GUIDANCE BANNER (Fasa 4D-D.2 & Hotfix 1.0) -->
     <div class="cq-pov-setup-banner hidden" id="cq-pov-setup-banner">
       <div class="cq-pov-setup-header">
         <span class="material-symbols-outlined cq-pov-pulse-icon">explore</span>
-        <span class="cq-pov-setup-title">Halakan iPad ke arah pilihan anda</span>
+        <span class="cq-pov-setup-title">Kunci Pandangan (3DoF)</span>
       </div>
+      <p class="cq-pov-setup-desc">Halakan telefon ke arah yang anda mahu, kemudian tekan Letak di Arah Ini.</p>
       <div class="cq-pov-sensor-status" id="cq-pov-sensor-status">
         <span class="cq-status-dot-sm" id="cq-pov-status-dot"></span>
         <span id="cq-pov-sensor-text">Menyambung Giroskop...</span>
@@ -317,20 +318,51 @@
       </div>
     </div>
 
-    <!-- Bottom Controls Floating Controller (Fasa 4D-D: 3-Row Responsive Architecture) -->
+    <!-- Bottom Controls Floating Controller (Fasa Dual-Cell 1.0 Architecture) -->
     <nav class="cq-bottom-controls" id="cq-bottom-controls" aria-label="Kawalan Model 3D">
-      <!-- Baris 1: Segmented Cell Switcher -->
+      <!-- Baris 1: Pilihan Paparan Sel (Haiwan / Tumbuhan / Bandingkan) -->
       <div class="cq-controls-row cq-row-switcher">
-        <div class="cq-cell-switcher">
-          <button type="button" class="cq-pill-btn active" id="cq-btn-animal" data-cell="animal">
+        <div class="cq-cell-switcher" role="tablist">
+          <button type="button" class="cq-pill-btn active" id="cq-btn-animal" data-cell="animal" title="Papar Sel Haiwan sahaja">
             <span class="cq-btn-icon">🐾</span>
             <span class="cq-btn-txt">Sel Haiwan</span>
           </button>
-          <button type="button" class="cq-pill-btn" id="cq-btn-plant" data-cell="plant">
+          <button type="button" class="cq-pill-btn" id="cq-btn-plant" data-cell="plant" title="Papar Sel Tumbuhan sahaja">
             <span class="cq-btn-icon">🌿</span>
             <span class="cq-btn-txt">Sel Tumbuhan</span>
           </button>
+          <button type="button" class="cq-pill-btn" id="cq-btn-compare" data-cell="compare" title="Papar kedua-dua sel serentak bersebelahan">
+            <span class="cq-btn-icon">⚖️</span>
+            <span class="cq-btn-txt">Bandingkan</span>
+          </button>
         </div>
+      </div>
+
+      <!-- Baris 1b: Pilihan Model Aktif untuk Kawalan (Hanya muncul dalam Mod Bandingkan) -->
+      <div class="cq-controls-row cq-row-active-model hidden" id="cq-row-active-model">
+        <div class="cq-active-model-bar">
+          <span class="cq-model-bar-label">Kawal:</span>
+          <button type="button" class="cq-model-pill active" id="cq-select-animal" data-target="animal" title="Kawal dan manipulasi Sel Haiwan">
+            <span class="cq-dot-indicator animal-dot"></span>
+            <span>Sel Haiwan</span>
+          </button>
+          <button type="button" class="cq-model-pill" id="cq-select-plant" data-target="plant" title="Kawal dan manipulasi Sel Tumbuhan">
+            <span class="cq-dot-indicator plant-dot"></span>
+            <span>Sel Tumbuhan</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Baris 1c: Alat Sains & Label Organel (Tunjuk Label & Bandingkan Fakta) -->
+      <div class="cq-controls-row cq-row-science-tools">
+        <button type="button" class="cq-tool-pill" id="cq-btn-labels" title="Togol paparan label nama organel 3D">
+          <span class="material-symbols-outlined">label</span>
+          <span id="cq-labels-btn-text">Label Organel</span>
+        </button>
+        <button type="button" class="cq-tool-pill" id="cq-btn-diff-modal" title="Buka jadual persamaan dan perbezaan Sains Tingkatan 1">
+          <span class="material-symbols-outlined">table_chart</span>
+          <span>Persamaan & Perbezaan</span>
+        </button>
       </div>
 
       <!-- Baris 2: Mod Interaksi Utama (Putar, Seret, Semat, Kunci POV) -->
@@ -363,7 +395,7 @@
           <span class="material-symbols-outlined">zoom_out</span>
           <span class="cq-action-label">Zum −</span>
         </button>
-        <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-reset" title="Kembalikan Orientasi & Saiz Asal">
+        <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-reset" title="Kembalikan Orientasi & Saiz Asal Model Terpilih">
           <span class="material-symbols-outlined">restart_alt</span>
           <span class="cq-action-label">Set Semula</span>
         </button>
@@ -373,6 +405,111 @@
         </button>
       </div>
     </nav>
+
+    <!-- MODAL PERBANDINGAN SAINS: PERSAMAAN & PERBEZAAN (KSSM SAINS TINGKATAN 1) -->
+    <div class="cq-compare-modal-backdrop hidden" id="cq-compare-modal">
+      <div class="cq-compare-modal-card">
+        <header class="cq-compare-modal-header">
+          <div class="cq-compare-title-wrap">
+            <span class="material-symbols-outlined cq-compare-icon">balance</span>
+            <div>
+              <h3 class="cq-compare-title">Perbandingan Sel Haiwan & Sel Tumbuhan</h3>
+              <p class="cq-compare-subtitle">Bab 2: Sel Sebagai Unit Asas Hidupan • Sains Tingkatan 1 KSSM</p>
+            </div>
+          </div>
+          <button type="button" class="cq-compare-close-btn" id="cq-btn-close-compare" title="Tutup Modal Perbandingan">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </header>
+        
+        <div class="cq-compare-tabs">
+          <button type="button" class="cq-compare-tab active" id="cq-tab-diff">
+            <span class="material-symbols-outlined" style="font-size:16px;">difference</span>
+            <span>Perbezaan Utama</span>
+          </button>
+          <button type="button" class="cq-compare-tab" id="cq-tab-sim">
+            <span class="material-symbols-outlined" style="font-size:16px;">handshake</span>
+            <span>Persamaan Organel</span>
+          </button>
+        </div>
+
+        <div class="cq-compare-content" id="cq-compare-view-diff">
+          <div class="cq-table-responsive">
+            <table class="cq-comparison-table">
+              <thead>
+                <tr>
+                  <th>Ciri / Struktur</th>
+                  <th>🐾 Sel Haiwan</th>
+                  <th>🌿 Sel Tumbuhan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Bentuk Sel</strong></td>
+                  <td>Tidak tetap (fleksibel)</td>
+                  <td>Tetap (bersegi & tegar)</td>
+                </tr>
+                <tr>
+                  <td><strong>Dinding Sel</strong></td>
+                  <td><span class="cq-badge-no">Tiada</span></td>
+                  <td><span class="cq-badge-yes">Ada</span> (gentian selulosa tegar)</td>
+                </tr>
+                <tr>
+                  <td><strong>Kloroplas</strong></td>
+                  <td><span class="cq-badge-no">Tiada</span></td>
+                  <td><span class="cq-badge-yes">Ada</span> (tapak fotosintesis)</td>
+                </tr>
+                <tr>
+                  <td><strong>Vakuol</strong></td>
+                  <td>Tiada atau kecil & sedikit</td>
+                  <td><strong>Vakuol pusat bersaiz besar</strong> (sap sel)</td>
+                </tr>
+                <tr>
+                  <td><strong>Sentriol</strong></td>
+                  <td><span class="cq-badge-yes">Ada</span> (pembahagian sel)</td>
+                  <td><span class="cq-badge-no">Tiada</span> (tumbuhan aras tinggi)</td>
+                </tr>
+                <tr>
+                  <td><strong>Simpanan Makanan</strong></td>
+                  <td>Glikogen</td>
+                  <td>Kanji</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cq-compare-content hidden" id="cq-compare-view-sim">
+          <div class="cq-sim-grid">
+            <div class="cq-sim-card">
+              <span class="cq-sim-icon">🫧</span>
+              <h4>Membran Sel</h4>
+              <p>Mengawal keluar masuk bahan antara bahagian dalam sel dan persekitaran luar.</p>
+            </div>
+            <div class="cq-sim-card">
+              <span class="cq-sim-icon">💧</span>
+              <h4>Sitoplasma</h4>
+              <p>Medium jeli tempat berlakunya tindak balas biokimia dan organel terapung.</p>
+            </div>
+            <div class="cq-sim-card">
+              <span class="cq-sim-icon">🧬</span>
+              <h4>Nukleus</h4>
+              <p>Pusat kawalan sel yang mengandungi maklumat genetik (DNA) bagi kedua-dua sel.</p>
+            </div>
+            <div class="cq-sim-card">
+              <span class="cq-sim-icon">⚡</span>
+              <h4>Mitokondrion</h4>
+              <p>Tapak respirasi sel yang membebaskan tenaga ATP daripada glukosa untuk aktiviti sel.</p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="cq-compare-modal-footer">
+          <span class="cq-compare-tip">💡 Tip Saintis Muda: Gunakan mod <strong>Bandingkan</strong> untuk melihat kedua-dua sel secara visual serentak!</span>
+          <button type="button" class="cq-compare-done-btn" id="cq-btn-done-compare">Faham, Kembali ke 3D</button>
+        </footer>
+      </div>
+    </div>
   </div>
 
   <!-- FLOATING AR VIDEO PANEL (2D/3D PERSPECTIVE HYBRID) -->

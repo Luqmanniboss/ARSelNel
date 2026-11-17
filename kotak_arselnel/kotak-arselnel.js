@@ -639,6 +639,22 @@
     DOM.cqBottomControls = document.getElementById('cq-bottom-controls');
     DOM.cqBtnAnimal = document.getElementById('cq-btn-animal');
     DOM.cqBtnPlant = document.getElementById('cq-btn-plant');
+    DOM.cqBtnCompare = document.getElementById('cq-btn-compare');
+    DOM.cqRowActiveModel = document.getElementById('cq-row-active-model');
+    DOM.cqSelectAnimal = document.getElementById('cq-select-animal');
+    DOM.cqSelectPlant = document.getElementById('cq-select-plant');
+    DOM.cqBtnLabels = document.getElementById('cq-btn-labels');
+    DOM.cqLabelsBtnText = document.getElementById('cq-labels-btn-text');
+    DOM.cqBtnDiffModal = document.getElementById('cq-btn-diff-modal');
+    DOM.cqCompareModal = document.getElementById('cq-compare-modal');
+    DOM.cqBtnCloseCompare = document.getElementById('cq-btn-close-compare');
+    DOM.cqBtnDoneCompare = document.getElementById('cq-btn-done-compare');
+    DOM.cqTabDiff = document.getElementById('cq-tab-diff');
+    DOM.cqTabSim = document.getElementById('cq-tab-sim');
+    DOM.cqCompareViewDiff = document.getElementById('cq-compare-view-diff');
+    DOM.cqCompareViewSim = document.getElementById('cq-compare-view-sim');
+    DOM.cqViewDiff = DOM.cqCompareViewDiff;
+    DOM.cqViewSim = DOM.cqCompareViewSim;
     DOM.cqBtnRotate = document.getElementById('cq-btn-rotate');
     DOM.cqBtnDrag = document.getElementById('cq-btn-drag');
     DOM.cqBtnPin = document.getElementById('cq-btn-pin');
@@ -5232,6 +5248,28 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   }
 
   /**
+   * Penyesuaian Kedudukan Responsif Panel POV Setup agar tidak bertindih dengan Multi-Panel Toolbar
+   */
+  function adjustPOVBannerLayout() {
+    if (!DOM.cqPovSetupBanner || DOM.cqPovSetupBanner.classList.contains('hidden')) return;
+    const multiBar = DOM.arMultiPanelBar;
+    if (multiBar && !multiBar.classList.contains('hidden')) {
+      const rect = multiBar.getBoundingClientRect();
+      const topPx = Math.max(76, Math.round(rect.bottom + 12));
+      DOM.cqPovSetupBanner.style.setProperty('--cq-pov-setup-top', `${topPx}px`);
+      DOM.cqPovSetupBanner.style.top = `${topPx}px`;
+    } else {
+      const isMobile = window.innerWidth <= 768;
+      const topPx = isMobile ? 70 : 76;
+      DOM.cqPovSetupBanner.style.setProperty('--cq-pov-setup-top', `${topPx}px`);
+      DOM.cqPovSetupBanner.style.top = `${topPx}px`;
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.adjustPOVBannerLayout = adjustPOVBannerLayout;
+  }
+
+  /**
    * Kemas kini UI bar Multi-Panel dan pil status
    */
   function updateMultiPanelUI() {
@@ -5240,6 +5278,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     const count = ARState.activePanels.size;
     if (count === 0) {
       DOM.arMultiPanelBar.classList.add('hidden');
+      adjustPOVBannerLayout();
       return;
     }
 
@@ -5302,6 +5341,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         DOM.btnAddScan.title = 'Imbas marker baharu untuk menambah modul pembelajaran ke dalam ruang AR';
       }
     }
+
+    adjustPOVBannerLayout();
   }
 
   /**
@@ -6090,20 +6131,59 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
   const CellQuestARController = {
     isActive: false,
-    activeCellType: 'animal',
+    displayMode: 'animal', // 'animal' | 'plant' | 'compare'
+    selectedCell: 'animal', // 'animal' | 'plant' (model targeted by rotate/drag/zoom)
+    showLabels: false,
     selectedOrganelleId: null,
     rootGroup: null,
     modelHolder: null,
+    animalHolder: null,
+    plantHolder: null,
     interactiveObjects: [],
     cachedGltfScenes: { animal: null, plant: null },
-    userRotation: { x: 0, y: 0 },
-    userScale: 1.0,
     isAutoRotating: false,
     raycaster: null,
     pointer: null,
     isPointerDown: false,
     pointerStart: { x: 0, y: 0, time: 0 },
     lastMove: { x: 0, y: 0 },
+
+    // Fasa Dual-Cell 1.0: Independent state per cell
+    cellState: {
+      animal: {
+        loaded: false,
+        rotation: { x: 0, y: 0 },
+        scale: 1.0,
+        baseFitScale: 1.0,
+        dragOffset: new THREE.Vector2(0, 0),
+        dragStartOffset: { x: 0, y: 0 },
+        highlightRing: null,
+        labelsGroup: null,
+        fitGroup: null
+      },
+      plant: {
+        loaded: false,
+        rotation: { x: 0, y: 0 },
+        scale: 1.0,
+        baseFitScale: 1.0,
+        dragOffset: new THREE.Vector2(0, 0),
+        dragStartOffset: { x: 0, y: 0 },
+        highlightRing: null,
+        labelsGroup: null,
+        fitGroup: null
+      }
+    },
+
+    // Backwards-compatible getter/setter for activeCellType
+    get activeCellType() {
+      return this.displayMode === 'compare' ? this.selectedCell : this.displayMode;
+    },
+    set activeCellType(val) {
+      if (val === 'compare' || val === 'animal' || val === 'plant') {
+        this.displayMode = val;
+        if (val !== 'compare') this.selectedCell = val;
+      }
+    },
 
     // Fasa 4D-D.1 & 4D-D.2: Decoupled Tracking, Spatial Modes & 3DoF POV Lock
     trackingState: 'IDLE',   // 'IDLE' | 'MARKER_TRACKED' | 'MARKER_LOST'
@@ -6161,6 +6241,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       this.modelHolder.name = 'CellQuestAR_ModelHolder';
       this.rootGroup.add(this.modelHolder);
 
+      // Separate independent holders for Animal and Plant cells
+      this.animalHolder = new THREE.Group();
+      this.animalHolder.name = 'CellQuestAR_AnimalHolder';
+      this.modelHolder.add(this.animalHolder);
+
+      this.plantHolder = new THREE.Group();
+      this.plantHolder.name = 'CellQuestAR_PlantHolder';
+      this.modelHolder.add(this.plantHolder);
+
       // Studio multi-directional lighting for direct camera view on iPad Safari
       const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.95);
       this.rootGroup.add(hemiLight);
@@ -6196,7 +6285,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
 
       this.initPointerInteractions();
-      console.log('[CellQuestAR] Engine diinisialisasi dengan sokongan PinnedGroup & Touch Stabilizer');
+      console.log('[CellQuestAR] Engine diinisialisasi dengan sokongan Dual-Cell Comparison & Touch Stabilizer');
     },
 
     initPointerInteractions() {
@@ -6213,12 +6302,19 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           if (e.target.closest('.ar-top-hud')) return;
           if (e.target.closest('#diagnostics-drawer')) return;
           if (e.target.closest('#ar-toast')) return;
+          if (e.target.closest('#cq-bottom-controls')) return;
+          if (e.target.closest('#cq-compare-modal')) return;
         }
 
         this.isPointerDown = true;
         this.pointerId = e.pointerId;
         this.pointerStart = { x: e.clientX, y: e.clientY, time: Date.now() };
         this.lastMove = { x: e.clientX, y: e.clientY };
+
+        const targetState = this.cellState[this.selectedCell];
+        if (targetState) {
+          targetState.dragStartOffset = { x: targetState.dragOffset.x, y: targetState.dragOffset.y };
+        }
         this.dragStartOffset = { x: this.dragOffset.x, y: this.dragOffset.y };
         this.lastPointerEventStr = `down (${Math.round(e.clientX)},${Math.round(e.clientY)})`;
 
@@ -6240,32 +6336,36 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           if (e.cancelable) e.preventDefault();
 
           if (this.touchMode === 'DRAG') {
-            // ✥ Fasa 4D-D.1: 1-finger translation / repositioning in camera view space
             const fov = (this.camera && this.camera.fov) ? this.camera.fov : 36;
             const currentDepth = this.fixedScreenDepth || 2.8;
             const pxPerUnit = window.innerHeight / (2 * currentDepth * Math.tan((fov * Math.PI / 180) / 2));
             const totalDx = totalDxPx / (pxPerUnit || 350);
-            const totalDy = -totalDyPx / (pxPerUnit || 350); // Downward drag translates model down
+            const totalDy = -totalDyPx / (pxPerUnit || 350);
 
-            // Clamping boundaries scaled dynamically to camera distance
-            const maxDragX = 1.6;
-            const maxDragY = 1.2;
-            this.dragOffset.x = Math.max(-maxDragX, Math.min(maxDragX, this.dragStartOffset.x + totalDx));
-            this.dragOffset.y = Math.max(-maxDragY, Math.min(maxDragY, this.dragStartOffset.y + totalDy));
-            this.applyModelPosition();
-            this.lastPointerEventStr = `drag (${this.dragOffset.x.toFixed(2)}, ${this.dragOffset.y.toFixed(2)})`;
+            const maxDragX = 1.8;
+            const maxDragY = 1.4;
+            const targetState = this.cellState[this.selectedCell];
+            if (targetState) {
+              targetState.dragOffset.x = Math.max(-maxDragX, Math.min(maxDragX, targetState.dragStartOffset.x + totalDx));
+              targetState.dragOffset.y = Math.max(-maxDragY, Math.min(maxDragY, targetState.dragStartOffset.y + totalDy));
+            }
+            this.updateModelsLayout();
+            this.lastPointerEventStr = `drag (${this.selectedCell}: ${targetState.dragOffset.x.toFixed(2)}, ${targetState.dragOffset.y.toFixed(2)})`;
           } else {
-            // 🔄 Fasa 4D-D.1: 1-finger orbit rotation
+            // ROTATE mode: 1-finger orbit rotation on the currently selected model
             const dx = e.clientX - this.lastMove.x;
             const dy = e.clientY - this.lastMove.y;
-            this.userRotation.y += dx * 0.009;
-            this.userRotation.x = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, this.userRotation.x + dy * 0.009));
-
-            if (this.modelHolder) {
-              this.modelHolder.rotation.y = this.userRotation.y;
-              this.modelHolder.rotation.x = this.userRotation.x;
+            const targetState = this.cellState[this.selectedCell];
+            if (targetState) {
+              targetState.rotation.y += dx * 0.009;
+              targetState.rotation.x = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, targetState.rotation.x + dy * 0.009));
+              const holder = (this.selectedCell === 'animal') ? this.animalHolder : this.plantHolder;
+              if (holder) {
+                holder.rotation.y = targetState.rotation.y;
+                holder.rotation.x = targetState.rotation.x;
+              }
+              this.lastPointerEventStr = `rotate (${this.selectedCell}: ${targetState.rotation.y.toFixed(2)})`;
             }
-            this.lastPointerEventStr = `rotate (${this.userRotation.y.toFixed(2)})`;
           }
         }
         this.lastMove = { x: e.clientX, y: e.clientY };
@@ -6279,32 +6379,32 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         const moved = Math.hypot(e.clientX - this.pointerStart.x, e.clientY - this.pointerStart.y);
         const duration = Date.now() - this.pointerStart.time;
 
-        // Separate tap vs drag: Movement under 8px and short duration is a selection tap!
         if (moved < 8 && duration < 380) {
           this.handleTapRaycast(e.clientX, e.clientY);
           this.lastPointerEventStr = `tap (${Math.round(e.clientX)},${Math.round(e.clientY)})`;
         }
       }, { passive: true });
 
-      targetEl.addEventListener('pointercancel', (e) => {
+      targetEl.addEventListener('pointercancel', () => {
         this.isPointerDown = false;
         this.pointerId = null;
         this.lastPointerEventStr = 'cancel';
       }, { passive: true });
 
-      // Touch pinch-to-zoom (Active in both ROTATE and DRAG modes)
+      // Touch pinch-to-zoom
       let startPinchDist = 0;
       let startScale = 1.0;
       targetEl.addEventListener('touchstart', (e) => {
         if (!this.isActive || e.touches.length !== 2) return;
         if (e.target && typeof e.target.closest === 'function') {
-          if (e.target.closest('.pov-spatial-panel') || e.target.closest('#ar-multi-panel-bar')) return;
+          if (e.target.closest('.pov-spatial-panel') || e.target.closest('#ar-multi-panel-bar') || e.target.closest('#cq-bottom-controls')) return;
         }
         startPinchDist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY
         );
-        startScale = this.userScale;
+        const targetState = this.cellState[this.selectedCell];
+        startScale = targetState ? targetState.scale : 1.0;
       }, { passive: true });
 
       targetEl.addEventListener('touchmove', (e) => {
@@ -6314,9 +6414,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           e.touches[0].clientY - e.touches[1].clientY
         );
         const factor = currentDist / startPinchDist;
-        this.userScale = Math.max(0.45, Math.min(2.8, startScale * factor));
-        if (this.modelHolder) {
-          this.modelHolder.scale.setScalar(this.userScale);
+        const targetState = this.cellState[this.selectedCell];
+        if (targetState) {
+          targetState.scale = Math.max(0.45, Math.min(2.8, startScale * factor));
+          this.updateModelsLayout();
         }
         if (e.cancelable) e.preventDefault();
       }, { passive: false });
@@ -6333,18 +6434,24 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
       this.raycaster.setFromCamera(this.pointer, this.camera);
-      const pickables = this.interactiveObjects.filter(m => m.visible && m.userData.pickable);
+      const pickables = this.interactiveObjects.filter(m => m.visible && m.userData && m.userData.pickable);
       const hits = this.raycaster.intersectObjects(pickables, false);
 
       if (hits.length > 0) {
         const topHit = hits[0];
         const organelleId = topHit.object.userData.id;
+        const cellType = topHit.object.userData.cellType;
+
+        // In compare mode, automatically switch control focus to the tapped cell!
+        if (cellType && this.displayMode === 'compare' && this.selectedCell !== cellType) {
+          this.setSelectedCell(cellType);
+        }
+
         if (organelleId) {
-          console.log('[CellQuestAR] 🎯 Organel dipilih:', organelleId);
-          this.selectOrganelle(organelleId);
+          console.log('[CellQuestAR] 🎯 Organel dipilih:', organelleId, 'pada sel:', cellType);
+          this.selectOrganelle(organelleId, cellType);
         }
       } else {
-        // Tapped outside any organelle on empty camera space -> clear selection
         this.clearSelection();
       }
     },
@@ -6436,11 +6543,19 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     },
 
     adjustZoom(factor) {
-      this.userScale = Math.max(0.45, Math.min(2.8, this.userScale * factor));
-      if (this.modelHolder) {
-        this.modelHolder.scale.setScalar(this.userScale);
+      const state = this.cellState && this.cellState[this.selectedCell];
+      if (state) {
+        state.scale = Math.max(0.45, Math.min(2.8, state.scale * factor));
+        this.updateModelsLayout();
+        const cellLabel = this.selectedCell === 'animal' ? 'Sel Haiwan' : 'Sel Tumbuhan';
+        showToast(`🔍 Saiz ${cellLabel}: ${Math.round(state.scale * 100)}%`, 1200);
+      } else {
+        this.userScale = Math.max(0.45, Math.min(2.8, this.userScale * factor));
+        if (this.modelHolder) {
+          this.modelHolder.scale.setScalar(this.userScale);
+        }
+        showToast(`🔍 Saiz: ${Math.round(this.userScale * 100)}%`, 1200);
       }
-      showToast(`🔍 Saiz: ${Math.round(this.userScale * 100)}%`, 1200);
       updateDiagnosticsData();
     },
 
@@ -6565,7 +6680,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       await this.ensureSensorPermission();
       setupPOVSensorListeners();
 
-      if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.remove('hidden');
+      if (DOM.cqPovSetupBanner) {
+        DOM.cqPovSetupBanner.classList.remove('hidden');
+        adjustPOVBannerLayout();
+      }
       if (DOM.cqPovDeadSensorBox) DOM.cqPovDeadSensorBox.classList.add('hidden');
 
       this.updatePOVBannerSensorStatus();
@@ -6669,6 +6787,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     },
 
     recenterModel() {
+      const state = this.cellState && this.cellState[this.selectedCell];
+      if (state) {
+        state.dragOffset.set(0, 0);
+      }
       this.dragOffset.set(0, 0);
       this.pinnedBasePos.x = 0;
       this.pinnedBasePos.y = 0;
@@ -6676,8 +6798,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         this.recalibratePOV();
       } else {
         this.applyModelPosition();
-        showToast('🎯 Model dibawa ke tengah skrin', 1500);
+        const cellLabel = this.selectedCell === 'animal' ? 'Sel Haiwan' : 'Sel Tumbuhan';
+        showToast(`🎯 ${cellLabel} dibawa ke tengah`, 1500);
       }
+      this.updateModelsLayout();
       updateDiagnosticsData();
     },
 
@@ -6689,6 +6813,19 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       this.pinnedBasePos.x = 0;
       this.pinnedBasePos.y = 0;
 
+      if (this.cellState) {
+        if (this.cellState.animal) {
+          this.cellState.animal.rotation = { x: 0, y: 0 };
+          this.cellState.animal.scale = 1.0;
+          this.cellState.animal.dragOffset.set(0, 0);
+        }
+        if (this.cellState.plant) {
+          this.cellState.plant.rotation = { x: 0, y: 0 };
+          this.cellState.plant.scale = 1.0;
+          this.cellState.plant.dragOffset.set(0, 0);
+        }
+      }
+
       if (this.modelHolder) {
         this.modelHolder.rotation.set(0, 0, 0);
         this.modelHolder.scale.setScalar(1.0);
@@ -6699,6 +6836,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
 
       this.applyModelPosition();
+      this.updateModelsLayout();
       if (DOM.cqBtnRotate) DOM.cqBtnRotate.classList.toggle('is-active', this.touchMode === 'ROTATE');
       showToast('↺ Orientasi, kedudukan & saiz asal dikembalikan', 1800);
       updateDiagnosticsData();
@@ -6903,8 +7041,210 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
     },
 
+    setSelectedCell(cellType) {
+      if (cellType !== 'animal' && cellType !== 'plant') return;
+      this.selectedCell = cellType;
+      if (DOM.cqSelectAnimal) DOM.cqSelectAnimal.classList.toggle('is-active', cellType === 'animal');
+      if (DOM.cqSelectPlant) DOM.cqSelectPlant.classList.toggle('is-active', cellType === 'plant');
+
+      this.updateModelsLayout();
+      const name = cellType === 'animal' ? '🐾 Sel Haiwan' : '🌿 Sel Tumbuhan';
+      showToast(`Kawalan aktif: ${name}`, 1400);
+      updateDiagnosticsData();
+    },
+
+    toggleLabels() {
+      this.showLabels = !this.showLabels;
+      if (DOM.cqBtnLabels) DOM.cqBtnLabels.classList.toggle('is-active', this.showLabels);
+      this.updateModelsLayout();
+      showToast(this.showLabels ? '🏷️ Label Organel Sains Dipaparkan' : '🏷️ Label Organel Sains Disembunyikan', 1500);
+      updateDiagnosticsData();
+    },
+
+    createHighlightRing(cellType) {
+      if (!window.THREE) return null;
+      const ringGeo = new THREE.RingGeometry(0.55, 0.63, 32);
+      const ringColor = (cellType === 'animal') ? 0x06b6d4 : 0x10b981;
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: ringColor,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85
+      });
+      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.rotation.x = -Math.PI / 2;
+      ringMesh.position.y = -0.38;
+      ringMesh.name = `HighlightRing_${cellType}`;
+      ringMesh.visible = false;
+      return ringMesh;
+    },
+
+    createOrganelleLabelSprite(text, id, cellType) {
+      if (typeof document === 'undefined' || !window.THREE) return null;
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      // Draw background pill
+      ctx.fillStyle = cellType === 'animal' ? 'rgba(15, 23, 42, 0.88)' : 'rgba(6, 78, 59, 0.88)';
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(6, 6, 244, 52, 26);
+      } else {
+        ctx.rect(6, 6, 244, 52);
+      }
+      ctx.fill();
+
+      // Border outline
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = cellType === 'animal' ? '#38bdf8' : '#34d399';
+      ctx.stroke();
+
+      // Label text
+      ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 32);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+      const mat = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(0.48, 0.12, 1);
+      sprite.userData = { id, cellType, pickable: true };
+      return sprite;
+    },
+
+    createLabelsGroup(cellType) {
+      if (!window.THREE) return null;
+      const group = new THREE.Group();
+      group.name = `Labels_${cellType}`;
+
+      const labelsData = cellType === 'animal' ? [
+        { text: 'Membran Sel', id: 'membrane', pos: [0, 0.52, 0.1] },
+        { text: 'Nukleus', id: 'nucleus', pos: [-0.08, 0.22, 0] },
+        { text: 'Sitoplasma', id: 'cytoplasm', pos: [0.36, 0.12, 0] },
+        { text: 'Mitokondria', id: 'mitochondria', pos: [0.34, -0.25, 0.1] },
+        { text: 'Sentriol', id: 'centrioles', pos: [-0.32, -0.28, 0.1] }
+      ] : [
+        { text: 'Dinding Sel', id: 'wall', pos: [-0.52, 0.42, 0] },
+        { text: 'Membran Sel', id: 'membrane', pos: [-0.34, 0.22, 0] },
+        { text: 'Nukleus', id: 'nucleus', pos: [0.35, 0.22, 0] },
+        { text: 'Kloroplas', id: 'chloroplast', pos: [-0.35, -0.22, 0.12] },
+        { text: 'Vakuol Besar', id: 'vacuole', pos: [0, 0.08, 0] },
+        { text: 'Mitokondria', id: 'mitochondria', pos: [0.28, -0.24, 0.12] }
+      ];
+
+      labelsData.forEach(item => {
+        const sprite = this.createOrganelleLabelSprite(item.text, item.id, cellType);
+        if (sprite) {
+          sprite.position.set(...item.pos);
+          group.add(sprite);
+          this.interactiveObjects.push(sprite);
+        }
+      });
+
+      group.visible = this.showLabels;
+      return group;
+    },
+
+    updateModelsLayout() {
+      if (!this.animalHolder || !this.plantHolder) return;
+
+      const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
+      const spacingX = isNarrow ? 0.72 : 0.95;
+      const compareScale = isNarrow ? 0.76 : 0.88;
+
+      if (this.displayMode === 'compare') {
+        this.animalHolder.visible = true;
+        this.plantHolder.visible = true;
+
+        const aState = this.cellState.animal;
+        const pState = this.cellState.plant;
+
+        this.animalHolder.position.set(-spacingX + aState.dragOffset.x, aState.dragOffset.y, 0);
+        this.animalHolder.scale.setScalar(aState.scale * compareScale);
+        this.animalHolder.rotation.x = aState.rotation.x;
+        this.animalHolder.rotation.y = aState.rotation.y;
+
+        this.plantHolder.position.set(spacingX + pState.dragOffset.x, pState.dragOffset.y, 0);
+        this.plantHolder.scale.setScalar(pState.scale * compareScale);
+        this.plantHolder.rotation.x = pState.rotation.x;
+        this.plantHolder.rotation.y = pState.rotation.y;
+
+        if (this.animalHighlightRing) {
+          this.animalHighlightRing.visible = (this.selectedCell === 'animal');
+        }
+        if (this.plantHighlightRing) {
+          this.plantHighlightRing.visible = (this.selectedCell === 'plant');
+        }
+
+        if (this.animalLabelsGroup) this.animalLabelsGroup.visible = this.showLabels;
+        if (this.plantLabelsGroup) this.plantLabelsGroup.visible = this.showLabels;
+      } else if (this.displayMode === 'animal') {
+        this.animalHolder.visible = true;
+        this.plantHolder.visible = false;
+
+        const aState = this.cellState.animal;
+        this.animalHolder.position.set(aState.dragOffset.x, aState.dragOffset.y, 0);
+        this.animalHolder.scale.setScalar(aState.scale);
+        this.animalHolder.rotation.x = aState.rotation.x;
+        this.animalHolder.rotation.y = aState.rotation.y;
+
+        if (this.animalHighlightRing) this.animalHighlightRing.visible = false;
+        if (this.plantHighlightRing) this.plantHighlightRing.visible = false;
+
+        if (this.animalLabelsGroup) this.animalLabelsGroup.visible = this.showLabels;
+        if (this.plantLabelsGroup) this.plantLabelsGroup.visible = false;
+      } else if (this.displayMode === 'plant') {
+        this.animalHolder.visible = false;
+        this.plantHolder.visible = true;
+
+        const pState = this.cellState.plant;
+        this.plantHolder.position.set(pState.dragOffset.x, pState.dragOffset.y, 0);
+        this.plantHolder.scale.setScalar(pState.scale);
+        this.plantHolder.rotation.x = pState.rotation.x;
+        this.plantHolder.rotation.y = pState.rotation.y;
+
+        if (this.animalHighlightRing) this.animalHighlightRing.visible = false;
+        if (this.plantHighlightRing) this.plantHighlightRing.visible = false;
+
+        if (this.animalLabelsGroup) this.animalLabelsGroup.visible = false;
+        if (this.plantLabelsGroup) this.plantLabelsGroup.visible = this.showLabels;
+      }
+    },
+
     loadModel(cellType) {
+      if (cellType === 'compare') {
+        this.displayMode = 'compare';
+        this.activeCellType = 'compare';
+        this.clearSelection();
+
+        if (DOM.cqBtnAnimal) DOM.cqBtnAnimal.classList.remove('active');
+        if (DOM.cqBtnPlant) DOM.cqBtnPlant.classList.remove('active');
+        if (DOM.cqBtnCompare) DOM.cqBtnCompare.classList.add('active');
+        if (DOM.cqRowActiveModel) DOM.cqRowActiveModel.classList.remove('hidden');
+
+        if (DOM.cqHudCellName) {
+          DOM.cqHudCellName.textContent = 'Perbandingan Sel Haiwan & Tumbuhan';
+        }
+
+        // Ensure both models are loaded
+        if (!this.hasLoadedAnimal) this.loadSingleCell('animal');
+        if (!this.hasLoadedPlant) this.loadSingleCell('plant');
+
+        this.updateModelsLayout();
+        showToast('⚖️ Mod Perbandingan Aktif: Sel Haiwan (Kiri) vs Sel Tumbuhan (Kanan)', 2200);
+        updateDiagnosticsData();
+        return;
+      }
+
+      this.displayMode = cellType;
       this.activeCellType = cellType;
+      this.selectedCell = cellType;
       this.clearSelection();
 
       // Fasa 4E-D.1: Re-anchor ke marker fizikal yang sepadan jika dalam MARKER_MODE
@@ -6924,11 +7264,24 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       // Update toggle buttons
       if (DOM.cqBtnAnimal) DOM.cqBtnAnimal.classList.toggle('active', cellType === 'animal');
       if (DOM.cqBtnPlant) DOM.cqBtnPlant.classList.toggle('active', cellType === 'plant');
+      if (DOM.cqBtnCompare) DOM.cqBtnCompare.classList.remove('active');
+      if (DOM.cqRowActiveModel) DOM.cqRowActiveModel.classList.add('hidden');
 
       if (DOM.cqHudCellName) {
         DOM.cqHudCellName.textContent = cellType === 'animal' ? 'Sel Haiwan 3D' : 'Sel Tumbuhan 3D';
       }
 
+      this.updateModelsLayout();
+
+      const isLoaded = (cellType === 'animal') ? this.hasLoadedAnimal : this.hasLoadedPlant;
+      if (!isLoaded) {
+        this.loadSingleCell(cellType);
+      } else {
+        updateDiagnosticsData();
+      }
+    },
+
+    loadSingleCell(cellType) {
       if (this.cachedGltfScenes[cellType]) {
         console.log(`[CellQuestAR] Menggunakan model cache memori: ${cellType}`);
         this.glbLoadStatus = `Berjaya (Cache Memori)`;
@@ -6989,8 +7342,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     },
 
     buildModel(cellType, gltfScene) {
-      if (!this.modelHolder) return;
-      this.clearModelHolder();
+      const targetHolder = (cellType === 'animal') ? this.animalHolder : this.plantHolder;
+      if (!targetHolder) return;
+
+      while (targetHolder.children.length > 0) {
+        const child = targetHolder.children[0];
+        targetHolder.remove(child);
+      }
+
+      this.interactiveObjects = this.interactiveObjects.filter(obj => !obj.userData || obj.userData.cellType !== cellType);
 
       const instance = gltfScene.clone(true);
 
@@ -7010,14 +7370,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       fitGroup.scale.setScalar(fit);
       fitGroup.position.x = -center.x * fit;
       fitGroup.position.y = -center.y * fit;
-      fitGroup.position.z = -center.z * fit + (size.z * fit * 0.5) + 0.08; // Sits floating nicely above marker
+      fitGroup.position.z = -center.z * fit + (size.z * fit * 0.5) + 0.08;
       fitGroup.add(instance);
-      this.modelHolder.add(fitGroup);
+      targetHolder.add(fitGroup);
 
       if (cellType === 'animal') {
         instance.traverse((node) => {
           if (!node.isMesh) return;
-          node.frustumCulled = false; // 🛡️ CRITICAL for iOS Safari clipping plane!
+          node.frustumCulled = false;
 
           let id = '';
           for (let p = node; p && p !== instance.parent; p = p.parent) {
@@ -7033,12 +7393,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           node.userData = {
             ...node.userData,
             id,
+            cellType: 'animal',
             pickable: !!id,
             baseEmissive: node.material && node.material.emissive ? node.material.emissive.getHex() : 0,
             baseEmissiveIntensity: node.material ? (node.material.emissiveIntensity || 0) : 0
           };
 
-          // Clone material so emissive pulse operates safely & double sided for cutaways
           if (node.material) {
             const cloneMat = (m) => {
               const c = m.clone();
@@ -7051,14 +7411,20 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
           this.interactiveObjects.push(node);
         });
+
+        this.animalHighlightRing = this.createHighlightRing('animal');
+        if (this.animalHighlightRing) targetHolder.add(this.animalHighlightRing);
+        this.animalLabelsGroup = this.createLabelsGroup('animal');
+        if (this.animalLabelsGroup) targetHolder.add(this.animalLabelsGroup);
+        this.hasLoadedAnimal = true;
 
       } else if (cellType === 'plant') {
         instance.traverse((node) => {
           if (!node.isMesh) return;
-          node.frustumCulled = false; // 🛡️ CRITICAL for iOS Safari clipping plane!
+          node.frustumCulled = false;
 
           if (node.name === 'Labels') {
-            node.visible = false; // Hide baked Blender English labels
+            node.visible = false;
           }
           if (node.material) {
             const cloneMat = (m) => {
@@ -7069,11 +7435,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
             };
             node.material = Array.isArray(node.material) ? node.material.map(cloneMat) : cloneMat(node.material);
           }
-          node.userData = { ...node.userData, pickable: true };
+          node.userData = { ...node.userData, cellType: 'plant', pickable: true };
           this.interactiveObjects.push(node);
         });
 
-        // Add interactive hotspot spheres for Plant Cell organelles directly on instance
         PLANT_HOTSPOTS.forEach((spot) => {
           const hitGeo = new THREE.SphereGeometry(spot.radius * 0.85, 14, 10);
           const hitMat = new THREE.MeshBasicMaterial({
@@ -7084,20 +7449,36 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           });
           const hitMesh = new THREE.Mesh(hitGeo, hitMat);
           hitMesh.position.set(spot.pos[0], spot.pos[1], spot.pos[2]);
-          hitMesh.userData = { id: spot.id, pickable: true };
+          hitMesh.userData = { id: spot.id, cellType: 'plant', pickable: true };
           hitMesh.frustumCulled = false;
           instance.add(hitMesh);
           this.interactiveObjects.push(hitMesh);
         });
+
+        this.plantHighlightRing = this.createHighlightRing('plant');
+        if (this.plantHighlightRing) targetHolder.add(this.plantHighlightRing);
+        this.plantLabelsGroup = this.createLabelsGroup('plant');
+        if (this.plantLabelsGroup) targetHolder.add(this.plantLabelsGroup);
+        this.hasLoadedPlant = true;
       }
 
+      this.updateModelsLayout();
       this.rootGroup.visible = true;
       updateDiagnosticsData();
       console.log(`[CellQuestAR] Model ${cellType} dibina dengan ${this.interactiveObjects.length} komponen interaktif`);
     },
 
     buildProceduralBackup(cellType) {
-      this.clearModelHolder();
+      const targetHolder = (cellType === 'animal') ? this.animalHolder : this.plantHolder;
+      if (!targetHolder) return;
+
+      while (targetHolder.children.length > 0) {
+        const c = targetHolder.children[0];
+        targetHolder.remove(c);
+      }
+
+      this.interactiveObjects = this.interactiveObjects.filter(obj => !obj.userData || obj.userData.cellType !== cellType);
+
       const holder = new THREE.Group();
       holder.position.z += 0.35;
 
@@ -7116,7 +7497,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         const mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(...pos);
         mesh.frustumCulled = false;
-        mesh.userData = { id, pickable: true, baseEmissive: 0, baseEmissiveIntensity: 0 };
+        mesh.userData = { id, cellType, pickable: true, baseEmissive: 0, baseEmissiveIntensity: 0 };
         holder.add(mesh);
         this.interactiveObjects.push(mesh);
         return mesh;
@@ -7137,13 +7518,19 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         addSphere('centrioles', [-0.28, -0.28, 0.12], 0.08, 0xf0b429);
         // Lysosome
         addSphere('lysosome', [0.38, 0.18, -0.1], 0.07, 0xe985b8);
+
+        this.animalHighlightRing = this.createHighlightRing('animal');
+        if (this.animalHighlightRing) targetHolder.add(this.animalHighlightRing);
+        this.animalLabelsGroup = this.createLabelsGroup('animal');
+        if (this.animalLabelsGroup) targetHolder.add(this.animalLabelsGroup);
+        this.hasLoadedAnimal = true;
       } else {
         // Plant cell box wall
         const wallGeo = new THREE.BoxGeometry(1.2, 0.85, 0.85);
         const wallMat = new THREE.MeshStandardMaterial({ color: 0x348a4d, roughness: 0.4, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
         const wallMesh = new THREE.Mesh(wallGeo, wallMat);
         wallMesh.frustumCulled = false;
-        wallMesh.userData = { id: 'wall', pickable: true, baseEmissive: 0, baseEmissiveIntensity: 0 };
+        wallMesh.userData = { id: 'wall', cellType, pickable: true, baseEmissive: 0, baseEmissiveIntensity: 0 };
         holder.add(wallMesh);
         this.interactiveObjects.push(wallMesh);
 
@@ -7153,9 +7540,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         addSphere('chloroplast', [-0.35, 0.18, 0.15], 0.11, 0x4c9b36);
         addSphere('chloroplast', [-0.32, -0.16, -0.15], 0.1, 0x4c9b36);
         addSphere('mitochondria', [0.24, -0.18, 0.12], 0.09, 0xe66a35);
+
+        this.plantHighlightRing = this.createHighlightRing('plant');
+        if (this.plantHighlightRing) targetHolder.add(this.plantHighlightRing);
+        this.plantLabelsGroup = this.createLabelsGroup('plant');
+        if (this.plantLabelsGroup) targetHolder.add(this.plantLabelsGroup);
+        this.hasLoadedPlant = true;
       }
 
-      this.modelHolder.add(holder);
+      targetHolder.add(holder);
+      this.updateModelsLayout();
       this.rootGroup.visible = true;
       updateDiagnosticsData();
     },
@@ -7192,30 +7586,34 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     },
 
     clearModelHolder() {
-      if (!this.modelHolder) return;
-      while (this.modelHolder.children.length > 0) {
-        const child = this.modelHolder.children[0];
-        child.traverse((m) => {
-          if (m.geometry) m.geometry.dispose();
-          if (m.material) {
-            if (Array.isArray(m.material)) m.material.forEach(mat => mat.dispose());
-            else m.material.dispose();
-          }
-        });
-        this.modelHolder.remove(child);
+      if (this.animalHolder) {
+        while (this.animalHolder.children.length > 0) {
+          const child = this.animalHolder.children[0];
+          this.animalHolder.remove(child);
+        }
+      }
+      if (this.plantHolder) {
+        while (this.plantHolder.children.length > 0) {
+          const child = this.plantHolder.children[0];
+          this.plantHolder.remove(child);
+        }
       }
       this.interactiveObjects = [];
       this.debugCubeMesh = null;
+      this.hasLoadedAnimal = false;
+      this.hasLoadedPlant = false;
     },
 
-    selectOrganelle(id) {
+    selectOrganelle(id, cellType) {
       const org = CELLQUEST_ORGANELLES[id];
       if (!org) return;
 
       this.selectedOrganelleId = id;
+      this.selectedOrganelleCell = cellType || this.selectedCell;
 
       if (DOM.cqCardIcon) DOM.cqCardIcon.textContent = org.icon;
-      if (DOM.cqCardName) DOM.cqCardName.textContent = org.name.toUpperCase();
+      const typeBadge = cellType ? (cellType === 'animal' ? ' (Sel Haiwan)' : ' (Sel Tumbuhan)') : '';
+      if (DOM.cqCardName) DOM.cqCardName.textContent = org.name.toUpperCase() + typeBadge;
       if (DOM.cqCardCategory) DOM.cqCardCategory.textContent = org.category;
       if (DOM.cqCardFunction) DOM.cqCardFunction.textContent = org.description;
       if (DOM.cqCardAnalogy) DOM.cqCardAnalogy.textContent = org.analogy;
@@ -7291,9 +7689,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
 
       // Auto-rotation around cell's vertical axis
-      if (this.isAutoRotating && this.modelHolder) {
-        this.userRotation.y += 0.01;
-        this.modelHolder.rotation.y = this.userRotation.y;
+      if (this.isAutoRotating) {
+        if (this.displayMode === 'compare') {
+          const targetHolder = (this.selectedCell === 'animal') ? this.animalHolder : this.plantHolder;
+          const targetState = this.cellState && this.cellState[this.selectedCell];
+          if (targetHolder && targetState) {
+            targetState.rotation.y += 0.01;
+            targetHolder.rotation.y = targetState.rotation.y;
+          }
+        } else if (this.modelHolder) {
+          this.userRotation.y += 0.01;
+          this.modelHolder.rotation.y = this.userRotation.y;
+        }
       }
 
       // Pulse hologram base emitter if tracked on physical marker
@@ -11343,6 +11750,94 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       });
     }
 
+    // Fasa HOTFIX 1.0: Mod Perbandingan Dwi-Sel (Compare Mode)
+    if (DOM.cqBtnCompare) {
+      DOM.cqBtnCompare.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof CellQuestARController !== 'undefined') {
+          CellQuestARController.loadModel('compare');
+        }
+      });
+    }
+
+    if (DOM.cqSelectAnimal) {
+      DOM.cqSelectAnimal.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof CellQuestARController !== 'undefined') {
+          CellQuestARController.setSelectedCell('animal');
+        }
+      });
+    }
+
+    if (DOM.cqSelectPlant) {
+      DOM.cqSelectPlant.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof CellQuestARController !== 'undefined') {
+          CellQuestARController.setSelectedCell('plant');
+        }
+      });
+    }
+
+    // Fasa HOTFIX 1.0: Label Organel Sains KSSM
+    if (DOM.cqBtnLabels) {
+      DOM.cqBtnLabels.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof CellQuestARController !== 'undefined') {
+          CellQuestARController.toggleLabels();
+        }
+      });
+    }
+
+    // Fasa HOTFIX 1.0: Modal Dialog Persamaan & Perbezaan
+    if (DOM.cqBtnDiffModal) {
+      DOM.cqBtnDiffModal.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (DOM.cqCompareModal) DOM.cqCompareModal.classList.remove('hidden');
+      });
+    }
+
+    if (DOM.cqBtnCloseCompare) {
+      DOM.cqBtnCloseCompare.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (DOM.cqCompareModal) DOM.cqCompareModal.classList.add('hidden');
+      });
+    }
+
+    if (DOM.cqBtnDoneCompare) {
+      DOM.cqBtnDoneCompare.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (DOM.cqCompareModal) DOM.cqCompareModal.classList.add('hidden');
+      });
+    }
+
+    if (DOM.cqCompareModal) {
+      DOM.cqCompareModal.addEventListener('click', (e) => {
+        if (e.target === DOM.cqCompareModal) {
+          DOM.cqCompareModal.classList.add('hidden');
+        }
+      });
+    }
+
+    if (DOM.cqTabDiff) {
+      DOM.cqTabDiff.addEventListener('click', (e) => {
+        e.stopPropagation();
+        DOM.cqTabDiff.classList.add('is-active');
+        if (DOM.cqTabSim) DOM.cqTabSim.classList.remove('is-active');
+        if (DOM.cqViewDiff) DOM.cqViewDiff.classList.remove('hidden');
+        if (DOM.cqViewSim) DOM.cqViewSim.classList.add('hidden');
+      });
+    }
+
+    if (DOM.cqTabSim) {
+      DOM.cqTabSim.addEventListener('click', (e) => {
+        e.stopPropagation();
+        DOM.cqTabSim.classList.add('is-active');
+        if (DOM.cqTabDiff) DOM.cqTabDiff.classList.remove('is-active');
+        if (DOM.cqViewSim) DOM.cqViewSim.classList.remove('hidden');
+        if (DOM.cqViewDiff) DOM.cqViewDiff.classList.add('hidden');
+      });
+    }
+
     if (DOM.cqBtnRotate) {
       DOM.cqBtnRotate.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -11549,6 +12044,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     // Auto-clamp when screen rotates or resizes
     window.addEventListener('resize', () => {
       clampPanelIntoViewport();
+      adjustPOVBannerLayout();
+      if (typeof CellQuestARController !== 'undefined') {
+        CellQuestARController.updateModelsLayout();
+      }
       updateDiagnosticsData();
     });
 
