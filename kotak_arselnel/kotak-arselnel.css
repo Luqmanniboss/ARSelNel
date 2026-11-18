@@ -9227,3 +9227,309 @@ color: #94a3b8;
     min-height: 32px !important;
   }
 }
+
+/* ==============================================================================
+   EMERGENCY RECOVERY HOTFIX 1.3: WCAG AA CONTRAST (>4.5:1), BUTTON VISIBILITY
+   & MOBILE VIEWPORT LAYOUT CONTAINMENT
+   ============================================================================== */
+
+/* 1. Never allow duplicate top-toolbar POV switch button to appear */
+#btn-switch-to-pov,
+.btn-switch-pov {
+  display: none !important;
+}
+
+/* 2. Strict .hidden enforcement over any display: inline-flex / flex rules */
+.hidden,
+button.hidden,
+.btn-pov-mode.hidden,
+.btn-place-video.hidden,
+.btn-place-nota.hidden,
+.btn-secondary-action.hidden,
+.btn-close-panel.hidden,
+.pov-spatial-panel.hidden,
+.floating-ar-anchor.hidden {
+  display: none !important;
+}
+
+/* 3. Universal High-Contrast Secondary Action Fallback (14.6:1 contrast) */
+.btn-secondary-action {
+  background: #1E293B !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #0F172A !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.25) !important;
+}
+
+.btn-secondary-action span {
+  color: #FFFFFF !important;
+}
+
+/* 4. Kunci Pandangan -> Indigo Gelap #4338CA (8.76:1 WCAG AAA contrast) */
+.btn-pov-mode,
+#btn-start-pov,
+#pov-btn-start-pov,
+#pov-nota-btn-start-pov,
+#cq-btn-pov {
+  background: #4338CA !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #312E81 !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.35) !important;
+}
+
+.btn-pov-mode span,
+#btn-start-pov span,
+#pov-btn-start-pov span,
+#pov-nota-btn-start-pov span,
+#cq-btn-pov span {
+  color: #FFFFFF !important;
+}
+
+/* 5. Letak di Arah Ini -> Biru Diraja #1D4ED8 (6.70:1 WCAG AA contrast) */
+.btn-place-video,
+.btn-place-nota,
+#btn-anchor-pov,
+#pov-btn-anchor,
+#pov-nota-btn-anchor,
+#cq-btn-pov-anchor {
+  background: #1D4ED8 !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #1E3A8A !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35) !important;
+}
+
+.btn-place-video span,
+.btn-place-nota span,
+#btn-anchor-pov span,
+#pov-btn-anchor span,
+#pov-nota-btn-anchor span,
+#cq-btn-pov-anchor span {
+  color: #FFFFFF !important;
+}
+
+/* 6. Batal -> Slate Gelap #334155 (10.02:1 WCAG AAA contrast) */
+#btn-cancel-pov,
+#pov-btn-cancel,
+#pov-nota-btn-cancel,
+#cq-btn-pov-cancel,
+#cq-btn-pov.is-active {
+  background: #334155 !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #1E293B !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3) !important;
+}
+
+#btn-cancel-pov span,
+#pov-btn-cancel span,
+#pov-nota-btn-cancel span,
+#cq-btn-pov-cancel span,
+#cq-btn-pov.is-active span {
+  color: #FFFFFF !important;
+}
+
+/* 7. Keluar Pandangan -> Navy Gelap #0F172A / Merah Tua #B91C1C (17.4:1 / 6.47:1 contrast) */
+#btn-exit-pov,
+#pov-btn-exit-pov,
+#pov-nota-btn-exit-pov {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #334155 !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35) !important;
+}
+
+#btn-exit-pov span,
+#pov-btn-exit-pov span,
+#pov-nota-btn-exit-pov span {
+  color: #FFFFFF !important;
+}
+
+#cq-btn-pov.is-locked {
+  background: #B91C1C !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #7F1D1D !important;
+}
+
+/* 8. Tukar Video / Tukar Nota -> Ungu Tua #6D28D9 (7.02:1 WCAG AAA contrast) */
+#btn-change-video,
+#pov-btn-change-video,
+#pov-nota-btn-change-content,
+#pov-kuiz-btn-change-content {
+  background: #6D28D9 !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #4C1D95 !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+}
+
+#btn-change-video span,
+#pov-btn-change-video span,
+#pov-nota-btn-change-content span,
+#pov-kuiz-btn-change-content span {
+  color: #FFFFFF !important;
+}
+
+/* 9. Tutup -> Merah Crimson Tua #B91C1C (6.47:1 WCAG AA contrast) */
+.btn-close-panel,
+#btn-close-panel,
+#pov-btn-close,
+#pov-nota-btn-close,
+#pov-kuiz-btn-close {
+  background: #B91C1C !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #7F1D1D !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+}
+
+.btn-close-panel span,
+#btn-close-panel span,
+#pov-btn-close span,
+#pov-nota-btn-close span,
+#pov-kuiz-btn-close span {
+  color: #FFFFFF !important;
+}
+
+/* 10. Tutup Kamera -> Biru Cair Bersempadan #DBEAFE + Teks #1E3A8A (8.28:1 contrast) */
+.btn-cam-toggle,
+#btn-toggle-cam,
+#pov-btn-toggle-cam,
+#pov-nota-btn-toggle-cam {
+  background: #DBEAFE !important;
+  color: #1E3A8A !important;
+  border: 1.5px solid #60A5FA !important;
+  font-weight: 800 !important;
+}
+
+.btn-cam-toggle span,
+#btn-toggle-cam span,
+#pov-btn-toggle-cam span,
+#pov-nota-btn-toggle-cam span {
+  color: #1E3A8A !important;
+}
+
+/* 11. Butang Pilih Video / Nota & Tambah Imbasan (>5.0:1 contrast) */
+.btn-multi-add {
+  background: #1D4ED8 !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #1E3A8A !important;
+}
+
+#pov-panel-video .btn-choose-video,
+.btn-choose-video {
+  background: #C2410C !important;
+  color: #FFFFFF !important;
+  border: 1px solid #9A3412 !important;
+}
+
+#pov-panel-nota .btn-choose-nota,
+.btn-choose-nota {
+  background: #15803D !important;
+  color: #FFFFFF !important;
+  border: 1px solid #166534 !important;
+}
+
+/* 12. Responsive Multi-Panel Bar & Viewport Layout Containment Across All Viewports */
+.floating-card-container {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.ar-multi-panel-bar {
+  top: calc(86px + env(safe-area-inset-top, 0px)) !important;
+}
+
+@media (max-width: 1120px) {
+  .ar-multi-panel-bar {
+    top: calc(114px + env(safe-area-inset-top, 0px)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .ar-multi-panel-bar {
+    top: calc(108px + env(safe-area-inset-top, 0px)) !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 6px 10px !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+  }
+
+  .ar-multi-panel-bar .multi-bar-left,
+  .ar-multi-panel-bar .multi-bar-right {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 5px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .ar-multi-panel-bar .btn-multi-add {
+    padding: 6px 10px !important;
+    font-size: 11.5px !important;
+    min-height: 36px !important;
+    white-space: nowrap !important;
+  }
+
+  .ar-multi-panel-bar .multi-panel-badge-count {
+    display: none !important;
+  }
+
+  .ar-multi-panel-bar .multi-pill {
+    padding: 5px 10px !important;
+    font-size: 11.5px !important;
+    min-height: 36px !important;
+    white-space: nowrap !important;
+  }
+
+  #floating-ar-anchor .floating-card-container,
+  #pov-panel-video .floating-card-container,
+  #pov-panel-nota .floating-card-container,
+  .pov-card-video,
+  .pov-card-nota {
+    width: min(94vw, 420px) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 176px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    box-sizing: border-box !important;
+  }
+
+  .player-actions-bar {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .player-actions-bar button {
+    flex: 1 1 auto !important;
+    min-height: 44px !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+}
