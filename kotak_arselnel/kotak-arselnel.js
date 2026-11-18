@@ -5253,17 +5253,19 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   function adjustPOVBannerLayout() {
     if (!DOM.cqPovSetupBanner || DOM.cqPovSetupBanner.classList.contains('hidden')) return;
     const multiBar = DOM.arMultiPanelBar;
+    let topPx = 76;
     if (multiBar && !multiBar.classList.contains('hidden')) {
       const rect = multiBar.getBoundingClientRect();
-      const topPx = Math.max(76, Math.round(rect.bottom + 12));
-      DOM.cqPovSetupBanner.style.setProperty('--cq-pov-setup-top', `${topPx}px`);
-      DOM.cqPovSetupBanner.style.top = `${topPx}px`;
+      const isMobile = window.innerWidth <= 768;
+      const minTopWithMultiBar = isMobile ? 152 : 124;
+      const calculatedTop = (rect && rect.bottom > 0) ? Math.round(rect.bottom + 12) : minTopWithMultiBar;
+      topPx = Math.max(minTopWithMultiBar, calculatedTop);
     } else {
       const isMobile = window.innerWidth <= 768;
-      const topPx = isMobile ? 70 : 76;
-      DOM.cqPovSetupBanner.style.setProperty('--cq-pov-setup-top', `${topPx}px`);
-      DOM.cqPovSetupBanner.style.top = `${topPx}px`;
+      topPx = isMobile ? 72 : 76;
     }
+    DOM.cqPovSetupBanner.style.setProperty('--cq-pov-setup-top', `${topPx}px`);
+    DOM.cqPovSetupBanner.style.top = `${topPx}px`;
   }
   if (typeof window !== 'undefined') {
     window.adjustPOVBannerLayout = adjustPOVBannerLayout;
@@ -6225,10 +6227,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
     init(scene, anchorGroup, camera, renderer) {
       if (this.rootGroup) return; // Prevent multiple attachments
-      this.scene = scene;
-      this.anchorGroup = anchorGroup; // ARState.anchorCellQuest.group
-      this.camera = camera;
-      this.renderer = renderer;
+      this.scene = scene || ARState.scene || (window.THREE ? new THREE.Scene() : null);
+      this.anchorGroup = anchorGroup || (ARState.anchorCellQuest ? ARState.anchorCellQuest.group : (window.THREE ? new THREE.Group() : null));
+      this.camera = camera || ARState.camera || (window.THREE ? new THREE.PerspectiveCamera(36, 1, 0.05, 1000) : null);
+      this.renderer = renderer || ARState.renderer || null;
 
       this.raycaster = new THREE.Raycaster();
       this.pointer = new THREE.Vector2();
@@ -6289,76 +6291,109 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     },
 
     initPointerInteractions() {
-      const targetEl = window;
+      const activePointers = new Map();
+      let pinchStartDist = 0;
+      let pinchStartScale = 1.0;
 
-      targetEl.addEventListener('pointerdown', (e) => {
+      const isHUDElement = (el) => {
+        if (!el || typeof el.closest !== 'function') return false;
+        return !!(
+          el.closest('#cq-bottom-controls') ||
+          el.closest('.cq-hud-header') ||
+          el.closest('#cq-pov-setup-banner') ||
+          el.closest('#cq-compare-modal') ||
+          el.closest('#cq-organelle-card') ||
+          el.closest('.pov-spatial-panel') ||
+          el.closest('.floating-ar-anchor') ||
+          el.closest('#ar-multi-panel-bar') ||
+          el.closest('.ar-top-hud') ||
+          el.closest('#diagnostics-drawer') ||
+          el.closest('#ar-toast') ||
+          el.closest('.guided-tour-spotlight-overlay') ||
+          el.closest('.guided-tour-tooltip')
+        );
+      };
+
+      window.addEventListener('pointerdown', (e) => {
         if (!this.isActive) return;
-        // Ignore clicks on HUD buttons, HUD controls, DOM panels, or multi-panel toolbar
-        if (e.target && typeof e.target.closest === 'function') {
-          if (e.target.closest('#cellquest-ar-hud') && !e.target.classList.contains('cellquest-ar-hud')) return;
-          if (e.target.closest('.pov-spatial-panel')) return;
-          if (e.target.closest('.floating-ar-anchor')) return;
-          if (e.target.closest('#ar-multi-panel-bar')) return;
-          if (e.target.closest('.ar-top-hud')) return;
-          if (e.target.closest('#diagnostics-drawer')) return;
-          if (e.target.closest('#ar-toast')) return;
-          if (e.target.closest('#cq-bottom-controls')) return;
-          if (e.target.closest('#cq-compare-modal')) return;
-        }
+        if (isHUDElement(e.target)) return;
+
+        activePointers.set(e.pointerId, {
+          x: e.clientX,
+          y: e.clientY,
+          startX: e.clientX,
+          startY: e.clientY,
+          time: Date.now()
+        });
 
         this.isPointerDown = true;
-        this.pointerId = e.pointerId;
-        this.pointerStart = { x: e.clientX, y: e.clientY, time: Date.now() };
         this.lastMove = { x: e.clientX, y: e.clientY };
 
-        const targetState = this.cellState[this.selectedCell];
+        const targetState = this.cellState && this.cellState[this.selectedCell];
         if (targetState) {
           targetState.dragStartOffset = { x: targetState.dragOffset.x, y: targetState.dragOffset.y };
         }
-        this.dragStartOffset = { x: this.dragOffset.x, y: this.dragOffset.y };
-        this.lastPointerEventStr = `down (${Math.round(e.clientX)},${Math.round(e.clientY)})`;
 
-        if (e.target && typeof e.target.setPointerCapture === 'function') {
-          try { e.target.setPointerCapture(e.pointerId); } catch (err) {}
+        if (activePointers.size === 2) {
+          const pts = Array.from(activePointers.values());
+          pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          pinchStartScale = targetState ? targetState.scale : 1.0;
         }
-        if (e.cancelable) e.preventDefault();
-      }, { passive: false });
 
-      targetEl.addEventListener('pointermove', (e) => {
+        this.lastPointerEventStr = `down (${Math.round(e.clientX)},${Math.round(e.clientY)}) [ptr:${activePointers.size}]`;
+      }, { passive: true });
+
+      window.addEventListener('pointermove', (e) => {
         if (!this.isActive || !this.isPointerDown) return;
-        if (this.pointerId !== undefined && this.pointerId !== null && e.pointerId !== this.pointerId) return;
+        if (!activePointers.has(e.pointerId)) return;
 
-        const totalDxPx = e.clientX - this.pointerStart.x;
-        const totalDyPx = e.clientY - this.pointerStart.y;
-        const moved = Math.hypot(totalDxPx, totalDyPx);
+        activePointers.set(e.pointerId, {
+          ...activePointers.get(e.pointerId),
+          x: e.clientX,
+          y: e.clientY
+        });
 
-        if (moved > 6) {
+        const targetState = this.cellState && this.cellState[this.selectedCell];
+        if (!targetState) return;
+
+        if (activePointers.size === 2 && pinchStartDist > 0) {
+          // 2-Finger Pinch Zoom (iOS Safari & Android Chrome)
+          const pts = Array.from(activePointers.values());
+          const curDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          const factor = curDist / pinchStartDist;
+          targetState.scale = Math.max(0.45, Math.min(2.8, pinchStartScale * factor));
+          this.updateModelsLayout();
+          this.lastPointerEventStr = `pinch (${Math.round(targetState.scale * 100)}%)`;
           if (e.cancelable) e.preventDefault();
+          return;
+        }
 
-          if (this.touchMode === 'DRAG') {
-            const fov = (this.camera && this.camera.fov) ? this.camera.fov : 36;
-            const currentDepth = this.fixedScreenDepth || 2.8;
-            const pxPerUnit = window.innerHeight / (2 * currentDepth * Math.tan((fov * Math.PI / 180) / 2));
-            const totalDx = totalDxPx / (pxPerUnit || 350);
-            const totalDy = -totalDyPx / (pxPerUnit || 350);
+        if (activePointers.size === 1) {
+          const ptr = activePointers.get(e.pointerId);
+          const totalDxPx = e.clientX - ptr.startX;
+          const totalDyPx = e.clientY - ptr.startY;
+          const moved = Math.hypot(totalDxPx, totalDyPx);
 
-            const maxDragX = 1.8;
-            const maxDragY = 1.4;
-            const targetState = this.cellState[this.selectedCell];
-            if (targetState) {
+          if (moved > 5) {
+            if (this.touchMode === 'DRAG') {
+              const fov = (this.camera && this.camera.fov) ? this.camera.fov : 36;
+              const currentDepth = this.fixedScreenDepth || 2.8;
+              const pxPerUnit = window.innerHeight / (2 * currentDepth * Math.tan((fov * Math.PI / 180) / 2));
+              const totalDx = totalDxPx / (pxPerUnit || 350);
+              const totalDy = -totalDyPx / (pxPerUnit || 350);
+
+              const maxDragX = 1.8;
+              const maxDragY = 1.4;
               targetState.dragOffset.x = Math.max(-maxDragX, Math.min(maxDragX, targetState.dragStartOffset.x + totalDx));
               targetState.dragOffset.y = Math.max(-maxDragY, Math.min(maxDragY, targetState.dragStartOffset.y + totalDy));
-            }
-            this.updateModelsLayout();
-            this.lastPointerEventStr = `drag (${this.selectedCell}: ${targetState.dragOffset.x.toFixed(2)}, ${targetState.dragOffset.y.toFixed(2)})`;
-          } else {
-            // ROTATE mode: 1-finger orbit rotation on the currently selected model
-            const dx = e.clientX - this.lastMove.x;
-            const dy = e.clientY - this.lastMove.y;
-            const targetState = this.cellState[this.selectedCell];
-            if (targetState) {
-              targetState.rotation.y += dx * 0.009;
-              targetState.rotation.x = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, targetState.rotation.x + dy * 0.009));
+              this.updateModelsLayout();
+              this.lastPointerEventStr = `drag (${this.selectedCell}: ${targetState.dragOffset.x.toFixed(2)}, ${targetState.dragOffset.y.toFixed(2)})`;
+            } else {
+              // ROTATE mode: 1-finger orbit rotation on the currently selected model
+              const dx = e.clientX - this.lastMove.x;
+              const dy = e.clientY - this.lastMove.y;
+              targetState.rotation.y += dx * 0.01;
+              targetState.rotation.x = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, targetState.rotation.x + dy * 0.01));
               const holder = (this.selectedCell === 'animal') ? this.animalHolder : this.plantHolder;
               if (holder) {
                 holder.rotation.y = targetState.rotation.y;
@@ -6366,90 +6401,97 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
               }
               this.lastPointerEventStr = `rotate (${this.selectedCell}: ${targetState.rotation.y.toFixed(2)})`;
             }
+            if (e.cancelable) e.preventDefault();
           }
+          this.lastMove = { x: e.clientX, y: e.clientY };
         }
-        this.lastMove = { x: e.clientX, y: e.clientY };
       }, { passive: false });
 
-      targetEl.addEventListener('pointerup', (e) => {
-        if (!this.isActive || !this.isPointerDown) return;
-        this.isPointerDown = false;
-        this.pointerId = null;
+      const handlePointerEnd = (e) => {
+        if (!this.isActive) return;
+        const ptr = activePointers.get(e.pointerId);
+        if (ptr) {
+          const totalMoved = Math.hypot(e.clientX - ptr.startX, e.clientY - ptr.startY);
+          const duration = Date.now() - ptr.time;
+          if (totalMoved < 10 && duration < 400 && activePointers.size === 1) {
+            this.handleTapRaycast(e.clientX, e.clientY);
+            this.lastPointerEventStr = `tap (${Math.round(e.clientX)},${Math.round(e.clientY)})`;
+          }
+          activePointers.delete(e.pointerId);
+        }
+        if (activePointers.size === 0) {
+          this.isPointerDown = false;
+          pinchStartDist = 0;
+        }
+      };
 
-        const moved = Math.hypot(e.clientX - this.pointerStart.x, e.clientY - this.pointerStart.y);
-        const duration = Date.now() - this.pointerStart.time;
-
-        if (moved < 8 && duration < 380) {
-          this.handleTapRaycast(e.clientX, e.clientY);
-          this.lastPointerEventStr = `tap (${Math.round(e.clientX)},${Math.round(e.clientY)})`;
+      window.addEventListener('pointerup', handlePointerEnd, { passive: true });
+      window.addEventListener('pointercancel', (e) => {
+        activePointers.delete(e.pointerId);
+        if (activePointers.size === 0) {
+          this.isPointerDown = false;
+          pinchStartDist = 0;
         }
       }, { passive: true });
 
-      targetEl.addEventListener('pointercancel', () => {
-        this.isPointerDown = false;
-        this.pointerId = null;
-        this.lastPointerEventStr = 'cancel';
-      }, { passive: true });
-
-      // Touch pinch-to-zoom
-      let startPinchDist = 0;
-      let startScale = 1.0;
-      targetEl.addEventListener('touchstart', (e) => {
-        if (!this.isActive || e.touches.length !== 2) return;
-        if (e.target && typeof e.target.closest === 'function') {
-          if (e.target.closest('.pov-spatial-panel') || e.target.closest('#ar-multi-panel-bar') || e.target.closest('#cq-bottom-controls')) return;
-        }
-        startPinchDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const targetState = this.cellState[this.selectedCell];
-        startScale = targetState ? targetState.scale : 1.0;
-      }, { passive: true });
-
-      targetEl.addEventListener('touchmove', (e) => {
-        if (!this.isActive || e.touches.length !== 2 || startPinchDist <= 0) return;
-        const currentDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const factor = currentDist / startPinchDist;
-        const targetState = this.cellState[this.selectedCell];
-        if (targetState) {
-          targetState.scale = Math.max(0.45, Math.min(2.8, startScale * factor));
-          this.updateModelsLayout();
-        }
+      // Desktop Mouse Wheel for zoom
+      window.addEventListener('wheel', (e) => {
+        if (!this.isActive) return;
+        if (isHUDElement(e.target)) return;
         if (e.cancelable) e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.08 : 0.92;
+        this.adjustZoom(factor);
       }, { passive: false });
-
-      targetEl.addEventListener('touchend', (e) => {
-        if (e.touches.length < 2) startPinchDist = 0;
-      }, { passive: true });
     },
 
     handleTapRaycast(clientX, clientY) {
-      if (!this.renderer || !this.camera || !this.interactiveObjects.length) return;
+      if (!this.renderer || !this.camera) return;
       const rect = this.renderer.domElement.getBoundingClientRect();
       this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
       this.raycaster.setFromCamera(this.pointer, this.camera);
-      const pickables = this.interactiveObjects.filter(m => m.visible && m.userData && m.userData.pickable);
-      const hits = this.raycaster.intersectObjects(pickables, false);
+      
+      const testHolders = [];
+      if (this.animalHolder && this.animalHolder.visible) testHolders.push(this.animalHolder);
+      if (this.plantHolder && this.plantHolder.visible) testHolders.push(this.plantHolder);
+
+      const hits = this.raycaster.intersectObjects(testHolders, true);
 
       if (hits.length > 0) {
-        const topHit = hits[0];
-        const organelleId = topHit.object.userData.id;
-        const cellType = topHit.object.userData.cellType;
+        let hitObject = hits[0].object;
+        let detectedCellType = null;
+        let organelleId = null;
 
-        // In compare mode, automatically switch control focus to the tapped cell!
-        if (cellType && this.displayMode === 'compare' && this.selectedCell !== cellType) {
-          this.setSelectedCell(cellType);
+        for (let obj = hitObject; obj && obj !== this.modelHolder; obj = obj.parent) {
+          if (!organelleId && obj.userData && obj.userData.id) {
+            organelleId = obj.userData.id;
+          }
+          if (!detectedCellType && obj.userData && obj.userData.cellType) {
+            detectedCellType = obj.userData.cellType;
+          }
+          if (!detectedCellType) {
+            if (obj === this.animalHolder) detectedCellType = 'animal';
+            if (obj === this.plantHolder) detectedCellType = 'plant';
+          }
         }
 
-        if (organelleId) {
-          console.log('[CellQuestAR] 🎯 Organel dipilih:', organelleId, 'pada sel:', cellType);
-          this.selectOrganelle(organelleId, cellType);
+        if (!detectedCellType) {
+          detectedCellType = (this.displayMode === 'plant') ? 'plant' : 'animal';
+        }
+
+        // Dalam mod perbandingan, alihkan tumpuan kawalan secara automatik ke sel yang disentuh!
+        if (this.displayMode === 'compare' && this.selectedCell !== detectedCellType) {
+          this.setSelectedCell(detectedCellType);
+        }
+
+        if (organelleId && CELLQUEST_ORGANELLES[organelleId]) {
+          console.log('[CellQuestAR] 🎯 Organel dipilih:', organelleId, 'pada sel:', detectedCellType);
+          this.selectOrganelle(organelleId, detectedCellType);
+        } else {
+          const cellLabel = (detectedCellType === 'animal') ? 'Sel Haiwan' : 'Sel Tumbuhan';
+          showToast(`✨ ${cellLabel} dipilih. Ketik bahagian organel untuk maklumat terperinci.`, 1600);
+          this.clearSelection();
         }
       } else {
         this.clearSelection();
@@ -6574,6 +6616,22 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.add('hidden');
       if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
 
+      if (this.spatialMode === 'POV_LOCKED' || this.spatialMode === 'POV_SETUP') {
+        const anyPanelPOV = (typeof SpatialPanelManager !== 'undefined' && SpatialPanelManager.panels)
+          ? Array.from(SpatialPanelManager.panels.values()).some(
+              p => p.isVisible && (p.placementMode === 'POV_SETUP' || p.placementMode === 'POV_LOCKED')
+            )
+          : false;
+        if (!anyPanelPOV) {
+          ARState.pov.active = false;
+          ARState.pov.isAnchored = false;
+          if (ARState.pov.rafId) {
+            cancelAnimationFrame(ARState.pov.rafId);
+            ARState.pov.rafId = null;
+          }
+        }
+      }
+
       if (this.spatialMode === 'SCREEN_PINNED') {
         // Nyahsemat: Kembali ke penjejakan marker fizikal
         this.spatialMode = 'MARKER_MODE';
@@ -6600,8 +6658,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         this.spatialMode = 'SCREEN_PINNED';
 
         // 🛡️ Pastikan near plane kamera tidak mengehadkan frustum pada jarak model
-        if (this.camera && this.camera.near > 0.1) {
-          this.camera.near = 0.1;
+        if (this.camera && this.camera.near > 0.05) {
+          this.camera.near = 0.05;
           this.camera.updateProjectionMatrix();
         }
 
@@ -6625,6 +6683,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
     async ensureSensorPermission() {
       if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        if (ARState.pov.permissionGranted) return true;
         try {
           const response = await DeviceOrientationEvent.requestPermission();
           if (response === 'granted') {
@@ -6655,9 +6714,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     async startPOVSetup() {
       this.previousModeBeforePOV = this.spatialMode;
 
-      // 🛡️ Ensure camera near plane is 0.1 so frustum never clips at 2.8 units
-      if (this.camera && this.camera.near > 0.1) {
-        this.camera.near = 0.1;
+      // 🛡️ Ensure camera near plane is 0.05 so frustum never clips at 2.8 units
+      if (this.camera && this.camera.near > 0.05) {
+        this.camera.near = 0.05;
         this.camera.updateProjectionMatrix();
       }
 
@@ -6665,7 +6724,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (this.camera && this.rootGroup.parent !== this.camera) {
         this.camera.add(this.rootGroup);
       }
-      this.rootGroup.position.set(this.dragOffset.x, this.dragOffset.y, -this.fixedScreenDepth);
+      this.rootGroup.position.set(0, 0, -this.fixedScreenDepth);
       this.rootGroup.rotation.set(0, 0, 0);
       this.rootGroup.scale.set(1, 1, 1);
       this.rootGroup.visible = true;
@@ -6677,12 +6736,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
       this.spatialMode = 'POV_SETUP';
 
-      await this.ensureSensorPermission();
+      // 🛡️ CRITICAL: Activate central POV sensor subsystem
+      ARState.pov.active = true;
+      initThreeHelpers();
       setupPOVSensorListeners();
+      startPOVRenderLoop();
 
       if (DOM.cqPovSetupBanner) {
         DOM.cqPovSetupBanner.classList.remove('hidden');
         adjustPOVBannerLayout();
+        requestAnimationFrame(() => adjustPOVBannerLayout());
       }
       if (DOM.cqPovDeadSensorBox) DOM.cqPovDeadSensorBox.classList.add('hidden');
 
@@ -6691,12 +6754,21 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       updateDiagnosticsData();
       maybeShowPOVInteractiveGuide();
       showToast('🧭 Halakan peranti ke arah sasaran dan tekan "Letak di Arah Ini"', 2500);
+
+      await this.ensureSensorPermission();
     },
 
     anchorPOVAtCurrentHeading() {
       if (this.spatialMode !== 'POV_SETUP' && this.spatialMode !== 'POV_LOCKED') {
         this.previousModeBeforePOV = this.spatialMode;
       }
+
+      // 🛡️ CRITICAL: Ensure central POV state is active
+      ARState.pov.active = true;
+      ARState.pov.isAnchored = true;
+      initThreeHelpers();
+      setupPOVSensorListeners();
+      startPOVRenderLoop();
 
       // Anchor the current orientation
       if (window.THREE && ARState.pov.currentQuaternion) {
@@ -6732,6 +6804,21 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       this.spatialMode = this.previousModeBeforePOV || 'MARKER_MODE';
       this.applyModelPosition();
       this.updateHUDModeUI();
+
+      const anyPanelPOV = (typeof SpatialPanelManager !== 'undefined' && SpatialPanelManager.panels)
+        ? Array.from(SpatialPanelManager.panels.values()).some(
+            p => p.isVisible && (p.placementMode === 'POV_SETUP' || p.placementMode === 'POV_LOCKED')
+          )
+        : false;
+      if (!anyPanelPOV) {
+        ARState.pov.active = false;
+        ARState.pov.isAnchored = false;
+        if (ARState.pov.rafId) {
+          cancelAnimationFrame(ARState.pov.rafId);
+          ARState.pov.rafId = null;
+        }
+      }
+
       updateDiagnosticsData();
       showToast('Penyediaan Kunci Pandangan dibatalkan', 1500);
     },
@@ -6743,6 +6830,21 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       this.spatialMode = this.previousModeBeforePOV || 'SCREEN_PINNED';
       this.applyModelPosition();
       this.updateHUDModeUI();
+
+      const anyPanelPOV = (typeof SpatialPanelManager !== 'undefined' && SpatialPanelManager.panels)
+        ? Array.from(SpatialPanelManager.panels.values()).some(
+            p => p.isVisible && (p.placementMode === 'POV_SETUP' || p.placementMode === 'POV_LOCKED')
+          )
+        : false;
+      if (!anyPanelPOV) {
+        ARState.pov.active = false;
+        ARState.pov.isAnchored = false;
+        if (ARState.pov.rafId) {
+          cancelAnimationFrame(ARState.pov.rafId);
+          ARState.pov.rafId = null;
+        }
+      }
+
       updateDiagnosticsData();
       showToast('🧭 Keluar dari Mod Kunci Pandangan', 1800);
     },
@@ -7666,6 +7768,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         this.hasTargetLock = false;
         if (this.rootGroup) this.rootGroup.visible = false;
         if (this.anchorGroup) this.anchorGroup.visible = false;
+      } else {
+        // SCREEN_PINNED, POV_SETUP, POV_LOCKED mengekalkan model 3D aktif pada skrin walaupun marker tiada
+        if (this.rootGroup) this.rootGroup.visible = true;
       }
       this.updateHUDModeUI();
       updateDiagnosticsData();
@@ -7681,8 +7786,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         updatePOVHeadingFromQuaternion();
       }
 
-      // In POV mode, continuously project model position according to current orientation heading
-      if (this.spatialMode === 'POV_LOCKED') {
+      // Continuously update model positioning for both POV_LOCKED and SCREEN_PINNED
+      if (this.spatialMode === 'POV_LOCKED' || this.spatialMode === 'SCREEN_PINNED') {
         this.applyModelPosition();
       } else if (this.spatialMode === 'POV_SETUP') {
         this.updatePOVBannerSensorStatus();
@@ -11871,6 +11976,22 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.cqBtnPOV) {
       DOM.cqBtnPOV.addEventListener('click', (e) => {
         e.stopPropagation();
+        // 🛡️ CRITICAL iOS Safari: Synchronous user gesture permission request
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          try {
+            DeviceOrientationEvent.requestPermission().then((state) => {
+              if (state === 'granted') {
+                ARState.pov.permissionGranted = true;
+                setupPOVSensorListeners();
+                if (typeof CellQuestARController !== 'undefined') {
+                  CellQuestARController.updatePOVBannerSensorStatus();
+                }
+              }
+            }).catch((err) => {
+              console.warn('[CellQuestAR] DeviceOrientation permission error:', err);
+            });
+          } catch (err) {}
+        }
         if (typeof CellQuestARController !== 'undefined') {
           CellQuestARController.togglePOVMode();
         }
@@ -12018,11 +12139,23 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
 
     if (DOM.cqBtnPovRetry) {
-      DOM.cqBtnPovRetry.addEventListener('click', async (e) => {
+      DOM.cqBtnPovRetry.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          try {
+            DeviceOrientationEvent.requestPermission().then((state) => {
+              if (state === 'granted') {
+                ARState.pov.permissionGranted = true;
+                setupPOVSensorListeners();
+                if (typeof CellQuestARController !== 'undefined') {
+                  CellQuestARController.updatePOVBannerSensorStatus();
+                }
+              }
+            }).catch(err => console.warn(err));
+          } catch (err) {}
+        }
+        setupPOVSensorListeners();
         if (typeof CellQuestARController !== 'undefined') {
-          await CellQuestARController.ensureSensorPermission();
-          setupPOVSensorListeners();
           CellQuestARController.updatePOVBannerSensorStatus();
         }
       });
