@@ -179,6 +179,9 @@
     DOM.btnChangeVideo = document.getElementById('btn-change-video');
     DOM.btnPlaceVideo = document.getElementById('btn-place-video');
     DOM.btnStartPOV = document.getElementById('btn-start-pov');
+    DOM.btnAnchorPOV = document.getElementById('btn-anchor-pov');
+    DOM.btnCancelPOV = document.getElementById('btn-cancel-pov');
+    DOM.btnExitPOV = document.getElementById('btn-exit-pov');
     DOM.btnClosePanel = document.getElementById('btn-close-panel');
     DOM.toast = document.getElementById('ar-toast');
     DOM.toastText = document.getElementById('toast-text');
@@ -360,6 +363,8 @@
     DOM.povNotaBtnAnchor = document.getElementById('pov-nota-btn-anchor');
     DOM.povNotaAnchorIcon = document.getElementById('pov-nota-anchor-icon');
     DOM.povNotaAnchorText = document.getElementById('pov-nota-anchor-text');
+    DOM.povNotaBtnCancel = document.getElementById('pov-nota-btn-cancel');
+    DOM.povNotaBtnExitPOV = document.getElementById('pov-nota-btn-exit-pov');
     DOM.povNotaBtnChangeContent = document.getElementById('pov-nota-btn-change-content');
     DOM.povNotaBtnBackPinned = document.getElementById('pov-nota-btn-back-pinned');
     DOM.povNotaBtnClose = document.getElementById('pov-nota-btn-close');
@@ -492,6 +497,8 @@
     DOM.povBtnAnchor = document.getElementById('pov-btn-anchor');
     DOM.povAnchorIcon = document.getElementById('pov-anchor-icon');
     DOM.povAnchorText = document.getElementById('pov-anchor-text');
+    DOM.povBtnCancel = document.getElementById('pov-btn-cancel');
+    DOM.povBtnExitPOV = document.getElementById('pov-btn-exit-pov');
     DOM.povBtnChangeVideo = document.getElementById('pov-btn-change-video');
     DOM.povBtnRecalibrate = document.getElementById('pov-btn-recalibrate');
     DOM.povBtnBackPinned = document.getElementById('pov-btn-back-pinned');
@@ -1072,76 +1079,63 @@
       const rawMode = p.placementMode || 'MARKER_FOLLOW';
       const isLocked = (rawMode === 'POV_LOCKED' || rawMode === 'WORLD_LOCKED');
       const isSetup = (rawMode === 'POV_SETUP');
-      const isPinned = (rawMode === 'SCREEN_PINNED');
 
-      let btnStart = null, btnAnchor = null, anchorIcon = null, anchorText = null;
-      let valStatus = null, bannerIcon = null, bannerText = null, btnBackPinned = null;
+      let btnStart = null, btnAnchor = null, btnCancel = null, btnExit = null;
+      let btnStartSingle = null, btnAnchorSingle = null, btnCancelSingle = null, btnExitSingle = null;
+      let valStatus = null, bannerIcon = null, bannerText = null;
       let setupColor = '#38bdf8';
 
       if (id === 'video') {
         btnStart = DOM.povBtnStartPOV || document.getElementById('pov-btn-start-pov');
         btnAnchor = DOM.povBtnAnchor || document.getElementById('pov-btn-anchor');
-        anchorIcon = DOM.povAnchorIcon || document.getElementById('pov-anchor-icon');
-        anchorText = DOM.povAnchorText || document.getElementById('pov-anchor-text');
+        btnCancel = DOM.povBtnCancel || document.getElementById('pov-btn-cancel');
+        btnExit = DOM.povBtnExitPOV || document.getElementById('pov-btn-exit-pov');
+
+        btnStartSingle = DOM.btnStartPOV || document.getElementById('btn-start-pov');
+        btnAnchorSingle = DOM.btnAnchorPOV || document.getElementById('btn-anchor-pov');
+        btnCancelSingle = DOM.btnCancelPOV || document.getElementById('btn-cancel-pov');
+        btnExitSingle = DOM.btnExitPOV || document.getElementById('btn-exit-pov');
+
         valStatus = DOM.povValStatus || document.getElementById('pov-val-status');
         bannerIcon = DOM.povBannerIcon || document.getElementById('pov-banner-icon');
         bannerText = DOM.povBannerText || document.getElementById('pov-banner-text');
-        btnBackPinned = DOM.povBtnBackPinned || document.getElementById('pov-btn-back-pinned');
       } else if (id === 'nota') {
         btnStart = DOM.povNotaBtnStartPOV || document.getElementById('pov-nota-btn-start-pov');
         btnAnchor = DOM.povNotaBtnAnchor || document.getElementById('pov-nota-btn-anchor');
-        anchorIcon = DOM.povNotaAnchorIcon || document.getElementById('pov-nota-anchor-icon');
-        anchorText = DOM.povNotaAnchorText || document.getElementById('pov-nota-anchor-text');
+        btnCancel = DOM.povNotaBtnCancel || document.getElementById('pov-nota-btn-cancel');
+        btnExit = DOM.povNotaBtnExitPOV || document.getElementById('pov-nota-btn-exit-pov');
+
         valStatus = DOM.povNotaValStatus || document.getElementById('pov-nota-val-status');
         bannerIcon = DOM.povNotaBannerIcon || document.getElementById('pov-nota-banner-icon');
         bannerText = DOM.povNotaBannerText || document.getElementById('pov-nota-banner-text');
-        btnBackPinned = DOM.povNotaBtnBackPinned || document.getElementById('pov-nota-btn-back-pinned');
       } else if (id === 'kuiz') {
         btnStart = DOM.povKuizBtnStartPOV || document.getElementById('pov-kuiz-btn-start-pov');
         btnAnchor = DOM.povKuizBtnAnchor || document.getElementById('pov-kuiz-btn-anchor');
-        anchorIcon = DOM.povKuizAnchorIcon || document.getElementById('pov-kuiz-anchor-icon');
-        anchorText = DOM.povKuizAnchorText || document.getElementById('pov-kuiz-anchor-text');
         valStatus = DOM.povKuizValStatus || document.getElementById('pov-kuiz-val-status');
         bannerIcon = DOM.povKuizBannerIcon || document.getElementById('pov-kuiz-banner-icon');
         bannerText = DOM.povKuizBannerText || document.getElementById('pov-kuiz-banner-text');
-        btnBackPinned = DOM.povKuizBtnBackPinned || document.getElementById('pov-kuiz-btn-back-pinned');
         setupColor = '#c084fc';
       } else if (id === 'selbot') {
         btnStart = DOM.povSelbotBtnStartPOV || document.getElementById('pov-selbot-btn-start-pov');
         btnAnchor = DOM.povSelbotBtnAnchor || document.getElementById('pov-selbot-btn-anchor');
-        anchorIcon = DOM.povSelbotAnchorIcon || document.getElementById('pov-selbot-anchor-icon');
-        anchorText = DOM.povSelbotAnchorText || document.getElementById('pov-selbot-anchor-text');
         valStatus = DOM.povSelbotValStatus || document.getElementById('pov-selbot-val-status');
         bannerIcon = DOM.povSelbotBannerIcon || document.getElementById('pov-selbot-banner-icon');
         bannerText = DOM.povSelbotBannerText || document.getElementById('pov-selbot-banner-text');
-        btnBackPinned = DOM.povSelbotBtnBackPinned || document.getElementById('pov-selbot-btn-back-pinned');
         setupColor = '#06b6d4';
       }
 
-      // Update Semat Skrin / Ikut Kad AR button state
-      if (btnBackPinned) {
-        btnBackPinned.classList.remove('hidden');
-        const textSpan = btnBackPinned.querySelector('span:not(.material-symbols-outlined)') || btnBackPinned.lastElementChild;
-        const iconSpan = btnBackPinned.querySelector('.material-symbols-outlined');
-        if (isPinned) {
-          if (textSpan) textSpan.textContent = 'Ikut Kad AR';
-          if (iconSpan) iconSpan.textContent = 'qr_code_scanner';
-          btnBackPinned.title = 'Batal semat skrin dan ikuti kad AR';
-        } else {
-          if (textSpan) textSpan.textContent = 'Semat Skrin';
-          if (iconSpan) iconSpan.textContent = 'push_pin';
-          btnBackPinned.title = 'Sematkan panel ke skrin agar kekal kelihatan tanpa kad AR';
-        }
-      }
-
       if (isLocked) {
+        // POV_LOCKED: only Exit POV is visible
         if (btnStart) btnStart.classList.add('hidden');
-        if (btnAnchor) {
-          btnAnchor.classList.remove('hidden');
-          btnAnchor.classList.add('is-locked');
-        }
-        if (anchorIcon) anchorIcon.textContent = 'refresh';
-        if (anchorText) anchorText.textContent = 'Alih / Letak Semula';
+        if (btnAnchor) btnAnchor.classList.add('hidden');
+        if (btnCancel) btnCancel.classList.add('hidden');
+        if (btnExit) btnExit.classList.remove('hidden');
+
+        if (btnStartSingle) btnStartSingle.classList.add('hidden');
+        if (btnAnchorSingle) btnAnchorSingle.classList.add('hidden');
+        if (btnCancelSingle) btnCancelSingle.classList.add('hidden');
+        if (btnExitSingle) btnExitSingle.classList.remove('hidden');
+
         if (valStatus) {
           valStatus.textContent = `Pandangan Dikunci (${Math.round(p.anchorYaw || 0)}°)`;
           valStatus.style.color = '#10b981';
@@ -1149,41 +1143,35 @@
         if (bannerIcon) bannerIcon.textContent = 'lock';
         if (bannerText) bannerText.textContent = 'Pandangan Dikunci! Pusingkan peranti untuk melihat panel dalam ruang 360°.';
       } else if (isSetup) {
+        // POV_SETUP: Anchor and Cancel visible, Start and Exit hidden
         if (btnStart) btnStart.classList.add('hidden');
-        if (btnAnchor) {
-          btnAnchor.classList.remove('hidden', 'is-locked');
-        }
-        if (anchorIcon) anchorIcon.textContent = 'my_location';
-        if (anchorText) anchorText.textContent = 'Letak di Arah Ini';
+        if (btnAnchor) btnAnchor.classList.remove('hidden');
+        if (btnCancel) btnCancel.classList.remove('hidden');
+        if (btnExit) btnExit.classList.add('hidden');
+
+        if (btnStartSingle) btnStartSingle.classList.add('hidden');
+        if (btnAnchorSingle) btnAnchorSingle.classList.remove('hidden');
+        if (btnCancelSingle) btnCancelSingle.classList.remove('hidden');
+        if (btnExitSingle) btnExitSingle.classList.add('hidden');
+
         if (valStatus) {
           valStatus.textContent = 'Halakan peranti ke arah pilihan';
           valStatus.style.color = setupColor;
         }
         if (bannerIcon) bannerIcon.textContent = 'sensors';
         if (bannerText) bannerText.textContent = 'Halakan peranti ke arah pilihan, kemudian tekan "Letak di Arah Ini".';
-      } else if (isPinned) {
-        if (btnStart) btnStart.classList.remove('hidden');
-        if (btnAnchor) {
-          btnAnchor.classList.add('hidden');
-          btnAnchor.classList.remove('is-locked');
-        }
-        if (anchorIcon) anchorIcon.textContent = 'my_location';
-        if (anchorText) anchorText.textContent = 'Letak di Arah Ini';
-        if (valStatus) {
-          valStatus.textContent = 'Panel Disemat pada Skrin';
-          valStatus.style.color = '#f59e0b';
-        }
-        if (bannerIcon) bannerIcon.textContent = 'push_pin';
-        if (bannerText) bannerText.textContent = 'Panel Disemat pada Skrin — Anda boleh menyeret dan mengubah saiz panel dengan bebas.';
       } else {
-        // MARKER_FOLLOW (Default Mod Imbasan AR)
+        // MARKER_FOLLOW / AR_NORMAL: only Start POV is visible
         if (btnStart) btnStart.classList.remove('hidden');
-        if (btnAnchor) {
-          btnAnchor.classList.add('hidden');
-          btnAnchor.classList.remove('is-locked');
-        }
-        if (anchorIcon) anchorIcon.textContent = 'my_location';
-        if (anchorText) anchorText.textContent = 'Letak di Arah Ini';
+        if (btnAnchor) btnAnchor.classList.add('hidden');
+        if (btnCancel) btnCancel.classList.add('hidden');
+        if (btnExit) btnExit.classList.add('hidden');
+
+        if (btnStartSingle) btnStartSingle.classList.remove('hidden');
+        if (btnAnchorSingle) btnAnchorSingle.classList.add('hidden');
+        if (btnCancelSingle) btnCancelSingle.classList.add('hidden');
+        if (btnExitSingle) btnExitSingle.classList.add('hidden');
+
         if (valStatus) {
           valStatus.textContent = 'Mod Imbasan AR — Panel Mengikuti Kad';
           valStatus.style.color = '#38bdf8';
@@ -1470,6 +1458,49 @@
       updateDiagnosticsData();
       const pNames = { video: 'Video', nota: 'Nota', kuiz: 'Kuiz', selbot: 'SelBot AI' };
       showToast(`🎯 Panel ${pNames[id] || id} sedia dialihkan ke arah baharu.`);
+    },
+
+    exitPanelPOV(id) {
+      const p = this.panels.get(id);
+      if (!p) return;
+      p.placementMode = 'MARKER_FOLLOW';
+      p.isLocked = false;
+      p.referenceQuaternion = null;
+      p.anchorWorldVector = null;
+
+      const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
+      if (el) {
+        el.classList.remove('is-centered');
+        el.setAttribute('data-placement-mode', 'MARKER_FOLLOW');
+      }
+
+      this.syncPanelControlUI(id);
+
+      // Check if any other panel is in POV
+      let anyPOV = false;
+      this.panels.forEach(pan => {
+        if (pan.placementMode === 'POV_LOCKED' || pan.placementMode === 'POV_SETUP') anyPOV = true;
+      });
+      if (typeof CellQuestARController !== 'undefined' && (CellQuestARController.spatialMode === 'POV_LOCKED' || CellQuestARController.spatialMode === 'POV_SETUP')) {
+        anyPOV = true;
+      }
+      if (!anyPOV) {
+        ARState.systemMode = SYSTEM_MODES.AR_NORMAL;
+        ARState.pov.active = false;
+        ARState.pov.isAnchored = false;
+        if (ARState.pov.rafId) {
+          cancelAnimationFrame(ARState.pov.rafId);
+          ARState.pov.rafId = null;
+        }
+      }
+
+      updateDiagnosticsData();
+      const pNames = { video: 'Video', nota: 'Nota', kuiz: 'Kuiz', selbot: 'SelBot AI' };
+      showToast(`🔓 Panel ${pNames[id] || id} kembali ke Mod Imbasan AR.`);
+    },
+
+    cancelPanelPOV(id) {
+      this.exitPanelPOV(id);
     },
 
     togglePanelLock(id) {
@@ -4880,9 +4911,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       const modLabel = nameMap[moduleName] || moduleName;
 
       if (moduleName === 'cellquest') {
-        if (cellType && typeof CellQuestARController !== 'undefined' && CellQuestARController.activeCellType && cellType !== CellQuestARController.activeCellType) {
-          console.log(`[CellQuestAR] 🛡️ Sesi CellQuest (${CellQuestARController.activeCellType}) sedang aktif. Pengesanan marker ${cellType} diabaikan tanpa gangguan.`);
-          return;
+        if (cellType && typeof CellQuestARController !== 'undefined') {
+          if (CellQuestARController.displayMode !== 'compare' && CellQuestARController.displayMode !== cellType) {
+            console.log(`[CellQuestAR] 🔬 Kedua-dua marker sel dikesan! Mengaktifkan mod perbandingan (dual-cell compare).`);
+            CellQuestARController.loadModel('compare');
+            showToast('🔬 Kedua-dua Kad AR Dikesan! Mod Perbandingan Sel diaktifkan.', 3000);
+          }
         }
         if (cellType === 'plant' && ARState.anchorCellQuestPlant) {
           ARState.anchorCellQuest = ARState.anchorCellQuestPlant;
@@ -6801,7 +6835,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.add('hidden');
       if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
 
-      this.spatialMode = this.previousModeBeforePOV || 'MARKER_MODE';
+      this.spatialMode = 'MARKER_MODE';
       this.applyModelPosition();
       this.updateHUDModeUI();
 
@@ -6827,7 +6861,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.add('hidden');
       if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
 
-      this.spatialMode = this.previousModeBeforePOV || 'SCREEN_PINNED';
+      this.spatialMode = 'MARKER_MODE';
       this.applyModelPosition();
       this.updateHUDModeUI();
 
@@ -6959,10 +6993,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         DOM.cqBtnPOV.classList.toggle('is-active', isPOVSetup);
       }
       if (DOM.cqPovIcon) {
-        DOM.cqPovIcon.textContent = isPOVLocked ? 'explore_off' : (isPOVSetup ? 'cancel' : 'explore');
+        DOM.cqPovIcon.textContent = isPOVLocked ? 'lock_open' : (isPOVSetup ? 'cancel' : 'explore');
       }
       if (DOM.cqPovLabel) {
-        DOM.cqPovLabel.textContent = isPOVLocked ? 'Keluar Pandangan' : (isPOVSetup ? 'Batal Pandangan' : 'Kunci Pandangan');
+        DOM.cqPovLabel.textContent = isPOVLocked ? 'Keluar Pandangan' : (isPOVSetup ? 'Batal' : 'Kunci Pandangan');
       }
 
       // Status Badge
@@ -9485,9 +9519,29 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       DOM.povNotaBtnAnchor.addEventListener('click', (e) => {
         e.stopPropagation();
         if (typeof SpatialPanelManager !== 'undefined') {
-          SpatialPanelManager.togglePanelLock('nota');
+          SpatialPanelManager.lockPanelPOV('nota');
         } else {
           anchorPOVAtCurrentHeading();
+        }
+      });
+    }
+    if (DOM.povNotaBtnCancel) {
+      DOM.povNotaBtnCancel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.cancelPanelPOV('nota');
+        } else {
+          exitPOVMode(false);
+        }
+      });
+    }
+    if (DOM.povNotaBtnExitPOV) {
+      DOM.povNotaBtnExitPOV.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.exitPanelPOV('nota');
+        } else {
+          exitPOVMode(false);
         }
       });
     }
@@ -9503,15 +9557,6 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         } else {
           DOM.povNotaSelectionView.classList.add('hidden');
           if (DOM.povActiveNotaView) DOM.povActiveNotaView.classList.remove('hidden');
-        }
-      });
-    }
-    if (DOM.povNotaBtnBackPinned) {
-      DOM.povNotaBtnBackPinned.addEventListener('click', () => {
-        if (typeof SpatialPanelManager !== 'undefined') {
-          SpatialPanelManager.togglePinMode('nota');
-        } else {
-          exitPOVMode(true);
         }
       });
     }
@@ -11531,7 +11576,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
 
     // Fasa 3C & 4B.4: Gyroscope POV Lock Buttons with Synchronous iOS Permission Request
-    const handleStartPOVUserGesture = async (e) => {
+    const handleStartPOVUserGesture = async (e, mod = 'video') => {
       if (e && e.stopPropagation) e.stopPropagation();
       // On iOS 13+ Safari, requestPermission MUST be called synchronously in direct response to user gesture
       if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -11544,17 +11589,52 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           console.warn('[KotakAR-POV] Izin sensor ditolak atau ralat:', err);
         }
       }
-      startPOVMode();
+      if (typeof SpatialPanelManager !== 'undefined') {
+        SpatialPanelManager.enterPanelPOVSetup(mod);
+      } else {
+        startPOVMode();
+      }
     };
 
     if (DOM.btnStartPOV) {
-      DOM.btnStartPOV.addEventListener('click', handleStartPOVUserGesture);
+      DOM.btnStartPOV.addEventListener('click', (e) => handleStartPOVUserGesture(e, 'video'));
     }
-    if (DOM.btnSwitchToPOV) {
-      DOM.btnSwitchToPOV.addEventListener('click', handleStartPOVUserGesture);
+    if (DOM.btnAnchorPOV) {
+      DOM.btnAnchorPOV.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.lockPanelPOV('video');
+        } else {
+          anchorPOVAtCurrentHeading();
+        }
+      });
+    }
+    if (DOM.btnCancelPOV) {
+      DOM.btnCancelPOV.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.cancelPanelPOV('video');
+        } else {
+          exitPOVMode(false);
+        }
+      });
+    }
+    if (DOM.btnExitPOV) {
+      DOM.btnExitPOV.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.exitPanelPOV('video');
+        } else {
+          exitPOVMode(false);
+        }
+      });
     }
 
-    // Fasa 4B.4: Guidance Banner Action Buttons (Retry Sensor & Screen-Pinned Fallback)
+    if (DOM.btnSwitchToPOV) {
+      DOM.btnSwitchToPOV.addEventListener('click', (e) => handleStartPOVUserGesture(e, 'video'));
+    }
+
+    // Fasa 4B.4: Guidance Banner Action Buttons (Retry Sensor)
     const handleRetrySensorClick = async (e) => {
       if (e && e.stopPropagation) e.stopPropagation();
       if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -11582,49 +11662,38 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (DOM.povSelbotBtnRetrySensor) {
       DOM.povSelbotBtnRetrySensor.addEventListener('click', handleRetrySensorClick);
     }
-    if (DOM.povBtnFallbackPinned) {
-      DOM.povBtnFallbackPinned.addEventListener('click', (e) => {
-        if (e && e.stopPropagation) e.stopPropagation();
-        exitPOVMode(true);
-      });
-    }
-    if (DOM.povNotaBtnFallbackPinned) {
-      DOM.povNotaBtnFallbackPinned.addEventListener('click', (e) => {
-        if (e && e.stopPropagation) e.stopPropagation();
-        exitPOVMode(true);
-      });
-    }
-    if (DOM.povKuizBtnFallbackPinned) {
-      DOM.povKuizBtnFallbackPinned.addEventListener('click', (e) => {
-        if (e && e.stopPropagation) e.stopPropagation();
-        exitPOVMode(true);
-      });
-    }
-    if (DOM.povSelbotBtnFallbackPinned) {
-      DOM.povSelbotBtnFallbackPinned.addEventListener('click', (e) => {
-        if (e && e.stopPropagation) e.stopPropagation();
-        exitPOVMode(true);
-      });
-    }
 
-    // POV Card Controls
+    // POV Multi-Panel Video Controls
     if (DOM.povBtnStartPOV) {
-      DOM.povBtnStartPOV.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (typeof SpatialPanelManager !== 'undefined') {
-          SpatialPanelManager.enterPanelPOVSetup('video');
-        } else {
-          startPOVMode();
-        }
-      });
+      DOM.povBtnStartPOV.addEventListener('click', (e) => handleStartPOVUserGesture(e, 'video'));
     }
     if (DOM.povBtnAnchor) {
       DOM.povBtnAnchor.addEventListener('click', (e) => {
-        e.stopPropagation();
+        if (e && e.stopPropagation) e.stopPropagation();
         if (typeof SpatialPanelManager !== 'undefined') {
-          SpatialPanelManager.togglePanelLock('video');
+          SpatialPanelManager.lockPanelPOV('video');
         } else {
           anchorPOVAtCurrentHeading();
+        }
+      });
+    }
+    if (DOM.povBtnCancel) {
+      DOM.povBtnCancel.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.cancelPanelPOV('video');
+        } else {
+          exitPOVMode(false);
+        }
+      });
+    }
+    if (DOM.povBtnExitPOV) {
+      DOM.povBtnExitPOV.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.exitPanelPOV('video');
+        } else {
+          exitPOVMode(false);
         }
       });
     }

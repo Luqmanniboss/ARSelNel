@@ -143,10 +143,6 @@
       <span class="material-symbols-outlined" id="pov-rec-cam-icon">videocam_off</span>
       <span id="pov-rec-cam-text">Tutup Kamera</span>
     </button>
-    <button type="button" class="recovery-btn" id="pov-rec-back-pinned" title="Beralih ke mod semat skrin">
-      <span class="material-symbols-outlined">push_pin</span>
-      <span>Semat Skrin</span>
-    </button>
     <button type="button" class="recovery-btn recovery-close" id="pov-rec-close" title="Keluar daripada mod Kunci Pandangan">
       <span class="material-symbols-outlined">close</span>
       <span>Keluar</span>
@@ -228,6 +224,10 @@
           <span class="cq-status-dot"></span>
           <span class="cq-status-text" id="cq-status-text">Kad AR Dikesan</span>
         </div>
+        <button type="button" class="cq-hud-btn btn-pov-mode" id="cq-btn-pov" title="Kunci Pandangan 3DoF Berasaskan Sensor Giroskop">
+          <span class="material-symbols-outlined" id="cq-pov-icon">explore</span>
+          <span class="cq-btn-label" id="cq-pov-label">Kunci Pandangan</span>
+        </button>
         <button type="button" class="cq-hud-btn cq-hud-diag-btn" id="cq-hud-btn-diagnostics" title="Buka Diagnostik 3D & Sensor">
           <span class="material-symbols-outlined" style="font-size:16px;color:#2dd4bf;">developer_mode</span>
           <span class="cq-btn-label">Diagnostik</span>
@@ -289,13 +289,13 @@
       <span id="cq-hint-text">Sentuh mana-mana organel untuk melihat fungsinya</span>
     </div>
 
-    <!-- POV SETUP GUIDANCE BANNER (Fasa 4D-D.2 & Hotfix 1.0) -->
+    <!-- POV SETUP GUIDANCE BANNER (Fasa 4D-D.2 & Hotfix 1.2) -->
     <div class="cq-pov-setup-banner hidden" id="cq-pov-setup-banner">
       <div class="cq-pov-setup-header">
         <span class="material-symbols-outlined cq-pov-pulse-icon">explore</span>
         <span class="cq-pov-setup-title">Kunci Pandangan (3DoF)</span>
       </div>
-      <p class="cq-pov-setup-desc">Halakan telefon ke arah yang anda mahu, kemudian tekan Letak di Arah Ini.</p>
+      <p class="cq-pov-setup-desc">Halakan peranti ke arah yang anda mahu, kemudian tekan Letak di Arah Ini.</p>
       <div class="cq-pov-sensor-status" id="cq-pov-sensor-status">
         <span class="cq-status-dot-sm" id="cq-pov-status-dot"></span>
         <span id="cq-pov-sensor-text">Menyambung Giroskop...</span>
@@ -314,97 +314,8 @@
         <span class="material-symbols-outlined" style="color:#f59e0b;font-size:16px;">warning</span>
         <span>Sensor giroskop tidak bertindak balas.</span>
         <button type="button" class="cq-pov-btn-mini" id="cq-btn-pov-retry">Cuba Semula</button>
-        <button type="button" class="cq-pov-btn-mini" id="cq-btn-pov-use-pin">Semat Skrin</button>
       </div>
     </div>
-
-    <!-- Bottom Controls Floating Controller (Fasa Dual-Cell 1.0 Architecture) -->
-    <nav class="cq-bottom-controls" id="cq-bottom-controls" aria-label="Kawalan Model 3D">
-      <!-- Baris 1: Pilihan Paparan Sel (Haiwan / Tumbuhan / Bandingkan) -->
-      <div class="cq-controls-row cq-row-switcher">
-        <div class="cq-cell-switcher" role="tablist">
-          <button type="button" class="cq-pill-btn active" id="cq-btn-animal" data-cell="animal" title="Papar Sel Haiwan sahaja">
-            <span class="cq-btn-icon">🐾</span>
-            <span class="cq-btn-txt">Sel Haiwan</span>
-          </button>
-          <button type="button" class="cq-pill-btn" id="cq-btn-plant" data-cell="plant" title="Papar Sel Tumbuhan sahaja">
-            <span class="cq-btn-icon">🌿</span>
-            <span class="cq-btn-txt">Sel Tumbuhan</span>
-          </button>
-          <button type="button" class="cq-pill-btn" id="cq-btn-compare" data-cell="compare" title="Papar kedua-dua sel serentak bersebelahan">
-            <span class="cq-btn-icon">⚖️</span>
-            <span class="cq-btn-txt">Bandingkan</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Baris 1b: Pilihan Model Aktif untuk Kawalan (Hanya muncul dalam Mod Bandingkan) -->
-      <div class="cq-controls-row cq-row-active-model hidden" id="cq-row-active-model">
-        <div class="cq-active-model-bar">
-          <span class="cq-model-bar-label">Kawal:</span>
-          <button type="button" class="cq-model-pill active" id="cq-select-animal" data-target="animal" title="Kawal dan manipulasi Sel Haiwan">
-            <span class="cq-dot-indicator animal-dot"></span>
-            <span>Sel Haiwan</span>
-          </button>
-          <button type="button" class="cq-model-pill" id="cq-select-plant" data-target="plant" title="Kawal dan manipulasi Sel Tumbuhan">
-            <span class="cq-dot-indicator plant-dot"></span>
-            <span>Sel Tumbuhan</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Baris 1c: Alat Sains & Label Organel (Tunjuk Label & Bandingkan Fakta) -->
-      <div class="cq-controls-row cq-row-science-tools">
-        <button type="button" class="cq-tool-pill" id="cq-btn-labels" title="Togol paparan label nama organel 3D">
-          <span class="material-symbols-outlined">label</span>
-          <span id="cq-labels-btn-text">Label Organel</span>
-        </button>
-        <button type="button" class="cq-tool-pill" id="cq-btn-diff-modal" title="Buka jadual persamaan dan perbezaan Sains Tingkatan 1">
-          <span class="material-symbols-outlined">table_chart</span>
-          <span>Persamaan & Perbezaan</span>
-        </button>
-      </div>
-
-      <!-- Baris 2: Mod Interaksi Utama (Putar, Seret, Semat, Kunci POV) -->
-      <div class="cq-controls-row cq-row-modes">
-        <button type="button" class="cq-action-btn is-active" id="cq-btn-rotate" title="Mod Putar 360°">
-          <span class="material-symbols-outlined">sync</span>
-          <span class="cq-action-label">Putar</span>
-        </button>
-        <button type="button" class="cq-action-btn" id="cq-btn-drag" title="Mod Seret & Anjak Kedudukan">
-          <span class="material-symbols-outlined">drag_pan</span>
-          <span class="cq-action-label">Seret Model</span>
-        </button>
-        <button type="button" class="cq-action-btn" id="cq-btn-pin" title="Semat Model pada Skrin">
-          <span class="material-symbols-outlined" id="cq-pin-icon">push_pin</span>
-          <span class="cq-action-label" id="cq-pin-label">Semat Model</span>
-        </button>
-        <button type="button" class="cq-action-btn" id="cq-btn-pov" title="Kunci Pandangan 3DoF Berasaskan Sensor Giroskop">
-          <span class="material-symbols-outlined" id="cq-pov-icon">explore</span>
-          <span class="cq-action-label" id="cq-pov-label">Kunci Pandangan</span>
-        </button>
-      </div>
-
-      <!-- Baris 3: Utiliti Zum & Kedudukan (Zum +, Zum -, Set Semula, Bawa ke Tengah) -->
-      <div class="cq-controls-row cq-row-utils">
-        <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-zoom-in" title="Zum Masuk">
-          <span class="material-symbols-outlined">zoom_in</span>
-          <span class="cq-action-label">Zum +</span>
-        </button>
-        <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-zoom-out" title="Zum Keluar">
-          <span class="material-symbols-outlined">zoom_out</span>
-          <span class="cq-action-label">Zum −</span>
-        </button>
-        <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-reset" title="Kembalikan Orientasi & Saiz Asal Model Terpilih">
-          <span class="material-symbols-outlined">restart_alt</span>
-          <span class="cq-action-label">Set Semula</span>
-        </button>
-        <button type="button" class="cq-action-btn cq-btn-sm" id="cq-btn-recenter" title="Bawa Model ke Tengah Skrin">
-          <span class="material-symbols-outlined">filter_center_focus</span>
-          <span class="cq-action-label">Bawa ke Tengah</span>
-        </button>
-      </div>
-    </nav>
 
     <!-- MODAL PERBANDINGAN SAINS: PERSAMAAN & PERBEZAAN (KSSM SAINS TINGKATAN 1) -->
     <div class="cq-compare-modal-backdrop hidden" id="cq-compare-modal">
@@ -723,19 +634,24 @@
       <!-- C. STICKY FOOTER ACTIONS BAR (Always visible & interactive at bottom) -->
       <footer class="panel-sticky-footer" id="panel-sticky-footer">
         <div class="player-actions-bar">
-          <button type="button" class="btn-place-video" id="btn-place-video" title="Sematkan panel ke kedudukan pilihan pada skrin">
-            <span class="material-symbols-outlined">push_pin</span>
-            <span id="btn-place-text">Semat Skrin</span>
-          </button>
-
           <button type="button" class="btn-pov-mode" id="btn-start-pov" title="Kunci arah panel menggunakan sensor giroskop 3DoF (Boleh tutup kamera)">
             <span class="material-symbols-outlined">explore</span>
             <span>Kunci Pandangan</span>
           </button>
-          
-          <button type="button" class="btn-lock-video hidden" id="btn-lock-video" title="Kunci kedudukan panel atau alih semula">
-            <span class="material-symbols-outlined" id="lock-btn-icon">lock</span>
-            <span id="lock-btn-text">Kunci Kedudukan</span>
+
+          <button type="button" class="btn-place-video hidden" id="btn-anchor-pov" title="Kunci arah orientasi peranti semasa">
+            <span class="material-symbols-outlined">my_location</span>
+            <span>Letak di Arah Ini</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action hidden" id="btn-cancel-pov" title="Batal pemilihan arah pandangan">
+            <span class="material-symbols-outlined">close</span>
+            <span>Batal</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action hidden" id="btn-exit-pov" title="Keluar dari mod Kunci Pandangan">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span>Keluar Pandangan</span>
           </button>
 
           <button type="button" class="btn-secondary-action" id="btn-change-video" title="Pilih video atau nota lain">
@@ -835,7 +751,6 @@
             <span class="banner-text" id="pov-banner-text">Mod Imbasan AR — Panel sedang mengikuti pergerakan kad AR anda.</span>
             <div class="banner-action-buttons hidden" id="pov-banner-actions">
               <button type="button" class="btn-banner-retry" id="pov-btn-retry-sensor">Cuba Semula</button>
-              <button type="button" class="btn-banner-fallback" id="pov-btn-fallback-pinned">Semat Skrin</button>
             </div>
           </div>
 
@@ -933,17 +848,22 @@
             <span id="pov-anchor-text">Letak di Arah Ini</span>
           </button>
 
+          <button type="button" class="btn-secondary-action hidden" id="pov-btn-cancel" title="Batal pemilihan arah pandangan">
+            <span class="material-symbols-outlined">close</span>
+            <span>Batal</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action hidden" id="pov-btn-exit-pov" title="Keluar dari mod Kunci Pandangan">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span>Keluar Pandangan</span>
+          </button>
+
           <button type="button" class="btn-secondary-action" id="pov-btn-change-video" title="Pilih video atau nota lain tanpa keluar mod Kunci Pandangan">
             <span class="material-symbols-outlined">sync</span>
             <span id="pov-btn-change-content-text">Tukar Video</span>
           </button>
 
-          <button type="button" class="btn-secondary-action" id="pov-btn-back-pinned" title="Kembali ke Mod Semat pada Skrin">
-            <span class="material-symbols-outlined">push_pin</span>
-            <span>Semat Skrin</span>
-          </button>
-
-          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-btn-close" title="Keluar dari mod Kunci Pandangan">
+          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-btn-close" title="Tutup paparan panel">
             <span class="material-symbols-outlined">close</span>
             <span>Tutup</span>
           </button>
@@ -1024,7 +944,6 @@
             <span class="banner-text" id="pov-nota-banner-text">Mod Imbasan AR — Panel sedang mengikuti pergerakan kad AR anda.</span>
             <div class="banner-action-buttons hidden" id="pov-nota-banner-actions">
               <button type="button" class="btn-banner-retry" id="pov-nota-btn-retry-sensor">Cuba Semula</button>
-              <button type="button" class="btn-banner-fallback" id="pov-nota-btn-fallback-pinned">Semat Skrin</button>
             </div>
           </div>
 
@@ -1120,17 +1039,22 @@
             <span id="pov-nota-anchor-text">Letak di Arah Ini</span>
           </button>
 
+          <button type="button" class="btn-secondary-action hidden" id="pov-nota-btn-cancel" title="Batal pemilihan arah pandangan">
+            <span class="material-symbols-outlined">close</span>
+            <span>Batal</span>
+          </button>
+
+          <button type="button" class="btn-secondary-action hidden" id="pov-nota-btn-exit-pov" title="Keluar dari mod Kunci Pandangan">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span>Keluar Pandangan</span>
+          </button>
+
           <button type="button" class="btn-secondary-action" id="pov-nota-btn-change-content" title="Pilih nota lain tanpa keluar mod Kunci Pandangan">
             <span class="material-symbols-outlined">sync</span>
             <span>Tukar Nota</span>
           </button>
 
-          <button type="button" class="btn-secondary-action" id="pov-nota-btn-back-pinned" title="Kembali ke Mod Semat pada Skrin">
-            <span class="material-symbols-outlined">push_pin</span>
-            <span>Semat Skrin</span>
-          </button>
-
-          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-nota-btn-close" title="Keluar dari mod Kunci Pandangan">
+          <button type="button" class="btn-secondary-action btn-close-panel" id="pov-nota-btn-close" title="Tutup paparan panel">
             <span class="material-symbols-outlined">close</span>
             <span>Tutup</span>
           </button>
@@ -1416,8 +1340,8 @@
       <div class="pov-guide-step-badge" id="pov-guide-step-badge">Langkah 1/5</div>
       <button type="button" class="pov-guide-skip-btn" id="btn-pov-guide-skip">Tutup Panduan</button>
     </div>
-    <h4 class="pov-guide-title" id="pov-guide-title">Apa itu Semat Skrin &amp; Kunci Pandangan?</h4>
-    <p class="pov-guide-desc" id="pov-guide-desc">"Semat pada Skrin" mengekalkan panel di skrin. "Kunci Pandangan" meletakkan panel di ruang sekeliling anda menggunakan sensor peranti.</p>
+    <h4 class="pov-guide-title" id="pov-guide-title">Apa itu Kunci Pandangan (3DoF)?</h4>
+    <p class="pov-guide-desc" id="pov-guide-desc">"Kunci Pandangan" meletakkan panel atau model di ruang sekeliling anda menggunakan sensor orientasi peranti.</p>
     <div class="pov-guide-dots" id="pov-guide-dots" aria-hidden="true">
       <span class="pov-dot is-active"></span>
       <span class="pov-dot"></span>

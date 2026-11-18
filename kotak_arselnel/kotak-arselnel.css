@@ -4630,7 +4630,7 @@ color: #94a3b8;
 .cq-organelle-card {
   position: absolute;
   left: 50%;
-  bottom: 96px;
+  bottom: max(20px, env(safe-area-inset-bottom, 20px));
   transform: translateX(-50%);
   width: min(92vw, 460px);
   background: rgba(15, 23, 42, 0.88);
@@ -4641,8 +4641,34 @@ color: #94a3b8;
   border-radius: 24px;
   padding: 16px 18px;
   pointer-events: auto;
-  z-index: 85;
+  z-index: 90;
   animation: cq-card-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* --- Top Bar HUD Kunci Pandangan Button (Fasa Hotfix 1.2) --- */
+#cq-btn-pov {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  border: 1px solid rgba(165, 180, 252, 0.4);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  font-weight: 800;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#cq-btn-pov:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.55);
+}
+
+#cq-btn-pov.is-locked {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border-color: rgba(252, 165, 165, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45) !important;
+}
+
+#cq-btn-pov.is-active {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+  border-color: rgba(125, 211, 252, 0.5) !important;
 }
 
 @keyframes cq-card-in {
@@ -4978,6 +5004,7 @@ color: #94a3b8;
 
 /* --- Bottom Floating Multi-Row Controller (Fasa 4D-D Architecture) --- */
 .cq-bottom-controls {
+  display: none !important;
   position: absolute;
   bottom: max(14px, env(safe-area-inset-bottom, 14px));
   left: 50%;
@@ -5234,7 +5261,7 @@ color: #94a3b8;
 
   .cq-organelle-card {
     width: calc(100vw - 24px);
-    bottom: 140px;
+    bottom: max(20px, env(safe-area-inset-bottom, 20px));
     padding: 12px 14px;
     border-radius: 20px;
     box-sizing: border-box;
