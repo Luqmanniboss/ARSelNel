@@ -5449,6 +5449,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (!DOM.arMultiPanelBar) return;
 
     const count = ARState.activePanels.size;
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.classList.toggle('has-multi-bar', count > 0);
+    }
     if (count === 0) {
       DOM.arMultiPanelBar.classList.add('hidden');
       adjustPOVBannerLayout();
@@ -7128,6 +7131,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
 
       this.spatialMode = 'POV_SETUP';
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.add('has-pov-setup');
+      }
+      if (DOM.cellquestArHud) {
+        DOM.cellquestArHud.classList.add('pov-setup-active');
+      }
+      if (DOM.cqHintPill) {
+        DOM.cqHintPill.classList.add('hidden');
+      }
+      if (DOM.povOffscreenPointer) {
+        DOM.povOffscreenPointer.classList.add('hidden');
+      }
 
       // 🛡️ CRITICAL: Activate central POV sensor subsystem
       ARState.pov.active = true;
@@ -7190,6 +7205,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       };
 
       this.spatialMode = 'POV_LOCKED';
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.remove('has-pov-setup');
+      }
+      if (DOM.cellquestArHud) {
+        DOM.cellquestArHud.classList.remove('pov-setup-active');
+      }
+      if (DOM.cqHintPill && !this.selectedOrganelleId) {
+        DOM.cqHintPill.classList.remove('hidden');
+      }
 
       if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.add('hidden');
 
@@ -7212,6 +7236,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     },
 
     cancelPOVSetup() {
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.remove('has-pov-setup');
+      }
+      if (DOM.cellquestArHud) {
+        DOM.cellquestArHud.classList.remove('pov-setup-active');
+      }
+      if (DOM.cqHintPill && !this.selectedOrganelleId) {
+        DOM.cqHintPill.classList.remove('hidden');
+      }
       if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.add('hidden');
       if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
 
@@ -7246,6 +7279,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     },
 
     exitPOV() {
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.remove('has-pov-setup');
+      }
+      if (DOM.cellquestArHud) {
+        DOM.cellquestArHud.classList.remove('pov-setup-active');
+      }
+      if (DOM.cqHintPill && !this.selectedOrganelleId) {
+        DOM.cqHintPill.classList.remove('hidden');
+      }
       if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.add('hidden');
       if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
 
@@ -7438,13 +7480,16 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (this.camera && this.rootGroup.parent !== this.camera) {
           this.camera.add(this.rootGroup);
         }
+        const isMobile = (typeof window !== 'undefined' && window.innerWidth <= 768);
+        const yOffset = (this.spatialMode === 'POV_SETUP' && isMobile) ? -0.22 : 0;
+        const povSetupScale = (this.spatialMode === 'POV_SETUP' && isMobile) ? 0.85 : 1;
         this.rootGroup.position.set(
           this.dragOffset.x,
-          this.dragOffset.y,
+          this.dragOffset.y + yOffset,
           -this.fixedScreenDepth
         );
         this.rootGroup.rotation.set(0, 0, 0);
-        this.rootGroup.scale.set(1, 1, 1);
+        this.rootGroup.scale.setScalar(povSetupScale);
         this.rootGroup.visible = true;
         this.frustumStatus = (this.spatialMode === 'POV_SETUP') ? 'Dalam Skrin (Menghalakan)' : 'Dalam Skrin (Disemat)';
         if (this.hologramPedestal && this.hologramPedestal.group) {
@@ -7687,8 +7732,8 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (!this.animalHolder || !this.plantHolder) return;
 
       const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
-      const spacingX = isNarrow ? 0.72 : 0.95;
-      const compareScale = isNarrow ? 0.76 : 0.88;
+      const spacingX = isNarrow ? 0.65 : 0.95;
+      const compareScale = isNarrow ? 0.62 : 0.88;
 
       if (this.displayMode === 'compare') {
         this.animalHolder.visible = true;
@@ -7891,7 +7936,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       const size = bounds.getSize(new THREE.Vector3());
       const center = bounds.getCenter(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const targetSize = 1.35; // Ideal 3D scale for comfortable iPad/iPhone viewing
+      // 📱 Saiz responsif: iPhone/mobile (<=768px) gunakan 0.72 unit agar muat selesa dalam ~60% lebar skrin potret
+      const isMobile = (typeof window !== 'undefined' && window.innerWidth <= 768);
+      const targetSize = isMobile ? 0.72 : 1.35;
       const fit = targetSize / maxDim;
 
       this.currentBoundsStr = `[${size.x.toFixed(1)}, ${size.y.toFixed(1)}, ${size.z.toFixed(1)}]`;
@@ -8013,6 +8060,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
       const holder = new THREE.Group();
       holder.position.z += 0.35;
+      const isMobile = (typeof window !== 'undefined' && window.innerWidth <= 768);
+      if (isMobile) {
+        holder.scale.setScalar(0.58);
+      }
 
       this.currentBoundsStr = '[1.2, 0.9, 0.9]';
       this.currentRadiusStr = '0.72 unit';
