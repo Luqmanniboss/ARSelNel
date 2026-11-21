@@ -993,7 +993,34 @@
         lastInteractionTime: Date.now()
       });
 
-      console.log('✅ [SpatialPanelManager] Inisialisasi siap: Video (#pov-panel-video) & Nota (#pov-panel-nota) mod lalai: MARKER_FOLLOW (Fasa Pembersihan Kotak ARSELNEL - 6 Sasaran Aktif).');
+      // 3. Mendaftar Panel CellQuest 3D (Tema Biru #38bdf8)
+      this.register('cellquest', {
+        elementId: 'cellquest-ar-hud',
+        theme: 'blue',
+        themeColor: '#38bdf8',
+        title: 'CellQuest 3D',
+        icon: 'biotech',
+        markerIndex: 3,
+        size: 'medium',
+        dragOffset: { x: 0, y: 0 },
+        placementMode: 'MARKER_FOLLOW',
+        referenceQuaternion: null,
+        anchorWorldVector: null,
+        isRegistered: true,
+        isLoaded: false,
+        isActive: false,
+        isVisible: false,
+        isLocked: false,
+        isClosed: false,
+        isDestroyed: false,
+        playbackState: 'idle',
+        savedScrollTop: 0,
+        page: 1,
+        isInteractive: true,
+        lastInteractionTime: Date.now()
+      });
+
+      console.log('✅ [SpatialPanelManager] Inisialisasi siap: Video, Nota & CellQuest 3D mod lalai: MARKER_FOLLOW.');
     },
 
     register(id, config) {
@@ -1242,14 +1269,16 @@
         hidePostDetectionGuide();
       }
 
-      // Collapse all other content panels so only one expanded panel is visible
+      // Preserve already locked or pinned panels so they remain visible in 3D world space
       this.panels.forEach((otherPanel, otherId) => {
         if (otherId !== id) {
-          otherPanel.panelState = 'COLLAPSED';
-          const otherEl = otherPanel.element || (typeof document !== 'undefined' ? document.getElementById(otherPanel.elementId) : null);
-          if (otherEl) {
-            otherEl.classList.add('hidden');
-            otherEl.classList.remove('is-visible');
+          if (otherPanel.placementMode !== 'POV_LOCKED' && otherPanel.placementMode !== 'SCREEN_PINNED') {
+            otherPanel.panelState = 'COLLAPSED';
+            const otherEl = otherPanel.element || (typeof document !== 'undefined' ? document.getElementById(otherPanel.elementId) : null);
+            if (otherEl) {
+              otherEl.classList.add('hidden');
+              otherEl.classList.remove('is-visible');
+            }
           }
         }
       });
@@ -5399,12 +5428,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     if (multiBar && !multiBar.classList.contains('hidden')) {
       const rect = multiBar.getBoundingClientRect();
       const isMobile = window.innerWidth <= 768;
-      const minTopWithMultiBar = isMobile ? 152 : 124;
-      const calculatedTop = (rect && rect.bottom > 0) ? Math.round(rect.bottom + 12) : minTopWithMultiBar;
+      const minTopWithMultiBar = isMobile ? 185 : 130;
+      const calculatedTop = (rect && rect.bottom > 0) ? Math.round(rect.bottom + 10) : minTopWithMultiBar;
       topPx = Math.max(minTopWithMultiBar, calculatedTop);
     } else {
       const isMobile = window.innerWidth <= 768;
-      topPx = isMobile ? 72 : 76;
+      topPx = isMobile ? 80 : 76;
     }
     DOM.cqPovSetupBanner.style.setProperty('--cq-pov-setup-top', `${topPx}px`);
     DOM.cqPovSetupBanner.style.top = `${topPx}px`;
@@ -5450,9 +5479,22 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (mod === 'cellquest') { icon = 'biotech'; label = 'CellQuest 3D'; }
         if (mod === 'selbot') { icon = 'smart_toy'; label = 'SelBot AI'; }
 
+        let isLocked = false;
+        if (mod === 'cellquest') {
+          isLocked = (typeof CellQuestARController !== 'undefined' && CellQuestARController.spatialMode === 'POV_LOCKED');
+        } else if (typeof SpatialPanelManager !== 'undefined') {
+          const p = SpatialPanelManager.getPanel(mod);
+          isLocked = (p && p.placementMode === 'POV_LOCKED');
+        }
+        const lockBadge = isLocked ? ' <span class="pill-lock-icon" title="Kunci Pandangan 360° Aktif">🔒</span>' : '';
+
+        if (mod === ARState.activeModule) {
+          pill.classList.add('active-focus');
+        }
+
         pill.innerHTML = `
           <span class="material-symbols-outlined" style="font-size:14px;">${icon}</span>
-          <span>${label}</span>
+          <span>${label}${lockBadge}</span>
           <span class="pill-close-btn" data-panel="${mod}" title="Tutup panel ${label}">×</span>
         `;
 
@@ -5490,7 +5532,29 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   }
 
   /**
-   * Fokus atau bawa panel ke depan (Single Authoritative Expanded Panel Manager - Phase 3 Recovery 1.3)
+   * Semak jika panel/modul sedang dikunci dalam ruang pandangan (POV_LOCKED) atau disemat (SCREEN_PINNED)
+   */
+  function isPanelLockedOrPinned(panelId) {
+    if (panelId === 'cellquest') {
+      return (typeof CellQuestARController !== 'undefined' &&
+              CellQuestARController.isActive &&
+              (CellQuestARController.spatialMode === 'POV_LOCKED' || CellQuestARController.spatialMode === 'SCREEN_PINNED'));
+    }
+    if (typeof SpatialPanelManager !== 'undefined') {
+      const p = SpatialPanelManager.getPanel(panelId);
+      if (p && (p.placementMode === 'POV_LOCKED' || p.placementMode === 'SCREEN_PINNED')) {
+        return true;
+      }
+    }
+    return false;
+  }
+  if (typeof window !== 'undefined') {
+    window.isPanelLockedOrPinned = isPanelLockedOrPinned;
+  }
+
+  /**
+   * Fokus atau bawa panel ke depan (Multi-Module Simultaneous POV Locking Architecture)
+   * Mengekalkan semua modul yang telah di-POV Lock agar kekal kelihatan serentak dalam dunia 3D.
    */
   function focusPanel(mod) {
     console.log(`[MultiPanel] 🔍 Fokus ke modul: ${mod}`);
@@ -5512,14 +5576,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       el.style.zIndex = '2000';
     };
 
-    const expandEl = (el) => {
+    const expandEl = (el, elevatedZIndex = '2200') => {
       if (!el) return;
       el.classList.remove('hidden');
       el.classList.add('is-visible');
       el.style.opacity = '1';
       el.style.visibility = 'visible';
       el.style.pointerEvents = 'auto';
-      el.style.zIndex = '2150';
+      el.style.zIndex = elevatedZIndex;
       if (!el.style.left || el.style.left === '0px') {
         const safeBounds = typeof getSafeAreaBounds === 'function' ? getSafeAreaBounds(el) : null;
         const centerY = safeBounds && Number.isFinite(safeBounds.safeCenterY) ? `${Math.round(safeBounds.safeCenterY)}px` : '54%';
@@ -5529,25 +5593,42 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
     };
 
-    if (mod !== 'cellquest') {
-      if (DOM.cellquestArHud) DOM.cellquestArHud.classList.add('hidden');
+    // 1. CELLQUEST 3D MODEL & HUD VISIBILITY
+    const isCQLocked = isPanelLockedOrPinned('cellquest');
+    if (mod === 'cellquest') {
+      if (DOM.topAppHud) DOM.topAppHud.classList.add('hidden');
+      if (DOM.cellquestArHud) {
+        DOM.cellquestArHud.classList.remove('hidden');
+        DOM.cellquestArHud.style.zIndex = '2200';
+        DOM.cellquestArHud.style.pointerEvents = 'auto';
+      }
+      if (typeof CellQuestARController !== 'undefined' && CellQuestARController.rootGroup) {
+        CellQuestARController.rootGroup.visible = true;
+      }
+    } else {
       if (DOM.topAppHud) DOM.topAppHud.classList.remove('hidden');
+      if (isCQLocked) {
+        // Model 3D CellQuest kekal kelihatan pada sudut orientasi 3D dunia yang telah dikunci
+        if (typeof CellQuestARController !== 'undefined' && CellQuestARController.rootGroup) {
+          CellQuestARController.rootGroup.visible = true;
+        }
+        // Sorok HUD 2D skrin penuh agar sentuhan pada kad video/nota aktif tidak disekat
+        if (DOM.cellquestArHud) {
+          DOM.cellquestArHud.classList.add('hidden');
+          DOM.cellquestArHud.style.pointerEvents = 'none';
+        }
+      } else {
+        if (DOM.cellquestArHud) DOM.cellquestArHud.classList.add('hidden');
+      }
     }
 
+    // 2. VIDEO PANEL MANAGEMENT
     if (mod === 'video') {
       if (ARState.anchorVideo) ARState.anchor = ARState.anchorVideo;
-      collapseEl(DOM.povPanelNota);
-      collapseEl(DOM.povPanelKuiz);
-      collapseEl(DOM.povPanelSelbot);
-
       if (useSpatialPanel) {
         collapseEl(DOM.floatingAnchor);
-        if (DOM.povCard) {
-          DOM.povCard.classList.remove('module-nota', 'module-kuiz', 'module-cellquest', 'module-selbot');
-        }
-        if (DOM.povBtnChangeContentText) {
-          DOM.povBtnChangeContentText.textContent = 'Tukar Video';
-        }
+        if (DOM.povCard) DOM.povCard.classList.remove('module-nota', 'module-kuiz', 'module-cellquest', 'module-selbot');
+        if (DOM.povBtnChangeContentText) DOM.povBtnChangeContentText.textContent = 'Tukar Video';
         if (ARState.activeVideo) {
           if (DOM.povActivePlayerView) DOM.povActivePlayerView.classList.remove('hidden');
           if (DOM.povVideoSelectionView) DOM.povVideoSelectionView.classList.add('hidden');
@@ -5561,7 +5642,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           SpatialPanelManager.setPanelVisibility('video', true);
           SpatialPanelManager.syncPanelControlUI('video');
         }
-        expandEl(DOM.povPanelVideo);
+        expandEl(DOM.povPanelVideo, '2200');
       } else {
         collapseEl(DOM.povPanelVideo);
         if (DOM.notaSelectionView) DOM.notaSelectionView.classList.add('hidden');
@@ -5584,17 +5665,32 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (DOM.floatingAnchor) {
           DOM.floatingAnchor.classList.remove('hidden');
           DOM.floatingAnchor.classList.add('is-visible');
-          DOM.floatingAnchor.style.zIndex = '2150';
+          DOM.floatingAnchor.style.zIndex = '2200';
         }
       }
-      if (DOM.scannerOverlay) DOM.scannerOverlay.classList.add('hidden');
-    } else if (mod === 'nota') {
+    } else {
+      if (isPanelLockedOrPinned('video')) {
+        // Video kekal kelihatan di orientasi yang dikunci pada zIndex 2100
+        if (DOM.povPanelVideo) {
+          DOM.povPanelVideo.classList.remove('hidden');
+          DOM.povPanelVideo.classList.add('is-visible');
+          DOM.povPanelVideo.style.opacity = '1';
+          DOM.povPanelVideo.style.visibility = 'visible';
+          DOM.povPanelVideo.style.pointerEvents = 'auto';
+          DOM.povPanelVideo.style.zIndex = '2100';
+        }
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.setPanelVisibility('video', true);
+        }
+      } else {
+        collapseEl(DOM.povPanelVideo);
+      }
+    }
+
+    // 3. NOTA PANEL MANAGEMENT
+    if (mod === 'nota') {
       if (ARState.anchorNota) ARState.anchor = ARState.anchorNota;
       pauseVideo();
-      collapseEl(DOM.povPanelVideo);
-      collapseEl(DOM.povPanelKuiz);
-      collapseEl(DOM.povPanelSelbot);
-
       if (useSpatialPanel) {
         collapseEl(DOM.floatingAnchor);
         if (ARState.activeNote) {
@@ -5610,7 +5706,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
           SpatialPanelManager.setPanelVisibility('nota', true);
           SpatialPanelManager.syncPanelControlUI('nota');
         }
-        expandEl(DOM.povPanelNota);
+        expandEl(DOM.povPanelNota, '2200');
       } else {
         collapseEl(DOM.povPanelNota);
         if (DOM.videoSelectionView) DOM.videoSelectionView.style.display = 'none';
@@ -5633,50 +5729,64 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (DOM.floatingAnchor) {
           DOM.floatingAnchor.classList.remove('hidden');
           DOM.floatingAnchor.classList.add('is-visible');
-          DOM.floatingAnchor.style.zIndex = '2150';
+          DOM.floatingAnchor.style.zIndex = '2200';
         }
       }
-      if (DOM.scannerOverlay) DOM.scannerOverlay.classList.add('hidden');
-    } else if (mod === 'kuiz') {
+    } else {
+      if (isPanelLockedOrPinned('nota')) {
+        // Nota kekal kelihatan di orientasi yang dikunci pada zIndex 2100
+        if (DOM.povPanelNota) {
+          DOM.povPanelNota.classList.remove('hidden');
+          DOM.povPanelNota.classList.add('is-visible');
+          DOM.povPanelNota.style.opacity = '1';
+          DOM.povPanelNota.style.visibility = 'visible';
+          DOM.povPanelNota.style.pointerEvents = 'auto';
+          DOM.povPanelNota.style.zIndex = '2100';
+        }
+        if (typeof SpatialPanelManager !== 'undefined') {
+          SpatialPanelManager.setPanelVisibility('nota', true);
+        }
+      } else {
+        collapseEl(DOM.povPanelNota);
+      }
+    }
+
+    // 4. KUIZ & SELBOT
+    if (mod === 'kuiz') {
       if (ARState.anchorKuiz) ARState.anchor = ARState.anchorKuiz;
       pauseVideo();
-      collapseEl(DOM.povPanelVideo);
-      collapseEl(DOM.povPanelNota);
-      collapseEl(DOM.povPanelSelbot);
       if (useSpatialPanel) {
         collapseEl(DOM.floatingAnchor);
-        expandEl(DOM.povPanelKuiz);
+        expandEl(DOM.povPanelKuiz, '2200');
       } else {
         collapseEl(DOM.povPanelKuiz);
-        if (DOM.floatingAnchor) DOM.floatingAnchor.style.zIndex = '2150';
+        if (DOM.floatingAnchor) DOM.floatingAnchor.style.zIndex = '2200';
       }
-    } else if (mod === 'selbot') {
+    } else {
+      if (!isPanelLockedOrPinned('kuiz')) collapseEl(DOM.povPanelKuiz);
+    }
+
+    if (mod === 'selbot') {
       if (ARState.anchorSelbot) ARState.anchor = ARState.anchorSelbot;
       pauseVideo();
-      collapseEl(DOM.povPanelVideo);
-      collapseEl(DOM.povPanelNota);
-      collapseEl(DOM.povPanelKuiz);
       if (useSpatialPanel) {
         collapseEl(DOM.floatingAnchor);
-        expandEl(DOM.povPanelSelbot);
+        expandEl(DOM.povPanelSelbot, '2200');
       } else {
         collapseEl(DOM.povPanelSelbot);
-        if (DOM.floatingAnchor) DOM.floatingAnchor.style.zIndex = '2150';
+        if (DOM.floatingAnchor) DOM.floatingAnchor.style.zIndex = '2200';
       }
-    } else if (mod === 'cellquest') {
+    } else {
+      if (!isPanelLockedOrPinned('selbot')) collapseEl(DOM.povPanelSelbot);
+    }
+
+    if (mod === 'cellquest') {
       pauseVideo();
       collapseEl(DOM.floatingAnchor);
-      collapseEl(DOM.povPanelVideo);
-      collapseEl(DOM.povPanelNota);
-      collapseEl(DOM.povPanelKuiz);
-      collapseEl(DOM.povPanelSelbot);
-      if (DOM.topAppHud) {
-        DOM.topAppHud.classList.add('hidden');
-      }
-      if (DOM.cellquestArHud) {
-        DOM.cellquestArHud.classList.remove('hidden');
-        DOM.cellquestArHud.style.zIndex = '2200';
-      }
+    }
+
+    if (DOM.scannerOverlay && (useSpatialPanel || mod === 'cellquest' || ARState.activePanels.size > 0)) {
+      DOM.scannerOverlay.classList.add('hidden');
     }
 
     // Highlight active pill
@@ -6793,6 +6903,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       // Show CellQuest AR HUD
       if (DOM.cellquestArHud) DOM.cellquestArHud.classList.remove('hidden');
 
+      if (typeof SpatialPanelManager !== 'undefined') {
+        SpatialPanelManager.setPanelLoaded('cellquest', true);
+        SpatialPanelManager.setPanelVisibility('cellquest', true);
+      }
+
       // Position model according to current spatial mode
       this.applyModelPosition();
 
@@ -6997,13 +7112,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       }
 
       // Attach model to camera so it remains visible in front while user is aiming
-      if (this.camera && this.rootGroup.parent !== this.camera) {
+      if (this.camera && this.rootGroup && this.rootGroup.parent !== this.camera) {
         this.camera.add(this.rootGroup);
       }
-      this.rootGroup.position.set(0, 0, -this.fixedScreenDepth);
-      this.rootGroup.rotation.set(0, 0, 0);
-      this.rootGroup.scale.set(1, 1, 1);
-      this.rootGroup.visible = true;
+      if (this.rootGroup) {
+        this.rootGroup.position.set(0, 0, -this.fixedScreenDepth);
+        this.rootGroup.rotation.set(0, 0, 0);
+        this.rootGroup.scale.set(1, 1, 1);
+        this.rootGroup.visible = true;
+      }
       this.frustumStatus = 'Dalam Skrin (Menghalakan)';
       if (this.hologramPedestal && this.hologramPedestal.group) {
         this.hologramPedestal.group.visible = false;
@@ -7028,6 +7145,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       this.updatePOVBannerSensorStatus();
       this.updateHUDModeUI();
       updateDiagnosticsData();
+      if (typeof SpatialPanelManager !== 'undefined') {
+        const pCQ = SpatialPanelManager.getPanel('cellquest');
+        if (pCQ) {
+          pCQ.placementMode = 'POV_SETUP';
+          pCQ.isLocked = false;
+          pCQ.isVisible = true;
+        }
+      }
+      updateMultiPanelUI();
       maybeShowPOVInteractiveGuide();
       showToast('🧭 Halakan peranti ke arah sasaran dan tekan "Letak di Arah Ini"', 2500);
 
@@ -7067,6 +7193,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
       if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.add('hidden');
 
+      if (typeof SpatialPanelManager !== 'undefined') {
+        const pCQ = SpatialPanelManager.getPanel('cellquest');
+        if (pCQ) {
+          pCQ.placementMode = 'POV_LOCKED';
+          pCQ.isLocked = true;
+          pCQ.isVisible = true;
+          pCQ.anchorWorldVector = this.povAnchorWorldVector ? this.povAnchorWorldVector.clone() : null;
+          pCQ.referenceQuaternion = this.povAnchorQuat ? this.povAnchorQuat.clone() : null;
+        }
+      }
+      updateMultiPanelUI();
+
       this.applyModelPosition();
       this.updateHUDModeUI();
       updateDiagnosticsData();
@@ -7078,6 +7216,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
 
       this.spatialMode = 'MARKER_MODE';
+      if (typeof SpatialPanelManager !== 'undefined') {
+        const pCQ = SpatialPanelManager.getPanel('cellquest');
+        if (pCQ) {
+          pCQ.placementMode = 'MARKER_FOLLOW';
+          pCQ.isLocked = false;
+        }
+      }
+      updateMultiPanelUI();
       this.applyModelPosition();
       this.updateHUDModeUI();
 
@@ -7104,6 +7250,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povOffscreenPointer) DOM.povOffscreenPointer.classList.add('hidden');
 
       this.spatialMode = 'MARKER_MODE';
+      if (typeof SpatialPanelManager !== 'undefined') {
+        const pCQ = SpatialPanelManager.getPanel('cellquest');
+        if (pCQ) {
+          pCQ.placementMode = 'MARKER_FOLLOW';
+          pCQ.isLocked = false;
+        }
+      }
+      updateMultiPanelUI();
       this.applyModelPosition();
       this.updateHUDModeUI();
 
@@ -11794,6 +11948,22 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         confirmLaunchJelajah3D();
       });
     }
+
+    // Direct tap/click to focus locked spatial panels
+    ['pov-panel-video', 'pov-panel-nota'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('pointerdown', (e) => {
+          if (e.target && (e.target.closest('button') || e.target.closest('input') || e.target.closest('a'))) {
+            return;
+          }
+          const mod = id === 'pov-panel-video' ? 'video' : 'nota';
+          if (ARState.activeModule !== mod) {
+            focusPanel(mod);
+          }
+        }, { passive: true });
+      }
+    });
 
     // Fasa 4E-B.2.1: Multi-Panel Toolbar listeners (+ Tambah Imbasan Baharu)
     if (DOM.btnAddScan) {

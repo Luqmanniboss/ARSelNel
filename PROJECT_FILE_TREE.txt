@@ -1,0 +1,943 @@
+ARSELNEL (stitch_arselnel_interactive_science_learning) File Tree
+============================================================
+.
+├── admin/
+│   ├── dashboard.html
+│   └── login.html
+├── admin_dashboard/
+│   └── code.html
+├── api/
+│   ├── admin/
+│   │   └── users.js
+│   ├── selbot/
+│   │   └── chat.js
+│   ├── slides/
+│   │   └── upload.js
+│   ├── health.js
+│   └── public-config.js
+├── artifacts_temp/
+│   ├── hab_permainan_desktop.png
+│   └── hab_permainan_mobile.png
+├── assets/
+│   ├── branding/
+│   │   ├── apple-touch-icon.png
+│   │   ├── arselnel-icon-compact.png
+│   │   ├── arselnel-logo-horizontal.png
+│   │   ├── favicon-192.png
+│   │   └── favicon-32.png
+│   ├── css/
+│   │   ├── cell-safari.css
+│   │   ├── cellquest-adventure.css
+│   │   ├── cellquest-adventure.prefasa_a1.bak.css
+│   │   ├── cellquest-adventure.prefasa_a3.bak.css
+│   │   ├── cellquest-adventure.prefasa_a4.bak.css
+│   │   ├── cellquest.css
+│   │   ├── cellquest.pre-kotak-card.bak.css
+│   │   ├── guided-tour.css
+│   │   ├── manual.css
+│   │   └── student-shell.css
+│   ├── game/
+│   │   ├── adventure/
+│   │   │   ├── adventure_data.js
+│   │   │   ├── adventure_game.js
+│   │   │   ├── adventure_ui.js
+│   │   │   └── adventure.css
+│   │   ├── lab-adventure/
+│   │   │   ├── lab_data.js
+│   │   │   ├── lab_game.js
+│   │   │   ├── lab_ui.js
+│   │   │   └── lab.css
+│   │   ├── maze-chase/
+│   │   │   ├── cell_illustrations.js
+│   │   │   ├── maze_data.js
+│   │   │   ├── maze_game.js
+│   │   │   ├── maze_ui.js
+│   │   │   └── maze.css
+│   │   ├── badge_1.svg
+│   │   ├── badge_2.svg
+│   │   ├── badge_3.svg
+│   │   ├── badge_4.svg
+│   │   ├── badge_5.svg
+│   │   ├── game_lab_mission.svg
+│   │   ├── game_label.svg
+│   │   ├── game_maze_chase.svg
+│   │   ├── game_quiz.svg
+│   │   ├── game_sequence.svg
+│   │   ├── game_vs.svg
+│   │   ├── hero_challenge.svg
+│   │   ├── leaderboard_avatar_1.svg
+│   │   ├── leaderboard_avatar_2.svg
+│   │   └── leaderboard_avatar_3.svg
+│   ├── home/
+│   │   ├── ar_scanner.svg
+│   │   ├── avatar_rec1.svg
+│   │   ├── avatar_rec2.svg
+│   │   ├── avatar_rec3.svg
+│   │   ├── avatar.svg
+│   │   ├── cell_model.svg
+│   │   ├── clapperboard.svg
+│   │   ├── gamepad.svg
+│   │   ├── logo.svg
+│   │   ├── nota_hero.svg
+│   │   ├── notebook.svg
+│   │   ├── recommendation_cell.svg
+│   │   ├── robot_mascot.svg
+│   │   └── video_hero.svg
+│   ├── images/
+│   │   ├── lobby/
+│   │   │   ├── card_a_illustration.png
+│   │   │   ├── card_b_illustration.png
+│   │   │   ├── card_c_illustration.png
+│   │   │   ├── hero_mascot_cells.png
+│   │   │   ├── hero-animal-cell.svg
+│   │   │   ├── hero-plant-cell.svg
+│   │   │   ├── hero-robot.svg
+│   │   │   ├── hub_notes_book.png
+│   │   │   ├── hub_videos_play.png
+│   │   │   ├── learning-notes.svg
+│   │   │   ├── learning-video.svg
+│   │   │   ├── lobby_rendered_screenshot.png
+│   │   │   ├── mod_c_refined_clip.png
+│   │   │   ├── mode-a-3d-lab.svg
+│   │   │   ├── mode-b-ar-orientation.svg
+│   │   │   ├── mode-c-marker-ar.svg
+│   │   │   ├── rendered_desktop.png
+│   │   │   ├── rendered_ipad.png
+│   │   │   └── rendered_phone.png
+│   │   ├── cellquestbg.png
+│   │   ├── cute_robots_sidebar.png
+│   │   ├── dashboardbg.png
+│   │   ├── galeri_perbandingan_sel.svg
+│   │   ├── galeri_sel_haiwan.svg
+│   │   ├── galeri_sel_tumbuhan.svg
+│   │   ├── kuizbg.png
+│   │   ├── notabg.png
+│   │   ├── sidebarbg.png
+│   │   ├── tanyaaibg.png
+│   │   └── videobg.png
+│   ├── js/
+│   │   ├── vendor/
+│   │   │   └── aruco-posit.js
+│   │   ├── admin-i18n.js
+│   │   ├── admin-portal.js
+│   │   ├── admin.js
+│   │   ├── auth-guard.js
+│   │   ├── auth.js
+│   │   ├── cell-safari.js
+│   │   ├── cellquest-adventure.BACKUP-pre-world-ar.js
+│   │   ├── cellquest-adventure.js
+│   │   ├── cellquest-adventure.prefasa_a1.bak.js
+│   │   ├── cellquest-adventure.prefasa_a2.bak.js
+│   │   ├── cellquest-adventure.prefasa_a3.bak.js
+│   │   ├── cellquest-adventure.prefasa_a4.bak.js
+│   │   ├── cellquest-ar.js
+│   │   ├── cellquest-ar.pre-kotak-card.bak.js
+│   │   ├── cellquest-missions.js
+│   │   ├── cellquest3d.js
+│   │   ├── cms-content-adapter.js
+│   │   ├── generate_cells_glb.js
+│   │   ├── guided-tour-config.js
+│   │   ├── guided-tour.js
+│   │   ├── jspdf.umd.min.js
+│   │   ├── kotak-marker-modal.js
+│   │   ├── manual.js
+│   │   ├── profile-settings.js
+│   │   ├── selbot-conversation-service.js
+│   │   ├── smart-notes.js
+│   │   ├── student-shell.js
+│   │   └── supabase-client.js
+│   ├── manual/
+│   │   ├── misi1_dashboard.png
+│   │   ├── misi2_nota_interaktif.png
+│   │   ├── misi3_video_pembelajaran.png
+│   │   ├── misi4_selbot_ai.png
+│   │   ├── misi5_permainan_sains.png
+│   │   ├── misi6_cellquest_3d.png
+│   │   ├── misi7_cetak_kad_ar.png
+│   │   └── misi8_profil_tetapan.png
+│   ├── markers/
+│   │   ├── marker-0-mitokondrion.svg
+│   │   ├── marker-1-nukleus.svg
+│   │   ├── marker-2-sel-haiwan.svg
+│   │   ├── marker-3-sel-tumbuhan.svg
+│   │   ├── marker-4-membran-sel.svg
+│   │   ├── marker-5-kloroplas.svg
+│   │   ├── marker-6-sitoplasma.svg
+│   │   └── marker-7-vakuol.svg
+│   ├── models/
+│   │   ├── animal_cell.glb
+│   │   └── plant_cell.glb
+│   ├── nota/
+│   │   ├── cell_hero.svg
+│   │   ├── cell-hero.svg
+│   │   ├── icon_topic1.svg
+│   │   ├── icon_topic2.svg
+│   │   ├── icon_topic3.svg
+│   │   ├── icon_topic4.svg
+│   │   ├── icon_topic5.svg
+│   │   ├── icon_topic6.svg
+│   │   ├── lightbulb.svg
+│   │   └── selbot_mascot.svg
+│   ├── selbot/
+│   │   ├── cell-learning.svg
+│   │   ├── lightbulb.svg
+│   │   ├── selbot-avatar.svg
+│   │   └── selbot-welcome.svg
+│   ├── slides/
+│   │   └── sel_tumbuhan_vs_sel_haiwan.pdf
+│   └── vendor/
+│       └── pdfjs/
+│           ├── pdf.min.js
+│           └── pdf.worker.min.js
+├── auth/
+│   ├── callback.html
+│   ├── login.html
+│   └── register.html
+├── background/
+│   ├── arbackground.png
+│   ├── ARSELNEL Science Adventure Logo.png
+│   ├── cellquestbg.png
+│   ├── Cute Monochrome Robot Companions.png
+│   ├── cute_robots_sidebar.png
+│   ├── dashboardbg.png
+│   ├── Kad AR boleh cetak · Cell Hunter AR.pdf
+│   ├── kuizbg.png
+│   ├── notabg.png
+│   ├── sidebarbg.png
+│   ├── tanyaaibg.png
+│   └── videobg.png
+├── bantuan_maklumat/
+│   ├── code.html
+│   └── screen.png
+├── butiran_nota/
+│   ├── code.html
+│   └── screen.png
+├── cellquest/
+│   ├── safari3d/
+│   │   ├── Build/
+│   │   │   ├── WebGL.data.br
+│   │   │   ├── WebGL.framework.js.br
+│   │   │   ├── WebGL.loader.js
+│   │   │   └── WebGL.wasm.br
+│   │   └── TemplateData/
+│   │       ├── favicon.ico
+│   │       ├── fullscreen-button.png
+│   │       ├── MemoryProfiler.png
+│   │       ├── progress-bar-empty-dark.png
+│   │       ├── progress-bar-empty-light.png
+│   │       ├── progress-bar-full-dark.png
+│   │       ├── progress-bar-full-light.png
+│   │       ├── style.css
+│   │       ├── unity-logo-dark.png
+│   │       ├── unity-logo-light.png
+│   │       ├── unity-logo-title-footer.png
+│   │       └── webmemd-icon.png
+│   ├── adventure.html
+│   ├── adventure.prefasa_a3.bak.html
+│   ├── adventure.prefasa_a4.bak.html
+│   ├── code.html
+│   ├── code.pre-kotak-card.bak.html
+│   ├── index.html
+│   ├── markers.html
+│   ├── safari-bridge.js
+│   ├── safari.html
+│   └── safari3d.html
+├── data/
+│   └── cms_backup.json
+├── games/
+│   ├── klasifikasi-sel.html
+│   ├── labelkan-organel.html
+│   ├── misi-makmal-sains.html
+│   └── organisasi-kehidupan.html
+├── hab_permainan/
+│   ├── code.html
+│   └── screen.png
+├── halaman_utama/
+│   ├── code.html
+│   ├── index.html
+│   └── screen.png
+├── keputusan_permainan/
+│   ├── code.html
+│   └── screen.png
+├── kotak_arselnel/
+│   ├── assets/
+│   │   └── markers/
+│   │       ├── kotak_arselnel.fasa3c.bak.mind
+│   │       ├── kotak_arselnel.fasa4c.bak.mind
+│   │       ├── kotak_arselnel.fasa4ec.bak.mind
+│   │       ├── kotak_arselnel.fasa4ee11.bak.mind
+│   │       ├── kotak_arselnel.fasa4ee2.bak.mind
+│   │       ├── kotak_arselnel.fasa4f.bak.mind
+│   │       ├── kotak_arselnel.mind
+│   │       ├── marker-cellquest.png
+│   │       ├── marker-cellquest.svg
+│   │       ├── marker-jelajah3d.png
+│   │       ├── marker-jelajah3d.svg
+│   │       ├── marker-kuiz.png
+│   │       ├── marker-kuiz.svg
+│   │       ├── marker-nota.png
+│   │       ├── marker-nota.svg
+│   │       ├── marker-orientasi-dunia.png
+│   │       ├── marker-orientasi-dunia.svg
+│   │       ├── marker-sel-haiwan.png
+│   │       ├── marker-sel-haiwan.svg
+│   │       ├── marker-sel-tumbuhan.png
+│   │       ├── marker-sel-tumbuhan.svg
+│   │       ├── marker-selbot.png
+│   │       ├── marker-selbot.svg
+│   │       ├── marker-video.png
+│   │       └── marker-video.svg
+│   ├── code.fasa3c.bak.html
+│   ├── code.fasa4b.prehotfix.bak.html
+│   ├── code.fasa4b2.prehotfix.bak.html
+│   ├── code.fasa4b3.prehotfix.bak.html
+│   ├── code.fasa4b4.prehotfix.bak.html
+│   ├── code.fasa4b5.bak.html
+│   ├── code.fasa4c.bak.html
+│   ├── code.fasa4db.bak.html
+│   ├── code.fasa4dc.bak.html
+│   ├── code.fasa4dd.bak.html
+│   ├── code.fasa4dd1.bak.html
+│   ├── code.fasa4dd2.bak.html
+│   ├── code.fasa4dd3.bak.html
+│   ├── code.fasa4eb1.bak.html
+│   ├── code.fasa4eb2.bak.html
+│   ├── code.fasa4eb21.bak.html
+│   ├── code.fasa4eb23.bak.html
+│   ├── code.fasa4eb23.prehotfix.bak.html
+│   ├── code.fasa4eb24.bak.html
+│   ├── code.fasa4ec1.bak.html
+│   ├── code.fasa4ec2.bak.html
+│   ├── code.fasa4ec3a.bak.html
+│   ├── code.html
+│   ├── code.prelightui.bak.html
+│   ├── index.html
+│   ├── kotak-arselnel.css
+│   ├── kotak-arselnel.fasa3c.bak.css
+│   ├── kotak-arselnel.fasa3c.bak.js
+│   ├── kotak-arselnel.fasa4b.prehotfix.bak.css
+│   ├── kotak-arselnel.fasa4b.prehotfix.bak.js
+│   ├── kotak-arselnel.fasa4b2.prehotfix.bak.css
+│   ├── kotak-arselnel.fasa4b2.prehotfix.bak.js
+│   ├── kotak-arselnel.fasa4b3.prehotfix.bak.css
+│   ├── kotak-arselnel.fasa4b3.prehotfix.bak.js
+│   ├── kotak-arselnel.fasa4b4.prehotfix.bak.css
+│   ├── kotak-arselnel.fasa4b4.prehotfix.bak.js
+│   ├── kotak-arselnel.fasa4b5.bak.css
+│   ├── kotak-arselnel.fasa4b5.bak.js
+│   ├── kotak-arselnel.fasa4c.bak.css
+│   ├── kotak-arselnel.fasa4c.bak.js
+│   ├── kotak-arselnel.fasa4c4.bak.js
+│   ├── kotak-arselnel.fasa4db.bak.css
+│   ├── kotak-arselnel.fasa4db.bak.js
+│   ├── kotak-arselnel.fasa4dc.bak.css
+│   ├── kotak-arselnel.fasa4dc.bak.js
+│   ├── kotak-arselnel.fasa4dc1.bak.js
+│   ├── kotak-arselnel.fasa4dd.bak.css
+│   ├── kotak-arselnel.fasa4dd.bak.js
+│   ├── kotak-arselnel.fasa4dd1.bak.css
+│   ├── kotak-arselnel.fasa4dd1.bak.js
+│   ├── kotak-arselnel.fasa4dd2.bak.css
+│   ├── kotak-arselnel.fasa4dd2.bak.js
+│   ├── kotak-arselnel.fasa4dd3.bak.css
+│   ├── kotak-arselnel.fasa4dd3.bak.js
+│   ├── kotak-arselnel.fasa4eb1.bak.css
+│   ├── kotak-arselnel.fasa4eb1.bak.js
+│   ├── kotak-arselnel.fasa4eb2.bak.css
+│   ├── kotak-arselnel.fasa4eb2.bak.js
+│   ├── kotak-arselnel.fasa4eb21.bak.css
+│   ├── kotak-arselnel.fasa4eb21.bak.js
+│   ├── kotak-arselnel.fasa4eb22.bak.css
+│   ├── kotak-arselnel.fasa4eb22.bak.js
+│   ├── kotak-arselnel.fasa4eb23.bak.css
+│   ├── kotak-arselnel.fasa4eb23.bak.js
+│   ├── kotak-arselnel.fasa4eb23.prehotfix.bak.css
+│   ├── kotak-arselnel.fasa4eb23.prehotfix.bak.js
+│   ├── kotak-arselnel.fasa4eb24.bak.css
+│   ├── kotak-arselnel.fasa4eb24.bak.js
+│   ├── kotak-arselnel.fasa4ec1.bak.css
+│   ├── kotak-arselnel.fasa4ec1.bak.js
+│   ├── kotak-arselnel.fasa4ec2.bak.css
+│   ├── kotak-arselnel.fasa4ec2.bak.js
+│   ├── kotak-arselnel.fasa4ec3a.bak.css
+│   ├── kotak-arselnel.fasa4ec3a.bak.js
+│   ├── kotak-arselnel.fasa4f.bak.js
+│   ├── kotak-arselnel.js
+│   ├── kotak-arselnel.precontrast.bak.css
+│   ├── kotak-arselnel.prelightui.bak.css
+│   ├── kotak-arselnel.premultitheme.bak.css
+│   └── marker-print.html
+├── kuiz_interaktif/
+│   ├── code_classic.html
+│   ├── code.html
+│   └── screen.png
+├── login/
+│   └── code.html
+├── manual_penggunaan/
+│   └── code.html
+├── models/
+│   ├── plant baru/
+│   │   ├── source/
+│   │   │   ├── plantCell.glb
+│   │   │   └── plantcellnew.glb
+│   │   └── textures/
+│   │       ├── gltf_embedded_0.png
+│   │       ├── gltf_embedded_1.jpeg
+│   │       └── gltf_embedded_2.jpeg
+│   ├── animal_cell_final.glb
+│   ├── cell_wall (1).glb
+│   ├── cell_wall.glb
+│   ├── chloroplast (1).glb
+│   ├── chloroplast.glb
+│   ├── endoplasmic_reticulum_opt.glb
+│   ├── endoplasmic_reticulum.glb
+│   ├── mitochondria.glb
+│   ├── nucleus_opt.glb
+│   ├── nucleus.glb
+│   ├── plant_cell.glb
+│   ├── plantcellnew.glb
+│   ├── plasma_membrane_opt.glb
+│   ├── plasma_membrane.glb
+│   ├── treasure_chest.glb
+│   ├── treasure_chests_asset_pack.glb
+│   ├── vacuole (1).glb
+│   └── vacuole.glb
+├── modul_pembelajaran/
+│   ├── code.html
+│   └── screen.png
+├── nota_pembelajaran/
+│   ├── code.html
+│   ├── screen.png
+│   └── slaid_interaktif.html
+├── paparan_model_ar/
+│   ├── code.html
+│   └── screen.png
+├── pemain_video/
+│   ├── code.html
+│   └── screen.png
+├── pengimbas_ar/
+│   ├── code.html
+│   └── screen.png
+├── perpustakaan_video/
+│   ├── code.html
+│   └── screen.png
+├── profil/
+│   └── code.html
+├── scientific_discovery_system/
+│   └── DESIGN.md
+├── scratch/
+│   ├── capture_screenshot_4b2.js
+│   ├── check_duplicate_ids.js
+│   ├── check_rect.js
+│   ├── check_videos.js
+│   ├── debug_test1.js
+│   ├── inspect_ipad_math.js
+│   ├── patch_fasa4eb2_lifecycle.js
+│   ├── patch_kotak_arselnel_js.js
+│   ├── replay_edits.js
+│   ├── replay_successful_edits.js
+│   ├── test_angles.js
+│   ├── test_device_orientation.js
+│   ├── test_landscape_tilt.js
+│   ├── test_pdf_status.js
+│   ├── test_state.js
+│   └── transform_code_html.js
+├── scripts/
+│   ├── apply_mod_a_enhancements.js
+│   ├── apply_mod_a_part2.js
+│   ├── apply_mod_a_part3.js
+│   ├── apply_multi_theme_css.js
+│   ├── audit_materials_and_zoom.js
+│   ├── backup_cms_data.js
+│   ├── backup_supabase.js
+│   ├── backup_supabase.ps1
+│   ├── capture_contrast_screenshots.js
+│   ├── capture_manual_screenshots.js
+│   ├── capture_multi_theme_screenshots.js
+│   ├── capture_ui_comparison.js
+│   ├── clip_mod_c.js
+│   ├── compile_marker_mind.js
+│   ├── convert_cellquest_svg_to_png.js
+│   ├── convert_kuiz_svg_to_png.js
+│   ├── crop_lobby_assets.js
+│   ├── fix_secret_door_and_remove_chest.js
+│   ├── generate_3d_lobby_assets.js
+│   ├── generate_seed_sql.js
+│   ├── insert_mod_a_modals.js
+│   ├── inspect_nucleus_glb.js
+│   ├── inspect_preview_scene.js
+│   ├── patch_mod_a_details.js
+│   ├── render_all_cell_markers_png.js
+│   ├── render_marker_png.js
+│   ├── render_modal_stn1.js
+│   ├── take_lobby_screenshot.js
+│   ├── test_auth_guard.js
+│   ├── verify_fasa_4e_e1_jelajah3d_kotak.js
+│   ├── verify_fasa_a5_mod_jelajah_3d.js
+│   ├── verify_orientasi_dunia_fasa_a2.js
+│   ├── verify_orientasi_dunia_fasa_a3.js
+│   ├── verify_orientasi_dunia_fasa_a4_hotfix.js
+│   ├── verify_orientasi_dunia_fasa_a4.js
+│   ├── verify_orientasi_dunia_treasure_hunt.js
+│   └── verify_responsive_illustrations.js
+├── selamat_datang/
+│   ├── code.html
+│   └── screen.png
+├── selbot_ai/
+│   ├── code.html
+│   └── screen.png
+├── splash_screen/
+│   ├── code.html
+│   ├── index.html
+│   └── screen.png
+├── supabase/
+│   ├── migrations/
+│   │   ├── 202610200001_initial_learning_data.sql
+│   │   ├── 202610200002_smart_notes_annotation_system.sql
+│   │   ├── 202610230001_cms_full_schema.sql
+│   │   ├── 202610230002_complete_cms_and_storage.sql
+│   │   ├── 202610230003_safe_production_migration.sql
+│   │   ├── 202610240001_admin_analytics_and_account_settings.sql
+│   │   ├── 202610240002_fix_admin_student_sync_and_rls.sql
+│   │   ├── 202610250001_game_leaderboards_and_answer_snapshots.sql
+│   │   ├── 202610250002_teacher_roles_student_deletion_and_audit.sql
+│   │   ├── 202610260001_fix_student_deletion_and_learning_events.sql
+│   │   ├── 202610260002_fix_admin_users_not_null_and_student_deletion.sql
+│   │   ├── 202610270001_cellquest_ar_adventure.sql
+│   │   ├── 202611160001_selbot_chat_history_and_rls.sql
+│   │   ├── 202611160002_fix_selbot_assistant_messages.sql
+│   │   ├── rollback_202610230003.sql
+│   │   ├── rollback_202610260002.sql
+│   │   ├── rollback_202611160001.sql
+│   │   └── rollback_202611160002.sql
+│   ├── README.md
+│   └── seed_cms_data.sql
+├── test-screenshots/
+│   ├── fasa_4e_e1_jelajah3d_hud_return_btn.png
+│   ├── fasa_4e_e1_kotak_4_modules_after_return.png
+│   ├── fasa_4e_e1_kotak_confirm_modal.png
+│   ├── fasa_4e_e1_kotak_top_hud_button.png
+│   ├── fasa_4e_e1_returned_to_kotak_ar.png
+│   ├── fasa_4ee11_diagnostics_check.png
+│   ├── fasa_4ee11_returned_kotak.png
+│   ├── fasa_a5_makmal_horizon_hud.png
+│   ├── fasa_a5_stesen1_nukleus_3d.png
+│   ├── fasa_a5_stesen4_mitokondrion_3d.png
+│   └── fasa_a5_stesen8_perbandingan_sel_3d.png
+├── tests/
+│   ├── screenshots/
+│   │   ├── after_cellquest.png
+│   │   ├── after_four_modules.png
+│   │   ├── after_kuiz.png
+│   │   ├── after_nota.png
+│   │   ├── after_video.png
+│   │   ├── audit_modal_stn1_current.png
+│   │   ├── before_cellquest.png
+│   │   ├── before_four_modules.png
+│   │   ├── before_kuiz.png
+│   │   ├── before_nota.png
+│   │   ├── before_video.png
+│   │   ├── contrast_cellquest_controls.png
+│   │   ├── contrast_four_modules.png
+│   │   ├── contrast_kuiz_games.png
+│   │   ├── contrast_kuiz_mcq.png
+│   │   ├── contrast_nota_list.png
+│   │   ├── contrast_nota_reader.png
+│   │   ├── contrast_video_main.png
+│   │   ├── fasa_a3_deep_zoom_in.png
+│   │   ├── fasa_a3_hud_no_overlap_ipad.png
+│   │   ├── fasa_a3_nucleus_color_preview.png
+│   │   ├── fasa_a4_camera_stable_quiz6.png
+│   │   ├── fasa_a4_cartoon_chest_3d.png
+│   │   ├── fasa_a4_multi_chest_modal.png
+│   │   ├── fasa_a4_victory_modal.png
+│   │   ├── orientasi_dunia_a2_kloroplas_jauh.png
+│   │   ├── orientasi_dunia_a2_mitokondrion_tinggi.png
+│   │   ├── orientasi_dunia_a2_nukleus_4_5m.png
+│   │   ├── orientasi_dunia_a2_smart_radar_360.png
+│   │   ├── treasure_hunt_smart_radar_overview.png
+│   │   ├── treasure_hunt_stage1_mystery.png
+│   │   ├── treasure_hunt_stage2_approaching.png
+│   │   ├── treasure_hunt_stage3_detected.png
+│   │   ├── ui_after_ipad.png
+│   │   ├── ui_before_ipad.png
+│   │   ├── ujian1_pandang_kiri_mitokondrion.png
+│   │   ├── ujian2_pandang_kanan_nukleus.png
+│   │   ├── ujian5_ipad_portrait_organelle_card.png
+│   │   └── ujian5_marker_ar_active.png
+│   ├── screenshots_cellquest_hotfix_1_2/
+│   │   ├── hotfix12_cellquest_dual_cell_compare_iphone14.png
+│   │   ├── hotfix12_cellquest_pov_locked_iphone14.png
+│   │   ├── hotfix12_cellquest_pov_setup_iphone14.png
+│   │   ├── hotfix12_viewport_1024x768.png
+│   │   ├── hotfix12_viewport_1366x768.png
+│   │   ├── hotfix12_viewport_1920x1080.png
+│   │   ├── hotfix12_viewport_360x800.png
+│   │   ├── hotfix12_viewport_375x667.png
+│   │   ├── hotfix12_viewport_390x844.png
+│   │   ├── hotfix12_viewport_430x932.png
+│   │   └── hotfix12_viewport_768x1024.png
+│   ├── screenshots_clean_ar_ui/
+│   │   ├── ujian4_smart_radar_compact.png
+│   │   ├── ujian5_smart_radar_expanded.png
+│   │   ├── ujian8_notifikasi_stesen_ditemui.png
+│   │   ├── verification_report_14_tests.json
+│   │   ├── vp_desktop_1920x1080.png
+│   │   ├── vp_ipad_landscape_1024x768.png
+│   │   ├── vp_ipad_landscape_1180x820.png
+│   │   ├── vp_ipad_landscape_1366x1024.png
+│   │   ├── vp_ipad_portrait_820x1180.png
+│   │   ├── vp_laptop_1366x768.png
+│   │   ├── vp_phone_landscape_844x390.png
+│   │   └── vp_phone_portrait_390x844.png
+│   ├── screenshots_dual_cell_hotfix_1_0/
+│   │   ├── dual_cell_360x800_android.png
+│   │   ├── dual_cell_375x667_iphonese.png
+│   │   ├── dual_cell_430x932_promax.png
+│   │   ├── dual_cell_768x1024_ipad_p.png
+│   │   ├── dual_cell_compare_desktop_1920x1080.png
+│   │   ├── dual_cell_compare_ipad_1024x768.png
+│   │   ├── dual_cell_compare_iphone_390x844.png
+│   │   ├── dual_cell_compare_laptop_1366x768.png
+│   │   ├── dual_cell_kssm_modal_390x844.png
+│   │   └── dual_cell_pov_banner_no_overlap_390x844.png
+│   ├── screenshots_dual_cell_hotfix_1_1/
+│   │   ├── cellquest_dualcell_hotfix11_android_galaxy_a_360x800.png
+│   │   ├── cellquest_dualcell_hotfix11_desktop_1920x1080.png
+│   │   ├── cellquest_dualcell_hotfix11_ipad_landscape_1024x768.png
+│   │   ├── cellquest_dualcell_hotfix11_ipad_portrait_768x1024.png
+│   │   ├── cellquest_dualcell_hotfix11_iphone_14_390x844.png
+│   │   ├── cellquest_dualcell_hotfix11_iphone_15_pro_max_430x932.png
+│   │   ├── cellquest_dualcell_hotfix11_iphone_se_375x667.png
+│   │   └── cellquest_dualcell_hotfix11_laptop_1366x768.png
+│   ├── screenshots_emergency_recovery_1_3/
+│   │   ├── recovery13_nota_marker_iphone14.png
+│   │   ├── recovery13_video_marker_iphone14.png
+│   │   ├── recovery13_viewport_1024x768.png
+│   │   ├── recovery13_viewport_1366x768.png
+│   │   ├── recovery13_viewport_1920x1080.png
+│   │   ├── recovery13_viewport_360x800.png
+│   │   ├── recovery13_viewport_375x667.png
+│   │   ├── recovery13_viewport_390x844.png
+│   │   ├── recovery13_viewport_430x932.png
+│   │   └── recovery13_viewport_768x1024.png
+│   ├── screenshots_glb_upgrade/
+│   │   ├── mod-kamera-ar-nucleus-glb.png
+│   │   ├── modal-kuiz-stesen-1-nucleus.png
+│   │   ├── pameran-tambahan-er-glb.png
+│   │   ├── stesen-1-nucleus-glb.png
+│   │   ├── stesen-2-plasma-membrane-glb.png
+│   │   ├── stesen-3-sitoplasma-kekal.png
+│   │   ├── stesen-4-mitochondria-glb.png
+│   │   └── stesen-8-sel-haiwan-tumbuhan-glb.png
+│   ├── screenshots_marker_radar_ar/
+│   │   ├── modB_1_2_marker4_membrane_upright.png
+│   │   ├── modB_3_marker4_rotated_90deg.png
+│   │   ├── modB_4_marker4_rotated_180deg.png
+│   │   ├── modB_5_marker0_oblique_angle.png
+│   │   ├── modC_13_station1_completed_green_radar.png
+│   │   ├── modC_4_5_smart_radar_hunting_mitochondria.png
+│   │   ├── modC_6_7_mitochondria_discovered_at_270_plus15.png
+│   │   └── modC_9_station1_nucleus_at_90_plus5.png
+│   ├── screenshots_selbot_responsive/
+│   │   ├── before_desktop_1920x1080.png
+│   │   ├── desktop_1920x1080.png
+│   │   ├── ipad_portrait_768x1024.png
+│   │   ├── iphone_390x844.png
+│   │   ├── laptop_1366x768.png
+│   │   ├── phone_small_360x740.png
+│   │   └── tablet_1024x768.png
+│   ├── screenshots_tour_hotfix_1_1/
+│   │   ├── tour_hab_permainan_laptop_1366x768.png
+│   │   ├── tour_hotfix_desktop_1920x1080.png
+│   │   ├── tour_hotfix_ipad_landscape_1024x768.png
+│   │   ├── tour_hotfix_ipad_portrait_768x1024.png
+│   │   ├── tour_hotfix_iphone_14_390x844.png
+│   │   ├── tour_hotfix_iphone_promax_430x932.png
+│   │   ├── tour_hotfix_iphone_se_375x667.png
+│   │   ├── tour_hotfix_laptop_1366x768.png
+│   │   ├── tour_selbot_iphone_390x844.png
+│   │   └── tour_slaid_interaktif_ipad_1024x768.png
+│   ├── screenshots_tour_hotfix_1_2/
+│   │   ├── tour_cellquest_misi_jelajah_laptop.png
+│   │   ├── tour_terokai_dunia_ar_laptop.png
+│   │   ├── tour_video_android_kecil_360x800.png
+│   │   ├── tour_video_desktop_1920x1080.png
+│   │   ├── tour_video_ipad_landscape_1024x768.png
+│   │   ├── tour_video_ipad_portrait_768x1024.png
+│   │   ├── tour_video_iphone_14_390x844.png
+│   │   ├── tour_video_iphone_promax_430x932.png
+│   │   ├── tour_video_iphone_se_375x667.png
+│   │   ├── tour_video_laptop_1366x768.png
+│   │   └── tour_video_player_laptop_1366x768.png
+│   ├── screenshots_tour_hotfix_1_3/
+│   │   ├── tour_hotfix13_android_galaxy_a_360x800.png
+│   │   ├── tour_hotfix13_dashboard_step1_iphone14.png
+│   │   ├── tour_hotfix13_dashboard_step3_iphone14.png
+│   │   ├── tour_hotfix13_dashboard_step4_iphone14.png
+│   │   ├── tour_hotfix13_desktop_full_hd_1920x1080.png
+│   │   ├── tour_hotfix13_ipad_landscape_1024x768.png
+│   │   ├── tour_hotfix13_ipad_portrait_768x1024.png
+│   │   ├── tour_hotfix13_iphone_14__test_report_viewport__390x844.png
+│   │   ├── tour_hotfix13_iphone_15_pro_max_430x932.png
+│   │   ├── tour_hotfix13_iphone_se_375x667.png
+│   │   ├── tour_hotfix13_kotak_step1_iphone14.png
+│   │   ├── tour_hotfix13_kotak_step2_scanner_iphone14.png
+│   │   ├── tour_hotfix13_kotak_step8_finish_iphone14.png
+│   │   ├── tour_hotfix13_laptop_1366x768.png
+│   │   ├── tour_hotfix13_nota_step3_iphone14.png
+│   │   └── tour_hotfix13_nota_step4_iphone14.png
+│   ├── audit_clipping_safety.js
+│   ├── audit_live_deletion.js
+│   ├── audit_routes_tour.js
+│   ├── audit_scan_results.json
+│   ├── audit_viewport.js
+│   ├── capture_fasa4dd_shot.js
+│   ├── capture_fasa4eb21_shot.js
+│   ├── capture_fasa4eb22_shot.js
+│   ├── capture_hotfix_shot.js
+│   ├── capture_safari_ar_4k_screenshots.js
+│   ├── check_admin_auth.js
+│   ├── check_glb_runtime.js
+│   ├── check_gyro_math.js
+│   ├── check_json_calls.js
+│   ├── check_mindar_anchor.js
+│   ├── check_mindar_exports.js
+│   ├── check_mindar_loop.js
+│   ├── check_mindar_loop2.js
+│   ├── check_mindar_matrix.js
+│   ├── check_mindar_version.js
+│   ├── check_mindar_version2.js
+│   ├── check_profiles_live.js
+│   ├── check_tables.js
+│   ├── check_transform_inspect.js
+│   ├── compare_device_math.js
+│   ├── debug_pdf_canvas.js
+│   ├── debug_pdf_console.js
+│   ├── debug_pdf_direct.js
+│   ├── debug_touch_drag.js
+│   ├── diag_cellquest_render.js
+│   ├── diag_cellquest_screenshot.png
+│   ├── diag_orientation_math.js
+│   ├── diagnose_real_ipad_scene.js
+│   ├── extract_plant_textures.js
+│   ├── find_plant_label_positions.js
+│   ├── find_target_student.js
+│   ├── flow_pinned_d2_8.png
+│   ├── glb_integration_final_report.json
+│   ├── glb_upgrade_audit_report.json
+│   ├── inspect_admin_details.js
+│   ├── inspect_cam_after_start.js
+│   ├── inspect_cam.js
+│   ├── inspect_camera_scene.js
+│   ├── inspect_ctrl_proj.js
+│   ├── inspect_glb_deep.js
+│   ├── inspect_glb_three.js
+│   ├── inspect_glb.js
+│   ├── inspect_orient.js
+│   ├── inspect_postmatrix.js
+│   ├── inspect_real_hierarchy.js
+│   ├── inspect_supabase.js
+│   ├── marker_and_radar_ar_verification_report.json
+│   ├── mindar.js
+│   ├── pin_click_test.png
+│   ├── scan_destructive_sql.js
+│   ├── shot_native_d2400.png
+│   ├── shot_normalized_d2_2.png
+│   ├── test_3dof_pov_stabilization.js
+│   ├── test_admin_roles_and_video_grid.js
+│   ├── test_animated_scientist_and_sliding_auth.js
+│   ├── test_auth_system.js
+│   ├── test_cam_after_resize.js
+│   ├── test_camera_in_scene.js
+│   ├── test_canonical_math.js
+│   ├── test_canonical_q.js
+│   ├── test_capture_fasa_c.js
+│   ├── test_cellquest_ar_ipad.js
+│   ├── test_cellquest_current.js
+│   ├── test_check_params.js
+│   ├── test_codex_critical_deletion_fix.js
+│   ├── test_codex_freeze_stats_and_delete.js
+│   ├── test_codex_science_rescue_mission.js
+│   ├── test_dbg_sim.js
+│   ├── test_fasa4b_hotfix_notes_and_bounds.js
+│   ├── test_fasa4b_nota_interaktif.js
+│   ├── test_fasa4b2_hotfix_drag_pov_notes.js
+│   ├── test_fasa4b3_hotfix_drag2d_and_pov_state.js
+│   ├── test_fasa4b3_interactive_browser.js
+│   ├── test_fasa4b4_shared_controller.js
+│   ├── test_fasa4b5_world_locked_pitch.js
+│   ├── test_fasa4c_kuiz_interaktif.js
+│   ├── test_fasa4c1_hotfix.js
+│   ├── test_fasa4c2_original_games.js
+│   ├── test_fasa4c3_embedded_games.js
+│   ├── test_fasa4c4_game_persistence_resize.js
+│   ├── test_fasa4d_b_cellquest_marker.js
+│   ├── test_fasa4d_c_direct_ar_cellquest.js
+│   ├── test_fasa4d_c1_hotfix.js
+│   ├── test_find_plant_parts.js
+│   ├── test_fix_student_deletion.js
+│   ├── test_flow_pinned.js
+│   ├── test_full_pin_fix.js
+│   ├── test_fwd_check.js
+│   ├── test_gamma_test.js
+│   ├── test_inspect_plant.js
+│   ├── test_inspect_three.js
+│   ├── test_ipad_pitch_math.js
+│   ├── test_kotak_arselnel_phase2.js
+│   ├── test_kotak_arselnel_phase3.js
+│   ├── test_landscape_debug.js
+│   ├── test_leaderboard_system.js
+│   ├── test_math_comparison.js
+│   ├── test_matrix_w3c.js
+│   ├── test_mindar_pose.js
+│   ├── test_oauth_callback_fix.js
+│   ├── test_orientation_complete.js
+│   ├── test_pin_click.js
+│   ├── test_pin_distance.js
+│   ├── test_pin_normalized.js
+│   ├── test_pinned_depth.js
+│   ├── test_pitch_and_video_fasa_c.js
+│   ├── test_pitch_experiment.js
+│   ├── test_pitch_inspect.js
+│   ├── test_plant_current.js
+│   ├── test_plant_direct.js
+│   ├── test_plant_view.js
+│   ├── test_pov_hotfix.js
+│   ├── test_pov_prototype.js
+│   ├── test_production_sync_and_auth_fix.js
+│   ├── test_quaternion_math.js
+│   ├── test_render_both.js
+│   ├── test_render_pdf_page1.js
+│   ├── test_robust_quaternion_all.js
+│   ├── test_robust_signs.js
+│   ├── test_safari_modes_removed.js
+│   ├── test_scientist_skin_and_layout.js
+│   ├── test_screenshot.js
+│   ├── test_size_l_responsive.js
+│   ├── test_stage_scroll.js
+│   ├── test_staging_simulation.js
+│   ├── test_ui_cellquest_cleanup.js
+│   ├── test_vcam_check.js
+│   ├── test_verify_pinned_visual.js
+│   ├── test_verify_quaternions.js
+│   ├── test_video_system_fixes.js
+│   ├── verify_3_games_hd_and_obstacles.js
+│   ├── verify_admin_cms_portal.js
+│   ├── verify_admin_upload_and_student_sync.js
+│   ├── verify_adventure_game.js
+│   ├── verify_all_glb_models_integration.js
+│   ├── verify_arselnel_emergency_recovery_1_3.js
+│   ├── verify_cellquest_ar_hotfix_1_2.js
+│   ├── verify_cellquest_dual_cell_hotfix_1_0.js
+│   ├── verify_cellquest_dual_cell_hotfix_1_1.js
+│   ├── verify_cellquest_glbs.js
+│   ├── verify_cellquest_kotak_integration.js
+│   ├── verify_cellquest.js
+│   ├── verify_clean_ar_ui_14_tests.js
+│   ├── verify_dashboard_navigation.js
+│   ├── verify_fasa4d_d_full.js
+│   ├── verify_fasa4dc1_fixed.js
+│   ├── verify_fasa4dd1_complete.js
+│   ├── verify_fasa4dd1_hotfix.js
+│   ├── verify_fasa4dd2_complete.js
+│   ├── verify_fasa4dd3_complete.js
+│   ├── verify_fasa4eb1_dual_panels.js
+│   ├── verify_fasa4eb2_lifecycle.js
+│   ├── verify_fasa4eb21_add_scan.js
+│   ├── verify_fasa4eb22_restore_flow.js
+│   ├── verify_fasa4eb23_gyro_math.js
+│   ├── verify_fasa4eb24_viewport_camera.js
+│   ├── verify_fasa4eb25_video_close_toolbar.js
+│   ├── verify_fasa4ec2_kuiz_multipanel.js
+│   ├── verify_fasa4ec3a_cellquest_coexistence.js
+│   ├── verify_fasa4ed1_1_safari_camera_fix.js
+│   ├── verify_fasa4ed1_dual_cell_markers.js
+│   ├── verify_fasa4ed12_restore_all_markers.js
+│   ├── verify_fasa4ee_contrast_readability.js
+│   ├── verify_fasa4ee_multi_theme_overlay.js
+│   ├── verify_fasa4ee11_gyro_lifecycle.js
+│   ├── verify_fasa4ee2_marker_jelajah3d.js
+│   ├── verify_fasa4ee3_ar_orientasi_treasure_glb.js
+│   ├── verify_fasa4ee31_diagnostics_isolation.js
+│   ├── verify_fasa4ef1_bm_onboarding.js
+│   ├── verify_fasa4ef11_rescan_manual_pov.js
+│   ├── verify_fasa4ef12_marker_follow.js
+│   ├── verify_fasa4eg1_1_responsive.js
+│   ├── verify_fasa4eg1_selbot.js
+│   ├── verify_fasa4eg13_drawer_overlap.js
+│   ├── verify_fasa4eg14_assistant_history.js
+│   ├── verify_fasa4eg3_print_markers.js
+│   ├── verify_fasa4f_selbot_marker.js
+│   ├── verify_fasa4f1_hotfix.js
+│   ├── verify_fasa4f2_recovery.js
+│   ├── verify_glb_models_12_tests.js
+│   ├── verify_guided_tour_hotfix_1_1.js
+│   ├── verify_guided_tour_hotfix_1_2.js
+│   ├── verify_guided_tour_hotfix_1_3.js
+│   ├── verify_guided_tour.js
+│   ├── verify_hotfix_nota_permainan.js
+│   ├── verify_lab_game.js
+│   ├── verify_leaderboard_and_results_codex.js
+│   ├── verify_manual_arselnel_v2.js
+│   ├── verify_manual_icons_v2_2.js
+│   ├── verify_marker_and_radar_ar.js
+│   ├── verify_maze_chase.js
+│   ├── verify_mobile_game_ui_v2.js
+│   ├── verify_mod_a_immersive_adventure.js
+│   ├── verify_mod_b_story_mission_and_chest.js
+│   ├── verify_mod_b_world_stations_enhancement.js
+│   ├── verify_mod_d_cell_safari.js
+│   ├── verify_other_games.js
+│   ├── verify_remove_selbot_quiz_webar.js
+│   ├── verify_robot_sidebar.js
+│   ├── verify_safe_migration.js
+│   ├── verify_science_lab_lobby.js
+│   ├── verify_selbot_drawer_layout.js
+│   ├── verify_sidebar_new_logo.js
+│   ├── verify_sidebar_restored.js
+│   ├── verify_smart_radar_and_treasure_hunt.js
+│   ├── verify_supabase_cms_full.js
+│   ├── verify_ui.js
+│   ├── verify_video_slide_codex_fix.js
+│   └── verify_world_ar_7_tests.js
+├── tetapan/
+│   └── code.html
+├── uploads/
+│   └── slides/
+├── .env
+├── .env.example
+├── .gitignore
+├── .vercelignore
+├── 404.html
+├── ARSELNEL_OAUTH_CALLBACK_FIX_REPORT.md
+├── ARSELNEL_SYNC_AUTH_FIX_REPORT.md
+├── callback.html
+├── cellquest_ar_kotak_integrated_desktop.png
+├── cellquest_ar_kotak_integrated_ipad.png
+├── index.html
+├── kotak_arselnel_fasa4a_audit_report.md
+├── kotak_arselnel_fasa4b_implementation_report.md
+├── kotak_arselnel_fasa4eb21_verified.png
+├── kotak_arselnel_fasa4eb22_verified.png
+├── kotak_arselnel_fasa4eb23_verified.png
+├── kotak_arselnel_fasa4eb24_verified.png
+├── kotak_arselnel_fasa4eb25_toolbar_clean.png
+├── local-server.js
+├── login.html
+├── package.json
+├── plant_tex_0_Image_1.jpg
+├── plant_tex_1_Image_2.jpg
+├── plant_tex_2_Image_0.png
+├── README.md
+├── register.html
+├── scratch_capture.js
+├── scratch_verify.js
+├── storage_audit_summary.json
+├── SUPABASE_MIGRATION_SAFETY_REPORT.md
+├── test_ipad_ar_card_landscape.png
+├── test_ipad_ar_drawer_landscape.png
+├── test_ipad_ar_minilab_landscape.png
+├── test_ipad_ar_minimized_card.png
+├── test_ipad_ar_portrait.png
+└── vercel.json
