@@ -163,6 +163,9 @@
     DOM.btnToggleCam = document.getElementById('btn-toggle-cam');
     DOM.camToggleIcon = document.getElementById('cam-toggle-icon');
     DOM.camToggleText = document.getElementById('cam-toggle-text');
+    DOM.cqBtnToggleCam = document.getElementById('cq-btn-toggle-cam');
+    DOM.cqCamIcon = document.getElementById('cq-cam-icon');
+    DOM.cqCamText = document.getElementById('cq-cam-text');
     DOM.btnSwitchToPOV = document.getElementById('btn-switch-to-pov');
     DOM.btnLockVideo = document.getElementById('btn-lock-video');
     DOM.lockBtnIcon = document.getElementById('lock-btn-icon');
@@ -1314,17 +1317,28 @@
 
       const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
       if (el) {
-        const safeBounds = typeof getSafeAreaBounds === 'function' ? getSafeAreaBounds(el) : null;
-        const centerY = safeBounds && Number.isFinite(safeBounds.safeCenterY) ? `${Math.round(safeBounds.safeCenterY)}px` : '54%';
-        el.classList.remove('hidden');
-        el.classList.add('is-visible', 'is-centered');
-        el.style.left = '50%';
-        el.style.top = centerY;
-        el.style.transform = 'translate(-50%, -50%)';
-        el.style.opacity = '1';
-        el.style.visibility = 'visible';
-        el.style.pointerEvents = 'auto';
-        el.setAttribute('data-placement-mode', 'POV_SETUP');
+        if (id !== 'cellquest') {
+          const safeBounds = typeof getSafeAreaBounds === 'function' ? getSafeAreaBounds(el) : null;
+          const centerY = safeBounds && Number.isFinite(safeBounds.safeCenterY) ? `${Math.round(safeBounds.safeCenterY)}px` : '54%';
+          el.classList.remove('hidden');
+          el.classList.add('is-visible', 'is-centered');
+          el.style.left = '50%';
+          el.style.top = centerY;
+          el.style.transform = 'translate(-50%, -50%)';
+          el.style.opacity = '1';
+          el.style.visibility = 'visible';
+          el.style.pointerEvents = 'auto';
+          el.setAttribute('data-placement-mode', 'POV_SETUP');
+        } else {
+          el.classList.remove('hidden');
+          el.classList.add('is-visible');
+          el.style.left = '';
+          el.style.top = '';
+          el.style.transform = '';
+          el.style.opacity = '1';
+          el.style.visibility = 'visible';
+          el.setAttribute('data-placement-mode', 'POV_SETUP');
+        }
       }
 
       this.syncPanelControlUI(id);
@@ -1521,6 +1535,14 @@
         el.classList.remove('is-centered', 'hidden');
         el.classList.add('is-visible');
         el.setAttribute('data-placement-mode', 'POV_LOCKED');
+        if (id === 'cellquest') {
+          el.style.left = '';
+          el.style.top = '';
+          el.style.transform = '';
+          if (DOM.cellquestArHud) DOM.cellquestArHud.classList.remove('pov-setup-active');
+          if (DOM.cqPovSetupBanner) DOM.cqPovSetupBanner.classList.add('hidden');
+          if (typeof document !== 'undefined' && document.body) document.body.classList.remove('has-pov-setup');
+        }
       }
 
       this.syncPanelControlUI(id);
@@ -8961,10 +8983,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
             ? bounds.safeCenterY
             : Math.max(bounds.minY, Math.min(bounds.maxY, p.currentScreenY));
 
-          el.classList.remove('is-centered');
-          el.style.left = `${safeX}px`;
-          el.style.top = `${safeY}px`;
-          el.style.transform = 'translate(-50%, -50%)';
+          if (p.id !== 'cellquest') {
+            el.classList.remove('is-centered');
+            if (p.id !== 'cellquest') {
+              el.style.left = `${safeX}px`;
+              el.style.top = `${safeY}px`;
+              el.style.transform = 'translate(-50%, -50%)';
+            }
+          }
           el.style.opacity = '1';
           el.style.visibility = 'visible';
           el.style.pointerEvents = 'auto';
@@ -9106,6 +9132,660 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
   }
 
+  /**
+   * =============================================================================
+   * ARSELNEL 360-DEGREE VIRTUAL SCIENCE LEARNING ENVIRONMENT (KSSM BAB 2)
+   * Device-Orientation-Driven 3DoF Virtual Laboratory & Cellular World Backdrop
+   * =============================================================================
+   */
+  const VirtualEnvironment360 = {
+    isInitialized: false,
+    isActive: false,
+    scene: null,
+    camera: null,
+    renderer: null,
+    envMesh: null,
+    envTexture: null,
+    envGeo: null,
+    envMat: null,
+    touchDragActive: false,
+    touchStartX: 0,
+    touchStartY: 0,
+    lastTouchX: 0,
+    lastTouchY: 0,
+    hasTouchMoved: false,
+
+    /**
+     * Generates a 2048 x 1024 equirectangular texture depicting the ARSELNEL Science Bio-Dome
+     */
+    createPanoramaCanvas() {
+      const w = 2048;
+      const h = 1024;
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return canvas;
+
+      // 1. SKY & DOME AMBIENT GRADIENT (Zenith to Nadir)
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      skyGrad.addColorStop(0, '#020b18');   // Zenith (deep space)
+      skyGrad.addColorStop(0.22, '#06162a'); // Upper dome canopy
+      skyGrad.addColorStop(0.44, '#09253c'); // Upper horizon
+      skyGrad.addColorStop(0.50, '#0c354e'); // Eye level horizon (teal glow)
+      skyGrad.addColorStop(0.56, '#09253c'); // Lower horizon
+      skyGrad.addColorStop(0.72, '#051824'); // Lab floor edge
+      skyGrad.addColorStop(1.0, '#020911');  // Nadir (floor center)
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // 2. CEILING (Y: 0 - 350) - STARS, NEBULA & CONSTELLATION LATTICE
+      const nebulae = [
+        { x: 300, y: 140, r: 240, col: 'rgba(6, 182, 212, 0.18)' },
+        { x: 800, y: 110, r: 280, col: 'rgba(99, 102, 241, 0.18)' },
+        { x: 1300, y: 150, r: 260, col: 'rgba(20, 184, 166, 0.18)' },
+        { x: 1800, y: 120, r: 250, col: 'rgba(168, 85, 247, 0.16)' }
+      ];
+      nebulae.forEach(n => {
+        const rad = ctx.createRadialGradient(n.x, n.y, 10, n.x, n.y, n.r);
+        rad.addColorStop(0, n.col);
+        rad.addColorStop(1, 'transparent');
+        ctx.fillStyle = rad;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Stars
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 180; i++) {
+        const sx = (i * 37 + 13) % w;
+        const sy = (i * 23 + 7) % 360;
+        const sSize = (i % 3 === 0) ? 2 : 1;
+        ctx.globalAlpha = 0.3 + ((i % 5) * 0.14);
+        ctx.fillRect(sx, sy, sSize, sSize);
+      }
+      ctx.globalAlpha = 1.0;
+
+      // Geodesic Dome rib lines (Zenith ceiling ribs)
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.18)';
+      ctx.lineWidth = 1.5;
+      for (let rx = 0; rx < w; rx += 170.6) {
+        ctx.beginPath();
+        ctx.moveTo(rx, 380);
+        ctx.quadraticCurveTo(rx + 40, 180, w / 2, 0);
+        ctx.stroke();
+      }
+      for (let cy = 80; cy <= 340; cy += 80) {
+        ctx.beginPath();
+        ctx.ellipse(w / 2, 0, (w / 2) * (cy / 360), cy, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // 3. HORIZON GLOW & STRUCTURAL ARCHES
+      const horizGrad = ctx.createLinearGradient(0, 508, 0, 516);
+      horizGrad.addColorStop(0, 'rgba(6, 182, 212, 0)');
+      horizGrad.addColorStop(0.5, 'rgba(34, 211, 238, 0.45)');
+      horizGrad.addColorStop(1, 'rgba(6, 182, 212, 0)');
+      ctx.fillStyle = horizGrad;
+      ctx.fillRect(0, 508, w, 8);
+
+      // Structural neon arches every 60 degrees
+      const stations = [
+        { x: 1024, heading: '0° UTARA', label: 'PORTAL MAKMAL MAYA' },
+        { x: 1365, heading: '60° TIMUR LAUT', label: 'ZON SEL HAIWAN' },
+        { x: 1707, heading: '120° TENGGARA', label: 'STESEN MIKROSKOP' },
+        { x: 0, heading: '180° SELATAN', label: 'HAB GENETIK & ORGANISASI' },
+        { x: 2048, heading: '180° SELATAN', label: 'HAB GENETIK & ORGANISASI' },
+        { x: 341, heading: '240° BARAT DAYA', label: 'ZON SEL TUMBUHAN' },
+        { x: 683, heading: '300° BARAT LAUT', label: 'UNISEL & MULTISEL' }
+      ];
+
+      // Draw vertical structural pillars
+      stations.forEach(stn => {
+        const pillarGrad = ctx.createLinearGradient(stn.x - 18, 0, stn.x + 18, 0);
+        pillarGrad.addColorStop(0, 'rgba(15, 23, 42, 0.4)');
+        pillarGrad.addColorStop(0.5, 'rgba(14, 165, 233, 0.25)');
+        pillarGrad.addColorStop(1, 'rgba(15, 23, 42, 0.4)');
+        ctx.fillStyle = pillarGrad;
+        ctx.fillRect(stn.x - 14, 300, 28, 480);
+
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(stn.x - 14, 300);
+        ctx.lineTo(stn.x - 14, 780);
+        ctx.moveTo(stn.x + 14, 300);
+        ctx.lineTo(stn.x + 14, 780);
+        ctx.stroke();
+      });
+
+      // 4. SCI-FI FLOOR & COMPASS GRID (Y: 720 - 1024)
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.22)';
+      ctx.lineWidth = 1.5;
+      for (let fy = 720; fy <= 1024; fy += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, fy);
+        ctx.lineTo(w, fy);
+        ctx.stroke();
+      }
+      for (let fx = 0; fx < w; fx += 128) {
+        ctx.beginPath();
+        ctx.moveTo(fx, 720);
+        ctx.lineTo(fx, 1024);
+        ctx.stroke();
+      }
+
+      // Compass Ring on Floor
+      ctx.strokeStyle = 'rgba(45, 212, 191, 0.4)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(w / 2, 920, 960, 90, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Floor Compass Bearing Badges
+      const compassPoints = [
+        { x: 1024, text: '▲ 0° UTARA (FRONT)' },
+        { x: 1536, text: '▶ 90° TIMUR (EAST)' },
+        { x: 0, text: '▼ 180° SELATAN' },
+        { x: 2048, text: '▼ 180° SELATAN' },
+        { x: 512, text: '◀ 270° BARAT (WEST)' }
+      ];
+      ctx.font = 'bold 15px system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#2dd4bf';
+      compassPoints.forEach(cp => {
+        ctx.fillText(cp.text, cp.x, 880);
+      });
+
+      // Helper function to draw futuristic glass cards
+      function drawStationCard(cx, cy, cw, ch, headerText, headerColor, drawContentFn) {
+        ctx.save();
+        const left = cx - cw / 2;
+        const top = cy - ch / 2;
+
+        ctx.fillStyle = 'rgba(10, 24, 44, 0.88)';
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(left, top, cw, ch, 16);
+        } else {
+          ctx.rect(left, top, cw, ch);
+        }
+        ctx.fill();
+
+        ctx.strokeStyle = headerColor || '#06b6d4';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        ctx.fillStyle = headerColor || '#06b6d4';
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(left + 16, top - 15, cw - 32, 30, 15);
+        } else {
+          ctx.rect(left + 16, top - 15, cw - 32, 30);
+        }
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(headerText, cx, top);
+
+        if (typeof drawContentFn === 'function') {
+          drawContentFn(left, top, cw, ch);
+        }
+        ctx.restore();
+      }
+
+      // STATION 1: HEADING 0° (X = 1024) - PORTAL MAKMAL MAYA ARSELNEL
+      drawStationCard(1024, 520, 360, 310, '🪐 ARSELNEL • MAKMAL MAYA 360°', '#0284c7', (x, y, w, h) => {
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 19px system-ui, -apple-system, sans-serif';
+        ctx.fillText('Bab 2: Sel Sebagai Unit Asas Hidupan', x + w / 2, y + 48);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '13.5px system-ui, -apple-system, sans-serif';
+        ctx.fillText('KSSM Sains Tingkatan 1 • Persekitaran 3DoF', x + w / 2, y + 74);
+
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(x + w / 2, y + 145, 90, 22, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(x + w / 2, y + 175, 115, 26, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
+        ctx.fillText('🔬 STESEN PEMBELAJARAN INTERAKTIF', x + w / 2, y + 145);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('Pusingkan peranti anda untuk meneroka:', x + w / 2, y + 225);
+        ctx.fillStyle = '#2dd4bf';
+        ctx.font = 'bold 12.5px system-ui, -apple-system, sans-serif';
+        ctx.fillText('🐾 Sel Haiwan  •  🌿 Sel Tumbuhan  •  🔬 Mikroskop  •  🧬 DNA', x + w / 2, y + 250);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '11px system-ui, -apple-system, sans-serif';
+        ctx.fillText('Panel Nota & Video kekal dikunci pada arah sasaran asal', x + w / 2, y + 278);
+      });
+
+      // STATION 2: HEADING 60° (X = 1365) - ZON SEL HAIWAN
+      drawStationCard(1365, 520, 340, 310, '🐾 ZON SEL HAIWAN (ANIMAL CELL)', '#0891b2', (x, y, w, h) => {
+        const cx = x + w / 2;
+        const cy = y + 115;
+
+        ctx.fillStyle = 'rgba(20, 184, 166, 0.28)';
+        ctx.strokeStyle = '#14b8a6';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 80, 62, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#9333ea';
+        ctx.beginPath();
+        ctx.arc(cx - 15, cy - 8, 22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#c084fc';
+        ctx.beginPath();
+        ctx.arc(cx - 15, cy - 8, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ea580c';
+        ctx.beginPath();
+        ctx.ellipse(cx + 38, cy + 12, 16, 8, Math.PI / 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#eab308';
+        ctx.fillRect(cx - 42, cy + 18, 12, 6);
+        ctx.fillRect(cx - 38, cy + 26, 6, 12);
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('• Nukleus: Kawalan aktiviti & DNA genetik', x + 24, y + 205);
+        ctx.fillText('• Membran Sel: Kawal pergerakan bahan keluar/masuk', x + 24, y + 225);
+        ctx.fillText('• Mitokondria: Menjanakan tenaga respirasi sel', x + 24, y + 245);
+
+        ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+        ctx.fillRect(x + 20, y + 262, w - 40, 36);
+        ctx.fillStyle = '#22d3ee';
+        ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
+        ctx.fillText('💡 Fakta: Sel haiwan tiada dinding sel & tiada kloroplas!', x + 28, y + 284);
+      });
+
+      // STATION 3: HEADING 120° (X = 1707) - STESEN MIKROSKOP CAHAYA
+      drawStationCard(1707, 520, 340, 310, '🔬 STESEN MIKROSKOP CAHAYA', '#4f46e5', (x, y, w, h) => {
+        const cx = x + w / 2;
+        const cy = y + 105;
+
+        ctx.strokeStyle = '#818cf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 50);
+        ctx.lineTo(cx, cy - 10);
+        ctx.lineTo(cx + 25, cy + 10);
+        ctx.stroke();
+        ctx.fillStyle = '#6366f1';
+        ctx.fillRect(cx - 35, cy + 10, 70, 8);
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 50, 45, 12, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#a5b4fc';
+        ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
+        ctx.fillText('Bahagian Utama Mikroskop Cahaya', cx, y + 185);
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('1. Kanta Mata: Membesarkan imej spesimen', x + 24, y + 210);
+        ctx.fillText('2. Kanta Objektif (4x, 10x, 40x): Pelbagai kuasa', x + 24, y + 230);
+        ctx.fillText('3. Pelaras Fokus Kasar & Halus: Ketajaman imej', x + 24, y + 250);
+
+        ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
+        ctx.fillRect(x + 20, y + 265, w - 40, 32);
+        ctx.fillStyle = '#c7d2fe';
+        ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
+        ctx.fillText('📐 Formula: Pembesaran = Kanta Mata × Kanta Objektif', x + 26, y + 285);
+      });
+
+      // STATION 4: HEADING 180° (X = 2048 / 0) - HAB GENETIK & ORGANISASI SEL
+      const drawHabGenetik = (cx) => {
+        drawStationCard(cx, 520, 350, 310, '🧬 HAB GENETIK & ORGANISASI SEL', '#7c3aed', (x, y, w, h) => {
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#c084fc';
+          ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
+          ctx.fillText('Hierarki Organisasi Sel:', x + w / 2, y + 45);
+
+          const boxes = ['SEL', 'TISU', 'ORGAN', 'SISTEM', 'ORGANISMA'];
+          const bw = 54;
+          const bh = 28;
+          const startX = x + 18;
+          boxes.forEach((b, idx) => {
+            const bx = startX + idx * 64;
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.25)';
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(bx, y + 60, bw, bh);
+            ctx.strokeRect(bx, y + 60, bw, bh);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px system-ui, -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(b, bx + bw / 2, y + 78);
+
+            if (idx < 4) {
+              ctx.fillStyle = '#c084fc';
+              ctx.fillText('➔', bx + bw + 5, y + 78);
+            }
+          });
+
+          const dx = x + w / 2;
+          const dy = y + 145;
+          ctx.strokeStyle = '#a855f7';
+          ctx.lineWidth = 2.5;
+          for (let step = -40; step <= 40; step += 10) {
+            const sinVal = Math.sin(step * 0.15) * 24;
+            ctx.fillStyle = '#e879f9';
+            ctx.fillRect(dx + sinVal - 3, dy + step, 6, 3);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(dx - sinVal - 3, dy + step, 6, 3);
+            ctx.beginPath();
+            ctx.moveTo(dx + sinVal, dy + step);
+            ctx.lineTo(dx - sinVal, dy + step);
+            ctx.stroke();
+          }
+
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#e2e8f0';
+          ctx.font = '12px system-ui, -apple-system, sans-serif';
+          ctx.fillText('• Kromosom di dalam nukleus membawa genetik DNA.', x + 24, y + 215);
+          ctx.fillText('• Sel khusus membentuk tisu untuk fungsi tertentu.', x + 24, y + 235);
+
+          ctx.fillStyle = 'rgba(147, 51, 234, 0.2)';
+          ctx.fillRect(x + 20, y + 255, w - 40, 42);
+          ctx.fillStyle = '#e9d5ff';
+          ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
+          ctx.fillText('Contoh: Sel Epitelium ➔ Tisu Epitelium ➔ Perut', x + 26, y + 273);
+          ctx.fillText('➔ Sistem Pencernaan ➔ Manusia', x + 26, y + 288);
+        });
+      };
+      drawHabGenetik(0);
+      drawHabGenetik(w);
+
+      // STATION 5: HEADING 240° (X = 341) - ZON SEL TUMBUHAN
+      drawStationCard(341, 520, 340, 310, '🌿 ZON SEL TUMBUHAN (PLANT CELL)', '#059669', (x, y, w, h) => {
+        const cx = x + w / 2;
+        const cy = y + 115;
+
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 3.5;
+        ctx.strokeRect(cx - 75, cy - 55, 150, 110);
+        ctx.fillRect(cx - 75, cy - 55, 150, 110);
+
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(cx - 70, cy - 50, 140, 100);
+
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+        ctx.strokeStyle = '#0284c7';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 5, 42, 32, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#16a34a';
+        ctx.beginPath();
+        ctx.ellipse(cx - 45, cy - 25, 12, 8, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + 45, cy - 20, 12, 8, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#a855f7';
+        ctx.beginPath();
+        ctx.arc(cx + 42, cy + 22, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('• Dinding Sel: Selulosa tegar memberi bentuk tetap', x + 24, y + 205);
+        ctx.fillText('• Kloroplas: Klorofil menyerap cahaya fotosintesis', x + 24, y + 225);
+        ctx.fillText('• Vakuol Besar: Mengandungi sap sel & kesegahan', x + 24, y + 245);
+
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+        ctx.fillRect(x + 20, y + 262, w - 40, 36);
+        ctx.fillStyle = '#6ee7b7';
+        ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
+        ctx.fillText('💡 Fakta: Sel tumbuhan kekal segah tanpa pecah!', x + 28, y + 284);
+      });
+
+      // STATION 6: HEADING 300° (X = 683) - UNISEL & MULTISEL
+      drawStationCard(683, 520, 340, 310, '🦠 ORGANISMA UNISEL & MULTISEL', '#0d9488', (x, y, w, h) => {
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#2dd4bf';
+        ctx.font = 'bold 13.5px system-ui, -apple-system, sans-serif';
+        ctx.fillText('1. Organisma Unisel (Satu Sel):', x + 24, y + 55);
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('• Amoeba: Bergerak guna pseudopodium (kaki palsu)', x + 28, y + 80);
+        ctx.fillText('• Paramecium: Bergerak guna silia halus', x + 28, y + 102);
+        ctx.fillText('• Chlamydomonas: Unisel tumbuhan ada kloroplas', x + 28, y + 124);
+        ctx.fillText('• Euglena: Mempunyai bintik mata & flagela', x + 28, y + 146);
+
+        ctx.fillStyle = '#2dd4bf';
+        ctx.font = 'bold 13.5px system-ui, -apple-system, sans-serif';
+        ctx.fillText('2. Organisma Multisel (Banyak Sel):', x + 24, y + 180);
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('• Spirogyra: Alga hijau berbentuk filamen', x + 28, y + 205);
+        ctx.fillText('• Mucor: Kulat multisel menghasilkan spora', x + 28, y + 227);
+        ctx.fillText('• Manusia, Kucing & Pokok Bunga Raya', x + 28, y + 249);
+
+        ctx.fillStyle = 'rgba(13, 148, 136, 0.2)';
+        ctx.fillRect(x + 20, y + 265, w - 40, 32);
+        ctx.fillStyle = '#99f6e4';
+        ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
+        ctx.fillText('💡 Unisel jalankan semua fungsi hidup dalam SATU sel.', x + 26, y + 285);
+      });
+
+      return canvas;
+    },
+
+    /**
+     * Initializes the Three.js 360-degree backdrop sphere
+     */
+    init(scene, renderer, camera) {
+      if (this.isInitialized && this.envMesh) {
+        if (scene && this.envMesh.parent !== scene) {
+          scene.add(this.envMesh);
+        }
+        return;
+      }
+      if (!window.THREE || !scene) return;
+
+      this.scene = scene;
+      this.renderer = renderer;
+      this.camera = camera;
+
+      const THREE = window.THREE;
+      const canvas = this.createPanoramaCanvas();
+      this.canvas = canvas;
+
+      this.envTexture = new THREE.CanvasTexture(canvas);
+      this.envTexture.minFilter = THREE.LinearFilter;
+      this.envTexture.magFilter = THREE.LinearFilter;
+      this.envTexture.generateMipmaps = false;
+
+      // Inward-facing sphere, radius 60 units, flipped horizontally so panorama is not mirrored
+      this.envGeo = new THREE.SphereGeometry(60, 48, 32);
+      this.envGeo.scale(-1, 1, 1);
+      this.envMat = new THREE.MeshBasicMaterial({
+        map: this.envTexture,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        depthTest: false
+      });
+
+      this.envMesh = new THREE.Mesh(this.envGeo, this.envMat);
+      this.envMesh.name = 'ARSELNEL_VirtualEnv360';
+      this.envMesh.renderOrder = -1000; // Render behind all scene objects
+      this.envMesh.visible = (!ARState.cameraActive); // Visible if camera is already off
+
+      scene.add(this.envMesh);
+      this.isInitialized = true;
+
+      this.initTouchFallback();
+      console.log('[VirtualEnv360] 🪐 Makmal Maya 360° KSSM Bab 2 berjaya dimuatkan.');
+    },
+
+    attachToScene(scene, camera) {
+      if (!scene) return;
+      this.scene = scene;
+      this.camera = camera;
+      if (this.envMesh && this.envMesh.parent !== scene) {
+        scene.add(this.envMesh);
+      } else if (!this.envMesh) {
+        this.init(scene, ARState.renderer, camera);
+      }
+    },
+
+    show() {
+      this.isActive = true;
+      if (!this.isInitialized && ARState.scene) {
+        this.init(ARState.scene, ARState.renderer, ARState.camera);
+      }
+      if (this.envMesh) {
+        this.envMesh.visible = true;
+      }
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.add('virtual-env-active');
+      }
+    },
+
+    hide() {
+      this.isActive = false;
+      if (this.envMesh) {
+        this.envMesh.visible = false;
+      }
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.remove('virtual-env-active');
+      }
+    },
+
+    /**
+     * Updates sphere orientation in 3DoF
+     */
+    update(quaternion) {
+      if (!this.isActive || !this.envMesh) return;
+      const THREE = window.THREE;
+      if (!THREE) return;
+
+      // Base yaw offset (-90 deg) maps canvas center (X = 1024, Heading 0°) to Three.js -Z (Camera forward)
+      const qBase = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
+
+      if (quaternion) {
+        // Device-orientation-driven 3DoF: inverse camera quaternion rotates the universe around the camera
+        const qCamInv = quaternion.clone().invert();
+        this.envMesh.quaternion.copy(qCamInv.multiply(qBase));
+      } else {
+        // Fallback or static view
+        this.envMesh.quaternion.copy(qBase);
+      }
+    },
+
+    /**
+     * Touch-drag fallback for non-gyro devices or when orientation permission is denied
+     */
+    initTouchFallback() {
+      if (typeof window === 'undefined') return;
+
+      const handlePointerDown = (e) => {
+        if (!this.isActive) return;
+        // Ignore clicks on panels, cards, buttons or HUD
+        if (e.target && typeof e.target.closest === 'function') {
+          if (e.target.closest('#floating-ar-anchor') ||
+              e.target.closest('.floating-card-container') ||
+              e.target.closest('.pov-card-video') ||
+              e.target.closest('.pov-card-nota') ||
+              e.target.closest('.ar-multi-panel-bar') ||
+              e.target.closest('.cellquest-ar-hud') ||
+              e.target.closest('button') ||
+              e.target.closest('a') ||
+              e.target.closest('input')) {
+            return;
+          }
+        }
+
+        this.touchDragActive = true;
+        this.touchStartX = e.clientX;
+        this.touchStartY = e.clientY;
+        this.lastTouchX = e.clientX;
+        this.lastTouchY = e.clientY;
+        this.hasTouchMoved = false;
+      };
+
+      const handlePointerMove = (e) => {
+        if (!this.touchDragActive || !this.isActive) return;
+
+        const dx = e.clientX - this.lastTouchX;
+        const dy = e.clientY - this.lastTouchY;
+        this.lastTouchX = e.clientX;
+        this.lastTouchY = e.clientY;
+
+        if (Math.hypot(e.clientX - this.touchStartX, e.clientY - this.touchStartY) > 5) {
+          this.hasTouchMoved = true;
+        }
+
+        // Only update simulated angles if real gyro is NOT active
+        if (!ARState.pov.hasSensor || ARState.pov.isSimulated) {
+          ARState.pov.isSimulated = true;
+          const curYaw = ARState.pov.simYaw || 0;
+          const curPitch = ARState.pov.simPitch || 0;
+
+          // Drag right -> look left (yaw decreases); Drag left -> look right (yaw increases)
+          const newYaw = (curYaw - dx * 0.28 + 360) % 360;
+          const newPitch = Math.max(-75, Math.min(75, curPitch + dy * 0.28));
+
+          if (typeof applySimAngles === 'function') {
+            applySimAngles(newYaw, newPitch);
+          }
+        }
+      };
+
+      const handlePointerUp = () => {
+        this.touchDragActive = false;
+      };
+
+      window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+      window.addEventListener('pointermove', handlePointerMove, { passive: true });
+      window.addEventListener('pointerup', handlePointerUp, { passive: true });
+      window.addEventListener('pointercancel', handlePointerUp, { passive: true });
+    },
+
+    dispose() {
+      if (this.envGeo) this.envGeo.dispose();
+      if (this.envMat) this.envMat.dispose();
+      if (this.envTexture) this.envTexture.dispose();
+      if (this.envMesh && this.scene) {
+        this.scene.remove(this.envMesh);
+      }
+      this.envMesh = null;
+      this.isInitialized = false;
+      this.isActive = false;
+    }
+  };
+
   let isInitializingMindAR = false;
 
   /**
@@ -9156,6 +9836,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     // Fasa 4D-D.1: Ensure camera is explicitly added to Three.js scene so pinned/screen children render
     if (!scene.children.includes(camera)) {
       scene.add(camera);
+    }
+
+    // 🪐 Fasa 5: Inisialisasi Makmal Maya 360° Bab 2 (Camera-Off Virtual Environment)
+    if (typeof VirtualEnvironment360 !== 'undefined') {
+      VirtualEnvironment360.init(scene, renderer, camera);
     }
 
     // 🛡️ Fasa 4D-D.1: Hook resize() to ensure camera.near is ALWAYS 0.1 (never clipped at 10.0)
@@ -9428,6 +10113,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         if (typeof CellQuestARController.update === 'function') {
           CellQuestARController.update(performance.now());
         }
+      }
+
+      // 🪐 Fasa 5: Kemas kini orientasi 3DoF Makmal Maya 360° jika kamera ditutup
+      if (typeof VirtualEnvironment360 !== 'undefined' && VirtualEnvironment360.isActive) {
+        VirtualEnvironment360.update(ARState.pov.currentQuaternion);
       }
 
       updateSpatialPanelsPosition();
@@ -9824,6 +10514,15 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
 
     if (!ARState.cameraActive) {
+      // 🪐 Fasa 5: Aktifkan Makmal Maya 360° Bab 2 & mulakan sensor 3DoF
+      if (typeof VirtualEnvironment360 !== 'undefined') {
+        VirtualEnvironment360.show();
+      }
+      ARState.pov.active = true;
+      initThreeHelpers();
+      setupPOVSensorListeners();
+      startPOVRenderLoop();
+
       // Pinned toolbar toggle
       if (DOM.btnToggleCam) DOM.btnToggleCam.classList.add('is-cam-off');
       if (DOM.camToggleIcon) DOM.camToggleIcon.textContent = 'videocam';
@@ -9839,8 +10538,18 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povRecCamIcon) DOM.povRecCamIcon.textContent = 'videocam';
       if (DOM.povRecCamText) DOM.povRecCamText.textContent = 'Buka Kamera';
 
+      // CellQuest HUD toggle
+      if (DOM.cqBtnToggleCam) DOM.cqBtnToggleCam.classList.add('is-cam-off');
+      if (DOM.cqCamIcon) DOM.cqCamIcon.textContent = 'videocam';
+      if (DOM.cqCamText) DOM.cqCamText.textContent = 'Buka Kamera';
+
       showToast('🔋 Mod Jimat Bateri: Kamera ditutup, audio & video diteruskan.');
     } else {
+      // 🪐 Fasa 5: Sembunyikan Makmal Maya 360° apabila kamera fizikal dibuka semula
+      if (typeof VirtualEnvironment360 !== 'undefined') {
+        VirtualEnvironment360.hide();
+      }
+
       // Pinned toolbar toggle
       if (DOM.btnToggleCam) DOM.btnToggleCam.classList.remove('is-cam-off');
       if (DOM.camToggleIcon) DOM.camToggleIcon.textContent = 'videocam_off';
@@ -9855,6 +10564,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.povRecCam) DOM.povRecCam.classList.remove('is-cam-off');
       if (DOM.povRecCamIcon) DOM.povRecCamIcon.textContent = 'videocam_off';
       if (DOM.povRecCamText) DOM.povRecCamText.textContent = 'Tutup Kamera';
+
+      // CellQuest HUD toggle
+      if (DOM.cqBtnToggleCam) DOM.cqBtnToggleCam.classList.remove('is-cam-off');
+      if (DOM.cqCamIcon) DOM.cqCamIcon.textContent = 'videocam_off';
+      if (DOM.cqCamText) DOM.cqCamText.textContent = 'Kamera';
 
       showToast('📹 Kamera dibuka semula.');
     }
@@ -11146,6 +11860,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     updateSmoothedQuaternion();
     updatePOVHeadingFromQuaternion();
 
+    // 🪐 Fasa 5: Kemas kini latar belakang 360° & render jika aktif
+    if (typeof VirtualEnvironment360 !== 'undefined' && VirtualEnvironment360.isActive) {
+      VirtualEnvironment360.update(ARState.pov.currentQuaternion);
+      if (ARState.renderer && ARState.scene && ARState.camera) {
+        ARState.renderer.render(ARState.scene, ARState.camera);
+      }
+    }
+
       const curYaw = Number.isFinite(ARState.pov.currentYaw) ? ARState.pov.currentYaw : 0;
       const curPitch = Number.isFinite(ARState.pov.currentPitch) ? ARState.pov.currentPitch : 0;
 
@@ -11181,6 +11903,10 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       let offscreenPanelForPointer = null;
 
       panelsToRender.forEach((p) => {
+        if (p.id === 'cellquest') {
+          if (p.placementMode === 'POV_LOCKED') anyPanelLocked = true;
+          return;
+        }
         const el = p.element || (typeof document !== 'undefined' ? document.getElementById(p.elementId) : null);
         if (!p.isVisible) {
           if (el) {
@@ -11196,12 +11922,14 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         const mode = p.placementMode || ARState.systemMode;
 
         if (mode === 'POV_SETUP') {
-          if (!el.classList.contains('is-centered')) {
-            el.classList.add('is-centered');
+          if (p.id !== 'cellquest') {
+            if (!el.classList.contains('is-centered')) {
+              el.classList.add('is-centered');
+            }
+            el.style.left = '50%';
+            el.style.top = '50%';
+            el.style.transform = 'translate(-50%, -50%)';
           }
-          el.style.left = '50%';
-          el.style.top = '50%';
-          el.style.transform = 'translate(-50%, -50%)';
           el.style.opacity = '1';
           el.style.visibility = 'visible';
           el.style.pointerEvents = 'auto';
@@ -11267,9 +11995,11 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
             const safeX = Math.max(-250, Math.min(screenW + 250, Number.isFinite(projX) ? projX : screenW / 2));
             const safeY = Math.max(-250, Math.min(screenH + 250, Number.isFinite(projY) ? projY : screenH / 2));
 
-            el.style.left = `${safeX}px`;
-            el.style.top = `${safeY}px`;
-            el.style.transform = 'translate(-50%, -50%)';
+            if (p.id !== 'cellquest') {
+              el.style.left = `${safeX}px`;
+              el.style.top = `${safeY}px`;
+              el.style.transform = 'translate(-50%, -50%)';
+            }
 
             p.isOffscreen = isOffscreen;
             p.projX = safeX;
@@ -12745,6 +13475,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       });
     }
 
+    if (DOM.cqBtnToggleCam) {
+      DOM.cqBtnToggleCam.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        toggleCameraPower();
+      });
+    }
+
     // Initialize unified pointer drag & resize handlers
     initDragHandlers();
 
@@ -13580,6 +14317,9 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
   global.SpatialPanelManager = SpatialPanelManager;
   global.SYSTEM_MODES = SYSTEM_MODES;
   global.MARKER_REGISTRY = MARKER_REGISTRY;
+  global.VirtualEnvironment360 = VirtualEnvironment360;
+  global.toggleCameraPower = toggleCameraPower;
+  global.startPOVRenderLoop = startPOVRenderLoop;
 
   // Auto boot when DOM is ready
   if (document.readyState === 'loading') {
