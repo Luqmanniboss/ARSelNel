@@ -585,8 +585,8 @@
         },
         {
           target: '#btn-global-toggle-cam, .btn-global-cam-toggle',
-          title: 'Tutup / Buka Kamera (Makmal Maya 360°)',
-          desc: 'Ketik butang ini pada bila-bila masa untuk menutup kamera bagi menjimatkan bateri sambil meneroka Makmal Maya 360° Bab 2 secara interaktif.',
+          title: 'Tutup / Buka Kamera',
+          desc: 'Ketik butang ini pada bila-bila masa untuk menutup kamera bagi menjimatkan bateri atau membukanya semula untuk mengimbas kad AR.',
           tip: 'Panel Video, Nota dan Sel 3D yang telah dikunci pandangan kekal aktif walaupun kamera ditutup.',
           placement: 'bottom'
         },

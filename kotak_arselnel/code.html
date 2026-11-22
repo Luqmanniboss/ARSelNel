@@ -76,7 +76,7 @@
     </div>
 
     <div class="ar-hud-right-group">
-      <button type="button" class="ar-hud-btn btn-global-cam-toggle" id="btn-global-toggle-cam" title="Tutup atau buka kamera untuk meneroka Makmal Maya 360°" aria-label="Tutup Kamera">
+      <button type="button" class="ar-hud-btn btn-global-cam-toggle" id="btn-global-toggle-cam" title="Tutup atau buka kamera" aria-label="Tutup Kamera">
         <span class="material-symbols-outlined" id="global-cam-icon">videocam_off</span>
         <span id="global-cam-text">Tutup Kamera</span>
       </button>
@@ -213,7 +213,7 @@
           <span class="material-symbols-outlined" id="cq-pov-icon">explore</span>
           <span class="cq-btn-label cq-pov-always-label" id="cq-pov-label">Kunci Pandangan</span>
         </button>
-        <button type="button" class="cq-hud-btn btn-cam-toggle" id="cq-btn-toggle-cam" title="Buka/Tutup Kamera untuk meneroka Makmal Maya 360°">
+        <button type="button" class="cq-hud-btn btn-cam-toggle" id="cq-btn-toggle-cam" title="Tutup atau buka kamera">
           <span class="material-symbols-outlined" id="cq-cam-icon">videocam_off</span>
           <span class="cq-btn-label" id="cq-cam-text">Tutup Kamera</span>
         </button>
@@ -1384,97 +1384,6 @@
     </div>
   </div>
 
-  <!-- =========================================================================
-       VIRTUAL 3D BIOLOGY LABORATORY HUD (CAMERA-OFF MODE)
-       Minimal, mobile-friendly floating controls keeping 3D lab as main focus
-       ========================================================================= -->
-  <div class="virtual-lab-hud hidden" id="virtual-lab-hud" aria-label="Kawalan Makmal Biologi Maya 3D">
-    <!-- Compact Status & Hint Pill below top bar -->
-    <div class="vlab-top-status">
-      <div class="vlab-status-pill">
-        <span class="material-symbols-outlined">science</span>
-        <span id="vlab-status-text">Makmal Biologi 3D • Pilih Spesimen</span>
-      </div>
-    </div>
-
-    <!-- Loading Specimen Indicator -->
-    <div class="vlab-loading-pill hidden" id="vlab-loading-pill" role="status" aria-live="polite">
-      <span class="vlab-spinner-dot"></span>
-      <span id="vlab-loading-text">Memuatkan Spesimen 3D...</span>
-    </div>
-
-    <!-- Contextual Compact Organelle Info Card (appears only when organelle tapped) -->
-    <aside class="vlab-organelle-card hidden" id="vlab-organelle-card" role="region" aria-label="Maklumat Organel">
-      <div class="vlab-org-header">
-        <div class="vlab-org-title-wrap">
-          <span class="vlab-org-icon" id="vlab-org-icon">🧬</span>
-          <div>
-            <h4 class="vlab-org-name" id="vlab-org-name">Nukleus</h4>
-            <span class="vlab-org-category" id="vlab-org-category">Pusat Kawalan Sel</span>
-          </div>
-        </div>
-        <button type="button" class="vlab-org-close" id="vlab-org-close" aria-label="Tutup maklumat organel">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <p class="vlab-org-desc" id="vlab-org-desc"></p>
-      <p class="vlab-org-analogy" id="vlab-org-analogy"></p>
-    </aside>
-
-    <!-- Bottom Minimal Floating Laboratory Controls Dock -->
-    <div class="vlab-bottom-stack">
-      <div class="vlab-hint-banner" id="vlab-hint-banner">
-        <span class="material-symbols-outlined">touch_app</span>
-        <span id="vlab-hint-text">Leret untuk tinjau makmal • Pilih Sel Haiwan atau Sel Tumbuhan di bawah</span>
-      </div>
-
-      <div class="vlab-dock" id="vlab-dock">
-        <!-- Specimen Selector Row -->
-        <div class="vlab-dock-row vlab-specimen-row">
-          <button type="button" class="vlab-btn vlab-btn-animal" id="vlab-btn-animal">
-            <span class="material-symbols-outlined">biotech</span>
-            <span>Sel Haiwan</span>
-          </button>
-          <button type="button" class="vlab-btn vlab-btn-plant" id="vlab-btn-plant">
-            <span class="material-symbols-outlined">eco</span>
-            <span>Sel Tumbuhan</span>
-          </button>
-          <button type="button" class="vlab-btn vlab-btn-compare" id="vlab-btn-compare" title="Bandingkan kedua-dua spesimen secara berasingan">
-            <span class="material-symbols-outlined">compare</span>
-            <span>Bandingkan</span>
-          </button>
-        </div>
-
-        <!-- Viewpoint & Experiment Actions Row -->
-        <div class="vlab-dock-row vlab-actions-row">
-          <button type="button" class="vlab-btn vlab-btn-lock" id="vlab-btn-lock-view">
-            <span class="material-symbols-outlined" id="vlab-lock-icon">lock_open</span>
-            <span id="vlab-lock-label">Kunci Pandangan</span>
-          </button>
-
-          <button type="button" class="vlab-btn vlab-btn-reset" id="vlab-btn-reset-view" title="Tetapkan Semula Pandangan">
-            <span class="material-symbols-outlined">restart_alt</span>
-            <span>Tetapkan Semula</span>
-          </button>
-
-          <button type="button" class="vlab-btn vlab-btn-workstation hidden" id="vlab-btn-workstation" title="Kembali ke Meja Eksperimen">
-            <span class="material-symbols-outlined">science</span>
-            <span>Meja Eksperimen</span>
-          </button>
-
-          <div class="vlab-zoom-group hidden" id="vlab-zoom-controls">
-            <button type="button" class="vlab-btn vlab-btn-icon" id="vlab-btn-zoom-out" aria-label="Zum Keluar" title="Zum Keluar">
-              <span class="material-symbols-outlined">zoom_out</span>
-            </button>
-            <button type="button" class="vlab-btn vlab-btn-icon" id="vlab-btn-zoom-in" aria-label="Zum Masuk" title="Zum Masuk">
-              <span class="material-symbols-outlined">zoom_in</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- LOADING SCREEN OVERLAY -->
   <div class="ar-overlay-screen" id="loading-screen">
     <div class="spinner-cube"></div>
@@ -1483,7 +1392,6 @@
   </div>
 
   <!-- MODULE SCRIPTS -->
-  <script src="/kotak_arselnel/virtual-biology-lab.js"></script>
   <script src="/kotak_arselnel/kotak-arselnel.js"></script>
   <script src="../assets/js/guided-tour-config.js"></script>
   <script src="../assets/js/guided-tour.js"></script>

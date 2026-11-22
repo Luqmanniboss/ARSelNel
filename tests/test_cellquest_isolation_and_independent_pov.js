@@ -218,7 +218,6 @@ function delay(ms) {
           ARState.anchorCellQuestPlant = makeAnchor();
           ARState.anchorCellQuest = ARState.anchorCellQuestAnimal;
           CellQuestARController.init(scene, ARState.anchorCellQuestAnimal.group, camera, ARState.renderer);
-          VirtualEnvironment360.init(scene, ARState.renderer, camera);
         }
       })()
     `);
@@ -267,22 +266,25 @@ function delay(ms) {
     assert('T18', 'Diagnostik tersembunyi bagi murid tetapi boleh diakses melalui laluan pembangun (Ctrl+Shift+D / fungsi dalaman)', t18 && t18.ok, JSON.stringify(t18));
 
     // -------------------------------------------------------------------------
-    // T14 & T15: Camera OFF activates 3DoF 360° environment; Camera ON restores
+    // T14 & T15: Camera OFF shows clean empty dark viewport; Camera ON restores
     // -------------------------------------------------------------------------
     const t14 = await cdp.eval(`
       (() => {
         document.getElementById('btn-global-toggle-cam').click();
-        const offOk = !ARState.cameraActive && VirtualEnvironment360.isActive && VirtualEnvironment360.envMesh.visible;
+        const offOk = !ARState.cameraActive &&
+                      document.getElementById('ar-container').classList.contains('camera-off') &&
+                      typeof window.VirtualEnvironment360 === 'undefined' &&
+                      typeof window.VirtualBiologyLab === 'undefined';
         const labelOff = (document.getElementById('global-cam-text')?.textContent || '').trim();
         return { ok: offOk && labelOff === 'Buka Kamera', labelOff };
       })()
     `);
-    assert('T14', 'Tutup Kamera mengaktifkan persekitaran pendidikan 3DoF 360° dan menukar label ke Buka Kamera', t14 && t14.ok, JSON.stringify(t14));
+    assert('T14', 'Tutup Kamera memaparkan viewport gelap kosong bersih dan menukar label ke Buka Kamera', t14 && t14.ok, JSON.stringify(t14));
 
     const t15 = await cdp.eval(`
       (() => {
         document.getElementById('btn-global-toggle-cam').click();
-        const onOk = ARState.cameraActive && !VirtualEnvironment360.isActive && !VirtualEnvironment360.envMesh.visible;
+        const onOk = ARState.cameraActive && !document.getElementById('ar-container').classList.contains('camera-off');
         const labelOn = (document.getElementById('global-cam-text')?.textContent || '').trim();
         return { ok: onOk && labelOn === 'Tutup Kamera', labelOn };
       })()
