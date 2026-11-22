@@ -445,7 +445,7 @@ async function runTestSuite() {
         const barVisible = bar && !bar.classList.contains('hidden');
         const hasVid = ARState.activePanels.has('video');
         const hasNota = ARState.activePanels.has('nota');
-        const hasCQ = ARState.activePanels.has('cellquest');
+        const hasCQ = ARState.activePanels.has('cellquest') || ARState.activePanels.has('cellquest-animal') || ARState.activePanels.has('cellquest-plant');
         const pillVid = !!document.querySelector('#multi-panel-tags-list .pill-video');
         const pillNota = !!document.querySelector('#multi-panel-tags-list .pill-nota');
         const pillCQ = !!document.querySelector('#multi-panel-tags-list .pill-cellquest');
@@ -629,12 +629,12 @@ async function runTestSuite() {
                          CellQuestARController.animalHolder.visible &&
                          !CellQuestARController.plantHolder.visible;
 
-        handleTargetFound(4); // Plant Cell marker scanned while Animal active -> Compare mode
-        const dualOk = CellQuestARController.displayMode === 'compare' &&
-                       CellQuestARController.animalHolder.visible &&
-                       CellQuestARController.plantHolder.visible;
+        handleTargetFound(4); // Plant Cell marker scanned -> independent Plant focus (NO auto-Compare Mode!)
+        const plantOk = CellQuestARController.focusedCell === 'plant' &&
+                        CellQuestARController.cells.plant.isActive &&
+                        CellQuestARController.plantHolder.visible;
 
-        return { beforeScanVisible, animalOk, dualOk };
+        return { beforeScanVisible, animalOk, dualOk: plantOk };
       })()
     `);
     recordTest(16, 'Pengaktifan model 3D berasaskan kad penanda (Sel Haiwan, Sel Tumbuhan & Dwi-Sel) berfungsi',
@@ -818,8 +818,8 @@ async function runTestSuite() {
         const regValid = reg &&
                          reg[0] && reg[0].module === 'video' &&
                          reg[1] && reg[1].module === 'nota' &&
-                         reg[3] && reg[3].module === 'cellquest' && reg[3].cellType === 'animal' &&
-                         reg[4] && reg[4].module === 'cellquest' && reg[4].cellType === 'plant';
+                         reg[3] && reg[3].module === 'cellquest-animal' && reg[3].cellType === 'animal' &&
+                         reg[4] && reg[4].module === 'cellquest-plant' && reg[4].cellType === 'plant';
         return {
           regValid,
           hasSPM: typeof SpatialPanelManager !== 'undefined',

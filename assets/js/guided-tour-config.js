@@ -584,31 +584,10 @@
           placement: 'top'
         },
         {
-          target: '#btn-open-marker, a[href*="marker-print"]',
-          title: 'Papar & Cetak Kad AR',
-          desc: 'Belum mempunyai kad bercetak? Ketik butang ini untuk membuka 6 lembaran Kad AR bagi dicetak atau dipaparkan pada skrin peranti lain.',
-          tip: 'Anda boleh mengimbas kad terus dari skrin komputer riba atau iPad rakan.',
-          placement: 'bottom'
-        },
-        {
-          target: '#btn-launch-jelajah3d, .btn-jelajah-3d',
-          title: 'Mod Jelajah Makmal 3D',
-          desc: 'Ingin belajar tanpa kad penanda? Masuki Makmal Maya 3D untuk meneroka 8 stesen organel dan instrumen secara bebas.',
-          tip: 'Gunakan joystick maya atau seretan skrin untuk bersiar-siar dalam makmal 3D.',
-          placement: 'bottom'
-        },
-        {
-          target: '#btn-launch-orientasi-dunia, .btn-orientasi-dunia',
-          title: 'AR Orientasi Dunia (360°)',
-          desc: 'Aktifkan kompas sensor dan Smart Radar untuk mencari organel yang terapung di sekeliling bilik anda secara 360 darjah!',
-          tip: 'Pusingkan badan anda mengikut petunjuk radar untuk menemui stesen sel tersembunyi.',
-          placement: 'bottom'
-        },
-        {
-          target: '#btn-toggle-diagnostics, .btn-diagnostics-toggle',
-          title: 'Diagnostik Sensor & Sistem',
-          desc: 'Ketik butang ini untuk menyemak kelajuan bingkai (FPS), status sensor giroskop, dan kestabilan enjin pengesanan MindAR.',
-          tip: 'Sangat berguna jika imbasan kad terasa perlahan atau tidak stabil.',
+          target: '#btn-global-toggle-cam, .btn-global-cam-toggle',
+          title: 'Tutup / Buka Kamera (Makmal Maya 360°)',
+          desc: 'Ketik butang ini pada bila-bila masa untuk menutup kamera bagi menjimatkan bateri sambil meneroka Makmal Maya 360° Bab 2 secara interaktif.',
+          tip: 'Panel Video, Nota dan Sel 3D yang telah dikunci pandangan kekal aktif walaupun kamera ditutup.',
           placement: 'bottom'
         },
         {

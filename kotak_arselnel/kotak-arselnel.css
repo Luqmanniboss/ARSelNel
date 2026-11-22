@@ -9640,3 +9640,178 @@ button.hidden,
   margin-left: 2px !important;
   vertical-align: middle !important;
 }
+
+/* =============================================================================
+   PHASE 4 & PHASE 6: CLEAN TOP HUD, ALWAYS-AVAILABLE CAMERA TOGGLE,
+   COMPACT CELLQUEST MOBILE HEADER & ZERO-OVERLAP LAYERING (320px..768px+)
+   ============================================================================= */
+
+/* Always-available Global Camera Toggle in Top HUD */
+.btn-global-cam-toggle {
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: #f8fafc !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.55) !important;
+  font-weight: 700 !important;
+}
+.btn-global-cam-toggle.is-cam-off {
+  background: linear-gradient(135deg, #0284c7, #0891b2) !important;
+  color: #ffffff !important;
+  border-color: #7dd3fc !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45) !important;
+}
+
+/* Independent Per-Cell Multi-Panel Pills */
+.multi-pill.pill-cellquest-animal {
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
+  border: 1px solid #7dd3fc !important;
+}
+.multi-pill.pill-cellquest-plant {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid #86efac !important;
+}
+
+/* Clean Top HUD & Multi-Panel Bar Positioning */
+.ar-top-hud {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding: max(8px, env(safe-area-inset-top, 8px)) 10px 8px 10px !important;
+  box-sizing: border-box !important;
+  max-width: 100vw !important;
+}
+
+.ar-hud-right-group {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+.ar-multi-panel-bar {
+  top: calc(58px + env(safe-area-inset-top, 0px)) !important;
+  z-index: 2400 !important;
+}
+
+@media (max-width: 768px) {
+  .ar-top-hud .ar-title-badge {
+    display: none !important;
+  }
+
+  .ar-top-hud .ar-hud-btn {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    min-height: 38px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Contained horizontal scroll for Multi-Panel Bar with scroll affordance */
+  .ar-multi-panel-bar {
+    top: calc(58px + env(safe-area-inset-top, 0px)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 6px 14px 6px 8px !important;
+    border-radius: 16px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    scroll-padding-inline: 12px !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+  }
+  .ar-multi-panel-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Compact CellQuest Mobile Header — sits cleanly at TOP, above Multi-Panel Bar */
+  body.has-multi-bar .cq-hud-header,
+  #ar-multi-panel-bar:not(.hidden) ~ #cellquest-ar-hud .cq-hud-header {
+    margin-top: 0 !important;
+  }
+
+  .cq-hud-header {
+    padding: max(8px, env(safe-area-inset-top, 8px)) 8px 6px 8px !important;
+    gap: 6px !important;
+    min-height: 50px !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  .cq-hud-center {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .cq-hud-badge {
+    font-size: 11.5px !important;
+    padding: 5px 10px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .cq-hud-right {
+    gap: 5px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cq-hud-btn.btn-pov-mode {
+    padding: 6px 10px !important;
+    gap: 4px !important;
+  }
+
+  .cq-hud-btn.btn-pov-mode .cq-pov-always-label {
+    display: inline !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+
+  /* Bottom layering: Hint pill at bottom, Toast above it, Offscreen pointer clear */
+  .cq-hint-pill {
+    top: auto !important;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+    font-size: 11.5px !important;
+    padding: 6px 12px !important;
+    max-width: calc(100vw - 24px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.cellquest-active .ar-toast,
+  body.cellquest-active #ar-toast {
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 10020 !important;
+  }
+
+  #pov-offscreen-pointer.at-bottom {
+    bottom: calc(108px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #pov-offscreen-pointer.at-top {
+    top: calc(120px + env(safe-area-inset-top, 0px)) !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .ar-top-hud #back-hud-text {
+    display: none !important;
+  }
+  .ar-top-hud .ar-hud-btn {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+  .cq-hud-btn.btn-pov-mode .cq-pov-always-label {
+    font-size: 10.5px !important;
+  }
+  .cq-hud-badge {
+    font-size: 10.5px !important;
+    padding: 4px 8px !important;
+  }
+}
