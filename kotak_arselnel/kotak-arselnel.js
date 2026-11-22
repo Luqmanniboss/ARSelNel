@@ -10122,9 +10122,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       scene.add(camera);
     }
 
-    // 🪐 Fasa 5: Inisialisasi Makmal Maya 360° Bab 2 (Camera-Off Virtual Environment)
+    // 🪐 Fasa 5: Inisialisasi Makmal Maya 360° Bab 2 & Makmal Biologi Maya 3D (Camera-Off Mode)
     if (typeof VirtualEnvironment360 !== 'undefined') {
       VirtualEnvironment360.init(scene, renderer, camera);
+    }
+    if (typeof VirtualBiologyLab !== 'undefined') {
+      VirtualBiologyLab.init(scene, renderer, camera);
     }
 
     // 🛡️ Fasa 4D-D.1: Hook resize() to ensure camera.near is ALWAYS 0.1 (never clipped at 10.0)
@@ -10311,8 +10314,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
     // Target 3 (Sel Haiwan 3D) Found Event
     ARState.anchorCellQuestAnimal.onTargetFound = () => {
-      if (GameSessionManager.isGameActive()) {
-        console.log('[KotakAR] 🛡️ Permainan aktif, pengesanan Marker Sel Haiwan diabaikan.');
+      if (!ARState.cameraActive || GameSessionManager.isGameActive()) {
         return;
       }
       handleTargetFound(3, 'cellquest-animal', 'animal');
@@ -10337,8 +10339,7 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
 
     // Target 4 (Sel Tumbuhan 3D) Found Event
     ARState.anchorCellQuestPlant.onTargetFound = () => {
-      if (GameSessionManager.isGameActive()) {
-        console.log('[KotakAR] 🛡️ Permainan aktif, pengesanan Marker Sel Tumbuhan diabaikan.');
+      if (!ARState.cameraActive || GameSessionManager.isGameActive()) {
         return;
       }
       handleTargetFound(4, 'cellquest-plant', 'plant');
@@ -10393,9 +10394,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
         }
       }
 
-      // 🪐 Fasa 5: Kemas kini orientasi 3DoF Makmal Maya 360° jika kamera ditutup
+      // 🪐 Fasa 5: Kemas kini orientasi 3DoF Makmal Maya 360° & Makmal Biologi Maya 3D jika kamera ditutup
       if (typeof VirtualEnvironment360 !== 'undefined' && VirtualEnvironment360.isActive) {
         VirtualEnvironment360.update(ARState.pov.currentQuaternion);
+      }
+      if (typeof VirtualBiologyLab !== 'undefined' && VirtualBiologyLab.isActive) {
+        VirtualBiologyLab.update(performance.now());
       }
 
       updateSpatialPanelsPosition();
@@ -10792,9 +10796,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     }
 
     if (!ARState.cameraActive) {
-      // 🪐 Fasa 5: Aktifkan Makmal Maya 360° Bab 2 & mulakan sensor 3DoF
+      // 🪐 Fasa 5 & Makmal Biologi Maya 3D: Aktifkan makmal 3D + latar belakang 360° & penderia 3DoF
+      ARState.virtualLabActive = true;
       if (typeof VirtualEnvironment360 !== 'undefined') {
         VirtualEnvironment360.show();
+      }
+      if (typeof VirtualBiologyLab !== 'undefined') {
+        VirtualBiologyLab.enter();
       }
       ARState.pov.active = true;
       initThreeHelpers();
@@ -10829,9 +10837,13 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
       if (DOM.cqCamIcon) DOM.cqCamIcon.textContent = 'videocam';
       if (DOM.cqCamText) DOM.cqCamText.textContent = 'Buka Kamera';
 
-      showToast('🪐 Kamera ditutup: Makmal Maya 360° Bab 2 aktif!');
+      showToast('🧪 Kamera ditutup: Makmal Biologi Maya 3D aktif!');
     } else {
-      // 🪐 Fasa 5: Sembunyikan Makmal Maya 360° apabila kamera fizikal dibuka semula
+      // 🪐 Fasa 5 & Makmal Biologi Maya 3D: Tutup makmal 3D & pulihkan Mod AR kamera fizikal
+      ARState.virtualLabActive = false;
+      if (typeof VirtualBiologyLab !== 'undefined') {
+        VirtualBiologyLab.exit();
+      }
       if (typeof VirtualEnvironment360 !== 'undefined') {
         VirtualEnvironment360.hide();
       }
@@ -12154,9 +12166,12 @@ Kedua-dua sel mempunyai **Nukleus**, **Sitoplasma**, **Membran Sel**, dan **Mito
     updateSmoothedQuaternion();
     updatePOVHeadingFromQuaternion();
 
-    // 🪐 Fasa 5: Kemas kini latar belakang 360° & render jika aktif
+    // 🪐 Fasa 5: Kemas kini latar belakang 360° & Makmal Biologi Maya 3D jika aktif
     if (typeof VirtualEnvironment360 !== 'undefined' && VirtualEnvironment360.isActive) {
       VirtualEnvironment360.update(ARState.pov.currentQuaternion);
+      if (typeof VirtualBiologyLab !== 'undefined' && VirtualBiologyLab.isActive) {
+        VirtualBiologyLab.update(performance.now());
+      }
       if (ARState.renderer && ARState.scene && ARState.camera) {
         ARState.renderer.render(ARState.scene, ARState.camera);
       }
